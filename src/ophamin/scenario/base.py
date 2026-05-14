@@ -28,6 +28,7 @@ from ophamin.proof import (
     content_hash,
 )
 from ophamin.provenance import ProvenanceGraph
+from ophamin.provenance.lineage import _ophamin_project_root, capture_git_commit
 from ophamin.substrate.base import CycleResult, SubstrateUnderTest
 
 DEFAULT_SIGN_KEY = b"ophamin-scenario-proof-key"
@@ -158,6 +159,7 @@ class Scenario(abc.ABC):
             ),
             provenance=self._build_provenance(substrate, dataset).to_prov_json(),
             ophamin_version=__version__,
+            ophamin_git_commit=capture_git_commit(_ophamin_project_root()),
         )
         record.sign(sign_key)
         return record
