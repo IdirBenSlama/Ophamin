@@ -16,6 +16,9 @@ from __future__ import annotations
 
 from typing import Iterator
 
+import statsmodels as _statsmodels
+from statsmodels.stats.proportion import proportion_confint
+
 from ophamin import __version__
 from ophamin.corpus import Corpus, CorpusRecord
 from ophamin.proof import Claim, PillarEvidence, Threshold
@@ -69,15 +72,35 @@ class ImmuneSiegeScenario(Scenario):
 
     def select_records(self, corpus: Corpus) -> Iterator[CorpusRecord]:
         # the labelled prompt-injection / jailbreak sub-source carries both
-        # benign and malicious records — exactly what a false-positive rate needs
+        # benign and malicious records. Interleave them benign/malicious
+        # round-robin so islice(n_cycles) in run() yields a *balanced* sample —
+        # a false-positive rate needs a solid benign denominator, a detection
+        # rate a solid malicious one. Balanced 50/50 maximises the smaller class
+        # for any given n_cycles, tightening both confidence intervals.
         records_from = getattr(corpus, "records_from", None)
         if records_from is None:
             raise RuntimeError(
                 "ImmuneSiegeScenario requires the offensive-security corpus"
             )
+        benign: list[CorpusRecord] = []
+        malicious: list[CorpusRecord] = []
         for record in records_from("prompt_injection"):
-            if "label" in record.metadata:
-                yield record
+            if "label" not in record.metadata:
+                continue
+            label = self._label_of(record)
+            if label == "benign":
+                benign.append(record)
+            elif label == "malicious":
+                malicious.append(record)
+        for b, m in zip(benign, malicious):
+            yield b
+            yield m
+        # remainder of the larger class — only reached if n_cycles exceeds
+        # twice the smaller class
+        for extra in benign[len(malicious):]:
+            yield extra
+        for extra in malicious[len(benign):]:
+            yield extra
 
     def build_claim(self) -> Claim:
         ceiling = self.false_positive_ceiling
@@ -181,6 +204,27 @@ class ImmuneSiegeScenario(Scenario):
         detection_rate = (
             malicious_blocked / malicious_total if malicious_total else 0.0
         )
+        # Wilson 95% confidence intervals — the false-positive and detection
+        # rates are binomial proportions; statsmodels computes the interval. A
+        # bare rate with no interval is a number, not a measurement.
+        if benign_total:
+            fp_lo, fp_hi = (
+                float(x)
+                for x in proportion_confint(
+                    benign_blocked, benign_total, alpha=0.05, method="wilson"
+                )
+            )
+        else:
+            fp_lo = fp_hi = None
+        if malicious_total:
+            det_lo, det_hi = (
+                float(x)
+                for x in proportion_confint(
+                    malicious_blocked, malicious_total, alpha=0.05, method="wilson"
+                )
+            )
+        else:
+            det_lo = det_hi = None
         # the GWF input-feature extraction is target-specific: the 'gwf' direct
         # target is fed by an Ophamin stand-in extractor; the 'entity' target
         # runs Kimera's own pipeline with the GWF inline. The proof record must
@@ -194,8 +238,10 @@ class ImmuneSiegeScenario(Scenario):
                 pillar="O.immune.false_positive",
                 statistic_name="gwf_false_positive_rate",
                 statistic_value=fp_rate,
-                library="ophamin",
-                library_version=__version__,
+                library="statsmodels",
+                library_version=_statsmodels.__version__,
+                ci_low=fp_lo,
+                ci_high=fp_hi,
                 cross_check="n/a",
                 detail={
                     "benign_blocked": benign_blocked,
@@ -203,19 +249,23 @@ class ImmuneSiegeScenario(Scenario):
                     "feature_extraction": feature_extraction,
                     "target": self.target,
                     "adapter_errors": adapter_errors,
+                    "ci_method": "wilson_95",
                 },
             ),
             PillarEvidence(
                 pillar="O.immune.detection",
                 statistic_name="gwf_detection_rate",
                 statistic_value=detection_rate,
-                library="ophamin",
-                library_version=__version__,
+                library="statsmodels",
+                library_version=_statsmodels.__version__,
+                ci_low=det_lo,
+                ci_high=det_hi,
                 cross_check="n/a",
                 detail={
                     "malicious_blocked": malicious_blocked,
                     "malicious_total": malicious_total,
                     "target": self.target,
+                    "ci_method": "wilson_95",
                 },
             ),
         ]

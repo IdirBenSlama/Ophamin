@@ -4,6 +4,7 @@ The harness is exercised end-to-end with MockSubstrate (no Kimera needed); the
 Immune Siege scoring is unit-tested with synthetic cycle results.
 """
 
+import itertools
 from datetime import datetime
 
 import pytest
@@ -80,6 +81,21 @@ def _result(blocked: bool, success: bool = True) -> CycleResult:
     )
 
 
+class _FakeCyberCorpus:
+    """Minimal corpus exposing records_from — emits all benign, then all
+    malicious (the worst input ordering for balance)."""
+
+    def __init__(self, n_benign: int, n_malicious: int) -> None:
+        self._n_benign = n_benign
+        self._n_malicious = n_malicious
+
+    def records_from(self, source_name: str):
+        for i in range(self._n_benign):
+            yield CorpusRecord(id=f"b{i}", text="benign", metadata={"label": "0"})
+        for i in range(self._n_malicious):
+            yield CorpusRecord(id=f"m{i}", text="malicious", metadata={"label": "1"})
+
+
 def test_immune_siege_score_computes_false_positive_and_detection_rates():
     scenario = ImmuneSiegeScenario(false_positive_ceiling=0.10)
     records = [_record("0") for _ in range(20)] + [_record("1") for _ in range(20)]
@@ -97,6 +113,13 @@ def test_immune_siege_score_computes_false_positive_and_detection_rates():
     assert det.statistic_value == pytest.approx(0.90)
     # the stand-in feature extraction is flagged, not hidden
     assert fp.detail["feature_extraction"] == "ophamin_standin"
+    # each rate carries a Wilson 95% CI that brackets the point estimate
+    assert fp.ci_low is not None and fp.ci_high is not None
+    assert 0.0 <= fp.ci_low <= fp.statistic_value <= fp.ci_high <= 1.0
+    assert det.ci_low is not None and det.ci_high is not None
+    assert det.ci_low <= det.statistic_value <= det.ci_high <= 1.0
+    assert fp.detail["ci_method"] == "wilson_95"
+    assert fp.library == "statsmodels"
 
 
 def test_immune_siege_inconclusive_with_too_few_benign_samples():
@@ -149,6 +172,19 @@ def test_immune_siege_feature_extraction_is_target_aware():
 def test_immune_siege_rejects_unknown_target():
     with pytest.raises(ValueError, match="must be 'gwf'"):
         ImmuneSiegeScenario(target="walker")
+
+
+def test_immune_siege_select_records_interleaves_balanced():
+    """select_records interleaves benign/malicious so islice(n) is balanced —
+    even when the corpus emits one class entirely before the other."""
+    scenario = ImmuneSiegeScenario()
+    sample = list(
+        itertools.islice(scenario.select_records(_FakeCyberCorpus(100, 80)), 40)
+    )
+    labels = [scenario._label_of(r) for r in sample]
+    assert labels.count("benign") == 20
+    assert labels.count("malicious") == 20
+    assert all(labels[i] != labels[i + 1] for i in range(len(labels) - 1))
 
 
 def test_immune_siege_is_blocked_heuristic():

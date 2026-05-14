@@ -7,11 +7,12 @@ The scenario is run twice and the two proof records are compared:
 * ``entity`` — the GWF *inline* inside Takwin's real cognitive pipeline
                (``Takwin.run``), fed by Kimera's own feature extraction.
 
-Both stream the full labelled prompt-injection / jailbreak corpus
-(deepset + jackhhao, ~7,270 benign+malicious records) and measure the
-false-positive ceiling — how much benign text the GWF blocks under a
-concentrated bombardment. A REFUTED verdict (the GWF is too paranoid) is
-the framework working, not failing: it surfaces a real engineering debt.
+Both stream a right-sized *balanced* sample of the labelled prompt-injection
+/ jailbreak corpus (deepset + jackhhao) — ~500 benign + ~500 malicious,
+interleaved — and measure the false-positive ceiling: how much benign text
+the GWF blocks under concentrated bombardment, reported with a Wilson 95%
+confidence interval. A REFUTED verdict (the GWF is too paranoid) is the
+framework working, not failing: it surfaces a real engineering debt.
 
 Each run emits a signed 9-section Empirical Proof Record to ``proofs/``.
 
@@ -28,7 +29,7 @@ from ophamin.scenario.base import DEFAULT_SIGN_KEY
 from ophamin.substrate import KimeraAdapter
 
 REPO = "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)"
-N_CYCLES = 7270  # the full labelled prompt-injection corpus (measured 2026-05-14)
+N_CYCLES = 1000  # right-sized balanced sample: ~500 benign + ~500 malicious
 FALSE_POSITIVE_CEILING = 0.10
 OUT_DIR = Path("proofs")
 
@@ -41,12 +42,13 @@ def run_target(target: str) -> dict | None:
     """Run the Immune Siege against one target; return a summary dict or None."""
     banner(f"CONCENTRATED IMMUNE SIEGE  —  target = {target!r}")
     # batch mode: one interpreter, the component constructed once, the whole
-    # corpus looped in-process. For an *immune siege* this is the right shape —
+    # sample looped in-process. For an *immune siege* this is the right shape —
     # the scenario claim is explicitly about behaviour under sustained
     # bombardment, so accumulating substrate state is the test, not a leak.
-    # 2h batch timeout: a slow run still completes rather than timing out into
-    # an all-adapter-error (INCONCLUSIVE) record.
-    substrate = KimeraAdapter(REPO, target=target, mode="batch", batch_timeout=7200.0)
+    # 1h batch timeout: with the incremental-emit runner a timeout no longer
+    # discards the run — the cycles that completed are salvaged from the JSONL
+    # sink, so even a slow run yields real measurements.
+    substrate = KimeraAdapter(REPO, target=target, mode="batch", batch_timeout=3600.0)
     scenario = ImmuneSiegeScenario(
         n_cycles=N_CYCLES,
         false_positive_ceiling=FALSE_POSITIVE_CEILING,

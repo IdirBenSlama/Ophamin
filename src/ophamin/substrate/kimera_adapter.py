@@ -283,6 +283,7 @@ def main():
         emit({"ok": False, "stage": "target", "error": "unknown target %r" % target}); return
     if "--batch" in flags:
         stimuli = payload.get("stimuli") or []
+        results_path = payload.get("results_path")  # incremental-emit sink
         t_construct = time.perf_counter()
         try:
             component = construct(target, params)
@@ -290,19 +291,29 @@ def main():
             emit({"ok": False, "stage": "construct", "error": str(e),
                   "traceback": traceback.format_exc()}); return
         construct_seconds = time.perf_counter() - t_construct
+        # Stream every cycle to a JSONL sink as it completes. A kill / timeout
+        # then still leaves the finished cycles on disk -- the adapter reads
+        # them back instead of losing the whole batch. Line-buffered + an
+        # explicit flush per cycle so a SIGKILL cannot lose a completed line.
+        sink = open(results_path, "w", buffering=1) if results_path else None
         results = []
         for i, s in enumerate(stimuli):
             t_cycle = time.perf_counter()
             try:
                 raw, success, halt = invoke(target, s, params, component)
-                results.append({"cycle_index": i, "ok": True, "raw": raw,
-                                "success": success, "halt_mode": halt,
-                                "cycle_seconds": time.perf_counter() - t_cycle})
+                entry = {"cycle_index": i, "ok": True, "raw": raw,
+                         "success": success, "halt_mode": halt,
+                         "cycle_seconds": time.perf_counter() - t_cycle}
             except Exception as e:
-                results.append({"cycle_index": i, "ok": False,
-                                "cycle_seconds": time.perf_counter() - t_cycle,
-                                "error": str(e),
-                                "traceback": traceback.format_exc()[-1500:]})
+                entry = {"cycle_index": i, "ok": False,
+                         "cycle_seconds": time.perf_counter() - t_cycle,
+                         "error": str(e),
+                         "traceback": traceback.format_exc()[-1500:]}
+            results.append(entry)
+            if sink is not None:
+                sink.write(json.dumps(entry) + "\n"); sink.flush()
+        if sink is not None:
+            sink.close()
         emit({"ok": True, "batch": results, "construct_seconds": construct_seconds})
         return
     stimulus = payload.get("stimulus")
@@ -480,19 +491,57 @@ class KimeraAdapter(SubstrateUnderTest):
         if self.mode != "batch":
             # subprocess mode: honour the precision path — one interpreter per cycle
             return super().run_batch(stimuli, params)
-        payload = {"target": self.target, "stimuli": list(stimuli), "params": params or {}}
-        result = self._invoke(payload, batch=True, timeout=self.batch_timeout)
-        if not result.get("ok"):
-            # the whole batch process failed — surface it as one failed result per stimulus
+        # incremental-emit: the runner streams each cycle to a JSONL sink as it
+        # completes, so a timeout or crash still yields the cycles that finished
+        # — the adapter reads them back rather than discarding the whole batch.
+        sink = tempfile.NamedTemporaryFile(
+            mode="w", suffix="_ophamin_batch_results.jsonl", delete=False
+        )
+        sink.close()
+        results_path = sink.name
+        payload = {
+            "target": self.target,
+            "stimuli": list(stimuli),
+            "params": params or {},
+            "results_path": results_path,
+        }
+        try:
+            result = self._invoke(payload, batch=True, timeout=self.batch_timeout)
+            # happy path: the runner returned a clean batch on stdout — authoritative
+            if result.get("ok") and "batch" in result:
+                out: list[CycleResult] = []
+                for entry in result.get("batch", []):
+                    idx = int(entry.get("cycle_index", len(out)))
+                    stimulus = stimuli[idx] if idx < len(stimuli) else None
+                    out.append(self._to_cycle_result(entry, stimulus, idx))
+                return out
+            # timeout / crash: reconstruct from the incremental sink — the cycles
+            # that completed are real measurements; the unreached tail becomes an
+            # adapter_error, so a 7000/7270 timeout is real data, not all-or-nothing
+            completed: dict[int, dict[str, Any]] = {}
+            try:
+                with open(results_path) as fh:
+                    for line in fh:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            entry = json.loads(line)
+                        except json.JSONDecodeError:
+                            continue  # a half-written final line after a hard kill
+                        if "cycle_index" in entry:
+                            completed[int(entry["cycle_index"])] = entry
+            except OSError:
+                pass
             return [
-                self._to_cycle_result(result, s, i) for i, s in enumerate(stimuli)
+                self._to_cycle_result(completed.get(i, result), s, i)
+                for i, s in enumerate(stimuli)
             ]
-        out: list[CycleResult] = []
-        for entry in result.get("batch", []):
-            idx = int(entry.get("cycle_index", len(out)))
-            stimulus = stimuli[idx] if idx < len(stimuli) else None
-            out.append(self._to_cycle_result(entry, stimulus, idx))
-        return out
+        finally:
+            try:
+                Path(results_path).unlink(missing_ok=True)
+            except OSError:
+                pass
 
     # -- adapter-specific capabilities --------------------------------------
 
