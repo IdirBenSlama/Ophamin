@@ -1,0 +1,22 @@
+# Ophamin — generated artifacts and caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.benchmarks/
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+
+# Experiment outputs — lineage store, MLflow, DVC working data.
+# The manifest.json files inside runs/ ARE the provenance record; the heavy
+# artifacts are content-addressed and excluded by default. Commit selectively.
+runs/
+mlruns/
+data/raw/
+data/processed/
+*.pkl
+
+# OS
+.DS_Store

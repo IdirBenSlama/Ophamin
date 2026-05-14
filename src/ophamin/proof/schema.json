@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ophamin.example/schema/empirical-proof-record/1.0",
+  "title": "Ophamin Empirical Proof Record",
+  "description": "The official Ophamin result artifact: one record per verified claim. A proof is bulletproof when it is falsifiable, pre-registered, traceable, reproducible, attributed and tamper-evident.",
+  "type": "object",
+  "required": [
+    "proof_id",
+    "schema_version",
+    "identity",
+    "claim",
+    "preregistration",
+    "data",
+    "evidence",
+    "verdict",
+    "reproduction",
+    "provenance",
+    "signature"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "proof_id": {
+      "type": "string",
+      "description": "SHA-256 content hash over sections 1-8 (the body).",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "schema_version": { "type": "string", "const": "1.0" },
+
+    "identity": {
+      "type": "object",
+      "description": "Section 1 — who/what/when produced this record.",
+      "required": ["ophamin_version", "ophamin_git_commit", "created_at"],
+      "additionalProperties": false,
+      "properties": {
+        "ophamin_version": { "type": "string", "minLength": 1 },
+        "ophamin_git_commit": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "claim": {
+      "type": "object",
+      "description": "Section 2 — the falsifiable claim (five-tuple).",
+      "required": ["statement", "operationalization", "threshold", "h0", "h1"],
+      "additionalProperties": false,
+      "properties": {
+        "statement": { "type": "string", "minLength": 1 },
+        "operationalization": { "type": "string", "minLength": 1 },
+        "threshold": { "$ref": "#/$defs/threshold" },
+        "h0": { "type": "string", "minLength": 1 },
+        "h1": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "preregistration": {
+      "type": "object",
+      "description": "Section 3 — claim + plan hashed before the run (anti-p-hacking lock).",
+      "required": ["config_hash", "data_hash", "analysis_plan", "sweep_grid", "preregistered_at"],
+      "additionalProperties": false,
+      "properties": {
+        "config_hash": { "type": "string", "minLength": 1 },
+        "data_hash": { "type": "string", "minLength": 1 },
+        "analysis_plan": { "type": "string" },
+        "sweep_grid": { "type": "object" },
+        "preregistered_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Must precede identity.created_at."
+        }
+      }
+    },
+
+    "data": {
+      "type": "object",
+      "description": "Section 4 — the real, content-hashed data and the substrate revision.",
+      "required": ["substrate_name", "substrate_git_commit", "datasets"],
+      "additionalProperties": false,
+      "properties": {
+        "substrate_name": { "type": "string", "minLength": 1 },
+        "substrate_git_commit": {
+          "type": "string",
+          "description": "The data_git_commit_id — ties the result to an exact substrate state."
+        },
+        "datasets": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/dataset_ref" }
+        }
+      }
+    },
+
+    "evidence": {
+      "type": "array",
+      "description": "Section 5 — per-pillar evidence, each attributed to the library that produced it.",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/pillar_evidence" }
+    },
+
+    "verdict": {
+      "type": "object",
+      "description": "Section 6 — VALIDATED / REFUTED / INCONCLUSIVE against the threshold.",
+      "required": ["outcome", "observed_value", "threshold", "reasoning"],
+      "additionalProperties": false,
+      "properties": {
+        "outcome": { "type": "string", "enum": ["VALIDATED", "REFUTED", "INCONCLUSIVE"] },
+        "observed_value": { "type": "number" },
+        "threshold": { "$ref": "#/$defs/threshold" },
+        "reasoning": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "reproduction": {
+      "type": "object",
+      "description": "Section 7 — exact command, environment lock, lineage chain.",
+      "required": ["command", "environment", "lineage_chain"],
+      "additionalProperties": false,
+      "properties": {
+        "command": { "type": "string", "minLength": 1 },
+        "environment": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "string" }
+        },
+        "lineage_chain": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "provenance": {
+      "type": "object",
+      "description": "Section 8 — the W3C PROV-O graph (PROV-JSON)."
+    },
+
+    "signature": {
+      "type": "string",
+      "description": "Section 9 — HMAC-SHA256 over sections 1-8. Empty string means unsigned.",
+      "pattern": "^([0-9a-f]{64})?$"
+    }
+  },
+
+  "$defs": {
+    "threshold": {
+      "type": "object",
+      "description": "A falsifiable pass/fail boundary — there is no claim without one.",
+      "required": ["metric", "comparator", "value", "units"],
+      "additionalProperties": false,
+      "properties": {
+        "metric": { "type": "string", "minLength": 1 },
+        "comparator": { "type": "string", "enum": [">=", "<=", ">", "<", "=="] },
+        "value": { "type": "number" },
+        "units": { "type": "string" }
+      }
+    },
+    "dataset_ref": {
+      "type": "object",
+      "required": ["name", "content_hash", "n_records", "source", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "content_hash": { "type": "string", "minLength": 1 },
+        "n_records": { "type": "integer", "minimum": 1 },
+        "source": { "type": "string" },
+        "kind": { "type": "string" }
+      }
+    },
+    "pillar_evidence": {
+      "type": "object",
+      "required": [
+        "pillar", "statistic_name", "statistic_value",
+        "library", "library_version", "cross_check", "detail"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "pillar": { "type": "string", "minLength": 1 },
+        "statistic_name": { "type": "string", "minLength": 1 },
+        "statistic_value": { "type": "number" },
+        "library": { "type": "string", "minLength": 1 },
+        "library_version": { "type": "string", "minLength": 1 },
+        "effect_size": { "type": ["number", "null"] },
+        "ci_low": { "type": ["number", "null"] },
+        "ci_high": { "type": ["number", "null"] },
+        "p_value": { "type": ["number", "null"] },
+        "cross_check": { "type": "string", "enum": ["passed", "skipped", "failed", "n/a"] },
+        "detail": { "type": "object" }
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+# Ophamin base configuration.
+# Loaded by ophamin.config.load_config(). Hydra-compatible layout — if hydra-core
+# is installed it can consume this directly; the native loader does not require it.
+
+experiment:
+  name: "ophamin-baseline"
+  description: "Baseline iterative-experimentation run against the substrate under test."
+  cycles_per_run: 200            # iterations per child run
+  warmup_cycles: 1               # discarded before measurement (cold-start transient)
+  seed: 20260514
+
+substrate:
+  # "mock" runs fully standalone (no Kimera needed). "kimera" uses the subprocess adapter.
+  kind: "mock"
+  kimera_repo: ""                # absolute path to the Kimera repo (only used when kind=kimera)
+  kimera_python: ""              # path to Kimera's venv python; empty = autodetect <repo>/.venv/bin/python
+  subprocess_per_cycle: true     # fresh interpreter per cycle — the leak-free probe shape
+
+# O — Observability and anomaly detection
+observability:
+  spc:
+    sigma_limit: 3.0             # control-limit width (L-sigma)
+    subgroup_size: 5
+  srm:
+    expected_ratios: { control: 0.5, treatment: 0.5 }
+    alpha: 0.001                 # aggressive SRM threshold
+
+# A — Adaptive sequential testing
+adaptive:
+  alpha: 0.05                    # Type I error
+  beta: 0.20                     # Type II error
+  msprt_mixing_variance: 1.0     # tau^2 for the mixture SPRT
+  msprt_alpha: 0.05              # always-valid p-value threshold
+
+# M — Mixed-effects and multi-experiment analysis
+effects:
+  center_and_scale: true
+  em_max_iter: 200
+  em_tol: 1.0e-6
+
+# I — Iterative cumulative meta-analysis
+synthesis:
+  random_effects: true
+  tau2_fixed_after: 8            # two-stage CMA: estimate tau^2 on first N, then hold fixed
+
+# N — N-fold robustness
+robustness:
+  method: "monte_carlo"          # monte_carlo | k_fold
+  n_iterations: 200
+  train_fraction: 0.7
+  k_folds: 5
+
+provenance:
+  lineage_root: "runs"
+  capture_sut_git: true

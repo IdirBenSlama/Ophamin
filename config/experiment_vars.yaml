@@ -1,0 +1,33 @@
+# Ophamin sweep definition.
+# `base` points at the standing config; `sweep` is a parameter grid — every
+# combination becomes one child run under a single parent experiment.
+# Dotted keys address into base_config.yaml.
+
+base: "config/base_config.yaml"
+
+parent_experiment:
+  name: "organizational-dissonance-sweep"
+  description: "Sweep injection rate against immune threshold on the substrate under test."
+
+sweep:
+  substrate.params.injection_rate: [0.1, 0.3, 0.6, 0.9]
+  substrate.params.immune_threshold: [0.45, 0.9]
+
+# Stimuli fed to the substrate each cycle. A path to a newline-delimited corpus,
+# or an inline list. Empty => the substrate generates its own (mock does this).
+stimuli:
+  source: "inline"
+  items:
+    - "memory is structure, not data"
+    - "the substrate causes intelligence"
+    - "experience carves the manifold"
+    - "a contradiction resolved at the surface"
+
+# Which substrate-specific diagnostics to attach to this sweep.
+diagnostics:
+  anticipatory_failure: true
+  cognitive_inertia: true
+  kernel_coupling:
+    enabled: false
+    entropy_coefficients: [0.005, 0.01, 0.05, 0.20]
+    cells: []                    # collapse-prone topological cells to probe
