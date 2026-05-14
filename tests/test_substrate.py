@@ -1,6 +1,11 @@
-"""Tests for the substrate layer — CycleResult extraction and MockSubstrate."""
+"""Tests for the substrate layer — CycleResult extraction, MockSubstrate, and
+the KimeraAdapter batch runner's incremental-emit reconstruction."""
+
+import json
+from pathlib import Path
 
 from ophamin.substrate.base import CycleResult
+from ophamin.substrate.kimera_adapter import KimeraAdapter
 from ophamin.substrate.mock import MockSubstrate
 
 
@@ -73,3 +78,68 @@ def test_mock_substrate_no_collapse_outside_collapse_cell():
         sut.reset()
         result = sut.run_cycle("s", {"cell": "C_other", "entropy_coefficient": 0.005})
         assert result.success is True
+
+
+# -- KimeraAdapter batch runner — incremental-emit reconstruction -----------
+
+def _fake_kimera_repo(tmp_path: Path) -> Path:
+    """The minimal directory shape KimeraAdapter.__init__ validates."""
+    (tmp_path / "kimera_swm").mkdir()
+    venv_python = tmp_path / ".venv" / "bin" / "python"
+    venv_python.parent.mkdir(parents=True)
+    venv_python.write_text("#!/bin/sh\n")  # presence is all __init__ checks
+    return tmp_path
+
+
+def test_kimera_adapter_batch_salvages_completed_cycles_on_timeout(tmp_path):
+    """A timeout must NOT discard the batch — run_batch reconstructs from the
+    incremental JSONL sink: completed cycles are real CycleResults, the
+    unreached tail (and any half-written final line) is adapter_error."""
+    adapter = KimeraAdapter(_fake_kimera_repo(tmp_path), mode="batch")
+
+    def fake_invoke(payload, *, probe=False, batch=False, timeout=None):
+        # simulate a runner that completed cycles 0..2, then was SIGKILLed
+        # mid-write of cycle 3 — and the call itself returns a timeout.
+        with open(payload["results_path"], "w") as fh:
+            for i in range(3):
+                fh.write(json.dumps({
+                    "cycle_index": i, "ok": True,
+                    "raw": {"verdict": f"cycle-{i}"},
+                    "success": True, "halt_mode": "commit",
+                    "cycle_seconds": 0.01,
+                }) + "\n")
+            fh.write('{"cycle_index": 3, "ok": tru')  # half-written line
+        return {"ok": False, "stage": "timeout", "error": "batch timed out"}
+
+    adapter._invoke = fake_invoke
+    results = adapter.run_batch([f"stimulus {i}" for i in range(6)])
+
+    assert len(results) == 6
+    real = [r for r in results if r.halt_mode != "adapter_error"]
+    errs = [r for r in results if r.halt_mode == "adapter_error"]
+    assert [r.cycle_index for r in real] == [0, 1, 2]  # the salvaged prefix
+    assert all(r.raw.get("verdict") == f"cycle-{r.cycle_index}" for r in real)
+    assert [r.cycle_index for r in errs] == [3, 4, 5]  # unreached tail + half-written
+    assert all(r.error for r in errs)
+
+
+def test_kimera_adapter_batch_happy_path_uses_stdout_batch(tmp_path):
+    """When the runner returns a clean stdout batch, run_batch uses it directly."""
+    adapter = KimeraAdapter(_fake_kimera_repo(tmp_path), mode="batch")
+
+    def fake_invoke(payload, *, probe=False, batch=False, timeout=None):
+        return {
+            "ok": True,
+            "construct_seconds": 0.1,
+            "batch": [
+                {"cycle_index": i, "ok": True, "raw": {"v": i},
+                 "success": True, "halt_mode": "commit", "cycle_seconds": 0.01}
+                for i in range(4)
+            ],
+        }
+
+    adapter._invoke = fake_invoke
+    results = adapter.run_batch([f"s{i}" for i in range(4)])
+    assert len(results) == 4
+    assert all(r.success and r.halt_mode != "adapter_error" for r in results)
+    assert [r.raw["v"] for r in results] == [0, 1, 2, 3]
