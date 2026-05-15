@@ -28,6 +28,7 @@ from __future__ import annotations
 from ophamin.auditing.pillars.bandit_pillar import BanditPillar
 from ophamin.auditing.pillars.deptry_pillar import DeptryPillar
 from ophamin.auditing.pillars.fawltydeps_pillar import FawltyDepsPillar
+from ophamin.auditing.pillars.interrogate_pillar import InterrogatePillar
 from ophamin.auditing.pillars.mypy_pillar import MypyPillar
 from ophamin.auditing.pillars.pip_audit_pillar import PipAuditPillar
 from ophamin.auditing.pillars.radon_pillar import RadonPillar
@@ -42,6 +43,7 @@ DEFAULT_PILLAR_CLASSES = (
     VulturePillar,
     RadonPillar,
     PipAuditPillar,
+    InterrogatePillar,
 )
 
 #: project-scope pillars — require the target to be a project-root directory
@@ -73,6 +75,7 @@ __all__ = [
     "BanditPillar",
     "DeptryPillar",
     "FawltyDepsPillar",
+    "InterrogatePillar",
     "MypyPillar",
     "PipAuditPillar",
     "RadonPillar",

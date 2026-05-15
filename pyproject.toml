@@ -62,6 +62,7 @@ audit = [                          # auditing wheel — orchestrated static-anal
     "cyclonedx-python-lib>=11.0",  # CycloneDX SBOM exporter (interop wheel)
     "deptry>=0.20",                # project-scope dependency checker (PR #9)
     "fawltydeps>=0.18",            # project-scope dependency checker (PR #9)
+    "interrogate>=1.5",            # docstring-coverage pillar (PR #9 sibling)
 ]
 all = [                            # convenience: everything optional, for full local install
     "matplotlib>=3.6",
@@ -81,6 +82,7 @@ all = [                            # convenience: everything optional, for full 
     "cyclonedx-python-lib>=11.0",
     "deptry>=0.20",
     "fawltydeps>=0.18",
+    "interrogate>=1.5",
 ]
 dev = ["pytest>=7.0"]
 

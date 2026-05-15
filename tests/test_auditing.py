@@ -567,10 +567,15 @@ def test_audit_runner_passes_kwargs_to_pillars(tmp_path):
     assert received["timeout_s"] == 42.0
 
 
-def test_default_pillars_includes_all_six():
+def test_default_pillars_includes_file_scope_set():
+    """File-scope pillars: ruff, bandit, mypy, vulture, radon, pip_audit,
+    interrogate. Project-scope (deptry, fawltydeps) live in
+    PROJECT_PILLAR_CLASSES, not DEFAULT_PILLAR_CLASSES.
+    """
     pillars = default_pillars()
     names = {p.name for p in pillars}
-    assert names == {"ruff", "bandit", "mypy", "vulture", "radon", "pip_audit"}
+    assert names == {"ruff", "bandit", "mypy", "vulture", "radon",
+                     "pip_audit", "interrogate"}
 
 
 def test_audit_runner_record_is_content_addressed(tmp_path):

@@ -9,6 +9,25 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **interrogate audit pillar — PR #9 sibling.** Docstring-coverage pillar
+  using `interrogate`'s Python API directly (no subprocess). Per-file
+  findings emitted when coverage falls below `fail_under` (default 80%).
+  Severity bands: < 30% → HIGH, < 60% → MEDIUM, < 80% → LOW. File-scope
+  (joins `DEFAULT_PILLAR_CLASSES`). MIT licensed.
+
+  Pivot story this round: tried Pyright (Node.js bundle download fails in
+  this venv), Mutmut (wrong shape — runs full test suite per mutation,
+  too expensive for an audit pillar), then settled on interrogate (pure
+  Python, native API, native fit). The catalog's 12-pick shortlist isn't
+  prescriptive — when a tool doesn't fit, the next adjacent one usually does.
+
+  Live empirical signal: Ophamin self-audit at 52.1% docstring coverage
+  (1091 nodes, 568 documented, 523 missing). Provides immediate per-file
+  action list of where to add docstrings.
+
+  13 hardening tests in `tests/test_interrogate_pillar.py`. Test count:
+  620 → 633.
+
 - **deptry + fawltydeps audit pillars — PR #9 of the v0.2 plugin-catalog
   roadmap.** Two new project-scope audit pillars that detect
   declared-vs-imported dependency mismatches in `pyproject.toml`. Both MIT

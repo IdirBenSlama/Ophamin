@@ -70,6 +70,7 @@ DEP_CHECKS: tuple[tuple[str, str, str, str, str], ...] = (
     ("opentelemetry-sdk", "opentelemetry.sdk", "optional", "telemetry", "OTel SDK"),
     ("prometheus_client", "prometheus_client", "optional", "telemetry", "PrometheusScrapeProbe consumer"),
     ("cyclonedx-python-lib", "cyclonedx",      "optional", "audit",     "CycloneDX SBOM exporter"),
+    ("interrogate",  "interrogate",            "optional", "audit",     "docstring-coverage (PR #9 sibling)"),
     ("py-spy",       "",                       "optional", "profile",   "sampling profiler (binary tool)"),
     ("memray",       "memray",                 "optional", "profile",   "memory profiler"),
 )
@@ -85,6 +86,7 @@ BINARY_CHECKS: tuple[tuple[str, str, str, str], ...] = (
     ("pip-audit",  "optional", "audit",   "Dependency-vuln scanner"),
     ("deptry",     "optional", "audit",   "Project-scope dep checker (PR #9)"),
     ("fawltydeps", "optional", "audit",   "Project-scope dep checker (PR #9)"),
+    ("interrogate","optional", "audit",   "Docstring coverage (PR #9 sibling)"),
     ("py-spy",     "optional", "profile", "Sampling profiler"),
 )
 
