@@ -787,10 +787,16 @@ def cmd_wiring(args: argparse.Namespace) -> int:
         print(f"kimera repo path is not a directory: {repo}", file=sys.stderr)
         return 2
 
-    print(f"inventorying    : {repo}")
-    inventory = discover_all(repo)
-    print(f"building graph  : {inventory.total_surfaces()} surfaces")
-    report = WiringProbe(repo).probe(inventory)
+    if args.scan_all:
+        print(f"scanning all    : {repo}/kimera_swm/")
+        report = WiringProbe(repo).scan_all()
+        print(f"classified      : {report.total_surfaces()} Python modules "
+              f"(repo-wide scan, not inventory-only)")
+    else:
+        print(f"inventorying    : {repo}")
+        inventory = discover_all(repo)
+        print(f"building graph  : {inventory.total_surfaces()} surfaces")
+        report = WiringProbe(repo).probe(inventory)
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1120,6 +1126,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_wiring.add_argument(
         "--out-dir", default="wiring",
         help="directory to write the report JSON + Markdown (default: wiring/)",
+    )
+    p_wiring.add_argument(
+        "--all", dest="scan_all", action="store_true",
+        help="scan every .py file under kimera_swm/ — not just the ~336 "
+             "named primitive surfaces in KimeraInventory (broader picture, "
+             "slower run)",
     )
     p_wiring.set_defaults(func=cmd_wiring)
 

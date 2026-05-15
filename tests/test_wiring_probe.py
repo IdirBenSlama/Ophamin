@@ -489,3 +489,78 @@ def test_stratum_completeness_rates_correct(fake_kimera_for_wiring):
     # 1 wired, 1 orphan out of 2 → 50/50
     assert iface.wired_rate == pytest.approx(0.5)
     assert iface.orphan_rate == pytest.approx(0.5)
+
+
+# --------------------------------------------------------------------------
+# WiringProbe.scan_all — every .py file, bucketed by top-level subdir
+# --------------------------------------------------------------------------
+
+
+def test_scan_all_classifies_every_python_file(fake_kimera_for_wiring):
+    report = WiringProbe(fake_kimera_for_wiring).scan_all()
+    # Fixture has ≥ 5 non-__init__ modules: takwin, walker, wired_router,
+    # orphan_router, tcp, main. __init__.py files are excluded by design.
+    assert report.total_surfaces() >= 5
+    valid = {"wired", "wire_candidate", "orphan", "archived", "parse_error", "config"}
+    for s in report.surfaces:
+        assert s.classification in valid
+
+
+def test_scan_all_buckets_by_top_level_subdir(fake_kimera_for_wiring):
+    report = WiringProbe(fake_kimera_for_wiring).scan_all()
+    buckets = {s.stratum for s in report.per_stratum}
+    # The fixture has modules under domain/, api/, etc.
+    assert "domain" in buckets or "api" in buckets
+
+
+def test_scan_all_collapses_top_level_scripts_into_one_bucket(tmp_path):
+    """Top-level standalone scripts should all bucket as 'scripts'."""
+    (tmp_path / "kimera_swm").mkdir()
+    (tmp_path / "kimera_swm/__init__.py").write_text("")
+    for name in ("verify_x.py", "benchmark_y.py", "debug_z.py"):
+        (tmp_path / "kimera_swm" / name).write_text("def f(): pass\n")
+    report = WiringProbe(tmp_path).scan_all()
+    scripts = report.stratum("scripts")
+    assert scripts is not None
+    assert scripts.n_total == 3
+    # Make sure no bucket is named after one of these files.
+    bad = {b for b in (s.stratum for s in report.per_stratum) if b.endswith(".py")}
+    assert bad == set(), f"per-file buckets leaked: {bad}"
+
+
+def test_scan_all_buckets_tests_separately(tmp_path):
+    (tmp_path / "kimera_swm").mkdir()
+    (tmp_path / "kimera_swm/__init__.py").write_text("")
+    (tmp_path / "kimera_swm/tests").mkdir()
+    (tmp_path / "kimera_swm/tests/test_a.py").write_text("def test_x(): pass\n")
+    (tmp_path / "kimera_swm/tests/test_b.py").write_text("def test_y(): pass\n")
+    report = WiringProbe(tmp_path).scan_all()
+    tests = report.stratum("tests")
+    assert tests is not None
+    assert tests.n_total == 2
+
+
+def test_scan_all_loud_failure_when_kimera_swm_subdir_missing(tmp_path):
+    (tmp_path / "not_kimera_swm").mkdir()
+    with pytest.raises(FileNotFoundError, match="kimera_swm/ subdirectory missing"):
+        WiringProbe(tmp_path).scan_all()
+
+
+def test_scan_all_skips_init_and_pycache(tmp_path):
+    """__init__.py + __pycache__ excluded from the scan."""
+    (tmp_path / "kimera_swm").mkdir()
+    (tmp_path / "kimera_swm/__init__.py").write_text("")
+    (tmp_path / "kimera_swm/__pycache__").mkdir()
+    (tmp_path / "kimera_swm/__pycache__/cached.cpython-312.pyc").write_text("")
+    (tmp_path / "kimera_swm/real.py").write_text("def f(): pass\n")
+    report = WiringProbe(tmp_path).scan_all()
+    file_paths = {s.file_path for s in report.surfaces}
+    assert "kimera_swm/real.py" in file_paths
+    assert not any("__init__.py" in p for p in file_paths)
+    assert not any("__pycache__" in p for p in file_paths)
+
+
+def test_scan_all_is_signed(fake_kimera_for_wiring):
+    report = WiringProbe(fake_kimera_for_wiring).scan_all()
+    assert report.signature
+    assert report.verify(DEFAULT_SIGN_KEY)

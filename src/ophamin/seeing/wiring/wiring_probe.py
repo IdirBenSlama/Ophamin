@@ -638,6 +638,93 @@ class WiringProbe:
         self.kimera_repo = repo
         self.sign_key = sign_key
 
+    def scan_all(self) -> CompletenessReport:
+        """Classify every .py file under ``kimera_swm/`` — not just inventoried surfaces.
+
+        The inventory probe covers the ~336 *named primitive* surfaces. The
+        broader picture — what fraction of the entire substrate is wired vs
+        scaffolded vs orphan — needs a scan of every Python file. Per-stratum
+        aggregates are bucketed by top-level subpackage (``domain``,
+        ``infrastructure``, ``interfaces``, ``api``, ``core``, ``tests``,
+        ``other``) instead of the 9 KimeraInventory strata.
+
+        The same classifier is applied: ``wired`` / ``wire_candidate`` /
+        ``orphan`` / ``archived`` / ``parse_error``. Tests are bucketed
+        separately because their "orphan" status is expected (tests are
+        executed by pytest, not imported by production code).
+        """
+        in_count = build_import_graph(self.kimera_repo)
+
+        src_root = self.kimera_repo / "kimera_swm"
+        if not src_root.is_dir():
+            raise FileNotFoundError(
+                f"kimera_swm/ subdirectory missing in {self.kimera_repo}"
+            )
+
+        # Walk every .py file, classify each.
+        surfaces_out: list[SurfaceCompleteness] = []
+        per_bucket: dict[str, list[SurfaceCompleteness]] = defaultdict(list)
+
+        for p in sorted(src_root.rglob("*.py")):
+            if "__pycache__" in p.parts or p.name == "__init__.py":
+                continue
+            rel = p.relative_to(self.kimera_repo).as_posix()
+            # Derive bucket from top-level subdirectory under kimera_swm/.
+            # ``parts[0]`` is "kimera_swm"; ``parts[1]`` is the bucket name
+            # (e.g. "domain", "infrastructure", "api") OR a top-level filename
+            # for standalone scripts like ``kimera_swm/verify_5d_distance.py``.
+            parts = rel.split("/")
+            if len(parts) >= 2:
+                bucket = parts[1]
+                # Top-level standalone script — collapse into a single bucket
+                # so 30+ one-off scripts don't each get their own per-file
+                # "stratum" row in the aggregate table.
+                if bucket.endswith(".py"):
+                    bucket = "scripts"
+            else:
+                bucket = "other"
+            if bucket == "tests" or "/tests/" in rel:
+                bucket = "tests"
+            surface = Surface(
+                name=p.stem,
+                kind="module",
+                file_path=rel,
+                line_count=0,
+                metadata={"bucket": bucket},
+            )
+            sc = classify_surface(self.kimera_repo, surface, bucket, in_count)
+            surfaces_out.append(sc)
+            per_bucket[bucket].append(sc)
+
+        # Aggregate per bucket.
+        per_stratum: list[StratumCompleteness] = []
+        for bucket_name in sorted(per_bucket):
+            ss = per_bucket[bucket_name]
+            applicable = [s for s in ss if s.classification != "config"]
+            per_stratum.append(StratumCompleteness(
+                stratum=bucket_name,
+                n_total=len(applicable),
+                n_wired=sum(1 for s in applicable if s.classification == "wired"),
+                n_wire_candidate=sum(1 for s in applicable
+                                     if s.classification == "wire_candidate"),
+                n_orphan=sum(1 for s in applicable if s.classification == "orphan"),
+                n_archived=sum(1 for s in applicable if s.classification == "archived"),
+                n_parse_error=sum(1 for s in applicable
+                                  if s.classification == "parse_error"),
+                n_with_stubs=sum(1 for s in applicable if s.stub_count > 0),
+                sum_incoming_imports=sum(s.incoming_imports for s in applicable),
+            ))
+
+        report = CompletenessReport(
+            ophamin_version=__version__,
+            ophamin_git_commit=capture_git_commit(_ophamin_project_root()) or "",
+            kimera_repo_path=str(self.kimera_repo),
+            kimera_git_commit=_capture_kimera_commit(self.kimera_repo),
+            surfaces=tuple(surfaces_out),
+            per_stratum=tuple(per_stratum),
+        )
+        return report.sign(self.sign_key)
+
     def probe(self, inventory: KimeraInventory) -> CompletenessReport:
         """Classify every surface in ``inventory`` against the repo's import graph."""
         in_count = build_import_graph(self.kimera_repo)

@@ -9,6 +9,29 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **`WiringProbe.scan_all()` + `ophamin wiring --all` — v0.2 Step 5b.**
+  The inventory-based `WiringProbe.probe()` covers the ~336 *named primitive*
+  surfaces. `scan_all()` walks every .py file under `kimera_swm/` (excluding
+  `__init__.py` and `__pycache__`) and applies the same classifier — the
+  whole-repo substrate-completion picture. Per-bucket aggregation uses the
+  top-level subdirectory name (`domain`, `infrastructure`, `interfaces`,
+  `api`, `core`, `tests`, etc.), with top-level standalone scripts collapsed
+  into a `scripts` bucket so the table stays readable.
+
+  **First whole-repo measurement against Kimera-SWM @ a0adf1a0 (2026-05-15):
+  3,363 Python modules**, of which:
+  - **178 WIRE_CANDIDATE** (concentrated in `domain/`; matches CLAUDE.md's
+    ~322 raw annotations modulo tests + non-module references)
+  - **871 orphans** (~26%, but ~87% of those are in expected-orphan
+    buckets — `tests/`, `scripts/`, `research/`)
+  - **2,078 modules in domain/**: 56% wired, 18% orphan
+  - **416 in infrastructure/**: 84% wired, 16% orphan
+  - **116 in interfaces/**: 90% wired, 10% orphan
+  - **`monitoring/` bucket: 55% orphan** — surfaces unwired observability code
+    distinct from `infrastructure/monitoring/` (which is wired)
+
+  7 new hardening tests for `scan_all`. Test count: 544 → 551.
+
 - **WiringProbe + SubstrateCompletenessScenario + `ophamin wiring` — v0.2 Step 5 (pivoted).**
   The owner clarified Kimera is incomplete by design — infra folders may
   be scaffolding nothing actually uses, and Ophamin's load-bearing value
