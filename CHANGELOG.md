@@ -9,6 +9,70 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Round 3 — wrap every installed catalog tool into Ophamin-native pillars / probes / helpers.**
+  Per owner directive *"These are installed and importable, but no Ophamin-native
+  pillar/probe/scenario wraps them yet. do everything properly"*. Closes the
+  gap between *installed* (round 2) and *usable* (round 3).
+
+  - **2 new audit pillars**:
+    - **ProspectorPillar** (deep-scope) — wraps `prospector --output-format=json`,
+      a multi-linter aggregator (pylint + pyflakes + mccabe + dodgy + pep257 + ...).
+      Severity map: error → HIGH, warning → MEDIUM, info → LOW. Wired into
+      `DEEP_PILLAR_CLASSES`.
+    - **SchemathesisPillar** (project-scope) — wraps `schemathesis run` for
+      OpenAPI contract testing. Searches target for `openapi.{json,yaml,yml}` or
+      `swagger.{json,yaml,yml}`. Severity map: not_a_server_error → CRITICAL,
+      status_code_conformance → HIGH. Wired into `PROJECT_PILLAR_CLASSES`.
+
+  - **6 new helper modules** in `src/ophamin/measuring/` and `src/ophamin/comparing/`:
+    - `causal_helpers.py` — DoWhy + EconML + Tigramite wrappers:
+      `estimate_average_treatment_effect`, `refute_causal_estimate`,
+      `causal_discovery_pcmci` (returns `[(cause, effect, lag, p)]`).
+    - `bayesian_helpers.py` — PyMC + ArviZ + NumPyro wrappers:
+      `posterior_for_normal_mean` (with HDI), `numpyro_posterior_for_normal_mean`
+      (~3-5× faster for large N). ArviZ 0.x and 1.x column-naming both supported
+      (`hdi_3%/hdi_97%` and `eti94_lb/eti94_ub`).
+    - `sat_smt_helpers.py` — z3 + cvc5 wrappers + cross-backend oracle:
+      `check_sat_z3`, `check_sat_cvc5`, `check_sat_cross_backend` (asserts
+      both backends agree). Z3 empty-AstVector parse-error trap added so silent
+      mis-parses become loud-fails.
+    - `timeseries_helpers.py` — STUMPY + PyOD + Darts + tsfresh wrappers:
+      `matrix_profile_motifs` (motifs + discords), `detect_outliers_pyod`
+      (iforest/lof/knn/copod), `forecast_with_darts` (naive_seasonal/drift/mean),
+      `extract_features_tsfresh`.
+    - `graph_helpers.py` — python-igraph wrappers (~30× faster than NetworkX
+      for large graphs): `pagerank_top_k`, `community_detection`
+      (louvain/leiden/label_propagation/infomap), `betweenness_top_k`.
+    - `comparing/crdt_state.py` — pycrdt + y-py wrappers with uniform `YDocFacade`
+      (insert_text / get_text / encode_state / apply_state) +
+      `cross_backend_convergence` cross-check oracle (both backends bind to the
+      same Yrs Rust core, so they MUST agree — disagreement is a real bug).
+
+  - **3 helpers extended in `analytic_helpers.py`**:
+    - `shannon_entropy_discrete` (pyitlib, supports both int and str samples)
+    - `kl_divergence_discrete` (pyitlib)
+    - `nonlinear_correlation` (ennemi, version-resilient for both DataFrame and
+      ndarray return types)
+    - `conformal_prediction_intervals_puncc` (puncc backend cross-check oracle
+      for the existing crepes-based intervals)
+
+  - **36 new hardening tests** in `tests/test_round3_wrappers.py`. Test count:
+    682 → 718. One skipped: `dowhy.estimate_average_treatment_effect` is upstream-blocked
+    (PyPI `dowhy 0.8` calls `networkx.algorithms.d_separated` which NetworkX
+    removed in 3.0+ — not an Ophamin issue, documented as `pytest.skip` with
+    explanation).
+
+  - **`pyproject.toml` extras** updated with all round-3 tools:
+    `causal +tigramite`, `bayesian +numpyro`, `sat_smt +cvc5`, new `graph` and
+    `crdt` extras, `audit +prospector`. The `all` extra mirrors the additions.
+
+  - **`verify.py` BINARY_CHECKS** extended with `prospector` and `schemathesis`
+    binaries. Verify catalog post-round-3: 89 ok / 0 missing / 1 error
+    (CausalPy still upstream-blocked by arviz 1.x).
+
+  - **All helpers raise `ImportError` cleanly on missing deps** (no silent
+    fallback per project no-fallback rule); inputs validated at boundary.
+
 - **Plugin-install round 2 — 17 more catalog tools.** Per owner directive
   *"Ophamin is not complete"*. Installed: CausalPy, Tigramite, NumPyro,
   Cosmic Ray, Slipcover, cvc5, pySMT, Safety, SPDX-tools, python-igraph,

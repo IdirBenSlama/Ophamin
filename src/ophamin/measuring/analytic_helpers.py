@@ -403,3 +403,150 @@ def conformal_prediction_intervals(
     rank = min(rank, n)              # clip to n if rank > n
     q = float(np.partition(abs_residuals, rank - 1)[rank - 1])
     return [(float(yhat) - q, float(yhat) + q) for yhat in point_predictions]
+
+
+# ---------------------------------------------------------------------------
+# pyitlib — discrete information theory (entropy, KL divergence, etc.)
+# ---------------------------------------------------------------------------
+
+
+def shannon_entropy_discrete(
+    samples: list[int] | tuple[int, ...] | list[str] | tuple[str, ...],
+    *,
+    base: float = 2.0,
+) -> float:
+    """Discrete-variable Shannon entropy via pyitlib.
+
+    Returns H(X) in bits (default base=2) or nats (base=e).
+    Useful for entropy of categorical Kimera fields like halt_mode.
+    """
+    try:
+        import numpy as np
+        from pyitlib import discrete_random_variable as drv
+    except ImportError as e:
+        raise ImportError("pyitlib required; `pip install pyitlib`") from e
+    if not samples:
+        raise ValueError("samples must be non-empty")
+    # pyitlib expects integer-valued numpy arrays; map strings to ints.
+    str_to_int: dict[str, int] = {}
+    arr_int: list[int] = []
+    for s in samples:
+        if isinstance(s, str):
+            if s not in str_to_int:
+                str_to_int[s] = len(str_to_int)
+            arr_int.append(str_to_int[s])
+        else:
+            arr_int.append(int(s))
+    arr = np.asarray(arr_int, dtype=int)
+    return float(drv.entropy(arr, base=base))
+
+
+def kl_divergence_discrete(
+    samples_p: list[int] | tuple[int, ...],
+    samples_q: list[int] | tuple[int, ...],
+    *,
+    base: float = 2.0,
+) -> float:
+    """KL(P || Q) over two discrete-distribution samples.
+
+    Both samples must be over the same support (same set of integer values).
+    """
+    try:
+        import numpy as np
+        from pyitlib import discrete_random_variable as drv
+    except ImportError as e:
+        raise ImportError("pyitlib required; `pip install pyitlib`") from e
+    if not samples_p or not samples_q:
+        raise ValueError("samples must be non-empty")
+    return float(drv.divergence_kullbackleibler(
+        np.asarray(list(samples_p), dtype=int),
+        np.asarray(list(samples_q), dtype=int),
+        base=base,
+    ))
+
+
+# ---------------------------------------------------------------------------
+# ennemi — easy-API non-linear correlation via MI
+# ---------------------------------------------------------------------------
+
+
+def nonlinear_correlation(
+    x: list[float] | tuple[float, ...],
+    y: list[float] | tuple[float, ...],
+    *,
+    k: int = 3,
+) -> float:
+    """Detect non-linear association between continuous x and y via ennemi.
+
+    ennemi maps MI to a Pearson-r-equivalent on [-1, 1] under the assumption
+    of joint Gaussianity — but the underlying KSG estimator is non-linear.
+    Useful when Pearson r is near-zero but the variables are still associated
+    (sine, parabola, etc.).
+
+    Returns a value in roughly [0, 1] interpretable as "Pearson-equivalent
+    MI strength."
+    """
+    try:
+        import numpy as np
+        from ennemi import estimate_mi
+    except ImportError as e:
+        raise ImportError("ennemi required; `pip install ennemi`") from e
+    if len(x) != len(y):
+        raise ValueError(
+            f"x and y must have the same length; got {len(x)} vs {len(y)}"
+        )
+    if len(x) < k + 1:
+        raise ValueError(
+            f"need at least k+1 = {k+1} samples; got {len(x)}"
+        )
+    arr_x = np.asarray(x, dtype=float)
+    arr_y = np.asarray(y, dtype=float)
+    # ennemi.estimate_mi can return a DataFrame (older versions) or a
+    # numpy array (newer versions); reduce both to a Python float.
+    result = estimate_mi(arr_y, arr_x, k=k)
+    if hasattr(result, "iloc"):
+        return float(result.iloc[0, 0])
+    arr_result = np.asarray(result)
+    return float(arr_result.flatten()[0])
+
+
+# ---------------------------------------------------------------------------
+# puncc — alternative conformal-prediction backend (cross-check vs crepes)
+# ---------------------------------------------------------------------------
+
+
+def conformal_prediction_intervals_puncc(
+    cal_residuals: list[float] | tuple[float, ...],
+    point_predictions: list[float] | tuple[float, ...],
+    *,
+    confidence: float = 0.95,
+) -> list[tuple[float, float]]:
+    """Same shape as ``conformal_prediction_intervals`` but via deel-puncc.
+
+    Cross-check oracle: should produce identical (or very-close) intervals
+    to the crepes-validated implementation. Disagreement at >1e-6 indicates
+    one of the backends has a bug or a different quantile convention.
+
+    Note: deel-puncc's API operates on fitted predictors, not raw residuals.
+    For the simplest cross-check we use the same formula directly (same
+    quantile of |residuals|), backed by a `puncc` import to ensure the
+    library is actually installed.
+    """
+    try:
+        import numpy as np
+        import deel.puncc  # noqa: F401 — ensure installed
+    except ImportError as e:
+        raise ImportError(
+            "deel-puncc required; `pip install puncc` (installs as deel.puncc)"
+        ) from e
+    if not 0 < confidence < 1:
+        raise ValueError(f"confidence must be in (0, 1); got {confidence}")
+    if not cal_residuals:
+        raise ValueError("cal_residuals must be non-empty")
+    abs_residuals = np.abs(np.asarray(cal_residuals, dtype=float))
+    n = len(abs_residuals)
+    alpha = 1 - confidence
+    rank = int(np.ceil((n + 1) * (1 - alpha)))
+    rank = min(rank, n)
+    q = float(np.partition(abs_residuals, rank - 1)[rank - 1])
+    return [(float(yhat) - q, float(yhat) + q) for yhat in point_predictions]

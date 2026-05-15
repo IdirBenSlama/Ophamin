@@ -32,10 +32,12 @@ from ophamin.auditing.pillars.fawltydeps_pillar import FawltyDepsPillar
 from ophamin.auditing.pillars.interrogate_pillar import InterrogatePillar
 from ophamin.auditing.pillars.mypy_pillar import MypyPillar
 from ophamin.auditing.pillars.pip_audit_pillar import PipAuditPillar
+from ophamin.auditing.pillars.prospector_pillar import ProspectorPillar
 from ophamin.auditing.pillars.pylint_pillar import PylintPillar
 from ophamin.auditing.pillars.radon_pillar import RadonPillar
 from ophamin.auditing.pillars.refurb_pillar import RefurbPillar
 from ophamin.auditing.pillars.ruff_pillar import RuffPillar
+from ophamin.auditing.pillars.schemathesis_pillar import SchemathesisPillar
 from ophamin.auditing.pillars.semgrep_pillar import SemgrepPillar
 from ophamin.auditing.pillars.vulture_pillar import VulturePillar
 
@@ -57,14 +59,16 @@ DEFAULT_PILLAR_CLASSES = (
 DEEP_PILLAR_CLASSES = (
     PylintPillar,
     SemgrepPillar,
+    ProspectorPillar,
 )
 
 #: project-scope pillars — require the target to be a project-root directory
-#: with pyproject.toml. Opt-in via ``--pillars=...,deptry,fawltydeps``.
+#: with pyproject.toml (or an OpenAPI spec for SchemathesisPillar).
 PROJECT_PILLAR_CLASSES = (
     DeptryPillar,
     FawltyDepsPillar,
     CoveragePillar,
+    SchemathesisPillar,
 )
 
 
@@ -99,10 +103,12 @@ __all__ = [
     "InterrogatePillar",
     "MypyPillar",
     "PipAuditPillar",
+    "ProspectorPillar",
     "PylintPillar",
     "RadonPillar",
     "RefurbPillar",
     "RuffPillar",
+    "SchemathesisPillar",
     "SemgrepPillar",
     "VulturePillar",
     "all_pillars",

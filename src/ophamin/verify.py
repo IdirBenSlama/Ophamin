@@ -159,6 +159,8 @@ BINARY_CHECKS: tuple[tuple[str, str, str, str], ...] = (
     ("interrogate","optional", "audit",   "Docstring coverage (PR #9 sibling)"),
     ("pylint",     "optional", "audit",   "Deeper Python linter"),
     ("refurb",     "optional", "audit",   "Modernization suggestions"),
+    ("prospector", "optional", "audit",   "Multi-linter aggregator (deep-scope)"),
+    ("schemathesis","optional","property_test", "API contract testing"),
     ("semgrep",    "optional", "audit",   "Custom-rule SAST (deferred wrapper)"),
     ("py-spy",     "optional", "profile", "Sampling profiler"),
 )
