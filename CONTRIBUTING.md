@@ -30,6 +30,19 @@ python3.12 -m venv .venv
 .venv/bin/python -m pytest -q          # all 386 tests must pass
 ```
 
+### Optional: enable the pre-push test gate
+
+GitHub Pro is required for server-side branch protection on private repos,
+so until the repo goes public (or upgrades), we ship an opt-in pre-push
+git hook that runs the full test suite before allowing a push:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook lives at [.githooks/pre-push](.githooks/pre-push) and adds ~8 s
+to every push. Skip a one-off push with `git push --no-verify`.
+
 ## Authoring a new scenario
 
 See [`docs/SCENARIO_AUTHORING.md`](docs/SCENARIO_AUTHORING.md). The short

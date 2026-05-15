@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Ophamin pre-push hook — runs the test suite before allowing a push.
+#
+# This exists as a free-tier substitute for server-side branch protection
+# (which is GitHub Pro-only on private repos as of 2026). Enable with:
+#
+#   git config core.hooksPath .githooks
+#
+# Skip a one-off push (e.g. WIP branch) with:
+#
+#   git push --no-verify
+#
+# Keep the hook fast: 386 tests run in ~8 s on a recent laptop.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Choose Python interpreter — prefer in-tree .venv, fall back to system python.
+if [[ -x ".venv/bin/python" ]]; then
+    PY=".venv/bin/python"
+else
+    PY="python"
+fi
+
+echo "▶ Ophamin pre-push: running pytest -q ..."
+PYTHONPATH=src "$PY" -m pytest -q
+echo "✔ Tests green — push proceeding."
