@@ -7,7 +7,19 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(No unreleased changes.)
+### Fixed
+
+- **`AuditRecord.to_markdown` shadow bug** — the loop variable `for path, count
+  in s.top_files` shadowed the `path` parameter, causing the audit markdown
+  to be written into the LAST hotspot SOURCE file instead of the caller's
+  output path. Latent since `to_markdown` landed; surfaced on GitHub Actions
+  when the audit workflow ran on `src/ophamin` and corrupted
+  `src/ophamin/inspecting/inspector.py` with audit-record markdown content,
+  breaking the next Python import. Fix: rename the loop variable; added
+  regression test
+  `test_audit_record_to_markdown_writes_to_caller_path_not_hotspot_file`.
+  Retroactively explains the earlier `vulture_pillar.py` and `schema_miner.py`
+  corruption incidents in this session.
 
 ## [0.1.0] — 2026-05-15
 
