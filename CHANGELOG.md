@@ -9,6 +9,72 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Round E (round 5) — real-substrate Ophamin scenarios + KIMERA_FIELD_CATALOG drift fixes.**
+  Captured a real 100-cycle Kimera trajectory (commit `6bf8756d3`,
+  batch-mode adapter, 68.9s wall, 100/100 success) and built two new
+  scenarios that operate on REAL substrate data, not synthetic.
+
+  - **`CrossChannelMutualInformationScenario`** (`cross-channel-mi`).
+    Pairwise MI across 8 substrate-channel pairs from a captured
+    trajectory. Two backends: pyitlib (Shannon, discretized) +
+    ennemi (KSG, continuous, unbiased at small N) cross-check.
+    First end-to-end run on real Kimera trajectory: **8/8 pairs above
+    0.05-nat floor; max MI 2.30 nats `phi ↔ tidal_kii`** (essentially
+    perfect coupling — empirically corroborates the phi/KII rename
+    signal CLAUDE.md §Family L documents). All 8 pairs agree on
+    direction across both estimators (cross-backend soundness). Notable
+    findings: `phi ↔ kuramoto_order_parameter` MI 0.67 nats
+    (memory-as-deformation cross-channel signature); `phi ↔
+    dissonance_events_count` MI 1.02 nats (counterintuitive — substrate
+    "thinking-harder" indicator, worth follow-on causal probe);
+    `dissonance_score ↔ dissonance_events_count` MI only 0.17 nats
+    (surprisingly low — score isn't simply count-derived);
+    `alexandria_mass ↔ cycle_index` MI 1.76 nats confirms 17
+    mass-units/cycle linear-deterministic rate.
+    11 hardening tests including small-N pyitlib bias + ennemi cross-
+    check oracle pattern.
+
+  - **`BayesianPhiPosteriorScenario` re-run on REAL captured Φ
+    trajectory** (no scenario-code change; T3 proof record using
+    `phi_trajectory_path=` mode). Posterior 94% HDI width contracts at
+    the predicted √N rate. Observed contraction 0.403 (theoretical
+    0.447, ceiling 0.50). **Recovered posterior μ_Φ at N=100 = 0.330
+    ± 0.033, HDI [0.295, 0.360]** — substantively LOWER than Family L
+    EV-71's 0.621 on engineered axioms. Sits between Family L (0.621
+    engineered axioms) and Family P (0.209 Linux kernel commits). The
+    mixed-stimulus pool baseline is now an established empirical
+    reference for Kimera Φ.
+
+  - **`KIMERA_FIELD_CATALOG` drift fixes** (43 → 55 entries). Capture
+    surfaced 5 catalog names that the substrate no longer emits at
+    commit `a0adf1a0b/6bf8756d3`:
+    - `phi_value` → `phi`
+    - `kii_value` → `tidal_kii`
+    - `walker_halt_mode` → `halt_reason`
+    - `dissonance_events_count` → `dissonance_events` (list) +
+      `dissonance_score` (float)
+    - `gwf_blocked` → `gwf_lockdown` (bool) + `gwf_verdict` (str) +
+      `gwf_health` (float)
+
+    Catalog now carries canonical substrate names alongside legacy
+    aliases (no breakage; old names retained for backward-compat with
+    Family L EV-71 + earlier Ophamin scenarios).
+
+  - **Capture script** at `/tmp/capture_kimera_trajectory.py`
+    (single-purpose; not committed to Ophamin's tree). Pattern
+    documented in `EMPIRICAL_VALIDATION.md` Family T (extended) so it's
+    reproducible.
+
+  - **Test suite: 748 → 759 passed** (+11 cross-channel-mi tests) /
+    1 skipped / 0 failed.
+
+  - **Catalog drift discovery validates the Family-S structural-tier
+    pattern**: a per-commit static probe surfaced naming drift between
+    Ophamin's documentation layer and Kimera's actual emission. Without
+    the discover sweep, this drift would have gone unnoticed; with it,
+    every catalog name that the substrate doesn't emit gets surfaced
+    automatically.
+
 - **Round 4 — round-3 helpers operationalized as Ophamin scenarios + Kimera-side delivery.**
   Per owner directive *"continue autonomously across all fixes needed, you have
   all authorizations"*. Closes the gap between round-3 (helpers exist) and

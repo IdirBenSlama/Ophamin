@@ -134,27 +134,59 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
     ),
 
     # --- phi ------------------------------------------------------------
+    # NB (2026-05-15 catalog refresh): the substrate emits Φ as the field
+    # name `phi` (not `phi_value`); KII as `tidal_kii` (not `kii_value`).
+    # The `phi_value` / `kii_value` legacy entries are retained as historical
+    # aliases for documentation, but discover-fields probes will report them
+    # absent — read `phi` / `tidal_kii` from raw dicts at this commit.
     CatalogedField(
-        "phi_value", ("float", "int"), "phi",
+        "phi", ("float", "int"), "phi",
         "Φ — IIT-derived integrated-information measure per cycle. Family L "
         "EV-71 reported mean 0.621 ± 0.065 across 200 cycles on engineered "
-        "axioms; Family P measured ~0.209 on Linux kernel commits.",
+        "axioms; Family P measured ~0.209 on Linux kernel commits. "
+        "**Substrate field name is `phi`** (not `phi_value`); legacy entry "
+        "`phi_value` retained as historical alias.",
+        nullable=True,
+    ),
+    CatalogedField(
+        "tidal_kii", ("float", "int"), "phi",
+        "KII alias of Φ — substrate's `tidal_kii` field. Used in tide-cycle "
+        "scoring downstream of Φ. Per CLAUDE.md §Family L, the phi/KII "
+        "rename is owner-territory; both fields surface independently today.",
+        nullable=True,
+    ),
+    CatalogedField(
+        "phi_value", ("float", "int"), "phi",
+        "Historical alias — substrate emits as `phi` at commit `a0adf1a0b+`. "
+        "Retained for backward-compat with Family L EV-71 and earlier docs.",
         nullable=True,
     ),
     CatalogedField(
         "kii_value", ("float", "int"), "phi",
-        "Alias for phi_value. Kept available for Pattern-P phi/KII rename "
-        "(owner-territory per CLAUDE.md §Family L).",
+        "Historical alias for KII — substrate emits as `tidal_kii` at "
+        "commit `a0adf1a0b+`. Retained for backward-compat.",
         nullable=True,
     ),
 
     # --- walker ---------------------------------------------------------
+    # NB (2026-05-15 catalog refresh): the substrate emits the halt mode as
+    # `halt_reason` at the OrchestratorResult top level (not `walker_halt_mode`).
+    # `walker_halt_mode` was the cataloged name based on Family L docs; the
+    # substrate field is `halt_reason`. Both retained — `halt_reason` is the
+    # canonical for new probes; `walker_halt_mode` is legacy alias.
+    CatalogedField(
+        "halt_reason", ("str",), "walker",
+        "PrimeTopologyWalker halt reason for this cycle (canonical substrate "
+        "field name). Values: 'exhausted' (sustained traversal), 'selective' "
+        "(partial halt), 'amplitude_death' (silent collapse), 'commit' (M1), "
+        "'rollback' (M3), 'lateral_leap' (M4). Plus 'exception' on substrate "
+        "crash.",
+        nullable=True,
+    ),
     CatalogedField(
         "walker_halt_mode", ("str",), "walker",
-        "PrimeTopologyWalker halt mode for this cycle. One of: 'exhausted' "
-        "(sustained traversal), 'selective' (partial halt), 'amplitude_death' "
-        "(silent collapse), 'commit' (M1), 'rollback' (M3), 'lateral_leap' "
-        "(M4). Plus 'exception' on substrate crash.",
+        "Historical alias — substrate emits as `halt_reason` at commit "
+        "`a0adf1a0b+`. Retained for backward-compat with earlier scenarios.",
         nullable=True,
     ),
     CatalogedField(
@@ -180,17 +212,40 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
     ),
 
     # --- gwf ------------------------------------------------------------
+    # NB (2026-05-15 catalog refresh): substrate emits `gwf_lockdown` (bool)
+    # and `gwf_verdict` (str — "cleared" / etc) at the top level. `gwf_blocked`
+    # was the cataloged shorthand; the substrate field is `gwf_lockdown`.
+    # `gwf_health` (float in [0, 1]) is the continuous defensive-layer score.
+    CatalogedField(
+        "gwf_lockdown", ("bool",), "gwf",
+        "True if the Gyroscopic Water Fortress went into lockdown for this "
+        "stimulus (canonical substrate field name). Family M reported 3.2% "
+        "FP rate on labelled-benign prompts; Family P reported 33.9% on "
+        "Linux kernel commit messages.",
+        nullable=True,
+    ),
+    CatalogedField(
+        "gwf_verdict", ("str",), "gwf",
+        "GWF defensive-layer verdict for this stimulus: 'cleared', 'flagged', "
+        "etc. Substrate emits as `gwf_verdict` at the top level.",
+        nullable=True,
+    ),
+    CatalogedField(
+        "gwf_health", ("float",), "gwf",
+        "GWF continuous health score in [0, 1] — 1 = healthy defensive "
+        "posture; lower = stressed. Substrate's per-cycle scalar.",
+        nullable=True,
+    ),
     CatalogedField(
         "gwf_blocked", ("bool",), "gwf",
-        "True if the Gyroscopic Water Fortress defensive layer blocked this "
-        "stimulus. Family M reported 3.2% FP rate on labelled-benign prompts; "
-        "Family P reported 33.9% on Linux kernel commit messages.",
+        "Historical alias — substrate emits as `gwf_lockdown` at commit "
+        "`a0adf1a0b+`. Retained for backward-compat.",
         nullable=True,
     ),
     CatalogedField(
         "gwf_block_reason", ("str",), "gwf",
-        "Human-readable reason when gwf_blocked=True (e.g. anchor that "
-        "matched).",
+        "Historical alias — substrate emits as `gwf_verdict` at commit "
+        "`a0adf1a0b+`. Retained for backward-compat.",
         nullable=True,
     ),
 
@@ -303,9 +358,24 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
         nullable=True,
     ),
     CatalogedField(
-        "dissonance_events_count", ("int",), "echoform",
-        "Per-cycle dissonance event count. Family O reported median 21 on "
+        "dissonance_events", ("list",), "echoform",
+        "Per-cycle list of dissonance event dicts (canonical substrate "
+        "field). Each entry: {concept_a, concept_b, dissonance_type, score}. "
+        "The COUNT is `len(dissonance_events)`. Family O reported median 21 on "
         "Enron, median 28 on Linux kernel commits; range [0, 57].",
+        nullable=True,
+    ),
+    CatalogedField(
+        "dissonance_score", ("float",), "echoform",
+        "Per-cycle aggregated dissonance score in [0, 1]. Substrate scalar "
+        "downstream of the dissonance_events list.",
+        nullable=True,
+    ),
+    CatalogedField(
+        "dissonance_events_count", ("int",), "echoform",
+        "Historical alias — substrate emits the underlying list as "
+        "`dissonance_events` at commit `a0adf1a0b+`. Retained for "
+        "backward-compat; equivalent to `len(dissonance_events)`.",
         nullable=True,
     ),
 
