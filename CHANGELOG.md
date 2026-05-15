@@ -9,6 +9,49 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **WiringProbe + SubstrateCompletenessScenario + `ophamin wiring` — v0.2 Step 5 (pivoted).**
+  The owner clarified Kimera is incomplete by design — infra folders may
+  be scaffolding nothing actually uses, and Ophamin's load-bearing value
+  is empirical feedback to drive substrate completion. The probe builds
+  a repo-wide import graph (one pass over kimera_swm/, ~5s on real
+  Kimera, ~3500 .py files) + scans for ``.. note:: WIRE_CANDIDATE`` /
+  WIRED / ARCHIVED annotations + counts stub function bodies (``pass``
+  / ``raise NotImplementedError`` / ``return None``). For each
+  inventoried surface it emits a classification: ``wired`` (≥1 incoming
+  import OR WIRED annotation), ``wire_candidate`` (explicitly
+  scaffolded), ``orphan`` (zero imports, no annotation — the action
+  target), ``archived`` (path under ``_archive/`` or
+  ``_predecessor.py`` suffix), ``parse_error`` (broken file), or
+  ``config`` (non-Python surface).
+
+  ``SubstrateCompletenessScenario`` aggregates into a falsifiable claim:
+  ``aggregate_orphan_rate <= 0.20``. ``ophamin wiring <repo>`` writes
+  signed JSON + Markdown reports with per-stratum tables + the orphan +
+  WIRE_CANDIDATE action lists.
+
+  **First live measurement against Kimera-SWM @ a0adf1a0 (2026-05-15):**
+  - **VALIDATED at 26/323 = 8.05% orphan rate**, Wilson CI [0.0553, 0.1158]
+  - 289 wired (89.5%), 26 orphan (8%), 8 WIRE_CANDIDATE (2.5%)
+  - Action list pinpoints: 7 persistence orphans (postgres_insight_repository
+    with 22 unimported functions, connection_manager, database_production_manager,
+    enhanced_database_optimizer_fixed — the "_fixed" suffix is the giveaway),
+    4 temporal orphans (kccl_integration, scale5_adapters with 37 fns,
+    spde_integration, surfacing), 7 lifecycle orphans (encoder_snapshot/builder.py
+    despite its docstring promising SnapshotBuilder.build as public API —
+    confirmed orphan: __init__.py doesn't import from it), 6 security orphans,
+    1 telemetry orphan, 1 interface orphan (monitoring_router.py — verified by
+    a comment in core/application.py saying it was deliberately not wired).
+
+  Import graph correctness was verified mid-build: the first run showed
+  40 interface orphans, but ``from kimera_swm.api.routers import
+  computation_router`` wasn't being counted as an edge for
+  ``kimera_swm.api.routers.computation_router``. Fix: extend the import
+  scanner to emit ``parent.child`` references on ``from`` imports. Result
+  dropped to 1 true interface orphan.
+
+  52 new hardening tests (40 wiring probe + 12 scenario). Test count:
+  492 → 544.
+
 - **InterfaceContractStability scientific scenario — v0.2 Step 4.**
   First scenario targeting the **interface** stratum (REST routers,
   controllers, GraphQL, MCP tools, CLI commands, WebSocket). Pure static

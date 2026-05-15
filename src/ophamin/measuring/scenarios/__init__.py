@@ -36,6 +36,9 @@ from ophamin.measuring.scenarios.philosophical_self_reference import (
     SELF_REFERENTIAL_TEXTS,
 )
 from ophamin.measuring.scenarios.rosetta_scaling import RosettaScalingScenario
+from ophamin.measuring.scenarios.substrate_completeness import (
+    SubstrateCompletenessScenario,
+)
 from ophamin.measuring.scenarios.throughput_ceiling import ThroughputCeilingScenario
 
 #: registered scenarios, by name
@@ -47,6 +50,7 @@ SCENARIOS: dict[str, type[Scenario]] = {
     ThroughputCeilingScenario.name: ThroughputCeilingScenario,
     PhilosophicalSelfReferenceScenario.name: PhilosophicalSelfReferenceScenario,
     InterfaceContractStabilityScenario.name: InterfaceContractStabilityScenario,
+    SubstrateCompletenessScenario.name: SubstrateCompletenessScenario,
 }
 
 __all__ = [
@@ -59,6 +63,7 @@ __all__ = [
     "ThroughputCeilingScenario",
     "PhilosophicalSelfReferenceScenario",
     "InterfaceContractStabilityScenario",
+    "SubstrateCompletenessScenario",
     "SELF_REFERENTIAL_TEXTS",
     "SCENARIOS",
     "DEFAULT_SIGN_KEY",

@@ -15,6 +15,7 @@
     ophamin inventory <kimera-repo>       enumerate observable surface across 9 strata (static)
     ophamin discover-fields <kimera-repo> diff one probe cycle's raw fields vs KIMERA_FIELD_CATALOG
     ophamin scrape <url>                  passive scrape of a Prometheus /metrics endpoint
+    ophamin wiring <kimera-repo>          per-surface wired vs WIRE_CANDIDATE vs orphan report
     ophamin report <record.json>          render a proof or audit record as HTML / Markdown / LaTeX
     ophamin inspect <kimera-repo> <name>  per-primitive profile (static + optional dynamic)
     ophamin inspect-all <kimera-repo>     survey every catalogued Kimera primitive
@@ -67,6 +68,7 @@ from ophamin.seeing.telemetry import (
     TelemetryDependencyMissing,
     TelemetryScrapeError,
 )
+from ophamin.seeing.wiring import WiringProbe
 from ophamin.seeing.substrate.kimera_adapter import KimeraAdapter, KimeraAdapterError
 from ophamin.seeing.substrate.mock import MockSubstrate
 
@@ -771,6 +773,56 @@ def cmd_discover_fields(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_wiring(args: argparse.Namespace) -> int:
+    """Run the wiring probe against a Kimera repo, write a signed completeness report.
+
+    The action list (per-stratum orphans + WIRE_CANDIDATEs) drives substrate-
+    completion work. The report covers nine strata; only ``wired``,
+    ``wire_candidate``, ``orphan``, ``archived``, and ``parse_error``
+    classifications are reported (``config`` non-Python surfaces are
+    excluded from the wiring contract).
+    """
+    repo = Path(args.repo).expanduser().resolve()
+    if not repo.is_dir():
+        print(f"kimera repo path is not a directory: {repo}", file=sys.stderr)
+        return 2
+
+    print(f"inventorying    : {repo}")
+    inventory = discover_all(repo)
+    print(f"building graph  : {inventory.total_surfaces()} surfaces")
+    report = WiringProbe(repo).probe(inventory)
+
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    short = report.report_id[:16]
+    json_path = out_dir / f"wiring_{short}.json"
+    md_path = out_dir / f"wiring_{short}.md"
+    report.to_json(str(json_path))
+    report.to_markdown(str(md_path))
+
+    print()
+    print(f"{'stratum':<16} {'total':>6} {'wired':>6} {'wc':>4} {'orphan':>7} "
+          f"{'arch':>5} {'perr':>5} {'wired%':>7} {'orph%':>7}")
+    for s in report.per_stratum:
+        print(f"{s.stratum:<16} {s.n_total:>6} {s.n_wired:>6} {s.n_wire_candidate:>4} "
+              f"{s.n_orphan:>7} {s.n_archived:>5} {s.n_parse_error:>5} "
+              f"{s.wired_rate*100:>6.1f}% {s.orphan_rate*100:>6.1f}%")
+    print()
+    orphans = report.orphan_surfaces()
+    wc = report.wire_candidate_surfaces()
+    print(f"orphan surfaces         : {len(orphans)}")
+    print(f"WIRE_CANDIDATE surfaces : {len(wc)}")
+    if orphans:
+        print(f"\norphan action list (first 10):")
+        for s in orphans[:10]:
+            print(f"  [{s.stratum:<14}] {s.file_path}")
+        if len(orphans) > 10:
+            print(f"  ... and {len(orphans) - 10} more in {md_path}")
+    print(f"\nwritten         : {json_path}")
+    print(f"                  {md_path}")
+    return 0
+
+
 def cmd_scrape(args: argparse.Namespace) -> int:
     """Passive scrape of a Prometheus /metrics endpoint, write a signed snapshot."""
     if not PROMETHEUS_AVAILABLE:
@@ -1058,6 +1110,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="number of top metric families to print (by sample count, default: 10)",
     )
     p_scrape.set_defaults(func=cmd_scrape)
+
+    p_wiring = sub.add_parser(
+        "wiring",
+        help="empirical wiring report — per-surface wired vs WIRE_CANDIDATE "
+             "vs orphan classification (no Kimera execution required)",
+    )
+    p_wiring.add_argument("repo", help="path to the Kimera-SWM repository")
+    p_wiring.add_argument(
+        "--out-dir", default="wiring",
+        help="directory to write the report JSON + Markdown (default: wiring/)",
+    )
+    p_wiring.set_defaults(func=cmd_wiring)
 
     p_report = sub.add_parser(
         "report",
