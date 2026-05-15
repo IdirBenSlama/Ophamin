@@ -9,6 +9,30 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **InterfaceContractStability scientific scenario — v0.2 Step 4.**
+  First scenario targeting the **interface** stratum (REST routers,
+  controllers, GraphQL, MCP tools, CLI commands, WebSocket). Pure static
+  analysis — does not import or run Kimera. For each Python module
+  ``KimeraInventory.discover_interface`` reports, runs ``ast.parse`` and
+  checks for top-level OR class-method handler-decorator presence
+  (FastAPI verbs, MCP ``@tool``/``@resource``, Click ``@command``, etc.).
+  Pre-registered claim: ``contract_compliance_rate >= 0.95`` with Wilson
+  95% CI.
+
+  Live measurement against Kimera-SWM @ a0adf1a0 (2026-05-15):
+  **VALIDATED at 98/100 = 0.98**, Wilson CI [0.93, 0.9945]. Two
+  non-compliant outliers (``api/routers/geoid.py`` +
+  ``api/routers/multimodal_router.py``) surfaced for investigation.
+
+  This is the **first VALIDATED claim Ophamin has made about the interface
+  stratum**. 23 hardening tests in
+  ``tests/test_interface_contract_stability.py`` covering the decorator
+  matcher (router.get / @tool / @click.command / negative cases),
+  per-module probe (package_dir / non-py skip / top-level handler / class
+  method handler / syntax error / pure-schema rejection), end-to-end
+  scenario on healthy + broken synthetic trees, registry membership,
+  Wilson CI, signature, claim shape. Test count: 469 → 492.
+
 - **PrometheusScrapeProbe + `ophamin scrape` — v0.2 Step 3.**
   Passive consumer of Kimera-SWM's `/metrics` endpoint (Kimera already
   ships a `prometheus_client`-based exporter under

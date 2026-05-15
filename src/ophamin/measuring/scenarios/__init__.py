@@ -26,6 +26,9 @@ they pre-register the falsifiable threshold.
 
 from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
 from ophamin.measuring.scenarios.immune_siege import ImmuneSiegeScenario
+from ophamin.measuring.scenarios.interface_contract_stability import (
+    InterfaceContractStabilityScenario,
+)
 from ophamin.measuring.scenarios.logic_topology_siege import LogicTopologySiegeScenario
 from ophamin.measuring.scenarios.organizational_dissonance import OrganizationalDissonanceScenario
 from ophamin.measuring.scenarios.philosophical_self_reference import (
@@ -43,6 +46,7 @@ SCENARIOS: dict[str, type[Scenario]] = {
     LogicTopologySiegeScenario.name: LogicTopologySiegeScenario,
     ThroughputCeilingScenario.name: ThroughputCeilingScenario,
     PhilosophicalSelfReferenceScenario.name: PhilosophicalSelfReferenceScenario,
+    InterfaceContractStabilityScenario.name: InterfaceContractStabilityScenario,
 }
 
 __all__ = [
@@ -54,6 +58,7 @@ __all__ = [
     "LogicTopologySiegeScenario",
     "ThroughputCeilingScenario",
     "PhilosophicalSelfReferenceScenario",
+    "InterfaceContractStabilityScenario",
     "SELF_REFERENTIAL_TEXTS",
     "SCENARIOS",
     "DEFAULT_SIGN_KEY",
