@@ -1,15 +1,41 @@
 # Ophamin — generated artifacts and caches
+
+# --- Python build / install ---
 __pycache__/
 *.py[cod]
-.pytest_cache/
-.benchmarks/
+*$py.class
 build/
 dist/
 *.egg-info/
+
+# --- Virtualenvs ---
 .venv/
 venv/
+env/
+ENV/
 
-# Experiment outputs — lineage store, MLflow, DVC working data.
+# --- Test / typecheck caches ---
+.pytest_cache/
+.benchmarks/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# --- IDE / editor scratch ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Experiment outputs ---
 # The manifest.json files inside runs/ ARE the provenance record; the heavy
 # artifacts are content-addressed and excluded by default. Commit selectively.
 runs/
@@ -18,10 +44,19 @@ data/raw/
 data/processed/
 *.pkl
 
-# Verbose run logs — supplementary, NOT the canonical record. The signed,
-# content-addressed Empirical Proof Records under proofs/ ARE the canonical
-# evidence; logs/ holds the full stdout/stderr per run for reproducibility.
+# --- Verbose run logs ---
+# Supplementary, NOT the canonical record. The signed, content-addressed
+# Empirical Proof Records under proofs/ ARE the canonical evidence; logs/
+# holds the full stdout/stderr per run for reproducibility but is gitignored
+# because it can grow large.
 logs/
 
-# OS
-.DS_Store
+# --- Local environment files ---
+# Never commit secrets. PATs / API keys / OAuth tokens belong in env vars or
+# secret managers, never in this tree.
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key

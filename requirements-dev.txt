@@ -1,0 +1,37 @@
+# Ophamin — development / full-feature dependencies
+#
+# Install via:    pip install -r requirements-dev.txt
+# Or via project: pip install -e ".[all,dev]"
+#
+# This file extends requirements.txt with the optional extras declared in
+# pyproject.toml. Each line is keyed to a wheel that uses it.
+
+-r requirements.txt
+
+# === dev: running the test suite ===
+pytest>=7.0
+
+# === viz: reporting/ chart rendering + synthesis CMA plots ===
+matplotlib>=3.6
+
+# === audit: auditing/ wheel's orchestrated static-analysis tools ===
+ruff>=0.4
+bandit>=1.7
+mypy>=1.8
+vulture>=2.10
+radon>=6.0
+pip-audit>=2.7
+
+# === telemetry: instrumenting/ wheel Phase 2 (deferred, optional) ===
+opentelemetry-api>=1.20
+opentelemetry-sdk>=1.20
+
+# === profile: instrumenting/ wheel Phase 2 (deferred, optional) ===
+py-spy>=0.3
+memray>=1.10
+
+# === well: seeing.corpus.TheWellCorpus — physics-simulation HDF5 datasets ===
+h5py>=3.0
+
+# === hydra: Hydra-driven entry points (OmegaConf is core, in requirements.txt) ===
+hydra-core>=1.3
