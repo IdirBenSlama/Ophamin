@@ -141,11 +141,35 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
     # absent — read `phi` / `tidal_kii` from raw dicts at this commit.
     CatalogedField(
         "phi", ("float", "int"), "phi",
-        "Φ — IIT-derived integrated-information measure per cycle. Family L "
-        "EV-71 reported mean 0.621 ± 0.065 across 200 cycles on engineered "
-        "axioms; Family P measured ~0.209 on Linux kernel commits. "
+        "Φ — IIT-derived integrated-information measure per cycle. "
         "**Substrate field name is `phi`** (not `phi_value`); legacy entry "
-        "`phi_value` retained as historical alias.",
+        "`phi_value` retained as historical alias. Round F (2026-05-15) "
+        "captured 200-cycle EV-71 genesis-axiom shape: phi mean = "
+        "**0.4832 ± 0.1079** (range [0.265, 0.615]). NB: Family L EV-71's "
+        "reported \"0.621 ± 0.065\" is the `reasoning_posterior` field, not "
+        "`phi` — the two metrics are distinct (phi is IIT integrated info; "
+        "reasoning_posterior is the substrate's confidence proxy). Family P "
+        "measured `phi ~ 0.209` on Linux kernel commits; this commit "
+        "(`6bf8756d3+`) measures phi mean ≈ 0.48 on genesis axioms via "
+        "`phi_source = 'kii'` (computed from tidal_kii).",
+        nullable=True,
+    ),
+    CatalogedField(
+        "reasoning_posterior", ("float", "int"), "phi",
+        "**The metric Family L EV-71 reported as 0.621 ± 0.065** (not "
+        "`phi`). Substrate's reasoning-confidence posterior — Bayesian-"
+        "honest tempering under dissonance per Family L Mod 4 wire. "
+        "Empirically stable across the EV-71 genesis-axiom shape: this "
+        "commit's 200-cycle re-capture mean = **0.6228 ± 0.0666** (vs "
+        "EV-71's 0.621 ± 0.065; delta +0.0018, within 1σ — no regression).",
+        nullable=True,
+    ),
+    CatalogedField(
+        "phi_source", ("str",), "phi",
+        "Provenance label for `phi`'s computation source this cycle. "
+        "Common values: `'kii'` (Φ derived from tidal_kii), `'native'`, "
+        "`'cached'`. When `phi_source == 'kii'`, MI(phi, tidal_kii) "
+        "saturates near maximum (Family T4: 2.30 nats).",
         nullable=True,
     ),
     CatalogedField(
@@ -292,12 +316,14 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
         "Atlas catches 7 violation types.",
         nullable=True,
     ),
-    CatalogedField(
-        "arachne_web_kuramoto_order", ("float",), "substrate_state",
-        "Arachne web Kuramoto order parameter. Empirically saturates at "
-        "~0.81 across 300+ cycles (CLAUDE.md §Phase 1 verified deltas).",
-        nullable=True,
-    ),
+    # NB (2026-05-15 Round F): `arachne_web_kuramoto_order` is RETIRED — it was a
+    # phantom catalog entry. The substrate emits no such field at commit
+    # `a0adf1a0b/6bf8756d3` (verified by exhaustive arachne_web_* grep on
+    # takwin.py: only `_coupling_frobenius`, `_coupling_top_eigenvalue`,
+    # `_order_parameter`, `_phase_std` exist). The "Arachne web Kuramoto order"
+    # quantity is captured by the top-level `kuramoto_order_parameter` field
+    # (already cataloged below) computed across the substrate's full oscillator
+    # population, not just the Arachne web subgraph. Use that instead.
     CatalogedField(
         "arachne_web_order_parameter", ("float",), "substrate_state",
         "Arachne web order parameter (raw, before Kuramoto normalization). "
@@ -367,8 +393,18 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
     ),
     CatalogedField(
         "dissonance_score", ("float",), "echoform",
-        "Per-cycle aggregated dissonance score in [0, 1]. Substrate scalar "
-        "downstream of the dissonance_events list.",
+        "**NB (Round F, 2026-05-15)**: NOT downstream of `dissonance_events` "
+        "list — this is a distinct upstream signal computed at takwin.py "
+        "Phase 302.6 from `_ssd_events` (subsystem-state-dissonance) with 4 "
+        "weighted types: CONTRADICTIONS_WITHOUT_INTEGRATION (1.0), "
+        "CURIOSITY_WITHOUT_NOVELTY (0.8), NOVELTY_WITHOUT_SURPRISE (0.7), "
+        "SURPRISE_WITHOUT_NOVELTY (0.7). The `dissonance_events` list (6 "
+        "Zetetic types: FOCAL/STRUCTURAL/AXIAL/SINGULARITY/TEMPORAL/"
+        "COMPOSITIONAL) is a separate concept-pair-level signal. Family T4 "
+        "measured MI(dissonance_score, dissonance_events_count) = 0.17 nats "
+        "— the two are correctly weakly-coupled because they monitor "
+        "different substrate layers. Pattern-T naming overlap; both fields "
+        "ship.",
         nullable=True,
     ),
     CatalogedField(

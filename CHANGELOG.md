@@ -9,6 +9,74 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Round F (round 6) — substrate-regression hypothesis CLOSED + causal-
+  discovery scenario + Pattern-T naming clarifications.**
+  Per owner directive "continue analysis for fixes". Round E surfaced 4
+  threads worth investigating; Round F resolved all four.
+
+  - **No regression**: Round E T3's "Φ ≈ 0.33 vs Family L's 0.62"
+    framing was a confounded-comparison artifact. Verified by 1-cycle
+    probe: `phi`, `tidal_kii`, `reasoning_posterior` are three distinct
+    top-level OrchestratorResult fields. Family L EV-71's reported
+    "0.621 ± 0.065" is `reasoning_posterior` (substrate confidence
+    proxy), NOT `phi` (IIT integrated info). Re-captured EV-71's exact
+    200-cycle genesis-axiom shape and read `reasoning_posterior`:
+    **0.6228 ± 0.0666** vs EV-71's 0.621 ± 0.065 (delta **+0.0018,
+    within 1σ — NO REGRESSION**). The Round E T3 `phi` measurements
+    are real but compare to nothing in Family L's record.
+
+  - **`CausalDiscoveryScenario`** (`causal-discovery`). Tigramite
+    PCMCI on captured Kimera multi-channel trajectories. Default
+    5 channels at max_lag=2, pc_alpha=0.05. Verdict against ≥ 1
+    significant directed link. First end-to-end run on Round E's
+    100-cycle trajectory: **32 significant links** detected.
+    Disambiguates Round E T4's direction-ambiguous correlations:
+    - `phi → dissonance_events_count` lag=0 AND lag=2 (lag-2 is the
+      one-way directed signal — substrate's "integrating-layer-surfaces-
+      contradictions-over-time" pattern)
+    - `kuramoto → arachne_web_order_parameter` lag=0 (predicted
+      direction for memory-as-deformation per CLAUDE.md)
+    11 hardening tests including injected-causal-structure detection.
+
+  - **`KIMERA_FIELD_CATALOG` Round F refresh**:
+    - **Added `reasoning_posterior` entry** — clarifies that THIS is
+      the field Family L EV-71 reported as "0.621 ± 0.065" (not `phi`).
+      Round F replicated to 0.6228 ± 0.0666 (delta +0.0018, within 1σ).
+    - **Added `phi_source` entry** — provenance label for `phi`'s
+      computation source (e.g. `'kii'` when phi is derived from
+      tidal_kii, explaining Round E T4's MI=2.30 nats coupling).
+    - **Updated `phi` entry** — corrects Family L attribution; adds
+      Round F-measured values (`phi` mean ≈ 0.48 on genesis axioms).
+    - **Updated `dissonance_score` entry** — explicit note that it
+      sums weighted SSD (subsystem-state-dissonance) events from
+      Phase 302.6 with 4 types, NOT downstream of `dissonance_events`
+      (Zetetic concept-pair list with 6 types). Round E T4's MI=0.17
+      nats between them is correct by design — they monitor different
+      substrate layers despite sharing the "dissonance" prefix.
+    - **Retired phantom `arachne_web_kuramoto_order` entry** with
+      retirement comment — the substrate emits no such field at this
+      commit (verified by exhaustive grep). Real fields are
+      `arachne_web_coupling_frobenius`, `_coupling_top_eigenvalue`,
+      `_order_parameter`, `_phase_std`. The whole-substrate "Kuramoto
+      order" is captured by top-level `kuramoto_order_parameter` (NOT
+      an `arachne_web_*` variant).
+
+  - **Test suite: 759 → 770 passed** (+11 causal-discovery tests) /
+    1 skipped / 0 failed.
+
+  - **Empirical findings load-bearing for future Kimera work**:
+    - There is NO substrate regression at the canonical confidence
+      metric. Future "Φ regression" claims should specify which
+      Φ-like metric is meant (`phi` vs `reasoning_posterior` vs
+      `tidal_kii` vs legacy `kii_value`).
+    - `phi → dissonance_events_count` is causally directed at lag-2
+      (substrate's integration-surfaces-contradictions signature).
+    - `kuramoto → arachne_web_order_parameter` is directed lag-0
+      (first empirical confirmation of memory-as-deformation's
+      predicted direction).
+    - `dissonance_score` and `dissonance_events_count` are unrelated
+      by design (distinct upstream signals from different layers).
+
 - **Round E (round 5) — real-substrate Ophamin scenarios + KIMERA_FIELD_CATALOG drift fixes.**
   Captured a real 100-cycle Kimera trajectory (commit `6bf8756d3`,
   batch-mode adapter, 68.9s wall, 100/100 success) and built two new
