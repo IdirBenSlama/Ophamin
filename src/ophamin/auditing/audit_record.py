@@ -280,8 +280,12 @@ class AuditRecord:
             lines.append(f"- `{pillar}`: {count}")
         if s.top_files:
             lines.append("\n### Top 20 hotspot files\n")
-            for path, count in s.top_files:
-                lines.append(f"- `{path}`: {count} findings")
+            # NOTE: do NOT name this loop variable `path` — it would shadow the
+            # `path` parameter of this method and cause the audit markdown to
+            # be written into the LAST hotspot source file instead of the
+            # caller-specified output path. Bug surfaced in CI 2026-05-15.
+            for hotspot_file, count in s.top_files:
+                lines.append(f"- `{hotspot_file}`: {count} findings")
 
         if self.reproduction_command:
             lines.append(f"\n## 4. Reproduction\n```\n{self.reproduction_command}\n```")

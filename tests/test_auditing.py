@@ -172,6 +172,48 @@ def test_audit_record_to_markdown_renders(tmp_path):
     assert "unavailable" in md
 
 
+def test_audit_record_to_markdown_writes_to_caller_path_not_hotspot_file(tmp_path):
+    """Regression: ``to_markdown(path)`` had a variable-shadow bug where the
+    ``for path, count in s.top_files`` loop clobbered the ``path`` parameter,
+    causing the audit markdown to be written into the LAST hotspot SOURCE
+    file. Surfaced in CI 2026-05-15 when the audit workflow corrupted
+    ``src/ophamin/inspecting/inspector.py`` on the GitHub runner.
+    """
+    target = tmp_path / "subject"
+    target.mkdir()
+    # Two hotspot files with content we can verify remains intact.
+    hotspot_a = target / "hotspot_a.py"
+    hotspot_a.write_text("# original hotspot_a content\nimport sys\n")
+    hotspot_b = target / "hotspot_b.py"
+    hotspot_b.write_text("# original hotspot_b content\nimport os\n")
+    record = AuditRecord.build(
+        target_path=target,
+        results=[
+            PillarResult(
+                pillar_name="ruff", tool_name="ruff", tool_version="ruff 0.x",
+                status="ok", target_path=str(target),
+                findings=tuple(
+                    Finding("ruff", "E501", FindingSeverity.HIGH, "msg",
+                            str(hotspot_a if i % 2 == 0 else hotspot_b))
+                    for i in range(6)
+                ),
+            ),
+        ],
+    )
+
+    output_path = tmp_path / "audit_out" / "report.md"
+    output_path.parent.mkdir()
+    record.to_markdown(str(output_path))
+
+    # Caller-supplied path receives the markdown.
+    assert output_path.exists(), "audit markdown not written to caller's path"
+    assert "# Ophamin Audit Record" in output_path.read_text()
+
+    # Hotspot source files MUST NOT be touched.
+    assert hotspot_a.read_text() == "# original hotspot_a content\nimport sys\n"
+    assert hotspot_b.read_text() == "# original hotspot_b content\nimport os\n"
+
+
 # --------------------------------------------------------------------------
 # AuditPillar base class
 # --------------------------------------------------------------------------
