@@ -59,6 +59,7 @@ audit = [                          # auditing wheel — orchestrated static-anal
     "vulture>=2.10",               # dead-code detector
     "radon>=6.0",                  # cyclomatic complexity + maintainability index
     "pip-audit>=2.7",              # dependency-vulnerability scanner
+    "cyclonedx-python-lib>=11.0",  # CycloneDX SBOM exporter (interop wheel)
 ]
 all = [                            # convenience: everything optional, for full local install
     "matplotlib>=3.6",
@@ -75,6 +76,7 @@ all = [                            # convenience: everything optional, for full 
     "vulture>=2.10",
     "radon>=6.0",
     "pip-audit>=2.7",
+    "cyclonedx-python-lib>=11.0",
 ]
 dev = ["pytest>=7.0"]
 

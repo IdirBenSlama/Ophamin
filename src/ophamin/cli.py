@@ -16,6 +16,7 @@
     ophamin discover-fields <kimera-repo> diff one probe cycle's raw fields vs KIMERA_FIELD_CATALOG
     ophamin scrape <url>                  passive scrape of a Prometheus /metrics endpoint
     ophamin wiring <kimera-repo>          per-surface wired vs WIRE_CANDIDATE vs orphan report
+    ophamin verify                        self-check the install (deps + binaries + CLI subcommands)
     ophamin report <record.json>          render a proof or audit record as HTML / Markdown / LaTeX
     ophamin inspect <kimera-repo> <name>  per-primitive profile (static + optional dynamic)
     ophamin inspect-all <kimera-repo>     survey every catalogued Kimera primitive
@@ -69,6 +70,12 @@ from ophamin.seeing.telemetry import (
     TelemetryScrapeError,
 )
 from ophamin.seeing.wiring import WiringProbe
+from ophamin.verify import (
+    has_required_failure,
+    render_report,
+    render_text,
+    run_all_checks,
+)
 from ophamin.seeing.substrate.kimera_adapter import KimeraAdapter, KimeraAdapterError
 from ophamin.seeing.substrate.mock import MockSubstrate
 
@@ -773,6 +780,18 @@ def cmd_discover_fields(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_verify(args: argparse.Namespace) -> int:
+    """Self-check the install. Exit code 1 if any required check fails."""
+    results = run_all_checks(
+        kimera_repo=(args.kimera_repo if args.kimera_repo else None),
+    )
+    if args.markdown:
+        print(render_report(results), end="")
+    else:
+        print(render_text(results))
+    return 1 if has_required_failure(results) else 0
+
+
 def cmd_wiring(args: argparse.Namespace) -> int:
     """Run the wiring probe against a Kimera repo, write a signed completeness report.
 
@@ -1134,6 +1153,22 @@ def build_parser() -> argparse.ArgumentParser:
              "slower run)",
     )
     p_wiring.set_defaults(func=cmd_wiring)
+
+    p_verify = sub.add_parser(
+        "verify",
+        help="self-check the install — required deps, optional extras, "
+             "audit-pillar binaries, CLI subcommands",
+    )
+    p_verify.add_argument(
+        "--kimera-repo", default="",
+        help="optional path to a Kimera repo — runs a discovery probe to "
+             "verify the adapter works end-to-end",
+    )
+    p_verify.add_argument(
+        "--markdown", action="store_true",
+        help="emit Markdown report instead of compact text",
+    )
+    p_verify.set_defaults(func=cmd_verify)
 
     p_report = sub.add_parser(
         "report",

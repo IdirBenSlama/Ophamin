@@ -7,6 +7,26 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- **`ophamin verify` — install self-check + CI fast-fail gate.**
+  One command that walks every declared dependency (15 required + 9
+  optional packages, 7 binary tools) and every documented CLI subcommand
+  (19 of them), reports per-check status with install-extra hints, and
+  exits non-zero on any required failure. Catches the venv-binary
+  resolution gap, the missing-extras gap, broken imports, and renamed
+  subcommands at install time instead of letting them silently degrade
+  scenarios at run time. Backed by `src/ophamin/verify.py` (~280 LOC) +
+  23 hardening tests. Optional `--kimera-repo` flag also probes the
+  adapter end-to-end against a Kimera repo. Wired into CI's pytest job
+  as a pre-pytest fast-fail gate. Test count: 554 → 577.
+
+  Also: pyproject's `[audit]` and `[all]` extras now declare
+  `cyclonedx-python-lib>=11.0` (the interop wheel's SBOM exporter
+  imported it but it wasn't pulled by any extra — silent dependency).
+  CI now installs `[all,dev]` instead of `[viz,dev]` so the audit job's
+  pillar binaries are reachable.
+
 ### Fixed
 
 - **Audit pillars now resolve binaries from the venv's bin/ first, not just PATH.**

@@ -21,6 +21,7 @@ mypy>=1.8
 vulture>=2.10
 radon>=6.0
 pip-audit>=2.7
+cyclonedx-python-lib>=11.0               # CycloneDX SBOM exporter (interop wheel)
 
 # === telemetry: instrumenting/ wheel + seeing/telemetry/ — consume Kimera's metrics ===
 opentelemetry-api>=1.20
