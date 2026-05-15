@@ -30,8 +30,31 @@ from ophamin.measuring.proof import (
 from ophamin.comparing.provenance import ProvenanceGraph
 from ophamin.comparing.provenance.lineage import _ophamin_project_root, capture_git_commit
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
+from ophamin.seeing.substrate.field_catalog import (
+    ScenarioFieldContract,
+    validate_contract_against_raw,
+)
 
 DEFAULT_SIGN_KEY = b"ophamin-scenario-proof-key"
+
+
+class ScenarioFieldContractViolation(RuntimeError):
+    """Raised when a scenario's field contract is violated by a probe cycle.
+
+    Loud failure on violation surfaces Kimera-side schema drift instead of
+    letting the scenario silently degrade. ``violations`` carries the full
+    ``ContractViolation`` tuple for the caller to log.
+    """
+
+    def __init__(self, scenario_name: str, violations: tuple) -> None:  # type: ignore[type-arg]
+        self.scenario_name = scenario_name
+        self.violations = violations
+        details = "\n  - ".join(
+            f"{v.kind}: {v.field_name} — {v.detail}" for v in violations
+        )
+        super().__init__(
+            f"scenario {scenario_name!r} field contract violated by probe cycle:\n  - {details}"
+        )
 
 
 @dataclass
@@ -63,6 +86,21 @@ class Scenario(abc.ABC):
         self, cycle_results: list[CycleResult], records: list[CorpusRecord]
     ) -> ScenarioScore:
         """Read the completed run into an observed value + pillar evidence."""
+
+    def field_contract(self) -> ScenarioFieldContract | None:
+        """The OrchestratorResult fields this scenario depends on.
+
+        Default ``None`` means no contract — scenarios that don't override
+        this run exactly as before (back-compat). Scenarios that DO override
+        get loud-failure on the first cycle if a required field is missing
+        or has the wrong type. This catches Kimera-side renames at experiment
+        setup time instead of silently breaking downstream.
+
+        Returning a contract is purely additive — the scenario still reads
+        ``cycle.raw["..."]`` ad-hoc in :meth:`score`. The contract is the
+        gate, not the projection.
+        """
+        return None
 
     # -- overridable helpers -----------------------------------------------
 
@@ -136,6 +174,24 @@ class Scenario(abc.ABC):
         # RUN — stream the real corpus through the substrate
         stimuli = [record.text for record in records]
         cycle_results = substrate.run_batch(stimuli)
+
+        # FIELD-CONTRACT VALIDATION — if the scenario declares a contract,
+        # validate the first successful cycle's raw dict against it before
+        # scoring. Loud failure on missing-required or type-mismatch surfaces
+        # Kimera-side schema drift; silent degradation is forbidden by the
+        # framework's no-fallback rule.
+        contract = self.field_contract()
+        if contract is not None and cycle_results:
+            for cr in cycle_results:
+                if cr.success:
+                    violations = validate_contract_against_raw(contract, cr.raw)
+                    fatal = tuple(
+                        v for v in violations
+                        if v.kind in {"missing_required", "type_mismatch", "family_mismatch"}
+                    )
+                    if fatal:
+                        raise ScenarioFieldContractViolation(self.name, fatal)
+                    break
 
         # SCORE -> VERDICT
         score = self.score(cycle_results, records)

@@ -9,6 +9,25 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Field catalog + scenario contract gate + `ophamin discover-fields` — v0.2 Step 2.**
+  ``KIMERA_FIELD_CATALOG`` documents ~35 high-signal OrchestratorResult
+  fields with type + semantic family + description (the families: phi,
+  walker, gwf, echoform, consolidation, prime, piovra, substrate_state,
+  internal_event, lateral_line, eikonal, ouroboros, alexandria,
+  realtime_encoder, timing, manipulation, scar, thermodynamic). Scenarios
+  opt into a ``field_contract()`` declaring the fields they depend on; the
+  base scenario harness validates the contract against the first
+  successful cycle's ``raw`` before scoring and raises
+  ``ScenarioFieldContractViolation`` (loud failure) on missing-required,
+  type-mismatch, or family-mismatch. Default ``field_contract() = None``
+  is back-compat — existing scenarios keep working untouched.
+  `ophamin discover-fields <repo>` probes one cycle and surfaces the
+  three-way diff (in-catalog · uncataloged · missing-from-raw) so
+  Kimera-side schema drift is visible at experiment-setup time.
+  Retroactively, the ``cycle_seconds``-dropped-on-floor incident
+  (2026-05-15) would have failed the contract immediately. 40 new
+  hardening tests (33 catalog, 7 scenario gate). Test count: 410 → 450.
+
 - **`KimeraInventory` + `ophamin inventory` — v0.2 Step 1**
   ([`docs/KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md`](docs/KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md)).
   Static enumeration of every observable surface in a Kimera-SWM working

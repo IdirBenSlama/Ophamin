@@ -13,6 +13,7 @@
                                           + drift on every Kimera HEAD change
     ophamin audit <path>                  orchestrate static-analysis pillars; signed audit record
     ophamin inventory <kimera-repo>       enumerate observable surface across 9 strata (static)
+    ophamin discover-fields <kimera-repo> diff one probe cycle's raw fields vs KIMERA_FIELD_CATALOG
     ophamin report <record.json>          render a proof or audit record as HTML / Markdown / LaTeX
     ophamin inspect <kimera-repo> <name>  per-primitive profile (static + optional dynamic)
     ophamin inspect-all <kimera-repo>     survey every catalogued Kimera primitive
@@ -53,6 +54,10 @@ from ophamin.reporting import ReportFormat, ReportRunner
 from ophamin.comparing.drift import ProofIndex, detect_drift
 from ophamin.comparing.orchestration.experiment import ExperimentRunner
 from ophamin.comparing.provenance.lineage import LineageStore
+from ophamin.seeing.substrate.field_catalog import (
+    KIMERA_FIELD_CATALOG,
+    catalog_coverage,
+)
 from ophamin.seeing.substrate.kimera_adapter import KimeraAdapter, KimeraAdapterError
 from ophamin.seeing.substrate.mock import MockSubstrate
 
@@ -693,6 +698,70 @@ def cmd_inventory(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_discover_fields(args: argparse.Namespace) -> int:
+    """Probe Kimera one cycle, diff the resulting raw dict against the field catalog.
+
+    Three buckets are reported:
+
+    - **in_catalog**       — fields present in raw AND documented in the catalog
+    - **uncataloged**      — fields present in raw but NOT in the catalog (Kimera
+                              added them; consider extending the catalog)
+    - **missing_from_raw** — catalog fields not present in this probe's raw (the
+                              substrate may not surface them for this target /
+                              stimulus, or Kimera renamed them)
+
+    The third bucket is the load-bearing one — it surfaces Kimera-side drift
+    that would silently break scenarios depending on those fields.
+    """
+    try:
+        adapter = KimeraAdapter(args.repo, target=args.target)
+    except KimeraAdapterError as e:
+        print(f"adapter error: {e}", file=sys.stderr)
+        return 2
+
+    try:
+        result = adapter.run_cycle(args.stimulus)
+    except Exception as e:
+        print(f"probe cycle failed: {e}", file=sys.stderr)
+        return 1
+
+    coverage = catalog_coverage(result.raw)
+    if args.json:
+        out = {
+            "ophamin_version": __version__,
+            "kimera_repo": str(args.repo),
+            "target": args.target,
+            "halt_mode": result.halt_mode,
+            "success": result.success,
+            "coverage": coverage,
+        }
+        print(json.dumps(out, indent=2, default=str))
+        return 0
+
+    print(f"probing         : {args.repo}")
+    print(f"target          : {args.target}")
+    print(f"halt_mode       : {result.halt_mode}")
+    print(f"catalog size    : {coverage['catalog_size']}")
+    print(f"raw dict size   : {coverage['raw_size']}")
+    print(f"")
+    print(f"in catalog      : {coverage['in_catalog']} fields documented + present")
+    print(f"uncataloged     : {coverage['uncataloged']} fields present but not in catalog")
+    print(f"missing from raw: {coverage['missing_from_raw']} catalog fields absent this run")
+    if coverage["missing_from_raw_names"]:
+        print(f"\nmissing fields (catalog → raw drift):")
+        for name in coverage["missing_from_raw_names"][:20]:
+            print(f"  - {name}")
+        if len(coverage["missing_from_raw_names"]) > 20:
+            print(f"  ... and {len(coverage['missing_from_raw_names']) - 20} more")
+    if coverage["uncataloged_names"]:
+        print(f"\nuncataloged fields (raw → catalog drift):")
+        for name in coverage["uncataloged_names"][:20]:
+            print(f"  - {name}")
+        if len(coverage["uncataloged_names"]) > 20:
+            print(f"  ... and {len(coverage['uncataloged_names']) - 20} more")
+    return 0
+
+
 def cmd_discover_diff(args: argparse.Namespace) -> int:
     """Structural diff between two SchemaDocuments (added/removed/type-changed)."""
     before = SchemaDocument.from_json(args.before)
@@ -890,6 +959,26 @@ def build_parser() -> argparse.ArgumentParser:
         help="directory to write the inventory JSON + Markdown (default: inventory/)",
     )
     p_inv.set_defaults(func=cmd_inventory)
+
+    p_fields = sub.add_parser(
+        "discover-fields",
+        help="probe Kimera one cycle, diff the resulting OrchestratorResult "
+             "field set against KIMERA_FIELD_CATALOG (surfaces field drift)",
+    )
+    p_fields.add_argument("repo", help="path to the Kimera-SWM repository")
+    p_fields.add_argument(
+        "--target", default="entity",
+        help="adapter target to probe (default: entity)",
+    )
+    p_fields.add_argument(
+        "--stimulus", default="Probe stimulus for catalog drift detection.",
+        help="stimulus text for the probe cycle",
+    )
+    p_fields.add_argument(
+        "--json", action="store_true",
+        help="emit machine-readable JSON instead of the text summary",
+    )
+    p_fields.set_defaults(func=cmd_discover_fields)
 
     p_report = sub.add_parser(
         "report",
