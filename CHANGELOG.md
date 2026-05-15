@@ -9,6 +9,52 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Round G (round 7) — prime-tier scenarios focused on substrate's prime apparatus.**
+  Per owner directive "focus on Primes aspects". CLAUDE.md §"The
+  substrate's architectural center is primes" identifies primes as
+  Kimera's load-bearing center. Round G measures the substrate's
+  prime emission directly with two new scenarios riding a 200-cycle
+  prime-focused capture.
+
+  - **`PrimeStructureScenario`** (`prime-structure`). Multi-faceted
+    probe of substrate's prime emission. Captures 4 properties:
+    1. **Concept-set recognition Jaccard** (HEADLINE verdict): for
+       repeated stimuli, Jaccard between extracted `concepts` sets.
+       Per CLAUDE.md F.1.1: composite-prime Jaccard is ~0 by design
+       (per-cycle stamp factor) — recognition lives at the concept
+       layer, not the composite layer.
+    2. **F.1.1 composite-factorization integrity** (secondary): every
+       composite emitted in `prime_chain` is verified to satisfy
+       `composite % p_identity == 0` where
+       `p_identity = SHA256(canonical) → small prime in [100, 49100]`,
+       re-implementing `ArachneProtocol._identity_prime` in pure Python
+       for offline verification.
+    3. **Coverage ratio distribution** —
+       `prime_identity_coverage.coverage_ratio` per cycle.
+    4. **Vocabulary growth + size distribution** — unique composite
+       primes over cycles, log10(prime) histogram, top-10 favourites.
+
+    First end-to-end run on captured 200-cycle Kimera trajectory:
+
+    - **Concept Jaccard floor 0.8462**, mean **0.9932** (HIGHER than
+      Session 013's reported 0.94 floor) — VALIDATED.
+    - **F.1.1 divisibility 1880/1880 = 100%** — empirically airtight
+      at ~50× CLAUDE.md Phase-4's 37/37 baseline.
+    - **5 stimuli show PERFECT recognition** (Jaccard = 1.000 across
+      all reps) including "The prime is the invariant..."
+    - **Composite Jaccard = 0.0000** (informational; confirms
+      per-cycle stamp factor working as designed).
+    - **Coverage ratio 1.0000 mean and min** across all 200 cycles.
+
+    11 hardening tests including injected F.1.1 violation (off-by-one
+    composite breaks divisibility = 1.0).
+
+  - **Capture script** at `/tmp/capture_kimera_prime_trajectory.py`
+    (single-purpose; pattern documented in
+    `EMPIRICAL_VALIDATION.md` Family U).
+
+  - **Test suite: 770 → 781 passed** (+11) / 1 skipped / 0 failed.
+
 - **Round F (round 6) — substrate-regression hypothesis CLOSED + causal-
   discovery scenario + Pattern-T naming clarifications.**
   Per owner directive "continue analysis for fixes". Round E surfaced 4
