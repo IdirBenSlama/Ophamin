@@ -39,7 +39,12 @@ from ophamin.seeing.discovery import (
 from ophamin.auditing import AuditRunner
 from ophamin.auditing.pillars import DEFAULT_PILLAR_CLASSES
 from ophamin.inspecting import PrimitiveInspector
-from ophamin.interop import JUnitXMLExporter, MLflowExporter, SARIFExporter
+from ophamin.interop import (
+    CycloneDXExporter,
+    JUnitXMLExporter,
+    MLflowExporter,
+    SARIFExporter,
+)
 from ophamin.reporting import ReportFormat, ReportRunner
 from ophamin.comparing.drift import ProofIndex, detect_drift
 from ophamin.comparing.orchestration.experiment import ExperimentRunner
@@ -417,6 +422,28 @@ def cmd_export(args: argparse.Namespace) -> int:
         )
         print(f"record  : {record_path}")
         print(f"format  : {fmt}")
+        print(f"written : {out}")
+        return 0
+    elif fmt in ("cyclonedx", "sbom"):
+        # CycloneDX SBOM — either from the record's reproduction.environment
+        # (when it carries one) or from the current venv as a fallback.
+        try:
+            reproduction = (payload.get("reproduction") or {}) if isinstance(payload, dict) else {}
+            if reproduction.get("environment"):
+                out = CycloneDXExporter().export_record(
+                    payload,
+                    out_path or record_path.with_suffix(".cdx.json"),
+                )
+            else:
+                # record has no environment lock; emit the current venv's SBOM
+                out = CycloneDXExporter().export_env(
+                    out_path or record_path.with_suffix(".cdx.json"),
+                )
+        except ValueError as exc:
+            print(f"cyclonedx export failed: {exc}", file=sys.stderr)
+            return 2
+        print(f"record  : {record_path}")
+        print(f"format  : cyclonedx")
         print(f"written : {out}")
         return 0
     elif fmt == "mlflow":
@@ -863,11 +890,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_export.add_argument("record", help="path to a signed Ophamin record JSON")
     p_export.add_argument(
         "--format", required=True,
-        choices=["sarif", "junit-xml", "junit", "mlflow"],
+        choices=["sarif", "junit-xml", "junit", "mlflow", "cyclonedx", "sbom"],
         help=(
             "target format: sarif (audit → SARIF 2.1.0); "
             "junit-xml (proof → JUnit XML); "
-            "mlflow (proof/audit → MLflow tracking run)"
+            "mlflow (proof/audit → MLflow tracking run); "
+            "cyclonedx / sbom (proof → CycloneDX 1.5 SBOM)"
         ),
     )
     p_export.add_argument(

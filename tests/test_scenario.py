@@ -16,6 +16,7 @@ from ophamin.measuring.scenarios import (
     ImmuneSiegeScenario,
     LogicTopologySiegeScenario,
     OrganizationalDissonanceScenario,
+    PhilosophicalSelfReferenceScenario,
     RosettaScalingScenario,
     Scenario,
     ScenarioScore,
@@ -1029,6 +1030,175 @@ def test_throughput_ceiling_inconclusive_when_substrate_not_exercised():
     # either "too few" (because 0 cycles measured) or "not exercised" (because
     # 20/20 adapter errors) is a valid reason — both ARE true
     assert "too few" in score.reasoning or "not exercised" in score.reasoning
+
+
+# -- Philosophical Self-Reference (philosophical-tier scenario) -------------
+
+
+def _ph_cycle(*, group: str, dissonance_count: int, phi: float = 0.2) -> tuple[CycleResult, CorpusRecord]:
+    """Build a (CycleResult, CorpusRecord) pair tagged with the group label.
+
+    Returns the pair as the scenario.score expects them in parallel lists.
+    """
+    record = CorpusRecord(
+        id=f"{group}-x", text="some text",
+        metadata={"group": group, "kimera_aware": (group == "self_ref")},
+    )
+    cycle = CycleResult(
+        cycle_index=0, success=True,
+        raw={"dissonance_events": list(range(dissonance_count)), "phi_value": phi,
+             "gwf_verdict": "cleared"},
+        halt_mode="exhausted",
+    )
+    return cycle, record
+
+
+def test_philosophical_claim_is_falsifiable():
+    claim = PhilosophicalSelfReferenceScenario(effect_size_threshold=0.5).build_claim()
+    assert claim.threshold.metric == "dissonance_cohens_d_self_ref_vs_neutral"
+    assert claim.threshold.comparator == ">="
+    assert claim.threshold.value == pytest.approx(0.5)
+    assert "self-referential" in claim.statement.lower() or "kimera" in claim.statement.lower()
+
+
+def test_philosophical_rejects_bad_arguments():
+    with pytest.raises(ValueError, match="must be > 0"):
+        PhilosophicalSelfReferenceScenario(effect_size_threshold=0)
+    with pytest.raises(ValueError, match="at least 5"):
+        PhilosophicalSelfReferenceScenario(n_self_ref=2, n_neutral=30)
+    with pytest.raises(ValueError, match="at least 5"):
+        PhilosophicalSelfReferenceScenario(n_neutral=2)
+
+
+def test_philosophical_cohens_d_pooled_variance():
+    """Cohen's d implementation matches the standard pooled-variance formula.
+
+    Hand-constructed known case: a = [10, 11, 12], b = [9, 10, 11]
+      mean(a) = 11, mean(b) = 10, mean diff = 1.0
+      var(a) = var(b) = 1.0 (with Bessel's correction, n-1)
+      pooled variance = (2*1 + 2*1) / (3+3-2) = 4/4 = 1.0
+      pooled sd = 1.0
+      d = (11 - 10) / 1.0 = EXACTLY 1.0
+    """
+    a = [10, 11, 12]
+    b = [9, 10, 11]
+    d = PhilosophicalSelfReferenceScenario._cohens_d(a, b)
+    assert d == pytest.approx(1.0, abs=1e-9)
+    # symmetry: swapping reverses the sign
+    d_rev = PhilosophicalSelfReferenceScenario._cohens_d(b, a)
+    assert d_rev == pytest.approx(-1.0, abs=1e-9)
+
+
+def test_philosophical_cohens_d_edge_cases():
+    # empty groups → 0
+    assert PhilosophicalSelfReferenceScenario._cohens_d([], [1, 2]) == 0.0
+    assert PhilosophicalSelfReferenceScenario._cohens_d([1, 2], []) == 0.0
+    # single-element groups → 0 (variance undefined)
+    assert PhilosophicalSelfReferenceScenario._cohens_d([5], [3]) == 0.0
+    # zero-variance constant data → 0
+    assert PhilosophicalSelfReferenceScenario._cohens_d([5, 5, 5, 5], [3, 3, 3, 3]) == 0.0
+
+
+def test_philosophical_score_validates_when_self_ref_dissonance_is_higher():
+    scenario = PhilosophicalSelfReferenceScenario(
+        effect_size_threshold=0.3, n_self_ref=10, n_neutral=10,
+    )
+    # self_ref: dissonance counts 20, 22, 24, ... → mean ~25
+    # neutral:  dissonance counts 5,  7, 9, ...   → mean ~10
+    # → big positive Cohen's d
+    cycles: list[CycleResult] = []
+    records: list[CorpusRecord] = []
+    for i in range(10):
+        c, r = _ph_cycle(group="self_ref", dissonance_count=20 + i * 2)
+        cycles.append(c); records.append(r)
+    for i in range(10):
+        c, r = _ph_cycle(group="neutral", dissonance_count=5 + i * 2)
+        cycles.append(c); records.append(r)
+    score = scenario.score(cycles, records)
+    assert score.observed_value > 0.5  # large positive effect
+    assert not score.inconclusive
+
+
+def test_philosophical_score_refutes_when_groups_are_indistinguishable():
+    scenario = PhilosophicalSelfReferenceScenario(
+        effect_size_threshold=0.3, n_self_ref=10, n_neutral=10,
+    )
+    # both groups have identical distributions → d ≈ 0
+    cycles: list[CycleResult] = []
+    records: list[CorpusRecord] = []
+    for i in range(10):
+        c, r = _ph_cycle(group="self_ref", dissonance_count=10 + i)
+        cycles.append(c); records.append(r)
+    for i in range(10):
+        c, r = _ph_cycle(group="neutral", dissonance_count=10 + i)
+        cycles.append(c); records.append(r)
+    score = scenario.score(cycles, records)
+    assert abs(score.observed_value) < 0.3  # below threshold
+    assert not score.inconclusive
+
+
+def test_philosophical_score_inconclusive_with_too_few_in_one_group():
+    scenario = PhilosophicalSelfReferenceScenario(
+        effect_size_threshold=0.3, n_self_ref=10, n_neutral=10,
+    )
+    # only 3 self_ref cycles → too few
+    cycles: list[CycleResult] = []
+    records: list[CorpusRecord] = []
+    for i in range(3):
+        c, r = _ph_cycle(group="self_ref", dissonance_count=20)
+        cycles.append(c); records.append(r)
+    for i in range(10):
+        c, r = _ph_cycle(group="neutral", dissonance_count=5)
+        cycles.append(c); records.append(r)
+    score = scenario.score(cycles, records)
+    assert score.inconclusive
+    assert "too few" in score.reasoning
+
+
+def test_philosophical_score_emits_mann_whitney_evidence():
+    """The Mann-Whitney U + p-value is reported as secondary evidence."""
+    scenario = PhilosophicalSelfReferenceScenario(
+        effect_size_threshold=0.3, n_self_ref=10, n_neutral=10,
+    )
+    cycles, records = [], []
+    for i in range(10):
+        c, r = _ph_cycle(group="self_ref", dissonance_count=20 + i)
+        cycles.append(c); records.append(r)
+    for i in range(10):
+        c, r = _ph_cycle(group="neutral", dissonance_count=5 + i)
+        cycles.append(c); records.append(r)
+    score = scenario.score(cycles, records)
+    mwu_ev = next(e for e in score.evidence if e.statistic_name.endswith("p_value"))
+    # the U statistic + p-value MUST be populated when both groups have data
+    assert mwu_ev.detail["u_statistic"] is not None
+    assert mwu_ev.p_value is not None
+    # one-sided p should be tiny for large positive d
+    assert mwu_ev.p_value < 0.05
+
+
+def test_philosophical_select_records_yields_tagged_records():
+    scenario = PhilosophicalSelfReferenceScenario(
+        n_self_ref=5, n_neutral=5,
+    )
+
+    class _StubCorpus:
+        def records(self):
+            for i in range(20):
+                yield CorpusRecord(
+                    id=f"x{i}",
+                    text="A neutral sentence about email subjects and " * 3,
+                    metadata={},
+                )
+
+    records = list(scenario.select_records(_StubCorpus()))
+    self_ref = [r for r in records if r.metadata.get("group") == "self_ref"]
+    neutral = [r for r in records if r.metadata.get("group") == "neutral"]
+    assert len(self_ref) == 5
+    assert len(neutral) == 5
+    # the self-referential records are from the bundled corpus
+    assert all(r.id.startswith("selfref-") for r in self_ref)
+    assert all(r.metadata["kimera_aware"] is True for r in self_ref)
+    assert all(r.metadata["kimera_aware"] is False for r in neutral)
 
 
 def test_throughput_ceiling_excludes_failed_cycles_from_denominator():

@@ -37,6 +37,11 @@ CLI:
 
 from __future__ import annotations
 
+from ophamin.interop.cyclonedx import (
+    CycloneDXExporter,
+    build_cyclonedx_sbom_from_env,
+    build_cyclonedx_sbom_from_record,
+)
 from ophamin.interop.junit_xml import (
     JUnitXMLExporter,
     proof_record_to_junit_xml,
@@ -52,10 +57,13 @@ from ophamin.interop.sarif import (
 )
 
 __all__ = [
+    "CycloneDXExporter",
     "JUnitXMLExporter",
     "MLflowExporter",
     "SARIFExporter",
     "audit_record_to_sarif",
+    "build_cyclonedx_sbom_from_env",
+    "build_cyclonedx_sbom_from_record",
     "export_audit_record",
     "export_proof_record",
     "proof_record_to_junit_xml",

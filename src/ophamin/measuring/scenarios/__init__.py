@@ -13,9 +13,11 @@ Scenarios come in three experimentation tiers (the user's framing):
         LogicTopologySiegeScenario        walker sustained-traversal rate
 
     Engineering tier — claims about substrate *cost*
-        ThroughputCeilingScenario         p95 cycle wall-time ceiling
+        ThroughputCeilingScenario             p95 cycle wall-time ceiling
 
-    Philosophical tier — claims about substrate *self-model* (future)
+    Philosophical tier — claims about substrate *self-model*
+        PhilosophicalSelfReferenceScenario    Cohen's d on dissonance:
+                                              self-referential vs neutral text
 
 All tiers share the same Scenario / ScenarioScore / signed proof-record
 discipline. They differ in what fields they read from CycleResult.raw + how
@@ -26,6 +28,10 @@ from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, Scenari
 from ophamin.measuring.scenarios.immune_siege import ImmuneSiegeScenario
 from ophamin.measuring.scenarios.logic_topology_siege import LogicTopologySiegeScenario
 from ophamin.measuring.scenarios.organizational_dissonance import OrganizationalDissonanceScenario
+from ophamin.measuring.scenarios.philosophical_self_reference import (
+    PhilosophicalSelfReferenceScenario,
+    SELF_REFERENTIAL_TEXTS,
+)
 from ophamin.measuring.scenarios.rosetta_scaling import RosettaScalingScenario
 from ophamin.measuring.scenarios.throughput_ceiling import ThroughputCeilingScenario
 
@@ -36,6 +42,7 @@ SCENARIOS: dict[str, type[Scenario]] = {
     OrganizationalDissonanceScenario.name: OrganizationalDissonanceScenario,
     LogicTopologySiegeScenario.name: LogicTopologySiegeScenario,
     ThroughputCeilingScenario.name: ThroughputCeilingScenario,
+    PhilosophicalSelfReferenceScenario.name: PhilosophicalSelfReferenceScenario,
 }
 
 __all__ = [
@@ -46,6 +53,8 @@ __all__ = [
     "OrganizationalDissonanceScenario",
     "LogicTopologySiegeScenario",
     "ThroughputCeilingScenario",
+    "PhilosophicalSelfReferenceScenario",
+    "SELF_REFERENTIAL_TEXTS",
     "SCENARIOS",
     "DEFAULT_SIGN_KEY",
 ]

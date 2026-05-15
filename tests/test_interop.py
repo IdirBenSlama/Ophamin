@@ -430,3 +430,91 @@ def test_mlflow_export_truncates_long_param_values(mlflow_tracking_dir):
     # should NOT raise
     run_id = export_proof_record(record, experiment_name="test-truncation")
     assert isinstance(run_id, str)
+
+
+# --------------------------------------------------------------------------
+# CycloneDX SBOM exporter
+# --------------------------------------------------------------------------
+
+
+def test_cyclonedx_sbom_from_env_basic_shape():
+    from ophamin.interop import build_cyclonedx_sbom_from_env
+    sbom = build_cyclonedx_sbom_from_env()
+    assert sbom["bomFormat"] == "CycloneDX"
+    assert sbom["specVersion"] == "1.5"
+    assert sbom["serialNumber"].startswith("urn:uuid:")
+    assert sbom["metadata"]["component"]["name"] == "ophamin"
+    assert isinstance(sbom["components"], list)
+    # the venv has actual packages; at least our deps should be there
+    names = {c["name"].lower() for c in sbom["components"]}
+    assert "numpy" in names or "scipy" in names  # at least one dep visible
+
+
+def test_cyclonedx_sbom_from_env_components_are_deterministic_ordered():
+    from ophamin.interop import build_cyclonedx_sbom_from_env
+    sbom = build_cyclonedx_sbom_from_env()
+    names = [c["name"].lower() for c in sbom["components"]]
+    assert names == sorted(names)
+
+
+def test_cyclonedx_sbom_from_env_each_component_has_purl():
+    from ophamin.interop import build_cyclonedx_sbom_from_env
+    sbom = build_cyclonedx_sbom_from_env()
+    for c in sbom["components"]:
+        assert c["purl"].startswith("pkg:pypi/")
+        assert c["bom-ref"] == c["purl"]
+        assert c["type"] == "library"
+
+
+def test_cyclonedx_sbom_from_record_uses_environment_dict():
+    from ophamin.interop import build_cyclonedx_sbom_from_record
+    record = _proof_record()
+    record["reproduction"]["environment"] = {
+        "numpy": "1.26.0",
+        "scipy": "1.14.0",
+        "statsmodels": "0.14.0",
+    }
+    sbom = build_cyclonedx_sbom_from_record(record)
+    assert sbom["bomFormat"] == "CycloneDX"
+    assert len(sbom["components"]) == 3
+    names = {c["name"].lower() for c in sbom["components"]}
+    assert names == {"numpy", "scipy", "statsmodels"}
+    # the application component references the record's proof_id
+    proof_id = record["proof_id"]
+    assert proof_id[:12] in sbom["metadata"]["component"]["version"]
+
+
+def test_cyclonedx_sbom_from_record_rejects_empty_environment():
+    from ophamin.interop import build_cyclonedx_sbom_from_record
+    record = _proof_record()
+    record["reproduction"] = {"command": "ophamin x"}  # no environment
+    with pytest.raises(ValueError, match="environment is missing"):
+        build_cyclonedx_sbom_from_record(record)
+
+
+def test_cyclonedx_sbom_from_record_rejects_non_dict():
+    from ophamin.interop import build_cyclonedx_sbom_from_record
+    with pytest.raises(TypeError):
+        build_cyclonedx_sbom_from_record("not a dict")  # type: ignore[arg-type]
+
+
+def test_cyclonedx_exporter_writes_cdx_json(tmp_path):
+    from ophamin.interop import CycloneDXExporter
+    out = CycloneDXExporter().export_env(tmp_path / "sbom")
+    assert out.suffix == ".json"
+    assert ".cdx" in out.name or out.name.endswith(".json")
+    parsed = json.loads(out.read_text())
+    assert parsed["bomFormat"] == "CycloneDX"
+
+
+def test_cyclonedx_exporter_preserves_explicit_json_extension(tmp_path):
+    from ophamin.interop import CycloneDXExporter
+    out = CycloneDXExporter().export_env(tmp_path / "sbom.json")
+    assert out == tmp_path / "sbom.json"
+
+
+def test_cyclonedx_purl_handles_underscore_to_hyphen():
+    from ophamin.interop.cyclonedx import _pypi_purl
+    # pypi canonical names are lowercase + hyphen, even when import-name has _
+    assert _pypi_purl("scikit_learn", "1.3.0") == "pkg:pypi/scikit-learn@1.3.0"
+    assert _pypi_purl("NumPy", "1.26.0") == "pkg:pypi/numpy@1.26.0"
