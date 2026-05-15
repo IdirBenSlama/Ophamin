@@ -12,6 +12,7 @@
     ophamin watch <repo>                  many-small-eyes: continuously re-discover + diff
                                           + drift on every Kimera HEAD change
     ophamin audit <path>                  orchestrate static-analysis pillars; signed audit record
+    ophamin report <record.json>          render a proof or audit record as HTML / Markdown / LaTeX
 """
 
 from __future__ import annotations
@@ -34,6 +35,7 @@ from ophamin.seeing.discovery import (
 )
 from ophamin.auditing import AuditRunner
 from ophamin.auditing.pillars import DEFAULT_PILLAR_CLASSES
+from ophamin.reporting import ReportFormat, ReportRunner
 from ophamin.comparing.drift import ProofIndex, detect_drift
 from ophamin.comparing.orchestration.experiment import ExperimentRunner
 from ophamin.comparing.provenance.lineage import LineageStore
@@ -318,6 +320,48 @@ def cmd_watch(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_report(args: argparse.Namespace) -> int:
+    """Render a proof or audit record as HTML / Markdown / LaTeX.
+
+    The record kind (proof vs audit) is auto-detected from the JSON shape.
+    Output file extension is set by the chosen format. Charts go to an
+    adjacent ``assets/`` dir for Markdown / LaTeX outputs.
+    """
+    record_path = Path(args.record)
+    if not record_path.is_file():
+        print(f"record not found: {record_path}", file=sys.stderr)
+        return 2
+    try:
+        fmt = ReportFormat(args.format)
+    except ValueError:
+        print(
+            f"unknown format {args.format!r}; choose from "
+            f"{', '.join(f.value for f in ReportFormat)}",
+            file=sys.stderr,
+        )
+        return 2
+
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_stem = out_dir / record_path.stem  # extension chosen by renderer
+
+    runner = ReportRunner()
+    try:
+        out_path = runner.render(record_path, out_stem, fmt)
+    except ValueError as exc:
+        print(f"render failed: {exc}", file=sys.stderr)
+        return 1
+    print(f"record  : {record_path}")
+    print(f"format  : {fmt.value}")
+    print(f"written : {out_path}")
+    if fmt in (ReportFormat.MARKDOWN, ReportFormat.LATEX):
+        assets = out_path.parent / "assets"
+        if assets.is_dir():
+            n = len(list(assets.glob("*.png")))
+            print(f"         + {n} chart PNG(s) in {assets}")
+    return 0
+
+
 def cmd_audit(args: argparse.Namespace) -> int:
     """Orchestrate static-analysis pillars against a target path.
 
@@ -559,6 +603,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="per-pillar timeout in seconds (default: 600)",
     )
     p_audit.set_defaults(func=cmd_audit)
+
+    p_report = sub.add_parser(
+        "report",
+        help="render a signed record (proof or audit) as HTML / Markdown / LaTeX",
+    )
+    p_report.add_argument("record", help="path to a signed record JSON")
+    p_report.add_argument(
+        "--format", default="html",
+        choices=[f.value for f in ReportFormat
+                 if f not in (ReportFormat.PDF, ReportFormat.JUPYTER)],
+        help="output format (default: html)",
+    )
+    p_report.add_argument(
+        "--out-dir", default="reports",
+        help="directory to write the rendered output (default: reports/)",
+    )
+    p_report.set_defaults(func=cmd_report)
 
     return parser
 
