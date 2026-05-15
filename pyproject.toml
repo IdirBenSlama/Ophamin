@@ -63,6 +63,56 @@ audit = [                          # auditing wheel — orchestrated static-anal
     "deptry>=0.20",                # project-scope dependency checker (PR #9)
     "fawltydeps>=0.18",            # project-scope dependency checker (PR #9)
     "interrogate>=1.5",            # docstring-coverage pillar (PR #9 sibling)
+    "pylint>=3.0",                 # deeper Python linter (deep-scope, opt-in)
+    "refurb>=2.0",                 # Python ≥3.10 modernization suggestions
+]
+analytic = [                       # measuring/ wheel statistical helpers
+    "pingouin>=0.5",               # effect-size + multi-comparison correction
+    "POT>=0.9",                    # optimal transport / Wasserstein
+    "infomeasure>=0.6",            # entropy + MI + transfer-entropy
+    "umap-learn>=0.5",             # 2-D dim reduction for reporting
+]
+causal = [                         # measuring/ wheel — causal inference
+    "dowhy>=0.8",                  # PyWhy orchestrator
+    "econml>=0.16",                # Microsoft HTE estimators
+    "causalml>=0.16",              # Uber uplift modeling
+]
+tda = [                            # seeing/ + measuring/ — topological data analysis
+    "ripser>=0.6",                 # fast persistent homology
+    "scikit-tda>=1.0",             # umbrella (kepler-mapper, persim, etc.)
+    "gudhi>=3.10",                 # broadest simplicial-complex coverage
+]
+timeseries = [                     # comparing/drift_detection/ + measuring/
+    "darts>=0.30",                 # forecasting + anomaly
+    "tsfresh>=0.20",               # 1000+ feature extraction
+    "pyod>=2.0",                   # 50+ outlier detectors
+    "stumpy>=1.13",                # matrix-profile motif/discord
+    "statsforecast>=2.0",          # classical forecasters
+]
+bayesian = [                       # measuring/ — Bayesian PPL
+    "arviz>=1.0",                  # posterior visualization + diagnostics
+    "pymc>=6.0",                   # Bayesian PPL
+]
+property_test = [                  # auditing/ + scenarios — property + fuzz testing
+    "hypothesis>=6.100",           # property-based testing
+    "schemathesis>=3.30",          # API contract testing
+    "coverage>=7.0",               # branch coverage
+]
+acceleration = [                   # core deps — when scenarios get slow
+    "polars>=1.0",                 # faster pandas
+    "duckdb>=1.0",                 # in-process analytical SQL
+    "numba>=0.60",                 # JIT for NumPy
+]
+sat_smt = [                        # measuring/ — formal verification
+    "z3-solver>=4.13",             # SMT solver
+]
+conformal = [                      # measuring/ — conformal prediction
+    "crepes>=0.8",                 # NumPy conformal regressors + classifiers
+    "puncc>=0.9",                  # conformal classification + detection (deel-puncc)
+]
+infotheory = [                     # measuring/ — information theory
+    "pyitlib>=0.2",                # MI + entropy
+    "ennemi>=1.4",                 # easy-API non-linear MI
 ]
 all = [                            # convenience: everything optional, for full local install
     "matplotlib>=3.6",
@@ -83,6 +133,36 @@ all = [                            # convenience: everything optional, for full 
     "deptry>=0.20",
     "fawltydeps>=0.18",
     "interrogate>=1.5",
+    "pylint>=3.0",
+    "refurb>=2.0",
+    "pingouin>=0.5",
+    "POT>=0.9",
+    "infomeasure>=0.6",
+    "umap-learn>=0.5",
+    "dowhy>=0.8",
+    "econml>=0.16",
+    "causalml>=0.16",
+    "ripser>=0.6",
+    "scikit-tda>=1.0",
+    "gudhi>=3.10",
+    "darts>=0.30",
+    "tsfresh>=0.20",
+    "pyod>=2.0",
+    "stumpy>=1.13",
+    "statsforecast>=2.0",
+    "arviz>=1.0",
+    "pymc>=6.0",
+    "hypothesis>=6.100",
+    "schemathesis>=3.30",
+    "coverage>=7.0",
+    "polars>=1.0",
+    "duckdb>=1.0",
+    "numba>=0.60",
+    "z3-solver>=4.13",
+    "crepes>=0.8",
+    "puncc>=0.9",
+    "pyitlib>=0.2",
+    "ennemi>=1.4",
 ]
 dev = ["pytest>=7.0"]
 

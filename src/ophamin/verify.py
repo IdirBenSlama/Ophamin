@@ -71,8 +71,58 @@ DEP_CHECKS: tuple[tuple[str, str, str, str, str], ...] = (
     ("prometheus_client", "prometheus_client", "optional", "telemetry", "PrometheusScrapeProbe consumer"),
     ("cyclonedx-python-lib", "cyclonedx",      "optional", "audit",     "CycloneDX SBOM exporter"),
     ("interrogate",  "interrogate",            "optional", "audit",     "docstring-coverage (PR #9 sibling)"),
+    ("pylint",       "pylint",                 "optional", "audit",     "deeper Python linter (deep-scope)"),
+    ("refurb",       "refurb",                 "optional", "audit",     "Python ≥3.10 modernization"),
     ("py-spy",       "",                       "optional", "profile",   "sampling profiler (binary tool)"),
     ("memray",       "memray",                 "optional", "profile",   "memory profiler"),
+
+    # analytic — measuring wheel statistical libs
+    ("pingouin",     "pingouin",               "optional", "analytic",  "effect-size + multi-comp correction"),
+    ("POT",          "ot",                     "optional", "analytic",  "optimal transport / Wasserstein"),
+    ("infomeasure",  "infomeasure",            "optional", "analytic",  "entropy + MI + transfer entropy"),
+    ("umap-learn",   "umap",                   "optional", "analytic",  "2-D dim reduction"),
+
+    # causal — measuring wheel
+    ("dowhy",        "dowhy",                  "optional", "causal",    "PyWhy orchestrator"),
+    ("econml",       "econml",                 "optional", "causal",    "Microsoft HTE estimators"),
+    ("causalml",     "causalml",               "optional", "causal",    "Uber uplift modeling"),
+
+    # tda — seeing/measuring wheels
+    ("ripser",       "ripser",                 "optional", "tda",       "fast persistent homology"),
+    ("scikit-tda",   "kmapper",                "optional", "tda",       "scikit-tda umbrella (kepler-mapper)"),
+    ("gudhi",        "gudhi",                  "optional", "tda",       "broadest simplicial complex coverage"),
+
+    # timeseries — comparing/drift_detection + measuring
+    ("darts",        "darts",                  "optional", "timeseries", "forecasting + anomaly"),
+    ("tsfresh",      "tsfresh",                "optional", "timeseries", "feature extraction"),
+    ("pyod",         "pyod",                   "optional", "timeseries", "outlier detection"),
+    ("stumpy",       "stumpy",                 "optional", "timeseries", "matrix profile"),
+    ("statsforecast","statsforecast",          "optional", "timeseries", "classical forecasters"),
+
+    # bayesian
+    ("arviz",        "arviz",                  "optional", "bayesian",  "posterior visualization"),
+    ("pymc",         "pymc",                   "optional", "bayesian",  "Bayesian PPL"),
+
+    # property + fuzz
+    ("hypothesis",   "hypothesis",             "optional", "property_test", "property-based testing"),
+    ("schemathesis", "schemathesis",           "optional", "property_test", "API contract testing"),
+    ("coverage",     "coverage",               "optional", "property_test", "branch coverage"),
+
+    # acceleration
+    ("polars",       "polars",                 "optional", "acceleration", "faster pandas"),
+    ("duckdb",       "duckdb",                 "optional", "acceleration", "in-process SQL"),
+    ("numba",        "numba",                  "optional", "acceleration", "JIT for NumPy"),
+
+    # SAT/SMT
+    ("z3-solver",    "z3",                     "optional", "sat_smt",   "SMT solver"),
+
+    # conformal
+    ("crepes",       "crepes",                 "optional", "conformal", "NumPy conformal predictors"),
+    ("puncc",        "deel.puncc",             "optional", "conformal", "conformal classification + detection"),
+
+    # info theory (extras beyond infomeasure)
+    ("pyitlib",      "pyitlib",                "optional", "infotheory", "MI + entropy"),
+    ("ennemi",       "ennemi",                 "optional", "infotheory", "easy-API non-linear MI"),
 )
 
 
@@ -87,6 +137,9 @@ BINARY_CHECKS: tuple[tuple[str, str, str, str], ...] = (
     ("deptry",     "optional", "audit",   "Project-scope dep checker (PR #9)"),
     ("fawltydeps", "optional", "audit",   "Project-scope dep checker (PR #9)"),
     ("interrogate","optional", "audit",   "Docstring coverage (PR #9 sibling)"),
+    ("pylint",     "optional", "audit",   "Deeper Python linter"),
+    ("refurb",     "optional", "audit",   "Modernization suggestions"),
+    ("semgrep",    "optional", "audit",   "Custom-rule SAST (deferred wrapper)"),
     ("py-spy",     "optional", "profile", "Sampling profiler"),
 )
 

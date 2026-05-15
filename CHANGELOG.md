@@ -9,6 +9,70 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Bulk plugin-catalog install — 32 of 33 OSS tools landed in Ophamin's venv.**
+  Per owner directive *"keep downloading, install, building, and setting up
+  all tools for Ophamin"*. Installed across 11 batches:
+    - **Statistical / analytical**: pingouin, POT, pyitlib, ennemi,
+      infomeasure, crepes, deel-puncc
+    - **Causal**: dowhy, econml, causalml
+    - **Time-series**: darts, tsfresh, pyod, stumpy, statsforecast
+    - **TDA**: ripser, scikit-tda (kepler-mapper + persim), gudhi
+    - **Bayesian**: arviz, pymc
+    - **Property/fuzz**: hypothesis, schemathesis, coverage
+    - **Acceleration**: polars, duckdb, numba
+    - **Code quality**: pylint, refurb, semgrep
+    - **SAT/SMT**: z3-solver
+    - **Dim reduction**: umap-learn, pacmap
+    - **Skipped**: PyPhi (upstream Py3.10+ incompatibility — uses
+      `from collections import Iterable` removed in 3.10), sktime (caps at
+      Py3.11 via skbase), dit (cascading prettytable / pycddlib failures)
+
+- **PylintPillar (deep-scope) + RefurbPillar (file-scope, default).**
+  Two new audit pillars wrapping pylint (deeper than ruff — type inference,
+  custom plugins, complex inheritance) and refurb (Python ≥3.10
+  modernization suggestions). New `DEEP_PILLAR_CLASSES` tuple separates
+  pylint from defaults (slow + opinionated, opt-in via
+  `--pillars=...,pylint`). Refurb joins `DEFAULT_PILLAR_CLASSES`. Both
+  GPL-2 / GPL-3 — invoked via subprocess (no library import).
+
+  Live empirical signal — Ophamin self-audit:
+  - **pylint: 755 findings**
+  - **refurb: 240 findings**
+  - **Combined: 995 findings on Ophamin's own source.** Top hotspots:
+    `wiring_probe.py` (113), `kimera_inventory.py` (48), `cli.py` (37),
+    `verify.py` (30), `proof/record.py` (30) — exactly the v0.2 modules
+    built recently. Concrete fix-list to clean up before v0.2 ships.
+
+- **`measuring/analytic_helpers.py` — 4 small wrappers over catalog libs.**
+  - `effect_size_cohens_d_with_ci()` — pingouin's compute_effsize +
+    compute_esci bundled (scipy doesn't ship CI for Cohen's d)
+  - `multiple_comparisons_correction()` — pingouin.multicomp wrapper
+    (FDR / Bonferroni / Holm / Sidak)
+  - `wasserstein_distance_1d()` — POT's exact-EMD reference oracle for
+    Kimera's IIT30 closed-form `_emd_hamming` validation
+  - `mutual_information_continuous()` — infomeasure's KSG estimator
+    (Kraskov-Stögbauer-Grassberger, the academic reference for continuous MI)
+  - `reduce_to_2d()` — UMAP for visualizing high-dim primes / embeddings
+    in the reporting wheel
+
+  All loud-fail on missing deps (no silent fallback per CLAUDE.md). 17
+  hardening tests pin known mathematical properties (W1 = 0 for identical
+  samples, MI ≈ 0 for independent vars, MI > 0.8 for strongly correlated,
+  Bonferroni more conservative than FDR, etc.).
+
+- **`pyproject.toml` extras: 9 new categorized extras** —
+  `[analytic]`, `[causal]`, `[tda]`, `[timeseries]`, `[bayesian]`,
+  `[property_test]`, `[acceleration]`, `[sat_smt]`, `[conformal]`,
+  `[infotheory]`. Lets installers pull only the categories they need.
+  `[all]` extra now includes everything.
+
+- **Verify catalog: 70 ok / 0 missing / 0 error.** Self-check now covers
+  every installed analytical + statistical tool with `import` verification
+  and version capture. Was 37 → 70 (+33 new dep checks + 4 binary checks).
+
+  Test count: 633 → 661 (+28 across pillars + analytic helpers + new
+  default-pillars-set test).
+
 - **interrogate audit pillar — PR #9 sibling.** Docstring-coverage pillar
   using `interrogate`'s Python API directly (no subprocess). Per-file
   findings emitted when coverage falls below `fail_under` (default 80%).

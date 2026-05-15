@@ -47,6 +47,7 @@ from ophamin.seeing.discovery import (
 )
 from ophamin.auditing import AuditRunner
 from ophamin.auditing.pillars import (
+    DEEP_PILLAR_CLASSES,
     DEFAULT_PILLAR_CLASSES,
     PROJECT_PILLAR_CLASSES,
 )
@@ -630,10 +631,13 @@ def cmd_audit(args: argparse.Namespace) -> int:
         print(f"target does not exist: {target}", file=sys.stderr)
         return 2
     # filter pillars by --pillars list if given. Project-scope pillars
-    # (deptry / fawltydeps) are NOT in DEFAULT_PILLAR_CLASSES — they only
-    # apply to project-root targets — so include them in the lookup pool
-    # when the user names them explicitly.
-    available_classes = list(DEFAULT_PILLAR_CLASSES) + list(PROJECT_PILLAR_CLASSES)
+    # (deptry / fawltydeps) AND deep pillars (pylint) are NOT in
+    # DEFAULT_PILLAR_CLASSES — include them in the lookup pool when named.
+    available_classes = (
+        list(DEFAULT_PILLAR_CLASSES) +
+        list(DEEP_PILLAR_CLASSES) +
+        list(PROJECT_PILLAR_CLASSES)
+    )
     if args.pillars:
         wanted = {name.strip() for name in args.pillars.split(",") if name.strip()}
         pillar_classes = [cls for cls in available_classes if cls.name in wanted]

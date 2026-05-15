@@ -31,11 +31,15 @@ from ophamin.auditing.pillars.fawltydeps_pillar import FawltyDepsPillar
 from ophamin.auditing.pillars.interrogate_pillar import InterrogatePillar
 from ophamin.auditing.pillars.mypy_pillar import MypyPillar
 from ophamin.auditing.pillars.pip_audit_pillar import PipAuditPillar
+from ophamin.auditing.pillars.pylint_pillar import PylintPillar
 from ophamin.auditing.pillars.radon_pillar import RadonPillar
+from ophamin.auditing.pillars.refurb_pillar import RefurbPillar
 from ophamin.auditing.pillars.ruff_pillar import RuffPillar
 from ophamin.auditing.pillars.vulture_pillar import VulturePillar
 
 #: file-scope pillars — work on any source path. Default in audit runs.
+#: Pylint is intentionally NOT in defaults (slow + opinionated; opt-in
+#: via ``--pillars=...,pylint``). Refurb is fast enough for default.
 DEFAULT_PILLAR_CLASSES = (
     RuffPillar,
     BanditPillar,
@@ -44,6 +48,12 @@ DEFAULT_PILLAR_CLASSES = (
     RadonPillar,
     PipAuditPillar,
     InterrogatePillar,
+    RefurbPillar,
+)
+
+#: deeper file-scope pillars — slower but richer. Opt-in via --pillars.
+DEEP_PILLAR_CLASSES = (
+    PylintPillar,
 )
 
 #: project-scope pillars — require the target to be a project-root directory
@@ -64,13 +74,19 @@ def project_pillars() -> list:
     return [cls() for cls in PROJECT_PILLAR_CLASSES]
 
 
+def deep_pillars() -> list:
+    """Instantiate every deeper opt-in file-scope pillar."""
+    return [cls() for cls in DEEP_PILLAR_CLASSES]
+
+
 def all_pillars() -> list:
-    """Instantiate every pillar — both file-scope and project-scope."""
-    return default_pillars() + project_pillars()
+    """Instantiate every pillar — file-scope, deep, and project-scope."""
+    return default_pillars() + deep_pillars() + project_pillars()
 
 
 __all__ = [
     "DEFAULT_PILLAR_CLASSES",
+    "DEEP_PILLAR_CLASSES",
     "PROJECT_PILLAR_CLASSES",
     "BanditPillar",
     "DeptryPillar",
@@ -78,10 +94,13 @@ __all__ = [
     "InterrogatePillar",
     "MypyPillar",
     "PipAuditPillar",
+    "PylintPillar",
     "RadonPillar",
+    "RefurbPillar",
     "RuffPillar",
     "VulturePillar",
     "all_pillars",
+    "deep_pillars",
     "default_pillars",
     "project_pillars",
 ]
