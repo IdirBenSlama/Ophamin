@@ -1,5 +1,12 @@
 # Ophamin
 
+[![CI](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
+[![Audit](https://github.com/IdirBenSlama/Ophamin/actions/workflows/audit.yml/badge.svg?branch=main)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/audit.yml)
+[![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue.svg)](https://github.com/IdirBenSlama/Ophamin/blob/main/pyproject.toml)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/IdirBenSlama/Ophamin/releases)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-386%20passing-brightgreen.svg)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
+
 **An empirical observatory wrapped around a substrate under test.**
 
 Ophamin is the apparatus through which a complex substrate (Kimera-SWM
