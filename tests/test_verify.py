@@ -137,9 +137,14 @@ def test_dep_checks_catalog_well_formed():
 
 
 def test_binary_checks_catalog_well_formed():
+    allowed_extras = {
+        "audit", "profile", "viz", "well", "hydra", "telemetry", "dev",
+        "property_test",  # added 2026-04-26 with schemathesis pillar
+        "",
+    }
     for name, sev, extra, desc in BINARY_CHECKS:
         assert sev in {"required", "optional", "info"}
-        assert extra in {"audit", "profile", "viz", "well", "hydra", "telemetry", "dev", ""}
+        assert extra in allowed_extras, f"{name}: extra={extra!r} not in {allowed_extras}"
 
 
 def test_cli_subcommands_includes_known_commands():

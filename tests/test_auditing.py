@@ -513,6 +513,137 @@ def test_pip_audit_pillar_parses_vulns():
     assert "vulnerable-pkg" in result.findings[0].message
 
 
+# ---- pip_audit pillar — risk-accepted suppression + target-venv scoping ----
+# Added 2026-05-15 alongside DEFAULT_RISK_ACCEPTED_CVES + python_exe support.
+
+def test_pip_audit_default_risk_accepted_cves_passes_via_cli():
+    """Constructor-default ignore list flows into the CLI invocation."""
+    from ophamin.auditing.pillars.pip_audit_pillar import (
+        DEFAULT_RISK_ACCEPTED_CVES,
+        PipAuditPillar,
+    )
+    pillar = PipAuditPillar()  # default → uses DEFAULT_RISK_ACCEPTED_CVES
+    captured: dict = {}
+    def _capture(cmd, *args, **kwargs):
+        captured["cmd"] = cmd
+        return _completed("[]", returncode=0)
+    with mock.patch.object(pillar, "is_available", return_value=True), \
+         mock.patch.object(pillar, "tool_version", return_value="pip-audit 2.x"), \
+         mock.patch("subprocess.run", side_effect=_capture):
+        result = pillar.run("/x")
+    assert result.status == "ok"
+    # every CVE in the default list must appear with --ignore-vuln in the cmd
+    cmd = captured["cmd"]
+    for cve in DEFAULT_RISK_ACCEPTED_CVES:
+        assert "--ignore-vuln" in cmd
+        assert cve in cmd, f"{cve} expected in pip-audit cmd, got {cmd}"
+    # extra metadata records what was ignored
+    assert result.extra["ignored_vulns"] == list(DEFAULT_RISK_ACCEPTED_CVES)
+    assert result.extra["python_exe"] == "<ambient>"
+
+
+def test_pip_audit_empty_ignore_list_disables_suppression():
+    """Passing ignore_vulns=() means suppress nothing (every CVE surfaces)."""
+    from ophamin.auditing.pillars.pip_audit_pillar import PipAuditPillar
+    pillar = PipAuditPillar(ignore_vulns=())
+    captured: dict = {}
+    def _capture(cmd, *args, **kwargs):
+        captured["cmd"] = cmd
+        return _completed("[]", returncode=0)
+    with mock.patch.object(pillar, "is_available", return_value=True), \
+         mock.patch.object(pillar, "tool_version", return_value="pip-audit 2.x"), \
+         mock.patch("subprocess.run", side_effect=_capture):
+        result = pillar.run("/x")
+    assert result.status == "ok"
+    # no --ignore-vuln entries when the list is empty
+    assert "--ignore-vuln" not in captured["cmd"]
+    assert result.extra["ignored_vulns"] == []
+
+
+def test_pip_audit_per_call_ignore_overrides_constructor():
+    """Per-call ignore_vulns kwarg overrides the constructor default."""
+    from ophamin.auditing.pillars.pip_audit_pillar import PipAuditPillar
+    pillar = PipAuditPillar(ignore_vulns=("CONSTRUCTOR-CVE",))
+    captured: dict = {}
+    def _capture(cmd, *args, **kwargs):
+        captured["cmd"] = cmd
+        return _completed("[]", returncode=0)
+    with mock.patch.object(pillar, "is_available", return_value=True), \
+         mock.patch.object(pillar, "tool_version", return_value="pip-audit 2.x"), \
+         mock.patch("subprocess.run", side_effect=_capture):
+        result = pillar.run("/x", ignore_vulns=("PER-CALL-CVE",))
+    cmd = captured["cmd"]
+    assert "PER-CALL-CVE" in cmd
+    assert "CONSTRUCTOR-CVE" not in cmd
+    assert result.extra["ignored_vulns"] == ["PER-CALL-CVE"]
+
+
+def test_pip_audit_python_exe_missing_returns_error(tmp_path):
+    """python_exe pointing at a non-existent path produces a loud error."""
+    from ophamin.auditing.pillars.pip_audit_pillar import PipAuditPillar
+    nonexistent = tmp_path / "no-such-python"
+    pillar = PipAuditPillar(python_exe=str(nonexistent))
+    with mock.patch.object(pillar, "is_available", return_value=True), \
+         mock.patch.object(pillar, "tool_version", return_value="pip-audit 2.x"):
+        result = pillar.run("/x")
+    assert result.status == "error"
+    assert "python_exe not found" in result.error_message
+    assert str(nonexistent) in result.error_message
+
+
+def test_pip_audit_target_venv_freeze_invocation(tmp_path):
+    """python_exe → freeze → pip-audit --requirement → records scope in extra."""
+    from ophamin.auditing.pillars.pip_audit_pillar import PipAuditPillar
+    fake_python = tmp_path / "python"
+    fake_python.write_text("#!/bin/sh\nexit 0\n")
+    fake_python.chmod(0o755)
+    pillar = PipAuditPillar(python_exe=str(fake_python))
+
+    call_log: list = []
+
+    def _fake_run(cmd, *args, **kwargs):
+        call_log.append(list(cmd))
+        # First call: pip freeze on fake python.
+        if "freeze" in cmd:
+            return _completed("requests==2.0.0\nnumpy==1.24.0\n", returncode=0)
+        # Second call: pip-audit
+        return _completed("[]", returncode=0)
+
+    with mock.patch.object(pillar, "is_available", return_value=True), \
+         mock.patch.object(pillar, "tool_version", return_value="pip-audit 2.x"), \
+         mock.patch("subprocess.run", side_effect=_fake_run):
+        result = pillar.run("/x")
+    assert result.status == "ok"
+    # we should have made TWO subprocess calls (freeze + pip-audit)
+    assert len(call_log) == 2
+    freeze_cmd, audit_cmd = call_log
+    assert "freeze" in freeze_cmd
+    assert "--requirement" in audit_cmd
+    assert "--disable-pip" in audit_cmd
+    assert result.extra["python_exe"] == str(fake_python)
+
+
+def test_pip_audit_target_venv_empty_freeze_fails_loud(tmp_path):
+    """An empty freeze (e.g. broken pip) surfaces an error, not silent zero."""
+    from ophamin.auditing.pillars.pip_audit_pillar import PipAuditPillar
+    fake_python = tmp_path / "python"
+    fake_python.write_text("#!/bin/sh\nexit 0\n")
+    fake_python.chmod(0o755)
+    pillar = PipAuditPillar(python_exe=str(fake_python))
+
+    def _fake_run(cmd, *args, **kwargs):
+        if "freeze" in cmd:
+            return _completed("", returncode=0)  # empty
+        return _completed("[]", returncode=0)
+
+    with mock.patch.object(pillar, "is_available", return_value=True), \
+         mock.patch.object(pillar, "tool_version", return_value="pip-audit 2.x"), \
+         mock.patch("subprocess.run", side_effect=_fake_run):
+        result = pillar.run("/x")
+    assert result.status == "error"
+    assert "could not pip-freeze" in result.error_message
+
+
 # --------------------------------------------------------------------------
 # AuditRunner
 # --------------------------------------------------------------------------

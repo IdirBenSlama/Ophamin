@@ -9,6 +9,78 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Round 4 — round-3 helpers operationalized as Ophamin scenarios + Kimera-side delivery.**
+  Per owner directive *"continue autonomously across all fixes needed, you have
+  all authorizations"*. Closes the gap between round-3 (helpers exist) and
+  scenarios (helpers drive falsifiable claims that produce signed proof
+  records), plus pip_audit scope methodology gap surfaced in EMPIRICAL_VALIDATION
+  Family S.
+
+  - **`pip_audit` pillar — target-venv scoping + risk-accepted suppression.**
+    - New `python_exe` parameter (constructor or per-call kwarg) scopes the
+      scan to a specific venv via `pip freeze --all` → `pip-audit
+      --requirement <freeze.txt> --disable-pip`. Closes the methodology gap
+      where the pillar implicitly audited Ophamin's ambient venv regardless
+      of what the caller passed as `target_path`.
+    - New `ignore_vulns` parameter + `DEFAULT_RISK_ACCEPTED_CVES` constant
+      with curated default list. Each entry documented per-CVE in
+      `docs/RISK_ACCEPTED_CVES.md` (rationale, attack-vector reachability,
+      compensating controls).
+    - Default suppressions:
+      - `CVE-2025-69872` (diskcache 5.6.3 unsafe pickle) — local-only
+        attack surface; no upstream fix; pulled in transitively by dvc-data
+      - `PYSEC-2022-42969` (py 1.11.0 SVN ReDoS) — Ophamin doesn't use SVN;
+        zero reachable attack surface; project abandoned 2021
+    - `PillarResult` extended with `extra: dict` field that records what
+      scope + ignore-list actually ran (self-describing audit trail).
+    - 6 new hardening tests in `tests/test_auditing.py`.
+
+  - **`KIMERA_FIELD_CATALOG` refresh** (39 → 43 entries; docstring header
+    updated 638 → 665 OrchestratorResult fields per Kimera commit
+    `a0adf1a0b`):
+    - `arachne_web_order_parameter` — monotonic 0.295→0.741 across cycles
+      1-10 in 2026-05-15 discover sweep (memory-as-deformation at Arachne
+      layer)
+    - `arachne_web_coupling_frobenius` — monotonic 1.27→2.64 (energy
+      interpretation)
+    - `arachne_web_coupling_top_eigenvalue` — 1.18→2.24 (dominant-mode
+      amplification)
+    - `alexandria_knowledge_mass_cumulative` — linear ~4.5 mass-units/cycle
+
+  - **`bayesian_helpers.posterior_for_normal_mean` HDI precision fix.**
+    `az.summary` rounds values to 4 decimal places by default — fine for
+    display, NOT fine for ratio comparisons (broke the Bayesian-Φ scenario's
+    contraction-ratio claim). Now reads HDI bounds via `az.hdi` directly on
+    raw posterior samples; preserves full numerical precision. Mean / sd
+    also computed from samples directly (consistent precision throughout).
+    Backward-compatible with arviz 0.x (`hdi_prob=`), 1.x (`prob=` and
+    `ci_prob=`).
+
+  - **2 new scenarios** with signed proof records:
+    - **`CRDTLawsScenario`** (`crdt-laws`) — cross-backend Yjs Python
+      convergence claim. Generates N randomized insert-op sequences; applies
+      each to BOTH `pycrdt` and `y-py` YDocs; asserts identical final text
+      in ≥99% of cases. First end-to-end run: 100/100 converged in 0.22s,
+      Wilson 95% CI [0.96, 1.00], **VALIDATED**. 9 hardening tests.
+    - **`BayesianPhiPosteriorScenario`** (`bayesian-phi-posterior`) — Φ
+      posterior contracts at theoretical √N rate as N grows. Default
+      sample sizes (20, 50, 100, 200) on Family-L-EV-71-shaped synthetic
+      Φ values; pre-registered ceiling `HDI_width(200)/HDI_width(20) ≤
+      0.40` (theoretical 0.316). First end-to-end run: contraction ratio
+      0.397, **VALIDATED**. 15 hardening tests including zero-HDI-width
+      edge case → INCONCLUSIVE handling. Drives `bayesian_helpers.posterior_for_normal_mean`.
+
+  - **Pre-existing test regression fix.** `test_binary_checks_catalog_well_formed`
+    was missing `property_test` in its allowed-extras set after round-3 added
+    schemathesis to `BINARY_CHECKS`. Surfaced + fixed.
+
+  - **Verified end-to-end against canonical Kimera tree.** The other Kimera
+    worktree (`kimera-full-system/.venv`) was missing Kimera deps (uv venv
+    without pip). Bootstrapped via `python -m ensurepip` + `pip install -e .`;
+    verified `KimeraAdapter` probe round-trips against canonical tree.
+
+  - **Test suite: 724 → 748 passed** (+24 new) / 1 skipped / 0 failed.
+
 - **Round 3 — wrap every installed catalog tool into Ophamin-native pillars / probes / helpers.**
   Per owner directive *"These are installed and importable, but no Ophamin-native
   pillar/probe/scenario wraps them yet. do everything properly"*. Closes the

@@ -65,41 +65,52 @@ def posterior_for_normal_mean(
             draws=draws, tune=tune, chains=chains,
             random_seed=random_seed, progressbar=False,
         )
-    # arviz 1.x renamed hdi_prob → ci_prob; try the modern name first.
+    # ``az.summary`` rounds values to 4 decimal places by default, which loses
+    # precision needed for ratio comparisons (e.g. HDI contraction). Pull HDI
+    # bounds via ``az.hdi`` directly on the raw posterior samples — that path
+    # preserves full numerical precision. Then read ESS/R-hat (display-fine)
+    # from the rounded summary.
     try:
         summary = az.summary(idata, var_names=["mu", "sigma"], ci_prob=hdi_prob)
     except TypeError:
         summary = az.summary(idata, var_names=["mu", "sigma"], hdi_prob=hdi_prob)
     mu_row = summary.loc["mu"]
-    # arviz column-naming has shifted across versions:
-    #   0.x: "hdi_3%" / "hdi_97%"
-    #   1.x: "eti94_lb" / "eti94_ub"  (equal-tailed interval at 94%)
-    # Try each pattern in order; fall back to first / last "interval-ish"
-    # column.
-    hdi_lo_col = [c for c in summary.columns
-                  if (c.endswith("_lb") or "low" in c.lower() or
-                      c.startswith("hdi_") and "%" in c and c < "hdi_5")]
-    hdi_hi_col = [c for c in summary.columns
-                  if (c.endswith("_ub") or "high" in c.lower() or
-                      c.startswith("hdi_") and "%" in c and c >= "hdi_5")]
-    if not hdi_lo_col or not hdi_hi_col:
-        bracket_cols = sorted(
-            c for c in summary.columns
-            if c.startswith(("hdi_", "eti", "ci")) or "_lb" in c or "_ub" in c
-        )
-        if bracket_cols:
-            hdi_lo_col = [bracket_cols[0]]
-            hdi_hi_col = [bracket_cols[-1]]
-        else:
-            # No interval columns at all — fall back to mean ± sd
-            hdi_lo_col = ["mean"]
-            hdi_hi_col = ["mean"]
+
+    # Full-precision posterior samples
+    posterior = idata.posterior
+    mu_samples_arr = np.asarray(posterior["mu"]).flatten()
+    sigma_samples_arr = np.asarray(posterior["sigma"]).flatten()
+
+    # Full-precision HDI from samples (avoids az.summary's display rounding).
+    # arviz 1.x uses ``prob=`` (positional/keyword); 0.x used ``hdi_prob=``.
+    try:
+        hdi_obj = az.hdi(posterior["mu"], prob=hdi_prob)
+    except TypeError:
+        try:
+            hdi_obj = az.hdi(posterior["mu"], hdi_prob=hdi_prob)
+        except TypeError:
+            hdi_obj = az.hdi(posterior["mu"], ci_prob=hdi_prob)
+    # hdi_obj can be a Dataset (xarray) or a DataArray; flatten to two values
+    try:
+        hdi_arr = np.asarray(hdi_obj["mu"]).flatten()
+    except (KeyError, TypeError, IndexError):
+        hdi_arr = np.asarray(hdi_obj).flatten()
+    if hdi_arr.size >= 2:
+        mu_hdi_low = float(hdi_arr[0])
+        mu_hdi_high = float(hdi_arr[-1])
+    else:
+        # extreme degenerate case — fall back to percentile from samples
+        mu_hdi_low = float(np.percentile(mu_samples_arr,
+                                         (1 - hdi_prob) / 2 * 100))
+        mu_hdi_high = float(np.percentile(mu_samples_arr,
+                                          (1 + hdi_prob) / 2 * 100))
+
     return {
-        "mu_mean":     float(mu_row["mean"]),
-        "mu_sd":       float(mu_row["sd"]),
-        "mu_hdi_low":  float(mu_row[hdi_lo_col[0]]),
-        "mu_hdi_high": float(mu_row[hdi_hi_col[0]]),
-        "sigma_mean":  float(summary.loc["sigma", "mean"]),
+        "mu_mean":     float(np.mean(mu_samples_arr)),
+        "mu_sd":       float(np.std(mu_samples_arr, ddof=1)),
+        "mu_hdi_low":  mu_hdi_low,
+        "mu_hdi_high": mu_hdi_high,
+        "sigma_mean":  float(np.mean(sigma_samples_arr)),
         "n":           int(obs.size),
         "ess_bulk":    float(mu_row.get("ess_bulk", 0.0)),
         "rhat":        float(mu_row.get("r_hat", 0.0)),

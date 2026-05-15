@@ -1,15 +1,17 @@
 """KIMERA_FIELD_CATALOG — declarative knowledge of OrchestratorResult fields.
 
-Kimera-SWM's ``OrchestratorResult`` carries **638 fields per cycle** as of
-2026-05-04 (CLAUDE.md §"Takwin — one orchestrator among many"). The
-``KimeraAdapter`` passes the whole dict through into ``CycleResult.raw``, so
-scenarios already have access to all of them. What's missing is the
-*documentation* layer: when a scenario references ``raw["walker_halt_mode"]``,
-there's no machine-checkable record of what type that field is supposed to
-be, what semantic family it belongs to, or which substrate component
-populates it. A Kimera-side rename silently breaks downstream scenarios —
-the ``cycle_seconds``-dropped-on-floor bug surfaced in CI 2026-05-15 is
-exactly this pattern.
+Kimera-SWM's ``OrchestratorResult`` carries **665 fields per cycle** as of
+2026-05-15 (CLAUDE.md §"Takwin — one orchestrator among many"; was 638 at
+2026-05-04). Today's Ophamin ``discover`` sweep observed 666 top-level dict
+keys (665 OrchestratorResult fields + 1 `raw` wrapper). The ``KimeraAdapter``
+passes the whole dict through into ``CycleResult.raw``, so scenarios already
+have access to all of them. What's missing is the *documentation* layer:
+when a scenario references ``raw["walker_halt_mode"]``, there's no
+machine-checkable record of what type that field is supposed to be, what
+semantic family it belongs to, or which substrate component populates it. A
+Kimera-side rename silently breaks downstream scenarios — the
+``cycle_seconds``-dropped-on-floor bug surfaced in CI 2026-05-15 is exactly
+this pattern.
 
 This module is the **field contract** layer:
 
@@ -239,6 +241,36 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
         "arachne_web_kuramoto_order", ("float",), "substrate_state",
         "Arachne web Kuramoto order parameter. Empirically saturates at "
         "~0.81 across 300+ cycles (CLAUDE.md §Phase 1 verified deltas).",
+        nullable=True,
+    ),
+    CatalogedField(
+        "arachne_web_order_parameter", ("float",), "substrate_state",
+        "Arachne web order parameter (raw, before Kuramoto normalization). "
+        "2026-05-15 discover sweep observed monotonic growth 0.295→0.741 "
+        "across cycles 1-10 — the 'memory-as-deformation' signature visible "
+        "at the Arachne layer.",
+        nullable=True,
+    ),
+    CatalogedField(
+        "arachne_web_coupling_frobenius", ("float",), "substrate_state",
+        "Frobenius norm of the Arachne web coupling matrix. 2026-05-15 "
+        "discover sweep observed monotonic growth 1.27→2.64 across cycles "
+        "1-10 (memory-as-deformation, energy interpretation).",
+        nullable=True,
+    ),
+    CatalogedField(
+        "arachne_web_coupling_top_eigenvalue", ("float",), "substrate_state",
+        "Top eigenvalue of the Arachne web coupling matrix. 2026-05-15 "
+        "discover sweep observed 1.18→2.24 across cycles 1-10 (dominant "
+        "mode amplification).",
+        nullable=True,
+    ),
+    CatalogedField(
+        "alexandria_knowledge_mass_cumulative", ("float", "int"), "alexandria",
+        "Cumulative Alexandria knowledge mass. 2026-05-15 discover sweep "
+        "observed linear ~4.5 mass-units/cycle accumulation (8.8→45.4 over "
+        "10 cycles); CLAUDE.md §Phase 1 verified deltas reports ~17 "
+        "mass-units/cycle on different stimuli (rate is content-dependent).",
         nullable=True,
     ),
 

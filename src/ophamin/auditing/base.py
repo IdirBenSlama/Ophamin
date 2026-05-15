@@ -83,6 +83,7 @@ class PillarResult:
     exit_code: int | None = None
     wall_time_s: float = 0.0
     error_message: str = ""              # only when status != "ok"
+    extra: dict[str, Any] = field(default_factory=dict)  # pillar-specific scope/config metadata (added 2026-05-15)
 
     @property
     def finding_count(self) -> int:

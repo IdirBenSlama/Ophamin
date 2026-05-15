@@ -143,6 +143,12 @@ DEP_CHECKS: tuple[tuple[str, str, str, str, str], ...] = (
     ("prospector",   "prospector",             "optional", "audit",     "multi-tool linter aggregator"),
     ("pacmap",       "pacmap",                 "optional", "analytic",  "alt 2-D dim reduction (local + global)"),
     ("persim",       "persim",                 "optional", "tda",       "persistence-diagram metrics (bottleneck)"),
+
+    # round-3.5 — re-tested on Py3.14, actually installable
+    ("pyright",      "",                       "optional", "audit",     "fast type-check (Node binary, no Python import)"),
+    ("mutmut",       "mutmut",                 "optional", "property_test", "mutation testing (faster than cosmic-ray)"),
+    ("sentence-transformers", "sentence_transformers", "optional", "encoder", "encoder cross-check oracle for Rosetta primes"),
+    ("pyphi",        "pyphi",                  "optional", "iit",       "IIT Φ cross-check oracle (broken on Py≥3.10 — needs Py3.9 sidecar)"),
 )
 
 
@@ -163,6 +169,8 @@ BINARY_CHECKS: tuple[tuple[str, str, str, str], ...] = (
     ("schemathesis","optional","property_test", "API contract testing"),
     ("semgrep",    "optional", "audit",   "Custom-rule SAST (deferred wrapper)"),
     ("py-spy",     "optional", "profile", "Sampling profiler"),
+    ("pyright",    "optional", "audit",   "Faster type-check than mypy (Node binary)"),
+    ("mutmut",     "optional", "property_test", "Mutation testing"),
 )
 
 
