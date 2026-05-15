@@ -18,5 +18,10 @@ data/raw/
 data/processed/
 *.pkl
 
+# Verbose run logs — supplementary, NOT the canonical record. The signed,
+# content-addressed Empirical Proof Records under proofs/ ARE the canonical
+# evidence; logs/ holds the full stdout/stderr per run for reproducibility.
+logs/
+
 # OS
 .DS_Store

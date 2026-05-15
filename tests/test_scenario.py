@@ -12,7 +12,12 @@ import pytest
 from ophamin.corpus import get_corpus
 from ophamin.corpus.base import CorpusRecord
 from ophamin.proof import VALIDATED, Claim, PillarEvidence, Threshold
-from ophamin.scenario import ImmuneSiegeScenario, Scenario, ScenarioScore
+from ophamin.scenario import (
+    ImmuneSiegeScenario,
+    RosettaScalingScenario,
+    Scenario,
+    ScenarioScore,
+)
 from ophamin.substrate import MockSubstrate
 from ophamin.substrate.base import CycleResult
 
@@ -326,5 +331,275 @@ def test_immune_siege_claim_is_falsifiable_and_pre_registerable():
     claim = ImmuneSiegeScenario(false_positive_ceiling=0.10).build_claim()
     assert claim.threshold.comparator == "<="
     assert claim.threshold.value == pytest.approx(0.10)
+    assert claim.h0 and claim.h1
+    assert claim.statement.strip()
+
+
+# -- Rosetta Scaling scoring (synthetic cycle results, no Kimera) -----------
+
+
+class _FakeFloresCorpus:
+    """Minimal corpus yielding aligned FLORES-style records (no real files)."""
+
+    def __init__(self, n_groups: int, n_langs: int) -> None:
+        self._n_groups = n_groups
+        self._langs = [f"lang_{i:03d}" for i in range(n_langs)]
+
+    def records(self):
+        for i in range(self._n_groups):
+            translations = {lang: f"sentence-{i}-in-{lang}" for lang in self._langs}
+            yield CorpusRecord(
+                id=f"flores-dev-{i}",
+                text=translations[self._langs[0]],
+                metadata={
+                    "translations": translations,
+                    "n_languages": len(self._langs),
+                },
+            )
+
+
+def _rosetta_result(
+    *,
+    cycle_index: int = 0,
+    canonical: str | None = None,
+    composite: int | None = None,
+    success: bool = True,
+    halt_mode: str = "commit",
+) -> CycleResult:
+    raw: dict = {}
+    if canonical is not None:
+        raw["canonical"] = canonical
+    if composite is not None:
+        raw["composite"] = composite
+    return CycleResult(
+        cycle_index=cycle_index,
+        success=success,
+        raw=raw,
+        halt_mode=halt_mode,
+    )
+
+
+def test_rosetta_scaling_select_records_yields_k_max_per_group_deterministically():
+    scenario = RosettaScalingScenario(n_cycles=999, k_max=4, primary_k=3, seed=42)
+    corpus = _FakeFloresCorpus(n_groups=3, n_langs=10)
+    out = list(itertools.islice(scenario.select_records(corpus), 999))
+    # 3 groups * 4 langs = 12 records
+    assert len(out) == 12
+    # exactly k_max records per group
+    by_group: dict[str, list[CorpusRecord]] = {}
+    for rec in out:
+        by_group.setdefault(rec.metadata["sentence_group_id"], []).append(rec)
+    assert all(len(v) == 4 for v in by_group.values())
+    # determinism — re-running with same seed yields the same language ordering
+    again = list(itertools.islice(scenario.select_records(corpus), 999))
+    assert [r.id for r in out] == [r.id for r in again]
+    # slots are 0..k_max-1 within each group
+    for entries in by_group.values():
+        slots = sorted(e.metadata["slot_index"] for e in entries)
+        assert slots == list(range(4))
+
+
+def test_rosetta_scaling_select_records_skips_groups_with_too_few_langs():
+    scenario = RosettaScalingScenario(n_cycles=99, k_max=20, primary_k=5)
+    corpus = _FakeFloresCorpus(n_groups=2, n_langs=10)  # only 10 langs, k_max=20
+    out = list(itertools.islice(scenario.select_records(corpus), 99))
+    assert out == []
+
+
+def test_rosetta_scaling_canonical_extraction_is_shape_aware():
+    # primary key
+    r1 = _rosetta_result(canonical="water")
+    assert RosettaScalingScenario._canonical(r1) == "water"
+    # fallback to canonical_form
+    r2 = CycleResult(cycle_index=0, success=True, raw={"canonical_form": "eau"}, halt_mode="commit")
+    assert RosettaScalingScenario._canonical(r2) == "eau"
+    # missing -> None
+    r3 = CycleResult(cycle_index=0, success=True, raw={}, halt_mode="commit")
+    assert RosettaScalingScenario._canonical(r3) is None
+    # failed cycle -> None even if canonical present
+    r4 = CycleResult(cycle_index=0, success=False, raw={"canonical": "water"}, halt_mode="error")
+    assert RosettaScalingScenario._canonical(r4) is None
+
+
+def test_rosetta_scaling_prime_extraction_is_shape_aware():
+    # scalar-top-level (synthetic substrates / unit tests)
+    r1 = _rosetta_result(composite=232453)
+    assert RosettaScalingScenario._prime(r1) == 232453
+    r2 = CycleResult(
+        cycle_index=0, success=True, raw={"prime": 17881}, halt_mode="commit"
+    )
+    assert RosettaScalingScenario._prime(r2) == 17881
+    # nested-dict (real Kimera shape: raw["prime"] is the prime-bundle dict)
+    r_nested = CycleResult(
+        cycle_index=0,
+        success=True,
+        raw={
+            "canonical": "the boy went to the store",
+            "prime": {
+                "composite": 506413,
+                "p_thermo": 17,
+                "p_identity": 29789,
+                "canonical": "the boy went to the store",
+            },
+        },
+        halt_mode="commit",
+    )
+    assert RosettaScalingScenario._prime(r_nested) == 506413
+    # bad scalar -> None (don't silently accept)
+    r3 = CycleResult(
+        cycle_index=0, success=True, raw={"composite": "not-int"}, halt_mode="commit"
+    )
+    assert RosettaScalingScenario._prime(r3) is None
+    r4 = _rosetta_result(canonical="water")  # canonical present, no prime
+    assert RosettaScalingScenario._prime(r4) is None
+
+
+def test_rosetta_scaling_scores_full_agreement_at_k():
+    scenario = RosettaScalingScenario(n_cycles=99, k_max=3, primary_k=3, agreement_threshold=0.50)
+    # 12 groups × 3 langs, all collapse to canonical="water" + composite=232453.
+    # 12 clears the n_groups>=10 inconclusive guard (matches Immune Siege's
+    # benign-denominator threshold).
+    records: list[CorpusRecord] = []
+    results: list[CycleResult] = []
+    for g in range(12):
+        for slot in range(3):
+            records.append(
+                CorpusRecord(
+                    id=f"g{g}:slot{slot}",
+                    text="any",
+                    metadata={
+                        "sentence_group_id": f"g{g}",
+                        "language": f"L{slot}",
+                        "slot_index": slot,
+                        "k_max": 3,
+                    },
+                )
+            )
+            results.append(_rosetta_result(canonical="water", composite=232453))
+    score = scenario.score(results, records)
+    assert score.observed_value == pytest.approx(1.0)
+    assert not score.inconclusive
+    primary = next(
+        e for e in score.evidence
+        if e.statistic_name == "rosetta_canonical_agreement_at_k3"
+    )
+    assert primary.detail["n_groups"] == 12
+    assert primary.detail["agreed_groups"] == 12
+    # Wilson CI populated
+    assert primary.ci_low is not None and primary.ci_high is not None
+
+
+def test_rosetta_scaling_scores_partial_agreement_at_k():
+    scenario = RosettaScalingScenario(n_cycles=99, k_max=3, primary_k=3, agreement_threshold=0.50)
+    # 4 groups: 2 fully agree on canonical, 2 disagree on one slot
+    records: list[CorpusRecord] = []
+    results: list[CycleResult] = []
+    layouts = [
+        ("water", "water", "water"),       # agree
+        ("water", "eau", "water"),         # disagree
+        ("water", "water", "water"),       # agree
+        ("agua", "agua", "water"),         # disagree
+    ]
+    for g, triple in enumerate(layouts):
+        for slot, canon in enumerate(triple):
+            records.append(
+                CorpusRecord(
+                    id=f"g{g}:s{slot}",
+                    text="any",
+                    metadata={
+                        "sentence_group_id": f"g{g}",
+                        "language": f"L{slot}",
+                        "slot_index": slot,
+                        "k_max": 3,
+                    },
+                )
+            )
+            results.append(_rosetta_result(canonical=canon))
+    score = scenario.score(results, records)
+    assert score.observed_value == pytest.approx(2 / 4)
+    # too few groups -> inconclusive
+    assert score.inconclusive
+
+
+def test_rosetta_scaling_inconclusive_when_substrate_not_exercised():
+    scenario = RosettaScalingScenario(n_cycles=99, k_max=3, primary_k=3)
+    records: list[CorpusRecord] = []
+    results: list[CycleResult] = []
+    # 12 groups but all adapter errors -> majority adapter errors -> inconclusive
+    for g in range(12):
+        for slot in range(3):
+            records.append(
+                CorpusRecord(
+                    id=f"g{g}:s{slot}",
+                    text="any",
+                    metadata={
+                        "sentence_group_id": f"g{g}",
+                        "language": f"L{slot}",
+                        "slot_index": slot,
+                        "k_max": 3,
+                    },
+                )
+            )
+            results.append(
+                CycleResult(
+                    cycle_index=0,
+                    success=False,
+                    raw={},
+                    halt_mode="adapter_error",
+                )
+            )
+    score = scenario.score(results, records)
+    assert score.inconclusive
+    assert "not exercised" in score.reasoning or "too few" in score.reasoning
+
+
+def test_rosetta_scaling_per_k_evidence_reports_all_requested_ks():
+    scenario = RosettaScalingScenario(n_cycles=99, k_max=20, primary_k=5)
+    # 15 groups × 20 slots all agreeing — should report at K=3,5,10,20
+    records: list[CorpusRecord] = []
+    results: list[CycleResult] = []
+    for g in range(15):
+        for slot in range(20):
+            records.append(
+                CorpusRecord(
+                    id=f"g{g}:s{slot}",
+                    text="any",
+                    metadata={
+                        "sentence_group_id": f"g{g}",
+                        "language": f"L{slot}",
+                        "slot_index": slot,
+                        "k_max": 20,
+                    },
+                )
+            )
+            results.append(_rosetta_result(canonical="water", composite=232453))
+    score = scenario.score(results, records)
+    primary = next(
+        e for e in score.evidence
+        if e.statistic_name == "rosetta_canonical_agreement_at_k5"
+    )
+    per_k = primary.detail["per_k"]
+    for k in (3, 5, 10, 20):
+        assert k in per_k, f"K={k} missing from per_k report"
+        assert per_k[k]["n_groups"] == 15
+        assert per_k[k]["agreed_canonical"] == 15
+        assert per_k[k]["canonical_rate"] == pytest.approx(1.0)
+
+
+def test_rosetta_scaling_rejects_bad_parameters():
+    with pytest.raises(ValueError):
+        RosettaScalingScenario(k_max=1)  # k_max < 2
+    with pytest.raises(ValueError):
+        RosettaScalingScenario(k_max=5, primary_k=10)  # primary_k > k_max
+    with pytest.raises(ValueError):
+        RosettaScalingScenario(agreement_threshold=1.5)  # out of [0, 1]
+
+
+def test_rosetta_scaling_claim_is_falsifiable_and_pre_registerable():
+    # default 0.80 = Rosetta's own blueprint promise ("every language -> one prime")
+    claim = RosettaScalingScenario(primary_k=10).build_claim()
+    assert claim.threshold.comparator == ">="
+    assert claim.threshold.value == pytest.approx(0.80)
+    assert "k10" in claim.threshold.metric
     assert claim.h0 and claim.h1
     assert claim.statement.strip()
