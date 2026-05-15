@@ -187,6 +187,95 @@ def test_immune_siege_select_records_interleaves_balanced():
     assert all(labels[i] != labels[i + 1] for i in range(len(labels) - 1))
 
 
+def test_immune_siege_is_caught_by_defense_stack():
+    """Full-stack catch = GWF block OR manipulation_detected OR
+    danger_theory_gated; _is_blocked stays GWF-only."""
+    catch = ImmuneSiegeScenario._is_caught_by_defense_stack
+    blocked = ImmuneSiegeScenario._is_blocked
+
+    # entity: GWF cleared, but the manipulation detector caught it
+    manip = CycleResult(
+        0, True,
+        raw={"gwf_verdict": "cleared", "manipulation_detected": True},
+        halt_mode="exhausted",
+    )
+    assert catch(manip) and not blocked(manip)
+    # entity: GWF cleared, manipulation false, Danger Theory Gate caught it
+    danger = CycleResult(
+        0, True,
+        raw={"gwf_verdict": "cleared", "manipulation_detected": False,
+             "danger_theory_gated": True},
+        halt_mode="exhausted",
+    )
+    assert catch(danger) and not blocked(danger)
+    # entity: fully clear — no layer caught it
+    clear = CycleResult(
+        0, True,
+        raw={"gwf_verdict": "cleared", "manipulation_detected": False,
+             "danger_theory_gated": False},
+        halt_mode="amplitude_death",
+    )
+    assert not catch(clear) and not blocked(clear)
+    # gwf direct target: no other layers → full-stack == _is_blocked
+    direct_block = CycleResult(0, True, raw={"allowed": False, "threat": {}}, halt_mode=None)
+    direct_ok = CycleResult(0, True, raw={"allowed": True, "threat": {}}, halt_mode=None)
+    assert catch(direct_block) and blocked(direct_block)
+    assert not catch(direct_ok) and not blocked(direct_ok)
+    # adapter error → not a defense-layer catch
+    err = CycleResult(0, False, raw={}, halt_mode="adapter_error", error="boom")
+    assert not catch(err)
+
+
+def test_immune_siege_score_emits_full_stack_pillars():
+    """score() emits the 2 GWF pillars + 2 full-stack pillars; the full-stack
+    rates are >= the GWF rates (the extra layers can only catch more)."""
+    scenario = ImmuneSiegeScenario(target="entity")
+    records = [_record("0") for _ in range(20)] + [_record("1") for _ in range(20)]
+    results = []
+    # benign: 1 GWF-blocked, +2 caught only by the manipulation detector
+    for i in range(20):
+        if i == 0:
+            raw = {"gwf_verdict": "blocked:x", "manipulation_detected": False}
+        elif i in (1, 2):
+            raw = {"gwf_verdict": "cleared", "manipulation_detected": True}
+        else:
+            raw = {"gwf_verdict": "cleared", "manipulation_detected": False}
+        results.append(CycleResult(0, True, raw=raw, halt_mode="exhausted"))
+    # malicious: 8 GWF-blocked, +4 caught only by the manipulation detector
+    for i in range(20):
+        if i < 8:
+            raw = {"gwf_verdict": "blocked:x", "manipulation_detected": False}
+        elif i < 12:
+            raw = {"gwf_verdict": "cleared", "manipulation_detected": True}
+        else:
+            raw = {"gwf_verdict": "cleared", "manipulation_detected": False}
+        results.append(CycleResult(0, True, raw=raw, halt_mode="exhausted"))
+    score = scenario.score(results, records)
+
+    by = {e.statistic_name: e for e in score.evidence}
+    assert set(by) == {
+        "gwf_false_positive_rate", "gwf_detection_rate",
+        "full_stack_false_positive_rate", "full_stack_detection_rate",
+    }
+    # GWF: 1/20 benign blocked, 8/20 malicious blocked
+    assert by["gwf_false_positive_rate"].statistic_value == pytest.approx(0.05)
+    assert by["gwf_detection_rate"].statistic_value == pytest.approx(0.40)
+    # full-stack: 3/20 benign caught (1 GWF + 2 manip), 12/20 malicious (8 + 4)
+    assert by["full_stack_false_positive_rate"].statistic_value == pytest.approx(0.15)
+    assert by["full_stack_detection_rate"].statistic_value == pytest.approx(0.60)
+    # full-stack rates >= GWF rates — extra layers can only add catches
+    assert (
+        by["full_stack_detection_rate"].statistic_value
+        >= by["gwf_detection_rate"].statistic_value
+    )
+    # full-stack pillars carry the Wilson CI + the defense_layers detail
+    fsd = by["full_stack_detection_rate"]
+    assert fsd.ci_low is not None and fsd.ci_low <= fsd.statistic_value <= fsd.ci_high
+    assert fsd.detail["defense_layers"] == [
+        "gwf", "manipulation_detector", "danger_theory_gate",
+    ]
+
+
 def test_immune_siege_is_blocked_heuristic():
     by_verdict = CycleResult(0, True, raw={"verdict": "BLOCK"}, halt_mode="commit")
     allowed = CycleResult(0, True, raw={"verdict": "allow"}, halt_mode="commit")
