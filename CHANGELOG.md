@@ -9,6 +9,42 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **`ophamin drift-detect` + River-backed `StreamDriftDetector` — PR #4 of
+  the v0.2 plugin-catalog roadmap.** First implementation of the per-stream
+  online drift-detection adapter pattern. Wraps River's ADWIN, KSWIN, and
+  PageHinkley detectors behind a single `StreamDriftDetector` interface;
+  emits a signed, content-addressed `DriftScan` artefact per scan
+  (`comparing/drift_detection/`).
+
+  Two stream extractors:
+  - `extract_phi_stream(cycle_results)` — per-cycle Φ trajectory
+    (handles `phi_value` / `phi` / `kii_value` keys across Kimera's
+    naming evolution + MockSubstrate)
+  - `extract_walker_halt_counts(cycle_results, window)` — rolling
+    fraction of Walker M2 amplitude_death halts (drift on this stream
+    marks Family E5's monotonic-decay characterization shifting)
+
+  Pivot story: tried Frouros first (BSD-3, single-purpose) — capped at
+  Python 3.12; tried Evidently (Apache-2) — pulled 19+ extra deps
+  (litestar, plotly, nltk, faker). Settled on River, which Ophamin
+  already had + supports 3.14 + ships ADWIN+KSWIN+PageHinkley. Shows the
+  catalog's value: when one tool doesn't fit, the next one in the
+  category does.
+
+  Live empirical run against Kimera-SWM @ a0adf1a0 (2026-05-15):
+  - 30 cycles on stationary input: 0 false-positive drift events ✓
+  - 30 cycles half-neutral / half-formal-math: mean Φ shifts 0.4663 →
+    0.2048 (56% drop) but ADWIN at default config didn't fire on N=30
+    — correctly conservative; tune `delta` or run more cycles to flag
+
+  CLI: `ophamin drift-detect [--repo R] [--target entity] [--n-cycles N]
+       [--stream phi|walker_halt] [--detector adwin|kswin|page_hinkley]`
+
+  26 hardening tests (factory, stream extractors with edge cases,
+  stationary-vs-step-change behavior, signing, JSON round-trip,
+  tampering, loud-fail on non-numeric input, all 3 detector backends,
+  detector-kwargs-forwarded-to-config). Test count: 577 → 603.
+
 - **`ophamin verify` — install self-check + CI fast-fail gate.**
   One command that walks every declared dependency (15 required + 9
   optional packages, 7 binary tools) and every documented CLI subcommand

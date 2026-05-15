@@ -17,6 +17,7 @@
     ophamin scrape <url>                  passive scrape of a Prometheus /metrics endpoint
     ophamin wiring <kimera-repo>          per-surface wired vs WIRE_CANDIDATE vs orphan report
     ophamin verify                        self-check the install (deps + binaries + CLI subcommands)
+    ophamin drift-detect [--repo R]       online drift detection on a Kimera batch's Φ / walker stream
     ophamin report <record.json>          render a proof or audit record as HTML / Markdown / LaTeX
     ophamin inspect <kimera-repo> <name>  per-primitive profile (static + optional dynamic)
     ophamin inspect-all <kimera-repo>     survey every catalogued Kimera primitive
@@ -70,6 +71,12 @@ from ophamin.seeing.telemetry import (
     TelemetryScrapeError,
 )
 from ophamin.seeing.wiring import WiringProbe
+from ophamin.comparing.drift_detection import (
+    StreamDriftDetector,
+    available_detectors,
+    extract_phi_stream,
+    extract_walker_halt_counts,
+)
 from ophamin.verify import (
     has_required_failure,
     render_report,
@@ -780,6 +787,69 @@ def cmd_discover_fields(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_drift_detect(args: argparse.Namespace) -> int:
+    """Run an online drift detector over a Kimera batch's per-cycle stream.
+
+    Pulls cycles via either KimeraAdapter (when ``--repo`` is given) or
+    MockSubstrate, extracts the per-cycle Φ trajectory or the rolling
+    amplitude_death fraction, and feeds the stream through the chosen
+    River drift detector. Writes a signed DriftScan to ``--out-dir/``.
+    """
+    if args.repo:
+        try:
+            substrate: Any = KimeraAdapter(args.repo, target=args.target)
+        except KimeraAdapterError as e:
+            print(f"adapter error: {e}", file=sys.stderr)
+            return 2
+        substrate_label = f"kimera_repo={args.repo}, target={args.target}"
+    else:
+        substrate = MockSubstrate()
+        substrate_label = "MockSubstrate"
+
+    stimuli = [args.stimulus] * int(args.n_cycles)
+    print(f"running         : {substrate_label}")
+    print(f"cycles          : {args.n_cycles}")
+    try:
+        cycle_results = substrate.run_batch(stimuli)
+    except Exception as e:
+        print(f"batch failed: {type(e).__name__}: {e}", file=sys.stderr)
+        return 1
+
+    if args.stream == "phi":
+        stream = extract_phi_stream(cycle_results)
+        stream_name = "phi_value"
+    else:  # walker_halt
+        stream = extract_walker_halt_counts(cycle_results, window=args.window)
+        stream_name = f"walker_amplitude_death_rate_w{args.window}"
+
+    if not stream:
+        print(f"no stream samples extracted from {len(cycle_results)} cycles "
+              f"(stream={args.stream}); cannot run drift detection",
+              file=sys.stderr)
+        return 1
+
+    print(f"stream          : {stream_name} ({len(stream)} samples)")
+    print(f"detector        : {args.detector}")
+
+    detector = StreamDriftDetector(args.detector, stream_name=stream_name)
+    scan = detector.scan(stream)
+
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    short = scan.scan_id[:16]
+    json_path = out_dir / f"drift_{short}.json"
+    scan.to_json(str(json_path))
+
+    print(f"\nresults:")
+    print(f"  detector fired : {scan.fired}")
+    print(f"  drift events   : {scan.n_events}")
+    if scan.events:
+        print(f"  event indices  : {scan.event_indices[:20]}"
+              f"{' ...' if scan.n_events > 20 else ''}")
+    print(f"\nwritten         : {json_path}")
+    return 0
+
+
 def cmd_verify(args: argparse.Namespace) -> int:
     """Self-check the install. Exit code 1 if any required check fails."""
     results = run_all_checks(
@@ -1169,6 +1239,49 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit Markdown report instead of compact text",
     )
     p_verify.set_defaults(func=cmd_verify)
+
+    p_drift = sub.add_parser(
+        "drift-detect",
+        help="run a per-stream online drift detector (River-backed) over a "
+             "Kimera batch — extracts phi_value or walker_halt_amplitude_death "
+             "rolling-fraction stream + emits a signed DriftScan",
+    )
+    p_drift.add_argument(
+        "--repo", default="",
+        help="path to Kimera repo (omit to use MockSubstrate)",
+    )
+    p_drift.add_argument(
+        "--target", default="entity",
+        help="adapter target (default: entity — full Takwin)",
+    )
+    p_drift.add_argument(
+        "--n-cycles", type=int, default=100,
+        help="number of cycles to run (default: 100)",
+    )
+    p_drift.add_argument(
+        "--stimulus", default="A simple stimulus for the substrate to process.",
+        help="stimulus text (replicated across all cycles)",
+    )
+    p_drift.add_argument(
+        "--stream", default="phi",
+        choices=["phi", "walker_halt"],
+        help="which stream to extract: 'phi' (per-cycle Φ) or "
+             "'walker_halt' (rolling fraction of amplitude_death halts)",
+    )
+    p_drift.add_argument(
+        "--detector", default="adwin",
+        choices=list(available_detectors()) or ["adwin"],
+        help="drift detector backend (default: adwin)",
+    )
+    p_drift.add_argument(
+        "--window", type=int, default=20,
+        help="rolling window size for walker_halt stream (default: 20)",
+    )
+    p_drift.add_argument(
+        "--out-dir", default="drift",
+        help="directory to write the signed DriftScan JSON (default: drift/)",
+    )
+    p_drift.set_defaults(func=cmd_drift_detect)
 
     p_report = sub.add_parser(
         "report",
