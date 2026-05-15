@@ -1,0 +1,47 @@
+# See https://citation-file-format.github.io/ for the full spec.
+# GitHub renders this as a "Cite this repository" button on the repo page.
+cff-version: 1.2.0
+title: "Ophamin: an empirical observatory wrapped around a substrate under test"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "Ben Slama"
+    given-names: "Idir"
+    orcid: "https://orcid.org/0000-0000-0000-0000"  # replace with your real ORCID
+version: 0.1.0
+date-released: "2026-05-15"
+url: "https://github.com/IdirBenSlama/Ophamin"
+repository-code: "https://github.com/IdirBenSlama/Ophamin"
+license: "Proprietary"
+abstract: >-
+  Ophamin is an empirical observatory wrapped around a substrate under test.
+  It is built for Kimera-SWM but independent of it: the substrate plugs in
+  through one adapter and a MockSubstrate makes the framework runnable
+  without Kimera. The architecture is six wheels in two concentric triads —
+  an outer triad for empirical observation (seeing / measuring / comparing)
+  and an inner triad for engineering observation (instrumenting / auditing /
+  reporting) — plus cross-cutting layers for per-primitive inspection and
+  standard-format interop (SARIF / JUnit XML / MLflow / CycloneDX SBOM).
+  Six scenarios across three experimentation tiers (scientific, engineering,
+  philosophical) produce signed 9-section Empirical Proof Records with
+  pre-registered falsifiable claims.
+keywords:
+  - empirical-framework
+  - kimera-swm
+  - falsifiable-claims
+  - pre-registration
+  - sarif
+  - cyclonedx
+  - mlflow
+  - junit-xml
+  - audit
+  - observability
+preferred-citation:
+  type: software
+  authors:
+    - family-names: "Ben Slama"
+      given-names: "Idir"
+  title: "Ophamin: an empirical observatory wrapped around a substrate under test"
+  version: 0.1.0
+  year: 2026
+  url: "https://github.com/IdirBenSlama/Ophamin"

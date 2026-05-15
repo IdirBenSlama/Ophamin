@@ -1,0 +1,7 @@
+# CODEOWNERS — automatic review requests on PRs.
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Every file is owned by the maintainer; specific paths may be re-owned by
+# subject-matter experts as the project grows.
+
+* @IdirBenSlama

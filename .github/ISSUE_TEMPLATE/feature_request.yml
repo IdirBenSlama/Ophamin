@@ -1,0 +1,74 @@
+name: Feature request
+description: Propose a new wheel, scenario, pillar, exporter, or other addition.
+title: "[feature] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ophamin grows by adding wheels, scenarios, pillars, or exporters. If
+        you have a proposal, please describe the *what* + the *why* + the
+        *shape*. Pre-registration discipline applies: a new scenario must
+        carry a falsifiable claim before measurement.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of addition is this?
+      multiple: false
+      options:
+        - "new Scenario (scientific / engineering / philosophical tier)"
+        - "new audit Pillar (orchestrates a static-analysis tool)"
+        - "new analytic Pillar (statistics library wrapping)"
+        - "new interop exporter (target a different downstream format)"
+        - "new Corpus connector (a dataset Ophamin should be able to ingest)"
+        - "new substrate adapter (a different substrate plugged in)"
+        - "ergonomic improvement (CLI, docs, tooling)"
+        - "other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why?
+      description: |
+        What problem does this solve? What can't be done today that this
+        would enable? Be concrete — "improve performance" is not specific
+        enough.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: |
+        Sketch the API / structure. For a new Scenario, describe the
+        pre-registered claim (statement / operationalization / threshold).
+        For a new pillar, name the backing library and how Ophamin would
+        wrap it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: |
+        What other approaches did you weigh? Why is this the right one?
+      placeholder: |
+        - Approach A: ... — too expensive
+        - Approach B: ... — does not cover use case
+    validations:
+      required: false
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / blast radius
+      description: |
+        Roughly how big is this? Lines of code; new dependencies; new
+        external tools; new test coverage required.
+    validations:
+      required: false

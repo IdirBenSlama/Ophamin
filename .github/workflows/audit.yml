@@ -1,0 +1,81 @@
+name: Audit
+
+# Runs the auditing/ wheel against the source tree. Produces:
+#   1) a signed Ophamin AuditRecord (JSON + Markdown) as a workflow artifact
+#   2) a SARIF export consumable by GitHub's code-scanning surface
+#
+# Note: GitHub Code Scanning UI is free for PUBLIC repos. Private repos
+# require GitHub Advanced Security (paid) to surface SARIF in the Security
+# tab. The SARIF file is still uploaded as a workflow artifact regardless,
+# so it can be downloaded from the Actions run.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write   # for SARIF upload to Code Scanning (free for public)
+
+jobs:
+  audit:
+    name: audit (ruff + bandit + mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Ophamin + audit tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[audit,viz]"
+
+      - name: Run ophamin audit (ruff + bandit + mypy)
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m ophamin.cli audit src/ophamin \
+            --pillars=ruff,bandit,mypy \
+            --out-dir audit-out \
+            --timeout 600
+
+      - name: Export audit as SARIF
+        env:
+          PYTHONPATH: src
+        run: |
+          # auditing wheel writes the most recent record as audits/audit_*.json;
+          # find it and export to SARIF
+          AUDIT_JSON=$(ls -t audit-out/audit_*.json | head -1)
+          python -m ophamin.cli export "$AUDIT_JSON" \
+            --format sarif \
+            --output audit-out/ophamin-audit.sarif
+
+      - name: Upload audit record (JSON + Markdown) as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ophamin-audit-record
+          path: audit-out/
+          retention-days: 30
+
+      - name: Upload SARIF to Code Scanning (free for public repos)
+        # Safe to attempt on private repos too — the upload action will fail
+        # silently if GitHub Advanced Security isn't licensed; not a build
+        # blocker. The artifact above is the canonical fallback.
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: audit-out/ophamin-audit.sarif
+          category: ophamin-audit
