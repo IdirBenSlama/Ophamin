@@ -77,13 +77,15 @@ DEP_CHECKS: tuple[tuple[str, str, str, str, str], ...] = (
 
 # (binary_name, severity, install-extra-name, description)
 BINARY_CHECKS: tuple[tuple[str, str, str, str], ...] = (
-    ("ruff",      "optional", "audit",   "Python linter (audit pillar)"),
-    ("bandit",    "optional", "audit",   "Security linter"),
-    ("mypy",      "optional", "audit",   "Static type-checker"),
-    ("vulture",   "optional", "audit",   "Dead-code detector"),
-    ("radon",     "optional", "audit",   "Cyclomatic complexity"),
-    ("pip-audit", "optional", "audit",   "Dependency-vuln scanner"),
-    ("py-spy",    "optional", "profile", "Sampling profiler"),
+    ("ruff",       "optional", "audit",   "Python linter (audit pillar)"),
+    ("bandit",     "optional", "audit",   "Security linter"),
+    ("mypy",       "optional", "audit",   "Static type-checker"),
+    ("vulture",    "optional", "audit",   "Dead-code detector"),
+    ("radon",      "optional", "audit",   "Cyclomatic complexity"),
+    ("pip-audit",  "optional", "audit",   "Dependency-vuln scanner"),
+    ("deptry",     "optional", "audit",   "Project-scope dep checker (PR #9)"),
+    ("fawltydeps", "optional", "audit",   "Project-scope dep checker (PR #9)"),
+    ("py-spy",     "optional", "profile", "Sampling profiler"),
 )
 
 

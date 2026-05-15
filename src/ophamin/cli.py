@@ -46,7 +46,10 @@ from ophamin.seeing.discovery import (
     write_schema_markdown,
 )
 from ophamin.auditing import AuditRunner
-from ophamin.auditing.pillars import DEFAULT_PILLAR_CLASSES
+from ophamin.auditing.pillars import (
+    DEFAULT_PILLAR_CLASSES,
+    PROJECT_PILLAR_CLASSES,
+)
 from ophamin.inspecting import PrimitiveInspector
 from ophamin.interop import (
     CycloneDXExporter,
@@ -626,14 +629,21 @@ def cmd_audit(args: argparse.Namespace) -> int:
     if not target.exists():
         print(f"target does not exist: {target}", file=sys.stderr)
         return 2
-    # filter pillars by --pillars list if given
-    pillar_classes = list(DEFAULT_PILLAR_CLASSES)
+    # filter pillars by --pillars list if given. Project-scope pillars
+    # (deptry / fawltydeps) are NOT in DEFAULT_PILLAR_CLASSES — they only
+    # apply to project-root targets — so include them in the lookup pool
+    # when the user names them explicitly.
+    available_classes = list(DEFAULT_PILLAR_CLASSES) + list(PROJECT_PILLAR_CLASSES)
     if args.pillars:
         wanted = {name.strip() for name in args.pillars.split(",") if name.strip()}
-        pillar_classes = [cls for cls in pillar_classes if cls.name in wanted]
+        pillar_classes = [cls for cls in available_classes if cls.name in wanted]
         if not pillar_classes:
-            print(f"no pillars match --pillars={args.pillars}", file=sys.stderr)
+            print(f"no pillars match --pillars={args.pillars}; available: "
+                  f"{','.join(cls.name for cls in available_classes)}",
+                  file=sys.stderr)
             return 2
+    else:
+        pillar_classes = list(DEFAULT_PILLAR_CLASSES)
     runner = AuditRunner(pillars=[cls() for cls in pillar_classes])
     print(f"auditing: {target}")
     print(f"pillars : {', '.join(p.name for p in runner.pillars)}")

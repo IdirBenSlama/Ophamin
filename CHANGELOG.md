@@ -9,6 +9,35 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **deptry + fawltydeps audit pillars — PR #9 of the v0.2 plugin-catalog
+  roadmap.** Two new project-scope audit pillars that detect
+  declared-vs-imported dependency mismatches in `pyproject.toml`. Both MIT
+  licensed. New `PROJECT_PILLAR_CLASSES` tuple separates them from
+  file-scope pillars (`DEFAULT_PILLAR_CLASSES`); they're opt-in via
+  `--pillars=...,deptry,fawltydeps`. On non-project targets they return
+  `status="error"` with a clear message rather than crashing.
+
+  Smart code-root detection in `FawltyDepsPillar`: walks `src/` →
+  `<project_name>` → `lib/` → fallback to project root. Avoids the failure
+  mode where the tool would walk Kimera's `data/raw/offensive_security/`
+  exploit corpus and choke on intentionally-broken Python.
+
+  Live empirical signal against Kimera-SWM @ a0adf1a0 (2026-05-15):
+  - **deptry: 450 findings** (302 HIGH severity = undeclared deps with
+    runtime crash risk). Top hotspots: pyproject.toml (13),
+    `interfaces/graphql/schema/validation_extensions.py` (7),
+    `domain/quantum/thrml_thermodynamic_solver.py` (6),
+    `infrastructure/database/async_arango_bridge.py` (6).
+  - **fawltydeps: 73 findings** (67 HIGH = undeclared, 6 MEDIUM = unused).
+    Top: pyproject.toml (6), `cuda_image_encoder.py` (3),
+    `observability/alert_channels.py` (3), `gpu_monitor.py` (2).
+  - **Combined: 523 dependency-level wiring issues** in Kimera. Direct
+    extension of the wiring probe's surface from module-level to
+    dependency-level.
+
+  17 hardening tests in `tests/test_dependency_pillars.py`. Test count:
+  603 → 620.
+
 - **`ophamin drift-detect` + River-backed `StreamDriftDetector` — PR #4 of
   the v0.2 plugin-catalog roadmap.** First implementation of the per-stream
   online drift-detection adapter pattern. Wraps River's ADWIN, KSWIN, and
