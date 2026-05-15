@@ -19,6 +19,7 @@ from ophamin.measuring.scenarios import (
     RosettaScalingScenario,
     Scenario,
     ScenarioScore,
+    ThroughputCeilingScenario,
 )
 from ophamin.seeing.substrate import MockSubstrate
 from ophamin.seeing.substrate.base import CycleResult
@@ -943,3 +944,113 @@ def test_logic_topology_claim_is_falsifiable_and_pre_registerable():
     assert claim.threshold.metric == "sustained_traversal_rate_on_cleared"
     assert claim.h0 and claim.h1
     assert claim.statement.strip()
+
+
+# -- Throughput Ceiling (engineering-tier scenario) -------------------------
+
+def _cycle_result_with_wall(cycle_seconds: float) -> CycleResult:
+    return CycleResult(
+        cycle_index=0,
+        success=True,
+        raw={"cycle_seconds": cycle_seconds, "gwf_verdict": "cleared"},
+        halt_mode="exhausted",
+    )
+
+
+def test_throughput_ceiling_claim_is_falsifiable():
+    claim = ThroughputCeilingScenario(p95_wall_time_ceiling_s=4.0).build_claim()
+    assert claim.threshold.metric == "p95_cycle_wall_time_s"
+    assert claim.threshold.comparator == "<="
+    assert claim.threshold.value == pytest.approx(4.0)
+    assert claim.h0 and claim.h1
+    assert "95th percentile" in claim.statement
+
+
+def test_throughput_ceiling_rejects_non_positive_threshold():
+    with pytest.raises(ValueError, match="must be > 0"):
+        ThroughputCeilingScenario(p95_wall_time_ceiling_s=0)
+    with pytest.raises(ValueError, match="must be > 0"):
+        ThroughputCeilingScenario(p95_wall_time_ceiling_s=-1.0)
+
+
+def test_throughput_ceiling_score_passes_when_p95_below_ceiling():
+    scenario = ThroughputCeilingScenario(n_cycles=99, p95_wall_time_ceiling_s=4.0)
+    # 20 cycles, all wall-times = 2.0s -> p95 == 2.0 -> well below 4.0
+    records = [CorpusRecord(id=f"r{i}", text="x" * 100, metadata={}) for i in range(20)]
+    results = [_cycle_result_with_wall(2.0) for _ in range(20)]
+    score = scenario.score(results, records)
+    assert score.observed_value == pytest.approx(2.0)
+    assert not score.inconclusive
+
+
+def test_throughput_ceiling_score_fails_when_p95_above_ceiling():
+    scenario = ThroughputCeilingScenario(n_cycles=99, p95_wall_time_ceiling_s=2.0)
+    # 20 cycles, all wall-times = 3.5s -> p95 == 3.5 -> above 2.0 ceiling
+    records = [CorpusRecord(id=f"r{i}", text="x" * 100, metadata={}) for i in range(20)]
+    results = [_cycle_result_with_wall(3.5) for _ in range(20)]
+    score = scenario.score(results, records)
+    assert score.observed_value == pytest.approx(3.5)
+    assert not score.inconclusive
+
+
+def test_throughput_ceiling_percentile_computation_is_linear_interp():
+    """The internal percentile function should match numpy's default
+    (linear interpolation between adjacent order statistics)."""
+    # 10 evenly-spaced cycle times 1.0..10.0 -> p95 = 9.55 (linear interp)
+    values = [float(i) for i in range(1, 11)]
+    p95 = ThroughputCeilingScenario._percentile(values, 95.0)
+    assert p95 == pytest.approx(9.55)
+    # p50 = 5.5 (median of 1..10)
+    p50 = ThroughputCeilingScenario._percentile(values, 50.0)
+    assert p50 == pytest.approx(5.5)
+    # edge cases
+    assert ThroughputCeilingScenario._percentile([], 50.0) == 0.0
+    assert ThroughputCeilingScenario._percentile([7.0], 95.0) == 7.0
+
+
+def test_throughput_ceiling_inconclusive_when_too_few_measured():
+    scenario = ThroughputCeilingScenario(n_cycles=99, p95_wall_time_ceiling_s=5.0)
+    records = [CorpusRecord(id=f"r{i}", text="x" * 100, metadata={}) for i in range(5)]
+    results = [_cycle_result_with_wall(1.0) for _ in range(5)]
+    score = scenario.score(results, records)
+    assert score.inconclusive
+    assert "too few" in score.reasoning
+
+
+def test_throughput_ceiling_inconclusive_when_substrate_not_exercised():
+    scenario = ThroughputCeilingScenario(n_cycles=99, p95_wall_time_ceiling_s=5.0)
+    records = [CorpusRecord(id=f"r{i}", text="x" * 100, metadata={}) for i in range(20)]
+    results = [
+        CycleResult(cycle_index=0, success=False, raw={}, halt_mode="adapter_error")
+        for _ in range(20)
+    ]
+    score = scenario.score(results, records)
+    assert score.inconclusive
+    # either "too few" (because 0 cycles measured) or "not exercised" (because
+    # 20/20 adapter errors) is a valid reason — both ARE true
+    assert "too few" in score.reasoning or "not exercised" in score.reasoning
+
+
+def test_throughput_ceiling_excludes_failed_cycles_from_denominator():
+    """Failed cycles MUST not contribute to the percentile — they're not
+    measurements of wall-time, they're measurement failures."""
+    scenario = ThroughputCeilingScenario(n_cycles=99, p95_wall_time_ceiling_s=5.0)
+    records = [CorpusRecord(id=f"r{i}", text="x" * 100, metadata={}) for i in range(20)]
+    # 12 successful + 8 failed
+    results = (
+        [_cycle_result_with_wall(2.0) for _ in range(12)]
+        + [
+            CycleResult(cycle_index=0, success=False, raw={}, halt_mode="error")
+            for _ in range(8)
+        ]
+    )
+    score = scenario.score(results, records)
+    # only the 12 successful ones counted -> p95 = 2.0
+    assert score.observed_value == pytest.approx(2.0)
+    # check the detail
+    primary = next(
+        e for e in score.evidence
+        if e.statistic_name == "p95_cycle_wall_time_s"
+    )
+    assert primary.detail["n_cycles_measured"] == 12
+    assert primary.detail["n_cycles_total"] == 20

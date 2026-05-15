@@ -41,6 +41,11 @@ from ophamin.interop.junit_xml import (
     JUnitXMLExporter,
     proof_record_to_junit_xml,
 )
+from ophamin.interop.mlflow_export import (
+    MLflowExporter,
+    export_audit_record,
+    export_proof_record,
+)
 from ophamin.interop.sarif import (
     SARIFExporter,
     audit_record_to_sarif,
@@ -48,7 +53,10 @@ from ophamin.interop.sarif import (
 
 __all__ = [
     "JUnitXMLExporter",
+    "MLflowExporter",
     "SARIFExporter",
     "audit_record_to_sarif",
+    "export_audit_record",
+    "export_proof_record",
     "proof_record_to_junit_xml",
 ]

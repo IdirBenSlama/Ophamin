@@ -470,6 +470,16 @@ class KimeraAdapter(SubstrateUnderTest):
             )
         raw = result.get("raw")
         raw = raw if isinstance(raw, dict) else {"result": raw}
+        # The subprocess runner emits ``cycle_seconds`` at the entry top-level
+        # (alongside ``raw``). Propagate it into ``raw`` so scenarios reading
+        # ``raw["cycle_seconds"]`` (the engineering-tier ThroughputCeiling
+        # scenario, the InstrumentedSubstrate's per-cycle wall-time
+        # attribution) see the real per-cycle wall-time instead of falling
+        # back to a batch-averaged estimate. Pre-fix this caused 0/200
+        # measurements on the throughput-ceiling live run despite cycles
+        # running — fixed 2026-05-15 by surfacing the field into raw.
+        if "cycle_seconds" in result and "cycle_seconds" not in raw:
+            raw = {**raw, "cycle_seconds": result["cycle_seconds"]}
         return CycleResult(
             cycle_index=cycle_index,
             success=bool(result.get("success", True)),

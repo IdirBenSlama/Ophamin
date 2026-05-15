@@ -4,6 +4,8 @@ the KimeraAdapter batch runner's incremental-emit reconstruction."""
 import json
 from pathlib import Path
 
+import pytest
+
 from ophamin.seeing.substrate.base import CycleResult
 from ophamin.seeing.substrate.kimera_adapter import KimeraAdapter
 from ophamin.seeing.substrate.mock import MockSubstrate
@@ -143,3 +145,70 @@ def test_kimera_adapter_batch_happy_path_uses_stdout_batch(tmp_path):
     assert len(results) == 4
     assert all(r.success and r.halt_mode != "adapter_error" for r in results)
     assert [r.raw["v"] for r in results] == [0, 1, 2, 3]
+
+
+def test_kimera_adapter_propagates_cycle_seconds_into_raw(tmp_path):
+    """Regression: the subprocess runner emits ``cycle_seconds`` at the entry
+    TOP level (alongside ``raw``). The parent-side reconstruction must surface
+    it INTO raw so downstream consumers (the ThroughputCeiling engineering-
+    tier scenario, the InstrumentedSubstrate's per-cycle wall-time
+    attribution) see real per-cycle wall-times instead of falling back to
+    batch-averaged estimates.
+
+    Pre-fix this caused 0/200 measurements on a real 200-cycle live run
+    despite cycles running; the engineering-tier scenario's INCONCLUSIVE
+    verdict was the symptom that surfaced the bug. Fix landed 2026-05-15.
+    """
+    adapter = KimeraAdapter(_fake_kimera_repo(tmp_path), mode="batch")
+
+    def fake_invoke(payload, *, probe=False, batch=False, timeout=None):
+        return {
+            "ok": True,
+            "construct_seconds": 0.1,
+            "batch": [
+                {
+                    "cycle_index": i, "ok": True,
+                    "raw": {"some_field": "kept"},
+                    "success": True, "halt_mode": "commit",
+                    "cycle_seconds": 1.23 + i,   # the field at risk
+                }
+                for i in range(3)
+            ],
+        }
+
+    adapter._invoke = fake_invoke
+    results = adapter.run_batch([f"s{i}" for i in range(3)])
+    assert len(results) == 3
+    # cycle_seconds MUST be present inside raw on every cycle
+    for i, r in enumerate(results):
+        assert "cycle_seconds" in r.raw, f"cycle {i}: cycle_seconds missing from raw"
+        assert r.raw["cycle_seconds"] == pytest.approx(1.23 + i)
+    # the inner raw field still survives the merge
+    assert all(r.raw["some_field"] == "kept" for r in results)
+
+
+def test_kimera_adapter_preserves_explicit_raw_cycle_seconds(tmp_path):
+    """If the substrate itself puts cycle_seconds INTO raw (synthetic future
+    case where Kimera emits it natively), the parent must NOT overwrite it
+    with the entry top-level value."""
+    adapter = KimeraAdapter(_fake_kimera_repo(tmp_path), mode="batch")
+
+    def fake_invoke(payload, *, probe=False, batch=False, timeout=None):
+        return {
+            "ok": True,
+            "construct_seconds": 0.1,
+            "batch": [
+                {
+                    "cycle_index": 0, "ok": True,
+                    "raw": {"cycle_seconds": 99.9},  # explicit in raw
+                    "success": True, "halt_mode": "commit",
+                    "cycle_seconds": 1.0,             # entry-level
+                },
+            ],
+        }
+
+    adapter._invoke = fake_invoke
+    results = adapter.run_batch(["x"])
+    assert len(results) == 1
+    # raw's explicit value WINS — the entry-level value does not overwrite it
+    assert results[0].raw["cycle_seconds"] == pytest.approx(99.9)

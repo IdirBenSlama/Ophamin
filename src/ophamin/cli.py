@@ -39,7 +39,7 @@ from ophamin.seeing.discovery import (
 from ophamin.auditing import AuditRunner
 from ophamin.auditing.pillars import DEFAULT_PILLAR_CLASSES
 from ophamin.inspecting import PrimitiveInspector
-from ophamin.interop import JUnitXMLExporter, SARIFExporter
+from ophamin.interop import JUnitXMLExporter, MLflowExporter, SARIFExporter
 from ophamin.reporting import ReportFormat, ReportRunner
 from ophamin.comparing.drift import ProofIndex, detect_drift
 from ophamin.comparing.orchestration.experiment import ExperimentRunner
@@ -400,6 +400,10 @@ def cmd_export(args: argparse.Namespace) -> int:
         out = SARIFExporter().export(
             payload, out_path or record_path.with_suffix(".sarif")
         )
+        print(f"record  : {record_path}")
+        print(f"format  : {fmt}")
+        print(f"written : {out}")
+        return 0
     elif fmt in ("junit", "junit-xml"):
         if "claim" not in payload or "verdict" not in payload:
             print(
@@ -411,17 +415,37 @@ def cmd_export(args: argparse.Namespace) -> int:
         out = JUnitXMLExporter().export(
             payload, out_path or record_path.with_suffix(".xml")
         )
+        print(f"record  : {record_path}")
+        print(f"format  : {fmt}")
+        print(f"written : {out}")
+        return 0
+    elif fmt == "mlflow":
+        # MLflow exporter writes to a tracking server (default file:./mlruns)
+        # rather than a file — return the run_id instead of an output path.
+        try:
+            exporter = MLflowExporter(
+                tracking_uri=args.tracking_uri or None,
+                experiment_name=args.experiment_name or None,
+            )
+            run_id = exporter.export(payload)
+        except ImportError as exc:
+            print(f"mlflow not available: {exc}", file=sys.stderr)
+            return 2
+        except ValueError as exc:
+            print(f"mlflow export failed: {exc}", file=sys.stderr)
+            return 2
+        print(f"record       : {record_path}")
+        print(f"format       : mlflow")
+        print(f"run_id       : {run_id}")
+        if args.tracking_uri:
+            print(f"tracking uri : {args.tracking_uri}")
+        return 0
     else:
         print(
-            f"unknown format {args.format!r}; choose from: sarif, junit-xml",
+            f"unknown format {args.format!r}; choose from: sarif, junit-xml, mlflow",
             file=sys.stderr,
         )
         return 2
-
-    print(f"record  : {record_path}")
-    print(f"format  : {fmt}")
-    print(f"written : {out}")
-    return 0
 
 
 def cmd_inspect(args: argparse.Namespace) -> int:
@@ -839,15 +863,26 @@ def build_parser() -> argparse.ArgumentParser:
     p_export.add_argument("record", help="path to a signed Ophamin record JSON")
     p_export.add_argument(
         "--format", required=True,
-        choices=["sarif", "junit-xml", "junit"],
+        choices=["sarif", "junit-xml", "junit", "mlflow"],
         help=(
-            "target format: sarif (audit records → SARIF 2.1.0); "
-            "junit-xml (proof records → JUnit XML)"
+            "target format: sarif (audit → SARIF 2.1.0); "
+            "junit-xml (proof → JUnit XML); "
+            "mlflow (proof/audit → MLflow tracking run)"
         ),
     )
     p_export.add_argument(
         "--output", default="",
-        help="output path (default: record path with the target extension)",
+        help="output path (default: record path with the target extension; "
+             "ignored for --format=mlflow)",
+    )
+    p_export.add_argument(
+        "--tracking-uri", default="",
+        help="MLflow tracking URI (default: file:./mlruns); only for --format=mlflow",
+    )
+    p_export.add_argument(
+        "--experiment-name", default="",
+        help="MLflow experiment name (default: ophamin-proof / ophamin-audit); "
+             "only for --format=mlflow",
     )
     p_export.set_defaults(func=cmd_export)
 

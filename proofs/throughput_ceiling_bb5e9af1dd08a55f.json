@@ -1,0 +1,382 @@
+{
+  "proof_id": "bb5e9af1dd08a55f3685d9fbefbfc0536ac42c3d8e5df875d8c33976603ddf57",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.1.0",
+    "ophamin_git_commit": "5ca7aaf11a1f8f93377ef92b7ffc674219683216",
+    "created_at": "2026-05-15T14:50:43.901320+00:00"
+  },
+  "claim": {
+    "statement": "Under sustained load on a balanced text corpus, Kimera's entity target completes each cycle in under 4.00 seconds at the 95th percentile (the architectural throughput ceiling).",
+    "operationalization": "95th-percentile of per-cycle wall-time (raw['cycle_seconds']) across the streamed batch; cycles that failed to record a cycle_seconds are excluded from the denominator",
+    "threshold": {
+      "metric": "p95_cycle_wall_time_s",
+      "comparator": "<=",
+      "value": 4.0,
+      "units": "seconds"
+    },
+    "h0": "p95 wall-time > 4.00s",
+    "h1": "p95 wall-time <= 4.00s"
+  },
+  "preregistration": {
+    "config_hash": "1bfc2c127c850b1a04fdff3622986f3f66f2a11b7c4d25dcce17fab02e4d20dc",
+    "data_hash": "83109a27c3df2a45b912398b969fa8f7250b3d04dee11916d73ecf679d828010",
+    "analysis_plan": "Stream up to 200 balanced text records through Kimera's entity target wrapped in InstrumentedSubstrate, then compute the per-cycle wall-time distribution from the adapter's own ``cycle_seconds`` field. Pre-registered threshold: 95th-percentile cycle wall-time <= 4.00s. Secondary descriptive evidence reports the median / p50 / p99 wall-time, batch CPU total (from the periodic subprocess sampler), RSS peak, and process-tree maximums.",
+    "sweep_grid": {},
+    "preregistered_at": "2026-05-15T14:47:01.715915+00:00"
+  },
+  "data": {
+    "substrate_name": "instrumented(kimera-swm)",
+    "substrate_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+    "datasets": [
+      {
+        "name": "offensive-security-corpus",
+        "content_hash": "83109a27c3df2a45b912398b969fa8f7250b3d04dee11916d73ecf679d828010",
+        "n_records": 4416305,
+        "source": "metasploit-framework + SecLists + PayloadsAllTheThings + nuclei-templates + atomic-red-team + exploit-db + garak + prompt-injection / jailbreak sets",
+        "kind": "adversarial_corpus"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "O.engineering.p95_wall_time",
+      "statistic_name": "p95_cycle_wall_time_s",
+      "statistic_value": 0.0,
+      "library": "python-stdlib",
+      "library_version": "3.14",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "n/a",
+      "detail": {
+        "n_cycles_measured": 0,
+        "n_cycles_total": 200,
+        "adapter_errors": 0,
+        "ceiling_s": 4.0
+      }
+    },
+    {
+      "pillar": "O.engineering.wall_time_distribution",
+      "statistic_name": "cycle_wall_time_distribution",
+      "statistic_value": 0.0,
+      "library": "python-stdlib",
+      "library_version": "3.14",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "n/a",
+      "detail": {
+        "n": 0,
+        "min": 0.0,
+        "max": 0.0,
+        "median": 0.0,
+        "mean": 0.0,
+        "p95": 0.0,
+        "p99": 0.0
+      }
+    },
+    {
+      "pillar": "O.engineering.batch_cpu",
+      "statistic_name": "batch_cpu_total_s",
+      "statistic_value": 243.846142208,
+      "library": "psutil",
+      "library_version": "7.x",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "n/a",
+      "detail": {
+        "user_s": 215.5251392,
+        "system_s": 28.321003008,
+        "cpu_source": "periodic_subprocess_sampler",
+        "sampler_polls": 1581
+      }
+    },
+    {
+      "pillar": "O.engineering.rss_peak",
+      "statistic_name": "rss_peak_bytes",
+      "statistic_value": 4593188864.0,
+      "library": "psutil",
+      "library_version": "7.x",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "n/a",
+      "detail": {
+        "rss_before_bytes": 296108032,
+        "rss_after_bytes": 492011520,
+        "threads_max": 80,
+        "process_count_max": 2
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "INCONCLUSIVE",
+    "observed_value": 0.0,
+    "threshold": {
+      "metric": "p95_cycle_wall_time_s",
+      "comparator": "<=",
+      "value": 4.0,
+      "units": "seconds"
+    },
+    "reasoning": "measured per-cycle wall-time on 0/200 cycles (0 adapter errors); distribution: median 0.00s, p95 0.00s, p99 0.00s (range 0.00-0.00s); batch totals: wall 222.04s, cpu 243.85s (periodic_subprocess_sampler), rss_peak 4593.2MB, max threads 80, max procs 2; too few cycles measured to decide"
+  },
+  "reproduction": {
+    "command": "PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario throughput-ceiling",
+    "environment": {
+      "python": "3.14.3",
+      "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+      "aiohappyeyeballs": "2.6.1",
+      "aiohttp": "3.13.5",
+      "aiohttp-retry": "2.9.1",
+      "aiosignal": "1.4.0",
+      "alembic": "1.18.4",
+      "amqp": "5.3.1",
+      "annotated-doc": "0.0.4",
+      "annotated-types": "0.7.0",
+      "antlr4-python3-runtime": "4.9.3",
+      "anyio": "4.13.0",
+      "appdirs": "1.4.4",
+      "asyncssh": "2.23.0",
+      "atpublic": "7.0.0",
+      "attrs": "26.1.0",
+      "billiard": "4.2.4",
+      "blinker": "1.9.0",
+      "cachetools": "7.1.1",
+      "celery": "5.6.3",
+      "certifi": "2026.4.22",
+      "cffi": "2.0.0",
+      "charset-normalizer": "3.4.7",
+      "click": "8.3.3",
+      "click-didyoumean": "0.3.1",
+      "click-plugins": "1.1.1.2",
+      "click-repl": "0.3.0",
+      "cloudpickle": "3.1.2",
+      "colorama": "0.4.6",
+      "configobj": "5.0.9",
+      "contourpy": "1.3.3",
+      "cryptography": "46.0.7",
+      "cycler": "0.12.1",
+      "databricks-sdk": "0.108.0",
+      "dictdiffer": "0.9.0",
+      "diskcache": "5.6.3",
+      "distro": "1.9.0",
+      "docker": "7.1.0",
+      "dpath": "2.2.0",
+      "dulwich": "1.2.1",
+      "dvc": "3.67.1",
+      "dvc-data": "3.18.3",
+      "dvc-http": "2.32.0",
+      "dvc-objects": "5.2.0",
+      "dvc-render": "1.0.2",
+      "dvc-studio-client": "0.22.0",
+      "dvc-task": "0.40.2",
+      "entrypoints": "0.4",
+      "fastapi": "0.136.1",
+      "filelock": "3.29.0",
+      "Flask": "3.1.3",
+      "flask-cors": "6.0.2",
+      "flatten-dict": "0.5.0",
+      "flufl.lock": "9.1.0",
+      "fonttools": "4.63.0",
+      "frozenlist": "1.8.0",
+      "fsspec": "2026.4.0",
+      "funcy": "2.0",
+      "gitdb": "4.0.12",
+      "GitPython": "3.1.50",
+      "google-auth": "2.52.0",
+      "grandalf": "0.8",
+      "graphene": "3.4.3",
+      "graphql-core": "3.2.8",
+      "graphql-relay": "3.2.0",
+      "gto": "1.9.0",
+      "gunicorn": "25.3.0",
+      "h11": "0.16.0",
+      "h5py": "3.16.0",
+      "hf-xet": "1.5.0",
+      "httpcore": "1.0.9",
+      "httpx": "0.28.1",
+      "huey": "2.6.0",
+      "huggingface_hub": "1.14.0",
+      "hydra-core": "1.3.2",
+      "idna": "3.15",
+      "importlib_metadata": "8.7.1",
+      "iniconfig": "2.3.0",
+      "iterative-telemetry": "0.0.10",
+      "itsdangerous": "2.2.0",
+      "Jinja2": "3.1.6",
+      "joblib": "1.5.3",
+      "kiwisolver": "1.5.0",
+      "kombu": "5.6.2",
+      "lxml": "6.1.0",
+      "Mako": "1.3.12",
+      "MAPIE": "1.4.0",
+      "markdown-it-py": "4.2.0",
+      "MarkupSafe": "3.0.3",
+      "matplotlib": "3.10.9",
+      "mdurl": "0.1.2",
+      "mlflow": "3.12.0",
+      "mlflow-skinny": "3.12.0",
+      "mlflow-tracing": "3.12.0",
+      "multidict": "6.7.1",
+      "networkx": "3.6.1",
+      "numpy": "2.4.4",
+      "omegaconf": "2.3.0",
+      "opentelemetry-api": "1.41.1",
+      "opentelemetry-proto": "1.41.1",
+      "opentelemetry-sdk": "1.41.1",
+      "opentelemetry-semantic-conventions": "0.62b1",
+      "ophamin": "0.1.0",
+      "orjson": "3.11.9",
+      "packaging": "26.2",
+      "pandas": "2.3.3",
+      "pandas-flavor": "0.8.1",
+      "pathspec": "1.1.1",
+      "patsy": "1.0.2",
+      "pillow": "12.2.0",
+      "pingouin": "0.6.1",
+      "pip": "26.1.1",
+      "platformdirs": "4.9.6",
+      "pluggy": "1.6.0",
+      "prettytable": "3.17.0",
+      "prompt_toolkit": "3.0.52",
+      "propcache": "0.5.2",
+      "protobuf": "6.33.6",
+      "prov": "2.1.1",
+      "psutil": "7.2.2",
+      "pyarrow": "23.0.1",
+      "pyasn1": "0.6.3",
+      "pyasn1_modules": "0.4.2",
+      "pycparser": "3.0",
+      "pydantic": "2.13.4",
+      "pydantic-settings": "2.14.1",
+      "pydantic_core": "2.46.4",
+      "pydot": "4.0.1",
+      "pygit2": "1.19.2",
+      "Pygments": "2.20.0",
+      "pygtrie": "2.5.0",
+      "pyparsing": "3.3.2",
+      "pytest": "9.0.3",
+      "python-dateutil": "2.9.0.post0",
+      "python-dotenv": "1.2.2",
+      "pytz": "2026.2",
+      "PyYAML": "6.0.3",
+      "rdflib": "7.6.0",
+      "requests": "2.34.1",
+      "rich": "15.0.0",
+      "river": "0.24.2",
+      "ruamel.yaml": "0.19.1",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.17.1",
+      "scmrepo": "3.6.2",
+      "seaborn": "0.13.2",
+      "semver": "3.0.4",
+      "setuptools": "82.0.1",
+      "shellingham": "1.5.4",
+      "shortuuid": "1.0.13",
+      "shtab": "1.8.0",
+      "six": "1.17.0",
+      "skops": "0.14.0",
+      "smmap": "5.0.3",
+      "SQLAlchemy": "2.0.49",
+      "sqlparse": "0.5.5",
+      "sqltrie": "0.11.2",
+      "starlette": "0.52.1",
+      "statsmodels": "0.14.6",
+      "tabulate": "0.10.0",
+      "threadpoolctl": "3.6.0",
+      "tomlkit": "0.15.0",
+      "tqdm": "4.67.3",
+      "typer": "0.25.1",
+      "typing-inspection": "0.4.2",
+      "typing_extensions": "4.15.0",
+      "tzdata": "2026.2",
+      "tzlocal": "5.3.1",
+      "urllib3": "2.7.0",
+      "uvicorn": "0.46.0",
+      "vine": "5.1.0",
+      "voluptuous": "0.16.0",
+      "wcwidth": "0.7.0",
+      "Werkzeug": "3.1.8",
+      "xarray": "2026.4.0",
+      "yarl": "1.23.0",
+      "zc.lockfile": "4.0",
+      "zipp": "3.23.1"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {
+    "prefix": {
+      "ophamin": "https://ophamin.example/"
+    },
+    "agent": {
+      "ophamin:ophamin": {
+        "ophamin:role": "experimentation_framework",
+        "ophamin:version": "0.1.0"
+      },
+      "ophamin:instrumented_kimera-swm_": {
+        "ophamin:role": "substrate_under_test"
+      }
+    },
+    "entity": {
+      "ophamin:corpus_offensive-security-corpus": {
+        "ophamin:content_hash": "83109a27c3df2a45b912398b969fa8f7250b3d04dee11916d73ecf679d828010",
+        "ophamin:n_records": {
+          "$": 4416305,
+          "type": "xsd:int"
+        },
+        "ophamin:kind": "adversarial_corpus"
+      },
+      "ophamin:proof_throughput-ceiling": {}
+    },
+    "activity": {
+      "ophamin:scenario_throughput-ceiling": {
+        "ophamin:target": "entity",
+        "ophamin:n_cycles": {
+          "$": 200,
+          "type": "xsd:int"
+        }
+      }
+    },
+    "used": {
+      "_:id1": {
+        "prov:activity": "ophamin:scenario_throughput-ceiling",
+        "prov:entity": "ophamin:corpus_offensive-security-corpus"
+      }
+    },
+    "wasAssociatedWith": {
+      "_:id2": {
+        "prov:activity": "ophamin:scenario_throughput-ceiling",
+        "prov:agent": "ophamin:ophamin"
+      },
+      "_:id3": {
+        "prov:activity": "ophamin:scenario_throughput-ceiling",
+        "prov:agent": "ophamin:instrumented_kimera-swm_"
+      }
+    },
+    "wasGeneratedBy": {
+      "_:id4": {
+        "prov:entity": "ophamin:proof_throughput-ceiling",
+        "prov:activity": "ophamin:scenario_throughput-ceiling"
+      }
+    },
+    "wasAttributedTo": {
+      "_:id5": {
+        "prov:entity": "ophamin:proof_throughput-ceiling",
+        "prov:agent": "ophamin:instrumented_kimera-swm_"
+      }
+    },
+    "wasDerivedFrom": {
+      "_:id6": {
+        "prov:generatedEntity": "ophamin:proof_throughput-ceiling",
+        "prov:usedEntity": "ophamin:corpus_offensive-security-corpus"
+      }
+    }
+  },
+  "signature": "33560f56a35dd98e4fee503d8d89aa18118799ca794582091f3856c25cd2d207"
+}

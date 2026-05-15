@@ -305,3 +305,128 @@ def test_both_exporters_preserve_signatures():
     suite = proof_junit.find("testsuite")
     props = {p.get("name"): p.get("value") for p in suite.find("properties")}
     assert props["ophamin_signature"]
+
+
+# --------------------------------------------------------------------------
+# MLflow exporter
+# --------------------------------------------------------------------------
+
+
+@pytest.fixture
+def mlflow_tracking_dir(tmp_path, monkeypatch):
+    """Point MLflow at a tmp_path so tests don't pollute mlruns/."""
+    tracking_dir = tmp_path / "mlruns"
+    tracking_dir.mkdir()
+    monkeypatch.setenv("MLFLOW_TRACKING_URI", f"file:{tracking_dir}")
+    return tracking_dir
+
+
+def test_mlflow_export_proof_record_creates_run(mlflow_tracking_dir):
+    from ophamin.interop import export_proof_record
+    run_id = export_proof_record(
+        _proof_record(outcome="VALIDATED"),
+        experiment_name="test-ophamin-proof",
+    )
+    assert isinstance(run_id, str)
+    assert len(run_id) > 0
+
+    import mlflow
+    run = mlflow.get_run(run_id)
+    # tags carry the outcome + signature
+    assert run.data.tags["ophamin.kind"] == "proof"
+    assert run.data.tags["ophamin.outcome"] == "VALIDATED"
+    assert run.data.tags["ophamin.signature"] == "1" * 64
+    # params carry the threshold
+    assert run.data.params["threshold_metric"] == "x_rate"
+    assert run.data.params["threshold_comparator"] == ">="
+    # metrics carry the observed value
+    assert "observed_value" in run.data.metrics
+    assert run.data.metrics["observed_value"] == pytest.approx(0.974)
+    # CI metrics for the primary statistic
+    assert "x_rate" in run.data.metrics
+    assert "x_rate_ci_low" in run.data.metrics
+    assert "x_rate_ci_high" in run.data.metrics
+
+
+def test_mlflow_export_audit_record_creates_run(mlflow_tracking_dir):
+    from ophamin.interop import export_audit_record
+    run_id = export_audit_record(
+        _audit_record(),
+        experiment_name="test-ophamin-audit",
+    )
+    assert isinstance(run_id, str)
+
+    import mlflow
+    run = mlflow.get_run(run_id)
+    assert run.data.tags["ophamin.kind"] == "audit"
+    assert run.data.tags["ophamin.target"] == "/tmp/proj"
+    # per-pillar metrics
+    assert run.data.metrics["total_findings"] == pytest.approx(2)
+    assert run.data.metrics["findings_ruff"] == pytest.approx(2)
+    assert run.data.metrics["findings_vulture"] == pytest.approx(0)
+    # severity metrics
+    assert run.data.metrics["severity_high"] == pytest.approx(1)
+    assert run.data.metrics["severity_medium"] == pytest.approx(1)
+
+
+def test_mlflow_export_refuted_proof_lands_correct_outcome(mlflow_tracking_dir):
+    from ophamin.interop import export_proof_record
+    run_id = export_proof_record(
+        _proof_record(outcome="REFUTED"),
+        experiment_name="test-ophamin-proof",
+    )
+    import mlflow
+    run = mlflow.get_run(run_id)
+    assert run.data.tags["ophamin.outcome"] == "REFUTED"
+
+
+def test_mlflow_exporter_classifies_proof_vs_audit():
+    from ophamin.interop import MLflowExporter
+    assert MLflowExporter._classify(_proof_record()) == "proof"
+    assert MLflowExporter._classify(_audit_record()) == "audit"
+    with pytest.raises(ValueError, match="does not look like"):
+        MLflowExporter._classify({"foo": "bar"})
+
+
+def test_mlflow_export_rejects_non_proof_input(mlflow_tracking_dir):
+    from ophamin.interop import export_proof_record
+    with pytest.raises(ValueError, match="does not look like an Empirical Proof Record"):
+        export_proof_record({"foo": "bar"})
+
+
+def test_mlflow_export_rejects_non_audit_input(mlflow_tracking_dir):
+    from ophamin.interop import export_audit_record
+    with pytest.raises(ValueError, match="does not look like an Audit Record"):
+        export_audit_record({"foo": "bar"})
+
+
+def test_mlflow_exporter_class_dispatches_correctly(mlflow_tracking_dir):
+    from ophamin.interop import MLflowExporter
+    exp = MLflowExporter(experiment_name="test-dispatch")
+    proof_run_id = exp.export(_proof_record())
+    audit_run_id = exp.export(_audit_record())
+    import mlflow
+    proof_run = mlflow.get_run(proof_run_id)
+    audit_run = mlflow.get_run(audit_run_id)
+    assert proof_run.data.tags["ophamin.kind"] == "proof"
+    assert audit_run.data.tags["ophamin.kind"] == "audit"
+
+
+def test_mlflow_safe_metric_key_replaces_disallowed_chars():
+    from ophamin.interop.mlflow_export import _safe_metric_key
+    # parens / colon / @ → underscore
+    assert _safe_metric_key("O.x.rate(95%)") == "O.x.rate_95__"
+    assert _safe_metric_key("a:b@c") == "a_b_c"
+    # allowed chars stay
+    assert _safe_metric_key("a-b_c.d") == "a-b_c.d"
+
+
+def test_mlflow_export_truncates_long_param_values(mlflow_tracking_dir):
+    """Claims with absurdly long statements MUST still log without raising
+    (MLflow's per-param length limit is ~6000 chars)."""
+    from ophamin.interop import export_proof_record
+    record = _proof_record()
+    record["claim"]["statement"] = "Very long claim. " * 1000  # ~17000 chars
+    # should NOT raise
+    run_id = export_proof_record(record, experiment_name="test-truncation")
+    assert isinstance(run_id, str)
