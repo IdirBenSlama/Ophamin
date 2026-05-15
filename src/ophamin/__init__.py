@@ -1,24 +1,45 @@
-"""Ophamin — an empirical framework for scaling and verifying iterative experimentation.
+"""Ophamin — an empirical observatory around Kimera-SWM.
 
-Six pillars (O-F-A-M-I-N):
+The name is the angelic order **Ophanim** (wheels-within-wheels covered with
+eyes — Ezekiel 1:18). Architecturally, Ophamin is a *dyson sphere* around
+Kimera: Kimera sits at the centre emitting; Ophamin envelops, senses, and
+returns measurement to the operator. Not a tool next to Kimera — a structure
+around it.
 
-    O  observability       observability.spc, observability.srm
-    F  formal provenance   provenance.prov, provenance.lineage
-    A  adaptive testing    adaptive.sprt
-    M  mixed-effects       effects.mixed_effects, effects.mea
-    I  iterative synthesis synthesis.cma
-    N  n-fold robustness   robustness.cross_validation
+The structure has **three wheels**, each a ring with many eyes:
 
-The framework is independent of any particular system. The thing it tests is a
-``SubstrateUnderTest`` (substrate.base); ``MockSubstrate`` makes the whole
-framework runnable with no external system, and ``KimeraAdapter`` plugs in
-Kimera-SWM via a subprocess boundary.
+    seeing      Wheel 1 — how the observatory senses Kimera and the world
+                (substrate, corpus, discovery)
+    measuring   Wheel 2 — pre-registered measurement engines + plug-in pillars
+                (proof, scenarios, metrics, pillars.{observability, adaptive,
+                effects, synthesis, robustness, diagnostics})
+    comparing   Wheel 3 — cross-Kimera-commit retrospection
+                (drift, provenance, orchestration)
+
+The six **plug-in pillars** (O · F · A · M · I · N) live inside the
+``measuring`` ring:
+
+    O  observability       SPC + SRM + drift detectors      (scipy, river)
+    F  formal provenance   PROV-O graph + lineage store     (prov, MLflow, DVC)
+    A  adaptive testing    SPRT + mSPRT anytime-valid       (statsmodels)
+    M  mixed-effects       MixedLM + MEA                    (statsmodels)
+    I  iterative synthesis cumulative meta-analysis         (statsmodels)
+    N  n-fold robustness   cross-validation                 (scikit-learn)
+
+The framework is independent of any particular substrate-under-test;
+``MockSubstrate`` makes the whole observatory runnable with no external
+system, and ``KimeraAdapter`` plugs in Kimera-SWM via a subprocess boundary.
 """
 
 __version__ = "0.1.0"
 
-from ophamin.metrics.tiers import MetricBundle, Tier1Metrics, Tier2Metrics, Tier3Metrics
-from ophamin.proof.record import (
+from ophamin.measuring.metrics.tiers import (
+    MetricBundle,
+    Tier1Metrics,
+    Tier2Metrics,
+    Tier3Metrics,
+)
+from ophamin.measuring.proof.record import (
     Claim,
     EmpiricalProofRecord,
     PillarEvidence,
@@ -26,7 +47,7 @@ from ophamin.proof.record import (
     Threshold,
     Verdict,
 )
-from ophamin.substrate.base import CycleResult, SubstrateUnderTest
+from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
 __all__ = [
     "__version__",

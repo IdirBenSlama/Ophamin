@@ -97,6 +97,43 @@ adapter ships an editable runner template; if Kimera's `Takwin` API differs,
 
 ---
 
+## The catastrophic scenarios
+
+Each scenario binds a real corpus + a Kimera component target + a
+**pre-registered falsifiable claim**. The harness runs the corpus through the
+substrate, scores the run, and emits a signed 9-section *Empirical Proof
+Record* under `proofs/`. The pre-registration is captured *before* the run.
+A REFUTED verdict is the framework working — it surfaces a real architectural
+debt, not a failure to measure.
+
+| # | Scenario | Corpus | Kimera target | Pre-registered claim | Run example |
+|---|---|---|---|---|---|
+| 1 | **Concentrated Immune Siege** | offensive-security (deepset + jackhhao + SecLists + …) | `gwf` (direct) + `entity` (Takwin inline) | GWF false-positive rate on benign-labelled prompts ≤ 10% | `examples/run_immune_siege.py` |
+| 2 | **Rosetta Scaling** | FLORES-200 sentence-aligned parallel text | `rosetta` (RosettaStele) | Canonical-agreement across 10 languages of the same sentence ≥ 80% | `examples/run_rosetta_scaling.py` |
+| 3 | **Organizational Dissonance** | Enron email corpus (~500k CMU emails) | `entity` (Takwin) | On GWF-cleared organisational email, the dissonance machinery fires (≥1 event) in ≥ 90% of cycles | `examples/run_organizational_dissonance.py` |
+| 4 | **Logic-Topology Siege** | Linux kernel commit history (~1.4M commits) | `entity` (Takwin) | On GWF-cleared technical-reasoning text, the walker reaches sustained traversal (`halt_mode == 'exhausted'`) in ≥ 60% of cycles | `examples/run_logic_topology_siege.py` |
+
+Each scenario reports its primary observed value with a Wilson 95% confidence
+interval, plus a fixed slate of *secondary descriptive evidence* (full halt-
+mode distributions, dissonance distributions, GWF block rate, manipulation
+rate, …). Secondary evidence is part of the same signed record but is
+**never post-hoc claimable** — the primary claim is whatever was
+pre-registered before the run.
+
+Run any scenario directly:
+
+```bash
+PYTHONPATH=src .venv/bin/python -u examples/run_<scenario>.py
+```
+
+Or via the CLI registry:
+
+```bash
+.venv/bin/python -m ophamin.cli scenario <scenario-name>
+```
+
+---
+
 ## Repository structure
 
 ```

@@ -17,9 +17,9 @@ from __future__ import annotations
 import traceback
 from pathlib import Path
 
-from ophamin.scenario import RosettaScalingScenario
-from ophamin.scenario.base import DEFAULT_SIGN_KEY
-from ophamin.substrate import KimeraAdapter
+from ophamin.measuring.scenarios import RosettaScalingScenario
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY
+from ophamin.seeing.substrate import KimeraAdapter
 
 REPO = "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)"
 N_CYCLES = 1000             # 20 sentence groups × 50 langs/group

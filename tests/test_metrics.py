@@ -1,6 +1,6 @@
 """Tests for the three-tier metric model."""
 
-from ophamin.metrics.tiers import MetricBundle, Tier1Metrics, Tier2Metrics, Tier3Metrics
+from ophamin.measuring.metrics.tiers import MetricBundle, Tier1Metrics, Tier2Metrics, Tier3Metrics
 
 
 def test_tier1_timer_recording():

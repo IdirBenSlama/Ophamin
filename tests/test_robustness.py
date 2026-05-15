@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 from sklearn.model_selection import KFold, ShuffleSplit
 
-from ophamin.robustness.cross_validation import (
+from ophamin.measuring.pillars.robustness.cross_validation import (
     bootstrap_splits,
     cross_validate,
     k_fold_splits,

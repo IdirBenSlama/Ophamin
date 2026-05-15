@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 import sys
 
-from ophamin.substrate import KIMERA_TARGETS, KimeraAdapter
+from ophamin.seeing.substrate import KIMERA_TARGETS, KimeraAdapter
 
 REPO = "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)"
 

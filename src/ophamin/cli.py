@@ -1,11 +1,16 @@
 """Ophamin command-line interface.
 
-    ophamin demo                     run the end-to-end mock experiment
-    ophamin run <config.yaml>        run one experiment from a base config
-    ophamin sweep <experiment.yaml>  run a parameter sweep (parent + children)
-    ophamin probe-kimera <repo>      self-test the Kimera adapter
-    ophamin lineage --list           list recorded runs
-    ophamin lineage <run-id>         show a run's lineage chain
+    ophamin demo                          run the end-to-end mock experiment
+    ophamin run <config.yaml>             run one experiment from a base config
+    ophamin sweep <experiment.yaml>       run a parameter sweep (parent + children)
+    ophamin probe-kimera <repo>           self-test the Kimera adapter
+    ophamin lineage --list                list recorded runs
+    ophamin lineage <run-id>              show a run's lineage chain
+    ophamin discover <repo>               mine Kimera's field-schema (Layer A)
+    ophamin discover-diff <a.json> <b.json>  structural diff between two schema docs
+    ophamin drift-report                  cross-Kimera-commit drift over proof records (Layer C)
+    ophamin watch <repo>                  many-small-eyes: continuously re-discover + diff
+                                          + drift on every Kimera HEAD change
 """
 
 from __future__ import annotations
@@ -13,13 +18,41 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 
 from ophamin import __version__
 from ophamin.config.sweep import SweepSpec, get_in, load_config, load_sweep
-from ophamin.orchestration.experiment import ExperimentRunner
-from ophamin.provenance.lineage import LineageStore
-from ophamin.substrate.kimera_adapter import KimeraAdapter, KimeraAdapterError
-from ophamin.substrate.mock import MockSubstrate
+from ophamin.seeing.discovery import (
+    DEFAULT_POLL_INTERVAL_S,
+    KimeraDiscoveryWatcher,
+    SchemaDocument,
+    SchemaMiner,
+    WatchOutcome,
+    diff_schemas,
+    write_schema_markdown,
+)
+from ophamin.comparing.drift import ProofIndex, detect_drift
+from ophamin.comparing.orchestration.experiment import ExperimentRunner
+from ophamin.comparing.provenance.lineage import LineageStore
+from ophamin.seeing.substrate.kimera_adapter import KimeraAdapter, KimeraAdapterError
+from ophamin.seeing.substrate.mock import MockSubstrate
+
+#: default probe stimuli — small balanced text set covering several modalities
+#: of input that Kimera should be able to process. Deliberately kept short and
+#: hand-picked so the schema-mining stays cheap.
+DEFAULT_DISCOVERY_STIMULI = [
+    "The quarterly earnings report shows steady revenue growth across segments.",
+    "Photosynthesis converts sunlight, water and CO2 into glucose.",
+    "Reminder: the Tuesday status meeting will be at 3pm in conference room B.",
+    "I disagree with the proposed changes. The risk assessment is inadequate.",
+    "mm/slub: fix race condition in kmalloc_slab when CPU hot-unplug occurs.",
+    "The boy went to the store and bought an apple.",
+    "Memory is the deformation of the manifold by accumulated experience.",
+    "Le garçon est allé au magasin.",
+    "El niño fue a la tienda.",
+    "少年は店に行った。",
+]
+DEFAULT_DISCOVERY_TARGETS = ("entity", "rosetta", "gwf", "arachne", "walker")
 
 
 def build_substrate(config: dict):
@@ -134,6 +167,185 @@ def cmd_lineage(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_discover(args: argparse.Namespace) -> int:
+    """Mine Kimera's field-schema (Layer A of the co-evolution stack).
+
+    Produces a SchemaDocument JSON + a human-readable Markdown reference
+    pinned to the Kimera + Ophamin git commits and the stimulus-set content
+    hash.
+    """
+    targets = (
+        [t.strip() for t in args.targets.split(",") if t.strip()]
+        if args.targets
+        else list(DEFAULT_DISCOVERY_TARGETS)
+    )
+    stimuli = list(DEFAULT_DISCOVERY_STIMULI)
+    if args.stimuli_file:
+        stimuli = [
+            line for line in Path(args.stimuli_file).read_text().splitlines() if line
+        ]
+    # we construct the adapter against the first target; SchemaMiner
+    # re-constructs per-target so the targets list can be heterogeneous.
+    try:
+        substrate = KimeraAdapter(
+            args.repo,
+            target=targets[0],
+            mode="batch",
+            batch_timeout=float(args.batch_timeout),
+        )
+    except KimeraAdapterError as exc:
+        print(f"adapter misconfigured: {exc}", file=sys.stderr)
+        return 2
+    miner = SchemaMiner(substrate)
+    print(f"discovering Kimera field-schema: {len(targets)} targets × "
+          f"{len(stimuli)} stimuli ...")
+    doc = miner.mine(targets=targets, stimuli=stimuli)
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    short_commit = (doc.kimera_git_commit or "unknown")[:12]
+    json_path = out_dir / f"kimera_fields_{short_commit}.json"
+    md_path = out_dir / f"kimera_fields_{short_commit}.md"
+    doc.to_json(json_path)
+    write_schema_markdown(doc, md_path)
+    print(f"kimera commit  : {doc.kimera_git_commit}")
+    print(f"targets probed : {', '.join(t.name for t in doc.targets)}")
+    for t in doc.targets:
+        print(f"  {t.name:<10} fields: {len(t.fields):>3}  cycles: {t.n_cycles}  "
+              f"adapter_errors: {t.n_adapter_errors}")
+    print(f"written        : {json_path}")
+    print(f"                 {md_path}")
+    return 0
+
+
+def cmd_drift_report(args: argparse.Namespace) -> int:
+    """Cross-Kimera-commit drift over signed Empirical Proof Records (Layer C).
+
+    Loads every proof record under ``--proofs-dir`` (default ``proofs/``),
+    groups by primary statistic name, and computes Wilson-CI-based drift
+    between the oldest-commit and newest-commit measurement for each
+    statistic. Statistics with only one Kimera commit are reported as
+    ``status="single_commit"``.
+    """
+    proofs_dir = Path(args.proofs_dir)
+    if not proofs_dir.is_dir():
+        print(f"proofs directory not found: {proofs_dir}", file=sys.stderr)
+        return 2
+    index = ProofIndex.from_directory(proofs_dir)
+    if not index.statistic_names():
+        print(f"no signed proof records found under {proofs_dir}")
+        return 0
+    report = detect_drift(index)
+    if args.json:
+        print(json.dumps(report, indent=2, default=str))
+        return 0
+    print(f"proofs indexed: {len(index)} from {proofs_dir}")
+    print(f"distinct primary statistics: {len(report)}")
+    print()
+    significant_count = 0
+    for stat, entry in report.items():
+        if "status" in entry and entry["status"] == "single_commit":
+            print(f"  {stat:<50} status: single_commit  "
+                  f"(commit={entry['commit'][:12]}, n_records={entry['n_records']})")
+            continue
+        primary = entry["primary_delta"]
+        sig = "⚠ DRIFT" if entry.get("has_significant_drift") else "ok"
+        if entry.get("has_significant_drift"):
+            significant_count += 1
+        commit_before = entry["kimera_commit_before"][:12]
+        commit_after = entry["kimera_commit_after"][:12]
+        print(f"  {stat:<50} {sig}  "
+              f"{primary['value_before']:.4f} → {primary['value_after']:.4f}  "
+              f"(Δ={primary['delta']:+.4f})  "
+              f"commits: {commit_before} → {commit_after}")
+        if entry.get("verdict_changed"):
+            print(f"      verdict flip: {entry['verdict_before']} → {entry['verdict_after']}")
+    print()
+    print(f"significant drift events: {significant_count}")
+    return 0
+
+
+def cmd_watch(args: argparse.Namespace) -> int:
+    """Many-small-eyes mode — continuously re-discover + diff + drift on every
+    Kimera HEAD change.
+
+    Polls the Kimera repository's git HEAD at ``--poll-interval`` seconds. On
+    a new commit, mines the field schema, writes the Markdown reference,
+    diffs against the previous schema, and refreshes the drift report. The
+    output is a dated artefact directory per commit.
+    """
+    targets = (
+        [t.strip() for t in args.targets.split(",") if t.strip()]
+        if args.targets
+        else list(DEFAULT_DISCOVERY_TARGETS)
+    )
+    stimuli = list(DEFAULT_DISCOVERY_STIMULI)
+    if args.stimuli_file:
+        stimuli = [
+            line for line in Path(args.stimuli_file).read_text().splitlines() if line
+        ]
+    watcher = KimeraDiscoveryWatcher(
+        kimera_repo=args.repo,
+        targets=targets,
+        stimuli=stimuli,
+        out_dir=args.out_dir,
+        proofs_dir=args.proofs_dir,
+        batch_timeout=float(args.batch_timeout),
+    )
+
+    def _report(outcome: WatchOutcome) -> None:
+        if outcome.new_commit_discovered:
+            print(
+                f"[{outcome.kimera_commit[:12]}] {outcome.reason}; "
+                f"schema={outcome.schema_md_path} "
+                + (f"diff={outcome.diff_md_path} " if outcome.diff_md_path else "")
+                + (f"drift={outcome.drift_path}" if outcome.drift_path else "")
+            )
+        else:
+            print(f"[poll] {outcome.reason}")
+
+    if args.once:
+        outcome = watcher.run_once()
+        _report(outcome)
+        return 0 if outcome.kimera_commit else 1
+    print(f"watching Kimera HEAD at {args.repo}; polling every {args.poll_interval}s...")
+    watcher.run_forever(
+        poll_interval_s=float(args.poll_interval),
+        on_outcome=_report,
+    )
+    return 0
+
+
+def cmd_discover_diff(args: argparse.Namespace) -> int:
+    """Structural diff between two SchemaDocuments (added/removed/type-changed)."""
+    before = SchemaDocument.from_json(args.before)
+    after = SchemaDocument.from_json(args.after)
+    diff = diff_schemas(before, after)
+    if args.json:
+        print(json.dumps(diff.to_dict(), indent=2))
+    else:
+        print(f"before kimera commit : {before.kimera_git_commit}")
+        print(f"after  kimera commit : {after.kimera_git_commit}")
+        if diff.is_empty():
+            print("no structural changes between the two schemas")
+            return 0
+        if diff.targets_added:
+            print(f"targets added   : {', '.join(diff.targets_added)}")
+        if diff.targets_removed:
+            print(f"targets removed : {', '.join(diff.targets_removed)}")
+        for change in diff.field_changes:
+            if change.kind == "added":
+                print(f"  + [{change.target}] {change.path} "
+                      f"({', '.join(change.types_after)})")
+            elif change.kind == "removed":
+                print(f"  - [{change.target}] {change.path} "
+                      f"({', '.join(change.types_before)})")
+            elif change.kind == "type_changed":
+                print(f"  ~ [{change.target}] {change.path} "
+                      f"{', '.join(change.types_before)} -> "
+                      f"{', '.join(change.types_after)}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ophamin",
@@ -167,6 +379,97 @@ def build_parser() -> argparse.ArgumentParser:
     p_lin.add_argument("--list", action="store_true", help="list all recorded runs")
     p_lin.add_argument("--root", default="runs", help="lineage store directory")
     p_lin.set_defaults(func=cmd_lineage)
+
+    p_disc = sub.add_parser(
+        "discover",
+        help="mine Kimera's field-schema (Layer A of the co-evolution stack)",
+    )
+    p_disc.add_argument("repo", help="path to the Kimera-SWM repository")
+    p_disc.add_argument(
+        "--targets",
+        default="",
+        help=(
+            "comma-separated Kimera targets to probe "
+            f"(default: {','.join(DEFAULT_DISCOVERY_TARGETS)})"
+        ),
+    )
+    p_disc.add_argument(
+        "--stimuli-file",
+        default="",
+        help="optional newline-separated file of probe stimuli "
+        "(default: the built-in balanced text set)",
+    )
+    p_disc.add_argument(
+        "--out-dir",
+        default="discovery",
+        help="directory to write the schema JSON + Markdown",
+    )
+    p_disc.add_argument(
+        "--batch-timeout",
+        default="600",
+        help="adapter batch timeout in seconds (default: 600)",
+    )
+    p_disc.set_defaults(func=cmd_discover)
+
+    p_dd = sub.add_parser(
+        "discover-diff",
+        help="structural diff between two schema documents (added/removed/type-changed)",
+    )
+    p_dd.add_argument("before", help="path to the older SchemaDocument JSON")
+    p_dd.add_argument("after", help="path to the newer SchemaDocument JSON")
+    p_dd.add_argument("--json", action="store_true", help="emit the diff as JSON")
+    p_dd.set_defaults(func=cmd_discover_diff)
+
+    p_drift = sub.add_parser(
+        "drift-report",
+        help="cross-Kimera-commit drift over signed proof records (Layer C)",
+    )
+    p_drift.add_argument(
+        "--proofs-dir",
+        default="proofs",
+        help="directory containing signed Empirical Proof Records (default: proofs/)",
+    )
+    p_drift.add_argument("--json", action="store_true", help="emit the report as JSON")
+    p_drift.set_defaults(func=cmd_drift_report)
+
+    p_watch = sub.add_parser(
+        "watch",
+        help=(
+            "many-small-eyes mode: continuously re-discover + diff + drift on "
+            "every Kimera HEAD change"
+        ),
+    )
+    p_watch.add_argument("repo", help="path to the Kimera-SWM repository")
+    p_watch.add_argument(
+        "--targets", default="",
+        help=f"comma-separated Kimera targets to probe "
+             f"(default: {','.join(DEFAULT_DISCOVERY_TARGETS)})",
+    )
+    p_watch.add_argument(
+        "--stimuli-file", default="",
+        help="optional newline-separated file of probe stimuli",
+    )
+    p_watch.add_argument(
+        "--out-dir", default="discovery",
+        help="directory to write schema + diff + drift artefacts",
+    )
+    p_watch.add_argument(
+        "--proofs-dir", default="proofs",
+        help="directory containing signed proof records (for drift refresh)",
+    )
+    p_watch.add_argument(
+        "--batch-timeout", default="600",
+        help="adapter batch timeout per discovery tick (default: 600s)",
+    )
+    p_watch.add_argument(
+        "--poll-interval", default=str(DEFAULT_POLL_INTERVAL_S),
+        help=f"seconds between HEAD checks (default: {DEFAULT_POLL_INTERVAL_S}s)",
+    )
+    p_watch.add_argument(
+        "--once", action="store_true",
+        help="run a single tick (mine if HEAD changed) and exit, instead of looping",
+    )
+    p_watch.set_defaults(func=cmd_watch)
 
     return parser
 

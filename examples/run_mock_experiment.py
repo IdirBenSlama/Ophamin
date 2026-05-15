@@ -14,10 +14,10 @@ from __future__ import annotations
 import tempfile
 
 from ophamin.config.sweep import SweepSpec
-from ophamin.diagnostics.kernel_coupling import OracleKernelCouplingDiagnostic
-from ophamin.orchestration.experiment import ExperimentRunner
-from ophamin.provenance.lineage import LineageStore
-from ophamin.substrate.mock import MockSubstrate
+from ophamin.measuring.pillars.diagnostics.kernel_coupling import OracleKernelCouplingDiagnostic
+from ophamin.comparing.orchestration.experiment import ExperimentRunner
+from ophamin.comparing.provenance.lineage import LineageStore
+from ophamin.seeing.substrate.mock import MockSubstrate
 
 
 def main() -> None:

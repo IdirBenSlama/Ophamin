@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from ophamin.observability.drift import DriftMonitor
+from ophamin.measuring.pillars.observability.drift import DriftMonitor
 
 
 def test_adwin_detects_a_known_change_point():

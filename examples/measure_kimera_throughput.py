@@ -20,8 +20,8 @@ import sys
 from pathlib import Path
 
 from ophamin import __version__
-from ophamin.corpus import get_corpus
-from ophamin.proof import (
+from ophamin.seeing.corpus import get_corpus
+from ophamin.measuring.proof import (
     Claim,
     DatasetRef,
     EmpiricalProofRecord,
@@ -32,7 +32,7 @@ from ophamin.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.substrate import KimeraAdapter
+from ophamin.seeing.substrate import KimeraAdapter
 
 REPO = "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)"
 GPU_ENV = {"KIMERA_GPU_ACCELERATION_ENABLED": "1"}

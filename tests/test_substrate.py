@@ -4,9 +4,9 @@ the KimeraAdapter batch runner's incremental-emit reconstruction."""
 import json
 from pathlib import Path
 
-from ophamin.substrate.base import CycleResult
-from ophamin.substrate.kimera_adapter import KimeraAdapter
-from ophamin.substrate.mock import MockSubstrate
+from ophamin.seeing.substrate.base import CycleResult
+from ophamin.seeing.substrate.kimera_adapter import KimeraAdapter
+from ophamin.seeing.substrate.mock import MockSubstrate
 
 
 def test_cycle_result_default_metric_extraction():

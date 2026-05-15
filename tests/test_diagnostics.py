@@ -10,20 +10,20 @@ import pytest
 from mapie.regression import SplitConformalRegressor
 from sklearn.linear_model import LinearRegression
 
-from ophamin.diagnostics.anticipatory import (
+from ophamin.measuring.pillars.diagnostics.anticipatory import (
     KNOWN_FAILURE,
     OOD_ANOMALY,
     AnticipatoryFailureClassifier,
     ConformalPredictor,
 )
-from ophamin.diagnostics.inertia import CognitiveInertiaMeter
-from ophamin.diagnostics.kernel_coupling import (
+from ophamin.measuring.pillars.diagnostics.inertia import CognitiveInertiaMeter
+from ophamin.measuring.pillars.diagnostics.kernel_coupling import (
     INTRINSIC_EXPLORATION,
     MISCALIBRATED_BOUNDARY_LOGIC,
     NO_COLLAPSE,
     OracleKernelCouplingDiagnostic,
 )
-from ophamin.substrate.mock import MockSubstrate
+from ophamin.seeing.substrate.mock import MockSubstrate
 
 
 def _conformal_data(seed: int = 0, n: int = 400):

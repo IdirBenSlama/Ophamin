@@ -24,9 +24,9 @@ from __future__ import annotations
 import traceback
 from pathlib import Path
 
-from ophamin.scenario import ImmuneSiegeScenario
-from ophamin.scenario.base import DEFAULT_SIGN_KEY
-from ophamin.substrate import KimeraAdapter
+from ophamin.measuring.scenarios import ImmuneSiegeScenario
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY
+from ophamin.seeing.substrate import KimeraAdapter
 
 REPO = "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)"
 N_CYCLES = 1000  # right-sized balanced sample: ~500 benign + ~500 malicious

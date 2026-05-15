@@ -9,15 +9,15 @@ import itertools
 
 import pytest
 
-from ophamin.corpus import (
+from ophamin.seeing.corpus import (
     CorpusUnavailableError,
     EnronCorpus,
     TheWellCorpus,
     available_corpora,
     get_corpus,
 )
-from ophamin.corpus.base import CorpusRecord
-from ophamin.proof import DatasetRef
+from ophamin.seeing.corpus.base import CorpusRecord
+from ophamin.measuring.proof import DatasetRef
 
 
 def _first(corpus, n: int) -> list[CorpusRecord]:

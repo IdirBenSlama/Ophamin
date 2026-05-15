@@ -5,7 +5,7 @@ import math
 import numpy as np
 import pytest
 
-from ophamin.adaptive.sprt import (
+from ophamin.measuring.pillars.adaptive.sprt import (
     ACCEPT_H0,
     ACCEPT_H1,
     BernoulliSPRT,

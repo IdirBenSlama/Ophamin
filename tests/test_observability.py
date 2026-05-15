@@ -3,12 +3,12 @@
 import numpy as np
 import pytest
 
-from ophamin.observability.spc import (
+from ophamin.measuring.pillars.observability.spc import (
     IndividualsChart,
     XbarRChart,
     western_electric_rules,
 )
-from ophamin.observability.srm import SRMDetector
+from ophamin.measuring.pillars.observability.srm import SRMDetector
 
 
 def test_xbar_r_chart_reproduces_classic_constants():

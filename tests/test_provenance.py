@@ -10,13 +10,13 @@ import json
 import mlflow
 from prov.model import ProvDocument
 
-from ophamin.provenance.lineage import (
+from ophamin.comparing.provenance.lineage import (
     LineageStore,
     capture_git_commit,
     content_hash,
     make_run_id,
 )
-from ophamin.provenance.prov import ProvenanceGraph
+from ophamin.comparing.provenance.prov import ProvenanceGraph
 
 
 def test_provenance_graph_emits_valid_prov_json():

@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from ophamin.proof import (
+from ophamin.measuring.proof import (
     INCONCLUSIVE,
     REFUTED,
     SCHEMA_PATH,

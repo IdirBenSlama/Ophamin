@@ -14,8 +14,8 @@ import statsmodels.formula.api as smf
 from statsmodels.regression.mixed_linear_model import MixedLM
 from statsmodels.stats.anova import anova_lm
 
-from ophamin.effects.mea import MultiExperimentAnalysis
-from ophamin.effects.mixed_effects import RandomInterceptModel, center_and_scale
+from ophamin.measuring.pillars.effects.mea import MultiExperimentAnalysis
+from ophamin.measuring.pillars.effects.mixed_effects import RandomInterceptModel, center_and_scale
 
 
 def _mixed_data(seed: int = 0, m: int = 40, n_per: int = 20):

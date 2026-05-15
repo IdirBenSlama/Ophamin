@@ -2,7 +2,7 @@
 
 import pytest
 
-from ophamin.synthesis.cma import CumulativeMetaAnalysis
+from ophamin.measuring.pillars.synthesis.cma import CumulativeMetaAnalysis
 
 
 def test_fixed_effect_pooling_matches_hand_computation():

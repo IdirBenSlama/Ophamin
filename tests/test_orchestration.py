@@ -1,9 +1,9 @@
 """End-to-end tests for the orchestration layer — pillars wired together."""
 
 from ophamin.config.sweep import SweepSpec
-from ophamin.orchestration.experiment import ExperimentRunner
-from ophamin.provenance.lineage import LineageStore
-from ophamin.substrate.mock import MockSubstrate
+from ophamin.comparing.orchestration.experiment import ExperimentRunner
+from ophamin.comparing.provenance.lineage import LineageStore
+from ophamin.seeing.substrate.mock import MockSubstrate
 
 _VALID_STATUSES = {"ok", "alert", "skipped"}
 
