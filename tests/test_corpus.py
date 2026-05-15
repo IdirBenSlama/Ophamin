@@ -12,6 +12,7 @@ import pytest
 from ophamin.corpus import (
     CorpusUnavailableError,
     EnronCorpus,
+    TheWellCorpus,
     available_corpora,
     get_corpus,
 )
@@ -23,7 +24,9 @@ def _first(corpus, n: int) -> list[CorpusRecord]:
     return list(itertools.islice(corpus.records(), n))
 
 
-@pytest.mark.parametrize("name", ["enron", "linux", "cyber", "flores", "financial"])
+@pytest.mark.parametrize(
+    "name", ["enron", "linux", "cyber", "flores", "financial", "the_well"]
+)
 def test_connector_streams_valid_records(name):
     corpus = get_corpus(name)
     if not corpus.is_available():
@@ -112,6 +115,40 @@ def test_financial_corpus_aggregates_sources():
     assert digest == corpus.content_hash()
 
 
+def test_the_well_corpus_streams_physics_records():
+    """The Well connector streams lazy (trajectory, timestep) physics records and
+    materialises field arrays on demand — physics never touches a text encoder."""
+    corpus = get_corpus("the_well")
+    if not corpus.is_available():
+        pytest.skip("the-well corpus not downloaded / volume not mounted")
+    datasets = corpus.included_datasets()
+    assert datasets  # at least one physics dataset present
+    records = _first(corpus, 5)
+    assert len(records) == 5
+    for rec in records:
+        assert rec.id.startswith("the-well/")
+        assert rec.text.strip()  # the descriptor label
+        meta = rec.metadata
+        assert meta["dataset"] in datasets
+        assert meta["hdf5_path"].endswith(".hdf5")
+        assert isinstance(meta["trajectory"], int)
+        assert isinstance(meta["timestep"], int)
+        assert meta["fields"]  # at least one physics-field spec
+
+    # lazy materialisation — load_snapshot reads the real arrays for one record
+    import numpy as np
+
+    snapshot = TheWellCorpus.load_snapshot(records[0])
+    assert snapshot
+    for fname, arr in snapshot.items():
+        assert isinstance(arr, np.ndarray)
+        assert fname in records[0].metadata["fields"]
+
+    # records_from targets a single named dataset
+    one = list(itertools.islice(corpus.records_from(datasets[0]), 3))
+    assert one and all(r.metadata["dataset"] == datasets[0] for r in one)
+
+
 def test_get_corpus_rejects_unknown():
     with pytest.raises(ValueError):
         get_corpus("not-a-corpus")
@@ -119,5 +156,12 @@ def test_get_corpus_rejects_unknown():
 
 def test_available_corpora_reports_status():
     status = available_corpora()
-    assert set(status) == {"enron", "linux", "cyber", "flores", "financial"}
+    assert set(status) == {
+        "enron",
+        "linux",
+        "cyber",
+        "flores",
+        "financial",
+        "the_well",
+    }
     assert all(isinstance(v, bool) for v in status.values())

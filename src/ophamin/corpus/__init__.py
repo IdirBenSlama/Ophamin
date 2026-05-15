@@ -15,6 +15,7 @@ silent).
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from ophamin.corpus.base import Corpus, CorpusRecord, CorpusUnavailableError
@@ -24,10 +25,17 @@ from ophamin.corpus.connectors import (
     FloresCorpus,
     LinuxKernelCorpus,
     OffensiveSecurityCorpus,
+    TheWellCorpus,
 )
 
 #: default location of the downloaded raw datasets (<project>/data/raw)
 DEFAULT_DATA_ROOT = Path(__file__).resolve().parents[3] / "data" / "raw"
+
+#: The Well + the wider foreign corpus live on a separate volume (tens of GB of
+#: physics HDF5, not text downloads). Overridable via OPHAMIN_FOREIGN_CORPUS_ROOT.
+FOREIGN_CORPUS_ROOT = Path(
+    os.environ.get("OPHAMIN_FOREIGN_CORPUS_ROOT", "/Volumes/Kaido/Foreign_Corpus")
+)
 
 _REGISTRY = {
     "enron": lambda root: EnronCorpus(root / "enron"),
@@ -35,6 +43,9 @@ _REGISTRY = {
     "cyber": lambda root: OffensiveSecurityCorpus(root),
     "flores": lambda root: FloresCorpus(root / "flores"),
     "financial": lambda root: FinancialCorpus(root / "financial"),
+    # the_well lives on the foreign-corpus volume, not under data_root — the
+    # lambda's `root` arg is intentionally unused for this one corpus
+    "the_well": lambda root: TheWellCorpus(FOREIGN_CORPUS_ROOT / "the_well"),
 }
 
 
@@ -62,7 +73,9 @@ __all__ = [
     "OffensiveSecurityCorpus",
     "FloresCorpus",
     "FinancialCorpus",
+    "TheWellCorpus",
     "get_corpus",
     "available_corpora",
     "DEFAULT_DATA_ROOT",
+    "FOREIGN_CORPUS_ROOT",
 ]

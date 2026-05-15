@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
 
-from ophamin.corpus.base import Corpus, CorpusRecord
+from ophamin.corpus.base import Corpus, CorpusRecord, CorpusUnavailableError
 
 
 class EnronCorpus(Corpus):
@@ -722,3 +722,214 @@ class FinancialCorpus(Corpus):
                 continue
             extractor = getattr(self, self._EXTRACTORS[src.mode])
             yield from extractor(src)
+
+
+# --------------------------------------------------------------------------
+# The Well — physics-simulation datasets (foreign-signal corpus)
+# --------------------------------------------------------------------------
+
+def _require_h5py():
+    """Import h5py loudly — it is an optional extra (``pip install ophamin[well]``)."""
+    try:
+        import h5py
+    except ImportError as exc:  # never silent — the corpus simply cannot be read
+        raise CorpusUnavailableError(
+            "the-well corpus requires h5py — install with: pip install ophamin[well]"
+        ) from exc
+    return h5py
+
+
+def _jsonable_attr(value):
+    """Coerce an HDF5 attribute to a plain JSON-ish value for record metadata."""
+    import numpy as np
+
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.floating):
+        return float(value)
+    if isinstance(value, bytes):
+        return value.decode("utf-8", "replace")
+    return value
+
+
+class TheWellCorpus(Corpus):
+    """The Well (Polymathic AI) — HDF5 physics-simulation datasets as a foreign corpus.
+
+    Each dataset under ``the_well/datasets/<name>/`` is a set of simulated
+    physics fields on a spatial grid, evolving over time across several
+    trajectories — The Well's standard ``t<rank>_fields/<name>`` layout, shape
+    ``(n_trajectories, n_timesteps, *grid[, components])``.
+
+    A *record* is one ``(trajectory, timestep)`` snapshot. The corpus is **lazy
+    by construction**: ``records()`` streams cheap metadata specs — the HDF5
+    path, the field groups, the indices, the grid shape — and never loads field
+    arrays. ``load_snapshot(record)`` materialises the arrays on demand. Physics
+    is foreign signal: it never passes through a text encoder. ``record.text``
+    is a deterministic descriptor so text-centric tooling has a stable label;
+    the metadata spec + ``load_snapshot`` are the real payload.
+
+    A dataset directory that is absent (or carries no HDF5) is transparently
+    excluded — never silently substituted. ``included_datasets()`` reports
+    exactly what is in the corpus, and the content hash + record count cover
+    exactly those.
+    """
+
+    name = "the-well"
+    kind = "physics_simulation_corpus"
+    source = "The Well (Polymathic AI) — HDF5 physics-simulation datasets"
+
+    # The Well field-group naming: t0_fields = scalar, t1_fields = vector,
+    # t2_fields = tensor. The first two shape axes are (trajectory, timestep).
+    _FIELD_GROUP_PREFIX = "t"
+    _FIELD_GROUP_SUFFIX = "_fields"
+
+    def _datasets_dir(self) -> Path:
+        return self.root / "datasets"
+
+    def _hdf5_files(self, dataset_dir: Path) -> list[Path]:
+        """The HDF5 files for one dataset — The Well's ``data/<split>/*.hdf5``."""
+        files = sorted(dataset_dir.glob("data/**/*.hdf5"))
+        if not files:  # tolerate a flat layout
+            files = sorted(dataset_dir.glob("**/*.hdf5"))
+        return files
+
+    def included_datasets(self) -> list[str]:
+        """Dataset names whose HDF5 data is present — transparent, never silent."""
+        base = self._datasets_dir()
+        if not base.is_dir():
+            return []
+        return [
+            d.name
+            for d in sorted(base.iterdir())
+            if d.is_dir() and self._hdf5_files(d)
+        ]
+
+    def is_available(self) -> bool:
+        return len(self.included_datasets()) > 0
+
+    @classmethod
+    def _field_groups(cls, handle) -> dict[str, list[str]]:
+        """Map each ``t<rank>_fields`` group to its sorted field names."""
+        groups: dict[str, list[str]] = {}
+        for key in handle.keys():
+            if key.startswith(cls._FIELD_GROUP_PREFIX) and key.endswith(
+                cls._FIELD_GROUP_SUFFIX
+            ):
+                names = sorted(handle[key].keys())
+                if names:
+                    groups[key] = names
+        return groups
+
+    @classmethod
+    def _file_dims(cls, handle, path: Path) -> tuple[int, int]:
+        """``(n_trajectories, n_timesteps)`` from the first field's shape."""
+        for grp, names in cls._field_groups(handle).items():
+            shape = handle[grp][names[0]].shape
+            if len(shape) >= 2:
+                return int(shape[0]), int(shape[1])
+        raise CorpusUnavailableError(
+            f"the-well: {path} has no recognisable t*_fields groups"
+        )
+
+    def _file_record_count(self, path: Path) -> int:
+        h5py = _require_h5py()
+        with h5py.File(path, "r") as handle:
+            n_traj, n_time = self._file_dims(handle, path)
+        return n_traj * n_time
+
+    def _compute_count(self) -> int:
+        total = 0
+        for dataset in self.included_datasets():
+            for path in self._hdf5_files(self._datasets_dir() / dataset):
+                total += self._file_record_count(path)
+        return total
+
+    def _compute_content_hash(self) -> str:
+        # full content hash of every HDF5 file — cached to disk after the first
+        # call by the base class; content-addressing done right, no size-or-mtime
+        # shortcut
+        entries = [
+            (str(path.relative_to(self.root)), self._hash_file(path))
+            for dataset in self.included_datasets()
+            for path in self._hdf5_files(self._datasets_dir() / dataset)
+        ]
+        entries.sort()
+        return hashlib.sha256(repr(entries).encode("utf-8")).hexdigest()
+
+    def _records_for_dataset(self, dataset: str) -> Iterator[CorpusRecord]:
+        h5py = _require_h5py()
+        for path in self._hdf5_files(self._datasets_dir() / dataset):
+            # read the file's structure into plain Python, then close the handle
+            # *before* yielding — load_snapshot() reopens on demand
+            with h5py.File(path, "r") as handle:
+                groups = self._field_groups(handle)
+                if not groups:
+                    raise CorpusUnavailableError(
+                        f"the-well: {path} has no t*_fields groups"
+                    )
+                n_traj, n_time = self._file_dims(handle, path)
+                fields: dict[str, dict] = {}
+                for grp, names in groups.items():
+                    for fname in names:
+                        full_shape = list(handle[grp][fname].shape)
+                        fields[fname] = {
+                            "group": grp,
+                            "snapshot_shape": full_shape[2:],  # grid [+ components]
+                        }
+                attrs = {k: _jsonable_attr(v) for k, v in handle.attrs.items()}
+            field_names = sorted(fields)
+            grid_shape = fields[field_names[0]]["snapshot_shape"]
+            stem = path.stem
+            for traj in range(n_traj):
+                for step in range(n_time):
+                    yield CorpusRecord(
+                        id=f"the-well/{dataset}/{stem}/traj{traj}/step{step}",
+                        text=(
+                            f"the-well dataset={dataset} trajectory={traj} "
+                            f"timestep={step} fields={','.join(field_names)} "
+                            f"grid={'x'.join(map(str, grid_shape))}"
+                        ),
+                        metadata={
+                            "dataset": dataset,
+                            "hdf5_path": str(path),
+                            "trajectory": traj,
+                            "timestep": step,
+                            "fields": fields,
+                            "grid_shape": grid_shape,
+                            "dataset_attrs": attrs,
+                        },
+                    )
+
+    def records(self) -> Iterator[CorpusRecord]:
+        self.require_available()
+        for dataset in self.included_datasets():
+            yield from self._records_for_dataset(dataset)
+
+    def records_from(self, dataset_name: str) -> Iterator[CorpusRecord]:
+        """Stream records from one named dataset — raises loudly if absent."""
+        available = self.included_datasets()
+        if dataset_name not in available:
+            raise CorpusUnavailableError(
+                f"the-well dataset {dataset_name!r} is not available; "
+                f"present datasets: {available}"
+            )
+        yield from self._records_for_dataset(dataset_name)
+
+    @staticmethod
+    def load_snapshot(record: CorpusRecord) -> dict:
+        """Materialise the physics fields for one ``(trajectory, timestep)`` record.
+
+        Lazy by design — ``records()`` streams metadata specs; the field arrays
+        are read from HDF5 only here, only when a physics-aware consumer asks.
+        Returns ``{field_name: numpy.ndarray}`` for that one snapshot.
+        """
+        h5py = _require_h5py()
+        meta = record.metadata
+        traj, step = meta["trajectory"], meta["timestep"]
+        out: dict = {}
+        with h5py.File(meta["hdf5_path"], "r") as handle:
+            for name, spec in meta["fields"].items():
+                out[name] = handle[spec["group"]][name][traj, step]
+        return out
