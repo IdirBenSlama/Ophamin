@@ -14,6 +14,7 @@
     ophamin audit <path>                  orchestrate static-analysis pillars; signed audit record
     ophamin inventory <kimera-repo>       enumerate observable surface across 9 strata (static)
     ophamin discover-fields <kimera-repo> diff one probe cycle's raw fields vs KIMERA_FIELD_CATALOG
+    ophamin scrape <url>                  passive scrape of a Prometheus /metrics endpoint
     ophamin report <record.json>          render a proof or audit record as HTML / Markdown / LaTeX
     ophamin inspect <kimera-repo> <name>  per-primitive profile (static + optional dynamic)
     ophamin inspect-all <kimera-repo>     survey every catalogued Kimera primitive
@@ -57,6 +58,14 @@ from ophamin.comparing.provenance.lineage import LineageStore
 from ophamin.seeing.substrate.field_catalog import (
     KIMERA_FIELD_CATALOG,
     catalog_coverage,
+)
+from ophamin.seeing.telemetry import (
+    DEFAULT_PROMETHEUS_URL,
+    DEFAULT_SCRAPE_TIMEOUT_S,
+    PROMETHEUS_AVAILABLE,
+    PrometheusScrapeProbe,
+    TelemetryDependencyMissing,
+    TelemetryScrapeError,
 )
 from ophamin.seeing.substrate.kimera_adapter import KimeraAdapter, KimeraAdapterError
 from ophamin.seeing.substrate.mock import MockSubstrate
@@ -762,6 +771,53 @@ def cmd_discover_fields(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_scrape(args: argparse.Namespace) -> int:
+    """Passive scrape of a Prometheus /metrics endpoint, write a signed snapshot."""
+    if not PROMETHEUS_AVAILABLE:
+        print(
+            "prometheus_client is not installed.\n"
+            "Install with: pip install 'ophamin[telemetry]'",
+            file=sys.stderr,
+        )
+        return 2
+    try:
+        probe = PrometheusScrapeProbe(
+            url=args.url,
+            timeout_s=args.timeout,
+            ophamin_version=__version__,
+        )
+    except TelemetryDependencyMissing as e:
+        print(f"telemetry dep missing: {e}", file=sys.stderr)
+        return 2
+
+    print(f"scraping        : {args.url}")
+    try:
+        snap = probe.scrape()
+    except TelemetryScrapeError as e:
+        print(f"scrape failed: {e}", file=sys.stderr)
+        return 1
+
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    short = snap.snapshot_id[:16]
+    json_path = out_dir / f"telemetry_{short}.json"
+    snap.to_json(str(json_path))
+
+    print(f"\nwall time       : {snap.wall_time_s:.3f}s")
+    print(f"raw payload     : {snap.raw_bytes_len} bytes")
+    print(f"families        : {len(snap.families)}")
+    print(f"total samples   : {snap.total_samples()}")
+    if snap.families and args.top > 0:
+        ranked = sorted(
+            snap.families, key=lambda f: -f.sample_count()
+        )[: args.top]
+        print(f"\ntop {len(ranked)} families by sample count:")
+        for f in ranked:
+            print(f"  {f.sample_count():>4}  {f.name:<40}  ({f.metric_type})")
+    print(f"\nwritten         : {json_path}")
+    return 0
+
+
 def cmd_discover_diff(args: argparse.Namespace) -> int:
     """Structural diff between two SchemaDocuments (added/removed/type-changed)."""
     before = SchemaDocument.from_json(args.before)
@@ -979,6 +1035,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit machine-readable JSON instead of the text summary",
     )
     p_fields.set_defaults(func=cmd_discover_fields)
+
+    p_scrape = sub.add_parser(
+        "scrape",
+        help="passive scrape of a Prometheus /metrics endpoint (e.g. Kimera's "
+             "exporter) → signed PrometheusSnapshot",
+    )
+    p_scrape.add_argument(
+        "url", nargs="?", default=DEFAULT_PROMETHEUS_URL,
+        help=f"endpoint to scrape (default: {DEFAULT_PROMETHEUS_URL})",
+    )
+    p_scrape.add_argument(
+        "--timeout", type=float, default=DEFAULT_SCRAPE_TIMEOUT_S,
+        help=f"scrape timeout in seconds (default: {DEFAULT_SCRAPE_TIMEOUT_S})",
+    )
+    p_scrape.add_argument(
+        "--out-dir", default="telemetry",
+        help="directory to write the snapshot JSON (default: telemetry/)",
+    )
+    p_scrape.add_argument(
+        "--top", type=int, default=10,
+        help="number of top metric families to print (by sample count, default: 10)",
+    )
+    p_scrape.set_defaults(func=cmd_scrape)
 
     p_report = sub.add_parser(
         "report",

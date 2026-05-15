@@ -22,9 +22,10 @@ vulture>=2.10
 radon>=6.0
 pip-audit>=2.7
 
-# === telemetry: instrumenting/ wheel Phase 2 (deferred, optional) ===
+# === telemetry: instrumenting/ wheel + seeing/telemetry/ — consume Kimera's metrics ===
 opentelemetry-api>=1.20
 opentelemetry-sdk>=1.20
+prometheus_client>=0.17                  # PrometheusScrapeProbe — Kimera's /metrics consumer
 
 # === profile: instrumenting/ wheel Phase 2 (deferred, optional) ===
 py-spy>=0.3

@@ -9,6 +9,19 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **PrometheusScrapeProbe + `ophamin scrape` — v0.2 Step 3.**
+  Passive consumer of Kimera-SWM's `/metrics` endpoint (Kimera already
+  ships a `prometheus_client`-based exporter under
+  `kimera_swm/infrastructure/monitoring/prometheus_exporter.py`). One scrape
+  produces a signed, content-addressed `PrometheusSnapshot` carrying every
+  metric family + sample. Loud failure on connectivity / timeout / parse
+  error. Plus `AlignedTelemetryWindow` + `align_to_window()` for
+  before/during/after correlation with scenario windows — the foundation
+  for the Σ (cross-stratum correlation) measuring pillar. Optional
+  dependency: `prometheus_client>=0.17` under the `[telemetry]` extra; the
+  module loads but probe construction loud-fails if absent. 19 hardening
+  tests using a stdlib `http.server` fixture. Test count: 450 → 469.
+
 - **Field catalog + scenario contract gate + `ophamin discover-fields` — v0.2 Step 2.**
   ``KIMERA_FIELD_CATALOG`` documents ~35 high-signal OrchestratorResult
   fields with type + semantic family + description (the families: phi,
