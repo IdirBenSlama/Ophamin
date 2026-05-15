@@ -26,6 +26,7 @@ audits don't produce noisy "errored" lines; opt in with
 from __future__ import annotations
 
 from ophamin.auditing.pillars.bandit_pillar import BanditPillar
+from ophamin.auditing.pillars.coverage_pillar import CoveragePillar
 from ophamin.auditing.pillars.deptry_pillar import DeptryPillar
 from ophamin.auditing.pillars.fawltydeps_pillar import FawltyDepsPillar
 from ophamin.auditing.pillars.interrogate_pillar import InterrogatePillar
@@ -35,6 +36,7 @@ from ophamin.auditing.pillars.pylint_pillar import PylintPillar
 from ophamin.auditing.pillars.radon_pillar import RadonPillar
 from ophamin.auditing.pillars.refurb_pillar import RefurbPillar
 from ophamin.auditing.pillars.ruff_pillar import RuffPillar
+from ophamin.auditing.pillars.semgrep_pillar import SemgrepPillar
 from ophamin.auditing.pillars.vulture_pillar import VulturePillar
 
 #: file-scope pillars — work on any source path. Default in audit runs.
@@ -54,6 +56,7 @@ DEFAULT_PILLAR_CLASSES = (
 #: deeper file-scope pillars — slower but richer. Opt-in via --pillars.
 DEEP_PILLAR_CLASSES = (
     PylintPillar,
+    SemgrepPillar,
 )
 
 #: project-scope pillars — require the target to be a project-root directory
@@ -61,6 +64,7 @@ DEEP_PILLAR_CLASSES = (
 PROJECT_PILLAR_CLASSES = (
     DeptryPillar,
     FawltyDepsPillar,
+    CoveragePillar,
 )
 
 
@@ -89,6 +93,7 @@ __all__ = [
     "DEEP_PILLAR_CLASSES",
     "PROJECT_PILLAR_CLASSES",
     "BanditPillar",
+    "CoveragePillar",
     "DeptryPillar",
     "FawltyDepsPillar",
     "InterrogatePillar",
@@ -98,6 +103,7 @@ __all__ = [
     "RadonPillar",
     "RefurbPillar",
     "RuffPillar",
+    "SemgrepPillar",
     "VulturePillar",
     "all_pillars",
     "deep_pillars",

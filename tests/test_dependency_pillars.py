@@ -32,12 +32,12 @@ from ophamin.auditing.pillars import (
 
 def test_project_pillar_classes_includes_deptry_and_fawltydeps():
     names = {cls.name for cls in PROJECT_PILLAR_CLASSES}
-    assert names == {"deptry", "fawltydeps"}
+    assert {"deptry", "fawltydeps"} <= names
 
 
 def test_project_pillars_factory_returns_instances():
     pillars = project_pillars()
-    assert len(pillars) == 2
+    assert len(pillars) >= 2
     assert any(isinstance(p, DeptryPillar) for p in pillars)
     assert any(isinstance(p, FawltyDepsPillar) for p in pillars)
 

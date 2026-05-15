@@ -3,14 +3,16 @@
 Per ``docs/PLUGIN_CATALOG_2026_05_15.md``. Each helper is small (one function
 or class) and exposes an Ophamin-native API on top of a catalog library:
 
-  pingouin   → effect_size_cohens_d_with_ci
-              → mannwhitney_with_effect
-              → multiple_comparisons_correction (FDR / Bonferroni / Holm)
-  POT        → wasserstein_distance_1d
-              → wasserstein_distance_2d
-  infomeasure → mutual_information_continuous
-              → transfer_entropy
-  umap       → reduce_to_2d (for reporting wheel charts of high-dim primes)
+  pingouin       → effect_size_cohens_d_with_ci
+                  → multiple_comparisons_correction (FDR / Bonferroni / Holm)
+  POT            → wasserstein_distance_1d
+  infomeasure    → mutual_information_continuous (KSG estimator)
+  NPEET          → mutual_information_npeet — second-opinion oracle
+  umap           → reduce_to_2d
+  pacmap         → reduce_to_2d_pacmap (preserves both local + global structure)
+  ripser         → persistence_diagram (Vietoris-Rips persistence H0/H1/H2)
+  persim         → bottleneck_distance (compare two persistence diagrams)
+  crepes         → conformal_prediction_intervals (regression CI)
 
 Each helper raises a clear ImportError if its backing library is absent
 (no silent fallback per CLAUDE.md). Tests pin the contract; live integrations
@@ -170,6 +172,41 @@ def mutual_information_continuous(
 # ---------------------------------------------------------------------------
 
 
+def mutual_information_npeet(
+    x: list[float] | tuple[float, ...],
+    y: list[float] | tuple[float, ...],
+    *,
+    k: int = 4,
+) -> float:
+    """Second-opinion KSG MI estimator via NPEET.
+
+    NPEET is Greg Ver Steeg's reference KSG implementation. Use as a
+    cross-check oracle for ``mutual_information_continuous`` (which uses
+    infomeasure). They should agree within a tight margin.
+
+    Returns I(X;Y) in nats.
+    """
+    try:
+        import numpy as np
+        from npeet import entropy_estimators as ee
+    except ImportError as e:
+        raise ImportError(
+            "NPEET is required; install via "
+            "`pip install git+https://github.com/gregversteeg/NPEET`"
+        ) from e
+    if len(x) != len(y):
+        raise ValueError(
+            f"x and y must have the same length; got {len(x)} vs {len(y)}"
+        )
+    if len(x) < k + 1:
+        raise ValueError(
+            f"need at least k+1 = {k+1} samples for KSG; got {len(x)}"
+        )
+    arr_x = np.asarray(x, dtype=float).reshape(-1, 1)
+    arr_y = np.asarray(y, dtype=float).reshape(-1, 1)
+    return float(ee.mi(arr_x.tolist(), arr_y.tolist(), k=k))
+
+
 def reduce_to_2d(
     embeddings: list[list[float]] | tuple[tuple[float, ...], ...],
     *,
@@ -208,3 +245,161 @@ def reduce_to_2d(
     )
     coords = reducer.fit_transform(arr)
     return [(float(x), float(y)) for x, y in coords]
+
+
+# ---------------------------------------------------------------------------
+# pacmap — alternative dim reduction preserving local AND global structure
+# ---------------------------------------------------------------------------
+
+
+def reduce_to_2d_pacmap(
+    embeddings: list[list[float]] | tuple[tuple[float, ...], ...],
+    *,
+    n_neighbors: int = 10,
+    random_state: int | None = 42,
+) -> list[tuple[float, float]]:
+    """Project to 2-D via PaCMAP.
+
+    Per Wang et al. JMLR 2021: PaCMAP preserves both local and global
+    structure (UMAP focuses on local; TriMap on global). Useful when you
+    want a single embedding that's faithful at both scales — e.g.,
+    Kimera's prime composites where individual cluster shape AND inter-
+    cluster geometry matter.
+    """
+    try:
+        import numpy as np
+        import pacmap
+    except ImportError as e:
+        raise ImportError(
+            "pacmap is required; `pip install pacmap`"
+        ) from e
+    arr = np.asarray(embeddings, dtype=float)
+    if arr.ndim != 2:
+        raise ValueError(
+            f"embeddings must be 2-D (n_samples × n_features); "
+            f"got shape {arr.shape}"
+        )
+    if arr.shape[0] < n_neighbors + 1:
+        raise ValueError(
+            f"need ≥ {n_neighbors + 1} samples; got {arr.shape[0]}"
+        )
+    reducer = pacmap.PaCMAP(
+        n_components=2, n_neighbors=n_neighbors, random_state=random_state,
+    )
+    coords = reducer.fit_transform(arr)
+    return [(float(x), float(y)) for x, y in coords]
+
+
+# ---------------------------------------------------------------------------
+# ripser + persim — Vietoris-Rips persistence + bottleneck distance
+# ---------------------------------------------------------------------------
+
+
+def persistence_diagram(
+    points: list[list[float]] | tuple[tuple[float, ...], ...],
+    *,
+    maxdim: int = 1,
+) -> dict[str, list[tuple[float, float]]]:
+    """Compute persistent homology of a point cloud via Vietoris-Rips.
+
+    ``maxdim=1`` returns H0 (connected components) + H1 (loops);
+    ``maxdim=2`` adds H2 (voids) — far slower at scale.
+
+    Returns ``{"H0": [(birth, death), ...], "H1": [...], ...}`` —
+    persistence diagrams ready for downstream comparison via
+    ``bottleneck_distance``.
+    """
+    try:
+        import numpy as np
+        from ripser import ripser
+    except ImportError as e:
+        raise ImportError(
+            "ripser is required; `pip install ripser`"
+        ) from e
+    arr = np.asarray(points, dtype=float)
+    if arr.ndim != 2:
+        raise ValueError(
+            f"points must be 2-D (n_samples × n_features); got shape {arr.shape}"
+        )
+    if arr.shape[0] < 2:
+        raise ValueError(f"need ≥ 2 points; got {arr.shape[0]}")
+    if not 0 <= maxdim <= 3:
+        raise ValueError(f"maxdim must be in [0, 3]; got {maxdim}")
+    result = ripser(arr, maxdim=maxdim)
+    out: dict[str, list[tuple[float, float]]] = {}
+    for i, dgm in enumerate(result["dgms"]):
+        # Replace inf with float('inf') string-safe in Python; keep numeric
+        out[f"H{i}"] = [
+            (float(b), float(d) if not np.isinf(d) else float("inf"))
+            for b, d in dgm
+        ]
+    return out
+
+
+def bottleneck_distance(
+    diagram_a: list[tuple[float, float]] | tuple[tuple[float, float], ...],
+    diagram_b: list[tuple[float, float]] | tuple[tuple[float, float], ...],
+) -> float:
+    """Bottleneck distance between two persistence diagrams.
+
+    The standard metric for comparing diagrams: zero iff the two diagrams
+    are matching (after pairing, accounting for the diagonal). Useful for
+    drift detection on Kimera's manifold across commits.
+    """
+    try:
+        import numpy as np
+        from persim import bottleneck
+    except ImportError as e:
+        raise ImportError(
+            "persim is required; `pip install persim` (or scikit-tda)"
+        ) from e
+    arr_a = np.asarray(diagram_a, dtype=float) if diagram_a else np.empty((0, 2))
+    arr_b = np.asarray(diagram_b, dtype=float) if diagram_b else np.empty((0, 2))
+    if arr_a.size and arr_a.ndim != 2:
+        raise ValueError(f"diagram_a must be a list of (birth, death) pairs")
+    if arr_b.size and arr_b.ndim != 2:
+        raise ValueError(f"diagram_b must be a list of (birth, death) pairs")
+    return float(bottleneck(arr_a, arr_b))
+
+
+# ---------------------------------------------------------------------------
+# crepes — conformal prediction intervals
+# ---------------------------------------------------------------------------
+
+
+def conformal_prediction_intervals(
+    cal_residuals: list[float] | tuple[float, ...],
+    point_predictions: list[float] | tuple[float, ...],
+    *,
+    confidence: float = 0.95,
+) -> list[tuple[float, float]]:
+    """Empirical conformal prediction intervals from calibration residuals.
+
+    Given a set of held-out (calibration) residuals from a fitted regressor
+    + a list of point predictions, returns symmetric (lower, upper) bounds
+    at the requested confidence. The simplest CP recipe — exact coverage
+    in the i.i.d. setting (per Vovk et al.).
+
+    Equivalent to: each interval is ``(yhat - q, yhat + q)`` where
+    ``q = (1 - α)`` quantile of |residuals|.
+    """
+    try:
+        import numpy as np
+        # Just a sanity import — actual computation is plain numpy
+        import crepes  # noqa: F401
+    except ImportError as e:
+        raise ImportError(
+            "crepes is required; `pip install crepes`"
+        ) from e
+    if not 0 < confidence < 1:
+        raise ValueError(f"confidence must be in (0, 1); got {confidence}")
+    if not cal_residuals:
+        raise ValueError("cal_residuals must be non-empty")
+    abs_residuals = np.abs(np.asarray(cal_residuals, dtype=float))
+    n = len(abs_residuals)
+    # Standard CP quantile: ceil((n+1) * (1 - α)) / n
+    alpha = 1 - confidence
+    rank = int(np.ceil((n + 1) * (1 - alpha)))
+    rank = min(rank, n)              # clip to n if rank > n
+    q = float(np.partition(abs_residuals, rank - 1)[rank - 1])
+    return [(float(yhat) - q, float(yhat) + q) for yhat in point_predictions]

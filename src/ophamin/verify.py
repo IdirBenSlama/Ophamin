@@ -123,6 +123,26 @@ DEP_CHECKS: tuple[tuple[str, str, str, str, str], ...] = (
     # info theory (extras beyond infomeasure)
     ("pyitlib",      "pyitlib",                "optional", "infotheory", "MI + entropy"),
     ("ennemi",       "ennemi",                 "optional", "infotheory", "easy-API non-linear MI"),
+    ("npeet",        "npeet",                  "optional", "infotheory", "Greg Ver Steeg KSG estimator (git install)"),
+
+    # extra catalog tools added this round
+    ("causalpy",     "causalpy",               "optional", "causal",    "Bayesian causal inference"),
+    ("tigramite",    "tigramite",              "optional", "causal",    "time-series causal discovery (PCMCI)"),
+    ("numpyro",      "numpyro",                "optional", "bayesian",  "JAX-backed PPL"),
+    ("cosmic-ray",   "cosmic_ray",             "optional", "property_test", "mutation testing"),
+    ("slipcover",    "slipcover",              "optional", "property_test", "fast coverage (10× coverage.py)"),
+    ("cvc5",         "cvc5",                   "optional", "sat_smt",   "SMT solver (alternative to z3)"),
+    ("pysmt",        "pysmt",                  "optional", "sat_smt",   "SMT formula manipulation"),
+    ("safety",       "safety",                 "optional", "audit",     "Python vuln scanner"),
+    ("spdx-tools",   "spdx_tools",             "optional", "audit",     "SPDX SBOM format"),
+    ("python-igraph","igraph",                 "optional", "graph",     "C-core graph analysis (~30× NetworkX)"),
+    ("pycrdt",       "pycrdt",                 "optional", "crdt",      "Yrs Python bindings"),
+    ("y-py",         "y_py",                   "optional", "crdt",      "Y-CRDT Python bindings"),
+    ("jax",          "jax",                    "optional", "acceleration", "autograd + JIT"),
+    ("Cython",       "Cython",                 "optional", "acceleration", "Python-to-C compiler"),
+    ("prospector",   "prospector",             "optional", "audit",     "multi-tool linter aggregator"),
+    ("pacmap",       "pacmap",                 "optional", "analytic",  "alt 2-D dim reduction (local + global)"),
+    ("persim",       "persim",                 "optional", "tda",       "persistence-diagram metrics (bottleneck)"),
 )
 
 

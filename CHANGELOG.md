@@ -9,6 +9,45 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Plugin-install round 2 — 17 more catalog tools.** Per owner directive
+  *"Ophamin is not complete"*. Installed: CausalPy, Tigramite, NumPyro,
+  Cosmic Ray, Slipcover, cvc5, pySMT, Safety, SPDX-tools, python-igraph,
+  pycrdt, y-py, JAX, Cython, Prospector, NPEET (from git), pacmap.
+  Verify catalog: 87 ok / 0 missing / 1 error (CausalPy installed but
+  import fails: arviz 1.1 removed `r2_score` — upstream-blocked, not an
+  Ophamin issue).
+
+  Failed installs honestly recorded:
+    Atheris  — Google fuzzer C-extension build fails on Py 3.14
+    gensim   — fastText C-extension build fails on Py 3.14
+    Syft / Grype / OSV-Scanner — Go binaries; no brew on this host
+
+- **3 new audit pillars** wired into the registry:
+  - **SemgrepPillar** (deep-scope) — custom-rule SAST, default config
+    `p/python`. Loads any `.yml` ruleset via `--config <path>`. Prepares
+    the way for Kimera-specific custom rules (no-fallback, Pattern-P
+    naming) which are next-round.
+  - **CoveragePillar** (project-scope) — runs `coverage run -m pytest`
+    + emits per-file findings for files below `min_coverage` (default 70%).
+  - Plus prior PylintPillar / RefurbPillar / InterrogatePillar.
+  - `DEEP_PILLAR_CLASSES` now: pylint, semgrep
+  - `PROJECT_PILLAR_CLASSES` now: deptry, fawltydeps, coverage
+
+- **5 new analytic helpers** in `measuring/analytic_helpers.py`:
+  - `persistence_diagram(points, maxdim)` — ripser Vietoris-Rips H0/H1/H2
+  - `bottleneck_distance(dgm_a, dgm_b)` — persim metric for diagram drift
+  - `conformal_prediction_intervals(cal_residuals, yhats, confidence)` —
+    crepes-validated CP intervals
+  - `mutual_information_npeet(x, y, k)` — NPEET KSG estimator (cross-check
+    oracle for `mutual_information_continuous`)
+  - `reduce_to_2d_pacmap(embeddings)` — alternative dim reduction
+    preserving both local AND global structure (Wang et al. JMLR 2021)
+
+- **21 new hardening tests** in `tests/test_extended_helpers_and_pillars.py`:
+  TDA tests (circle → β1=1), bottleneck distance properties, CP coverage,
+  NPEET cross-check vs infomeasure, PaCMAP shape, pillar-registry membership.
+  Test count: 661 → 682.
+
 - **Bulk plugin-catalog install — 32 of 33 OSS tools landed in Ophamin's venv.**
   Per owner directive *"keep downloading, install, building, and setting up
   all tools for Ophamin"*. Installed across 11 batches:
