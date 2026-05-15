@@ -1,0 +1,3901 @@
+[
+  {
+    "name": "Takwin",
+    "canonical_class": "Takwin",
+    "family_tags": [
+      "brain",
+      "orchestration"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/cognitive/takwin.py",
+      "source_line": 2230,
+      "docstring": "Standalone end-to-end KCCL pipeline.\n\nWires SemanticGeoidBridge (Phase 60) \u2192 PrimeTopologyWalker (Phase 59/60)\n\u2192 DualVaultArchitecture \u2192 LLMTranslator (Phase 61) into a single callable.\n\nUsage\n-----\n::\n\n    orch = Takwin()\n    result = orch.run(\"What is the relationship between memory and creativity?\")\n    print(result.response)\n    print(result.trajectory)",
+      "method_names": [
+        "__init__",
+        "_run_async",
+        "_init_empathy",
+        "_preflight_db_check",
+        "_phase_gwf_screen",
+        "_phase_cronos_tick",
+        "run_fast",
+        "last_diagnostics",
+        "contradiction_engine",
+        "physarum",
+        "metrics_snapshot",
+        "run",
+        "collect_state_for_freeze",
+        "freeze_on_fall",
+        "_run_locked_fast",
+        "_run_locked",
+        "_update_substrate_state_stamp",
+        "_finalize_early_result",
+        "_emit_substrate_telemetry",
+        "_assign_concept_prime",
+        "_assign_image_prime",
+        "_assign_phonotype_prime",
+        "_internal_event_threshold",
+        "_build_internal_event_payload_for_ouroboros",
+        "_build_internal_event_payload_for_quantum_amplitude_burst",
+        "_build_internal_event_payload_for_thermodynamic_transition",
+        "_build_internal_event_payload_for_spde_pressure_peak",
+        "_build_internal_event_payload_for_cronos_drift",
+        "_drive_arachne_web_from_cycle",
+        "_surface_arachne_web_observables",
+        "think",
+        "_post_cycle_reflection",
+        "_score_trajectory_via_gpu_optimizer",
+        "_privacy_key",
+        "_geoid",
+        "_stable_hash",
+        "_scrub_concept_keys",
+        "_collect_recent_scar_concepts",
+        "_generate_scar_rumination_prompt",
+        "_encode",
+        "_rl_safe_state",
+        "_rl_gamma_select",
+        "_compute_rl_reward",
+        "_compute_sensory_alpha_adj",
+        "_compute_web_alpha_adj",
+        "_replay_experiences",
+        "_meta_learner_training",
+        "_online_learning",
+        "_realtime_encoder_step",
+        "_synthesize_proprio_gap_goals",
+        "_traverse",
+        "_consolidate",
+        "_p279_advance_rotation",
+        "_p279_rotate_embedding",
+        "_p273_detect_sybil_resonance",
+        "_p269_should_run",
+        "_p269_record_phi_delta",
+        "_select_echoform_operator",
+        "_echoform_transform",
+        "_get_semantic_suspension_state",
+        "_vault_persist",
+        "_soft_factor_pruning",
+        "_scar_healing",
+        "_measure_phi",
+        "_phi_modulate_gamma",
+        "_activate_geoids",
+        "_geoid_entropy",
+        "_advance_oscillators",
+        "_enhancement_profile",
+        "_check_subsystem_consistency",
+        "_check_sheaf_gluing",
+        "_kccl_execute",
+        "_ensure_analogy_vocab_loaded",
+        "_ecoform_health",
+        "_domain_feedback",
+        "_analogy_insights",
+        "_quality_gate_fallback",
+        "_compute_tectonic_pressure_stats",
+        "_render",
+        "_neural_projection",
+        "_visual_arm_glimpse",
+        "_consolidation_cycle",
+        "search_images_by_text",
+        "process_market_tick",
+        "evolve_program",
+        "_cochlear_arm_transduce",
+        "_dopamine_reward",
+        "_temporal_evolution",
+        "_enhanced_geoid",
+        "_dynamic_simulation",
+        "_diagnostic",
+        "_extract_concepts",
+        "_apply_scar_plasticity",
+        "_apply_echoform_resonance",
+        "save_state",
+        "_save_state_locked",
+        "load_state",
+        "_load_state_locked",
+        "derive_scar_topology_key",
+        "last_scar_topology_key_hex",
+        "last_scar_topology_count",
+        "scar_topology_key_changed_since_last_derive",
+        "shutdown",
+        "proof_system",
+        "computational_math",
+        "emergence_monitor",
+        "oracle",
+        "rigor_enforcer",
+        "reset_all_singletons",
+        "__del__"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "asyncio",
+        "concurrent.futures",
+        "logging",
+        "os",
+        "re",
+        "sys",
+        "threading",
+        "uuid",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "datetime.UTC",
+        "datetime.datetime",
+        "typing.Any",
+        "numpy"
+      ],
+      "n_callers": 50,
+      "top_callers": [
+        {
+          "file": "kimera_swm/__main__.py",
+          "line": 265,
+          "context": "wall_ms, rollbacks (Takwin only)."
+        },
+        {
+          "file": "kimera_swm/__main__.py",
+          "line": 276,
+          "context": "from kimera_swm.domain.cognitive.takwin import Takwin"
+        },
+        {
+          "file": "kimera_swm/__main__.py",
+          "line": 277,
+          "context": "orchestrator = Takwin()"
+        },
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 8,
+          "context": "Relationship to Takwin"
+        },
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 11,
+          "context": "``domain/cognitive/takwin.py`` (``Takwin.run(prompt) \u2192 OrchestratorResult``)."
+        },
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 16,
+          "context": "- ``Takwin`` = cognitive pipeline (prompt \u2192 concepts \u2192 traversal \u2192 response)"
+        },
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 475,
+          "context": "runs inside **Takwin** (``domain/cognitive/takwin.py``, Step 6.87)."
+        },
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 478,
+          "context": "It does NOT run ``process_cycle()`` \u2014 that is Takwin's responsibility."
+        },
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 584,
+          "context": "logger.info(\"     - GlobalWorkspace       : Importable (processing in Takwin Step 6.87)\")"
+        },
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 585,
+          "context": "logger.info(\"     - HumanLogicProcessor   : Importable (persistent processor in Takwin GWT)\")"
+        },
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 763,
+          "context": "KCCL \u2192 SCAR \u2192 BrocaCortex), use ``Takwin.run(prompt)`` via the"
+        },
+        {
+          "file": "kimera_swm/security/vault_write_reachability.py",
+          "line": 37,
+          "context": "the ENTRY paths (and via the canonical Takwin cycle, which is"
+        },
+        {
+          "file": "kimera_swm/security/vault_write_reachability.py",
+          "line": 112,
+          "context": "# (the Takwin cycle, internal cognitive processing)."
+        },
+        {
+          "file": "kimera_swm/optimization/memory_optimizer.py",
+          "line": 109,
+          "context": "``component_breakdown`` is derived from ``Takwin.metrics_snapshot()``"
+        },
+        {
+          "file": "kimera_swm/optimization/memory_optimizer.py",
+          "line": 111,
+          "context": "memory pressure per-subsystem \u2014 Takwin does not expose per-component"
+        },
+        {
+          "file": "kimera_swm/consciousness/iit30_calculator.py",
+          "line": 384,
+          "context": "on 1800 real _emd_hamming calls during live Takwin cycles \u2014 max abs"
+        },
+        {
+          "file": "kimera_swm/consciousness/attention_schema.py",
+          "line": 368,
+          "context": "True under normal Takwin operation."
+        },
+        {
+          "file": "kimera_swm/consciousness/attention_schema.py",
+          "line": 392,
+          "context": "caller (Takwin) onto OrchestratorResult, NOT stored on"
+        },
+        {
+          "file": "kimera_swm/consciousness/attention_schema.py",
+          "line": 398,
+          "context": "snapshot. The Takwin call site already handles AS exceptions"
+        },
+        {
+          "file": "kimera_swm/consciousness/global_workspace.py",
+          "line": 13,
+          "context": "Takwin registers concept processors (cognitive/emotional/memory/perceptual)"
+        },
+        {
+          "file": "kimera_swm/api/orchestrator_singleton.py",
+          "line": 74,
+          "context": "Takwin,"
+        },
+        {
+          "file": "kimera_swm/api/orchestrator_singleton.py",
+          "line": 77,
+          "context": "logger.info(\"\ud83e\udde0 [Phase 85] Initializing Takwin (FastText encoder loading\u2026)\")"
+        },
+        {
+          "file": "kimera_swm/api/orchestrator_singleton.py",
+          "line": 78,
+          "context": "_instance = Takwin()"
+        },
+        {
+          "file": "kimera_swm/api/orchestrator_singleton.py",
+          "line": 79,
+          "context": "logger.info(\"\u2705 [Phase 85] Takwin ready \u2014 real cognitive pipeline wired to API\")"
+        },
+        {
+          "file": "kimera_swm/api/orchestrator_singleton.py",
+          "line": 82,
+          "context": "\"[Phase 85] Takwin import failed (missing dependency): %s\","
+        },
+        {
+          "file": "kimera_swm/api/orchestrator_singleton.py",
+          "line": 89,
+          "context": "\"[Phase 85] Takwin init failed: %s\","
+        },
+        {
+          "file": "kimera_swm/api/main.py",
+          "line": 150,
+          "context": "Session 010: also runs a single warm-up Takwin call after startup"
+        },
+        {
+          "file": "kimera_swm/api/main.py",
+          "line": 203,
+          "context": "\"\"\"Trigger one Takwin run during startup to warm the orchestrator singleton.\"\"\""
+        },
+        {
+          "file": "kimera_swm/monitoring/enhanced_metrics_collector.py",
+          "line": 231,
+          "context": "\"\"\"Collect component-specific metrics from Takwin's metrics_snapshot."
+        },
+        {
+          "file": "kimera_swm/monitoring/enhanced_metrics_collector.py",
+          "line": 236,
+          "context": "attributes don't exist on Takwin (it replaced the service-oriented"
+        },
+        {
+          "file": "kimera_swm/monitoring/enhanced_metrics_collector.py",
+          "line": 308,
+          "context": "\"\"\"Collect SWM-specific metrics from Takwin's metrics_snapshot."
+        },
+        {
+          "file": "kimera_swm/monitoring/enhanced_metrics_collector.py",
+          "line": 320,
+          "context": "\"an attached orchestrator. Attach a Takwin instance before \""
+        },
+        {
+          "file": "kimera_swm/monitoring/enhanced_metrics_collector.py",
+          "line": 335,
+          "context": "# (pre-existing conditional init in Takwin). Truthful: 0 here means"
+        },
+        {
+          "file": "kimera_swm/monitoring/enhanced_metrics_collector.py",
+          "line": 344,
+          "context": "# Takwin's _geoid_map). Pre-existing placeholder from this file."
+        },
+        {
+          "file": "kimera_swm/monitoring/prometheus_metrics.py",
+          "line": 232,
+          "context": "# Per-cycle substrate signals emitted from Takwin OrchestratorResult."
+        },
+        {
+          "file": "kimera_swm/monitoring/real_time_dashboard.py",
+          "line": 211,
+          "context": "Uses ``Takwin.metrics_snapshot()`` (Kimera's canonical orchestrator)"
+        },
+        {
+          "file": "kimera_swm/monitoring/real_time_dashboard.py",
+          "line": 213,
+          "context": "exist on Takwin. See ``Docs_v2/06_development/defect_classes.md``"
+        },
+        {
+          "file": "kimera_swm/monitoring/real_time_dashboard.py",
+          "line": 221,
+          "context": "# If attached, it must be a Takwin instance (or anything that exposes"
+        },
+        {
+          "file": "kimera_swm/monitoring/real_time_dashboard.py",
+          "line": 228,
+          "context": "# vault_a/vault_b always active on a constructed Takwin"
+        },
+        {
+          "file": "kimera_swm/monitoring/real_time_dashboard.py",
+          "line": 257,
+          "context": "# in Takwin; separate hardening target). Report truthfully."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 5,
+          "context": "cycle (Takwin) is engaged. Every cognitive interaction routed through the API"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 6,
+          "context": "beats through Pulse: 7 steps, no DB persistence, no async services. Takwin"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 6695,
+          "context": "#   is a METHOD on `PrimeResonanceEngine` (same fix Takwin got at"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/goal_system.py",
+          "line": 5,
+          "context": "These are wired into Takwin (Phase 266.9 CounterfactualReasoner) and the"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/goal_system.py",
+          "line": 458,
+          "context": "# Takwin Phase 266.9; GoalGraph in StrategicOscillatorAdapter)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 2,
+          "context": "Takwin \u2014 The Cognitive Pipeline Orchestrator"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 787,
+          "context": "Complete output of one Takwin.run() cycle."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 838,
+          "context": "#   - actor      = \"substrate\" (the Takwin instance itself)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 1737,
+          "context": "# All counters are cumulative across the Takwin's lifetime."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 2100,
+          "context": "# See Takwin._check_subsystem_consistency for the comparison logic."
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": "entity",
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:13.308740+00:00"
+    }
+  },
+  {
+    "name": "Walker",
+    "canonical_class": "PrimeTopologyWalker",
+    "family_tags": [
+      "brain",
+      "topology",
+      "coordination"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+      "source_line": 242,
+      "docstring": "Physics-driven agentic graph-search agent.\n\nThe walker traverses a prime-topology graph using the four neuromorphic\nmechanisms from Phase 58 as its decision logic. Decision-making (which\nconcept to commit to, when to halt, when to roll back, when to leap)\nemerges from the oscillator dynamics of CognitiveRhythm. Three documented\nsafety nets \u2014 death_debounce (transient-coherence filter), neighborhood-\nexhaustion fallback (jump to nearest_unvisited when local edges are\nfully visited), and stall-jump after 20 idle ticks (prevent budget\nexhaustion when gamma never leads) \u2014 provide bounded escape from\npathological substrate states without overriding the M1-M4 gates that\nfire when conditions are met.\n\nUsage\n-----\n::\n\n    walker = PrimeTopologyWalker(n_nodes=30, start_node=0)\n    state  = walker.traverse(max_steps=50, latency_per_hop=0.003)\n    print(state.trajectory, state.rollbacks, state.halt_reason)",
+      "method_names": [
+        "__init__",
+        "traverse"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "logging",
+        "math",
+        "random",
+        "dataclasses.dataclass"
+      ],
+      "n_callers": 35,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 15,
+          "context": "\u2193 Step 3-4: TRAVERSAL      PrimeTopologyWalker.traverse() \u2192 WalkerState"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 75,
+          "context": "from kimera_swm.domain.cognitive.prime_topology_walker import PrimeTopologyWalker"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 76,
+          "context": "return PrimeTopologyWalker"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 734,
+          "context": "Wires SemanticGeoidBridge (Phase 60) \u2192 PrimeTopologyWalker (Phase 59/60)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 5762,
+          "context": "Run PrimeTopologyWalker on the GeoidGraph."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 5795,
+          "context": "PrimeTopologyWalker = _get_walker_class()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 5906,
+          "context": "walker = PrimeTopologyWalker(start_node=start_nid, graph=graph)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 15,
+          "context": "\u2193 Step 3-4: TRAVERSAL      PrimeTopologyWalker.traverse() \u2192 WalkerState"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 196,
+          "context": "from kimera_swm.domain.cognitive.prime_topology_walker import PrimeTopologyWalker"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 198,
+          "context": "return PrimeTopologyWalker"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 2234,
+          "context": "Wires SemanticGeoidBridge (Phase 60) \u2192 PrimeTopologyWalker (Phase 59/60)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 27553,
+          "context": "Consumes the Phase 359 widening of ``PrimeTopologyWalker``'s"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 28331,
+          "context": "Run PrimeTopologyWalker on the GeoidGraph."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 28364,
+          "context": "PrimeTopologyWalker = _get_walker_class()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 28641,
+          "context": "walker = PrimeTopologyWalker(start_node=start_nid, graph=graph)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 30535,
+          "context": "# by SemanticGeoidBridge and PrimeTopologyWalker."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/geoid_activator.py",
+          "line": 6,
+          "context": "after a completed PrimeTopologyWalker traversal."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/geoid_activator.py",
+          "line": 10,
+          "context": "After ``PrimeTopologyWalker.walk()`` returns a ``WalkerState``, none of the"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/geoid_activator.py",
+          "line": 38,
+          "context": "walker_state=walker_state,       # WalkerState from PrimeTopologyWalker.walk()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/geoid_activator.py",
+          "line": 86,
+          "context": "Return value of ``PrimeTopologyWalker.walk()`` (or ``.traverse()``)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/jax_hamiltonian_walker.py",
+          "line": 5,
+          "context": "Phase 2: Replaces sequential PrimeTopologyWalker with a global eigen-solver."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+          "line": 85,
+          "context": "\"\"\"Final state returned by PrimeTopologyWalker.traverse().\"\"\""
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+          "line": 238,
+          "context": "# PrimeTopologyWalker"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+          "line": 242,
+          "context": "class PrimeTopologyWalker:"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+          "line": 261,
+          "context": "walker = PrimeTopologyWalker(n_nodes=30, start_node=0)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+          "line": 283,
+          "context": "raise ValueError(\"PrimeTopologyWalker: graph must have at least 1 node\")"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+          "line": 287,
+          "context": "f\"PrimeTopologyWalker: start_node={self._start_node} out of range \""
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+          "line": 669,
+          "context": "\"PrimeTopologyWalker\","
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 5,
+          "context": "Connects the PrimeTopologyWalker (Phase 59) to concept-string inputs."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 71,
+          "context": "\u2192 PrimeTopologyWalker(graph=geoid_graph)  [oscillator-driven traversal]"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 313,
+          "context": "PrimeTopologyWalker.traverse() works without modification:"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 1764,
+          "context": "walker = PrimeTopologyWalker(start_node=0, graph=graph)"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/prime_resonance_engine.py",
+          "line": 141,
+          "context": "distance in PrimeTopologyWalker, or GeoidNode.prime storage)."
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/kimera_linguistic_engine.py",
+          "line": 84,
+          "context": "trajectory      : ordered concept list from PrimeTopologyWalker"
+        },
+        {
+          "file": "kimera_swm/api/routers/specialized_router.py",
+          "line": 1264,
+          "context": "PrimeTopologyWalker \u2192 IIT \u03a6 \u2192 KCCL \u2192 SCAR persistence \u2192 LLMTranslator)."
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": "walker",
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:13.810257+00:00"
+    }
+  },
+  {
+    "name": "CognitiveInterpreter",
+    "canonical_class": "CognitiveInterpreter",
+    "family_tags": [
+      "brain",
+      "expression"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/cognitive/cognitive_interpreter.py",
+      "source_line": 151,
+      "docstring": "Phase 236/236.2: The Spine.\n\nInterprets OrchestratorResult physics into a CognitiveFrame\nthat BrocaCortex can render as meaningful speech.\n\nPhase 236.2 adds cross-subsystem correlation: 15 previously\nisolated subsystem outputs now inform interpretation through\ncombined signals rather than independent thresholds.",
+      "method_names": [
+        "interpret",
+        "_is_conversational",
+        "_interpret_emotional_state",
+        "_select_register",
+        "_extract_significant_signals",
+        "_interpret_analogies",
+        "_interpret_tensions",
+        "_interpret_trajectory",
+        "_calibrate_confidence",
+        "_synthesize_narrative"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "logging",
+        "math",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "typing.Any"
+      ],
+      "n_callers": 31,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 19,
+          "context": "\u2193 Step 7: RENDERING        CognitiveInterpreter \u2192 BrocaCortex \u2192 response str"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 2135,
+          "context": "# dict (read by CognitiveInterpreter for rendering) but never exposed on"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 7779,
+          "context": "# diversity_score, priority. These feed CognitiveInterpreter for"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 7831,
+          "context": "# Store sensory metadata for CognitiveInterpreter"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 8156,
+          "context": "# consumers (CognitiveInterpreter line ~1561) expect only"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 14038,
+          "context": "# Detected patterns feed CognitiveInterpreter signals and scar metadata."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 14600,
+          "context": "# Detected resonance strength feeds CognitiveInterpreter confidence."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 17775,
+          "context": "# _cognitive_state assembly. Results feed CognitiveInterpreter."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 17949,
+          "context": "# Phase 236: CognitiveInterpreter path added as primary renderer."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 17950,
+          "context": "# Phase 236: Assemble cognitive state for CognitiveInterpreter."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 18012,
+          "context": "# Phase 237.5: sensory_priority removed \u2014 never read by CognitiveInterpreter"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 18026,
+          "context": "# \u2500\u2500 Phase 237.7: 15 dormant fields wired into CognitiveInterpreter \u2500\u2500"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 18146,
+          "context": "# Phase 245.2: Backpressure stats for CognitiveInterpreter"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 18243,
+          "context": "# and were never read by CognitiveInterpreter."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 18331,
+          "context": "# so CognitiveInterpreter's desperation/novelty signals were dead."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 22392,
+          "context": "# \u2500\u2500 Phase 237.7: Persist new CognitiveInterpreter fields \u2500\u2500"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 22498,
+          "context": "# Persist for CognitiveInterpreter signal (Bug 15 fix: wire dead field)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 22665,
+          "context": "# Phase 237.4: persist for CognitiveInterpreter (computed after _cognitive_state)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 28860,
+          "context": "# Phase 236.3: Store mid-traversal coherence statistics for CognitiveInterpreter"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 29695,
+          "context": "# These feed into _cognitive_state for CognitiveInterpreter."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 32035,
+          "context": "Phase 236: CognitiveInterpreter is the NEW PRIMARY render path."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 32046,
+          "context": "# \u2500\u2500 Phase 236: CognitiveInterpreter \u2192 BrocaCortex.render_from_frame \u2500\u2500"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 32050,
+          "context": "CognitiveInterpreter,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 32073,
+          "context": "_interpreter = CognitiveInterpreter()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 32090,
+          "context": "\"Phase 236 CognitiveInterpreter failed, falling back: %s\","
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/cognitive_interpreter.py",
+          "line": 2,
+          "context": "CognitiveInterpreter \u2014 Phase 236/236.2: The Spine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/cognitive_interpreter.py",
+          "line": 151,
+          "context": "class CognitiveInterpreter:"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 731,
+          "context": "# Store count for CognitiveInterpreter signal"
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/generation/broca_cortex.py",
+          "line": 590,
+          "context": "this method speaks from MEANING. The CognitiveInterpreter has already"
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/generation/broca_cortex.py",
+          "line": 619,
+          "context": "# from CognitiveInterpreter is already conversational and sufficient."
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/generation/broca_cortex.py",
+          "line": 765,
+          "context": "if _distress > 0.3:  # Phase 267: match CognitiveInterpreter empathy gate (was 0.5)"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": null,
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:14.298124+00:00"
+    }
+  },
+  {
+    "name": "Arachne",
+    "canonical_class": "ArachneProtocol",
+    "family_tags": [
+      "nervous_system"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/prime/arachne_protocol.py",
+      "source_line": 325,
+      "docstring": "Global singleton prime assignment for Kimera SWM.\n\nEvery concept in the system receives its prime from Arachne.\nNo subsystem assigns its own primes. The registry is the\nsingle source of truth.\n\nThread-safe. Bounded memory (LRU eviction at capacity).\nDeterministic (same concept \u2192 same prime, always).",
+      "method_names": [
+        "__init__",
+        "set_field_encoder",
+        "field_encoder_kind",
+        "set_image_encoder",
+        "image_encoder_kind",
+        "encoder_snapshot_id",
+        "add_observer",
+        "remove_observer",
+        "observe_peer_prime",
+        "get_peer_prime_buffer",
+        "clear_peer_prime_buffer",
+        "set_fusion_engine",
+        "set_fusion_thresholds",
+        "attempt_fusion",
+        "get_fused_composite_recent",
+        "_fire_observers",
+        "_check_encoder_semantic_health",
+        "get_instance",
+        "reset_instance",
+        "assign",
+        "assign_from_field",
+        "assign_from_image",
+        "assign_via_lyriform",
+        "lookup",
+        "drive",
+        "feel",
+        "web_snapshot",
+        "lookup_current",
+        "factor",
+        "factor_with_stamp",
+        "concepts_at_thermo_prime",
+        "concept_from_composite",
+        "concepts_for_dominant_primes",
+        "decompose_dominant",
+        "registry_size",
+        "entry_count",
+        "_normalize",
+        "_xling_lookup",
+        "_get_few_shot_lexicon",
+        "_encode",
+        "_identity_prime",
+        "update_substrate_state",
+        "substrate_state_stamp",
+        "substrate_state_epoch",
+        "assign_from_internal_event",
+        "set_assign_strategy",
+        "get_assign_strategy"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "hashlib",
+        "logging",
+        "math",
+        "threading",
+        "dataclasses.dataclass",
+        "typing.Any",
+        "numpy"
+      ],
+      "n_callers": 50,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 2148,
+          "context": "# Mirrors ArachneProtocol.substrate_state_stamp / _epoch AFTER the cycle's"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 28100,
+          "context": "watches ArachneProtocol's emission stream and trains a state-"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 34578,
+          "context": "# ArachneProtocol \u2014 prime registry, encoder lexicon"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 34580,
+          "context": "from kimera_swm.domain.prime.arachne_protocol import ArachneProtocol"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 34581,
+          "context": "if hasattr(ArachneProtocol, \"reset_instance\"):"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 34582,
+          "context": "ArachneProtocol.reset_instance()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 34583,
+          "context": "results[\"ArachneProtocol\"] = True"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 34585,
+          "context": "results[\"ArachneProtocol\"] = False"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 34587,
+          "context": "results[\"ArachneProtocol\"] = False"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 1872,
+          "context": "# Hardened 2026-04-23 PM: ArachneProtocol always sets ``_bridge ="
+        },
+        {
+          "file": "kimera_swm/domain/sensory/lateral_line.py",
+          "line": 102,
+          "context": "# ArachneProtocol._RECOGNIZED_INTERNAL_EVENT_KINDS precedent. Adding a new"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 9,
+          "context": "(text / field / image), and the ``ArachneProtocol`` provides the unified"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 83,
+          "context": "str           \u2192 `ArachneProtocol.assign(text)` (text channel)"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 115,
+          "context": "`ArachneProtocol`, not above. It is an opt-in convenience for callers"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 146,
+          "context": "ArachneProtocol,"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 288,
+          "context": "- `ArachneProtocol`              R8 prime emission across channels"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 307,
+          "context": "arachne: ArachneProtocol | None = None,"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 322,
+          "context": "(`get_rosetta_service()` for Rosetta, `ArachneProtocol.get_instance()`"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 326,
+          "context": "`ArachneProtocol()` (bare constructor, silently disconnected)"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 339,
+          "context": "# 2026-04-30 footgun fix: was `ArachneProtocol()` (bare constructor"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 343,
+          "context": "self._arachne = arachne or ArachneProtocol.get_instance()"
+        },
+        {
+          "file": "kimera_swm/domain/piovra/peer_router.py",
+          "line": 164,
+          "context": "#: this to ``ArachneProtocol.observe_peer_prime`` is owner-deployed"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 303,
+          "context": "# ``ArachneProtocol.update_substrate_state(signature)``."
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 325,
+          "context": "class ArachneProtocol:"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 337,
+          "context": "_instance: ArachneProtocol | None = None"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 341,
+          "context": "# `ArachneProtocol()` bare constructor returns a NEW disconnected instance"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 432,
+          "context": "Do NOT call directly \u2014 use ArachneProtocol.get_instance()."
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 437,
+          "context": "# Footgun visibility: external callers using bare `ArachneProtocol()`"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 443,
+          "context": "\"ArachneProtocol() bare constructor returns a NEW disconnected \""
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 445,
+          "context": "\"state (Takwin's view), use `ArachneProtocol.get_instance()`. \""
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1300,
+          "context": "def get_instance(cls) -> ArachneProtocol:"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1302,
+          "context": "not the bare ``ArachneProtocol()`` constructor (which now emits a"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1638,
+          "context": "``ArachneProtocol`` instance). See"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 2579,
+          "context": "def get_arachne() -> ArachneProtocol:"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 2581,
+          "context": "return ArachneProtocol.get_instance()"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_web.py",
+          "line": 23,
+          "context": "- Not wired into ``ArachneProtocol.assign*``. Those still go"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_web.py",
+          "line": 275,
+          "context": "(typically ``ArachneProtocol``) hold their own lock around mutating"
+        },
+        {
+          "file": "kimera_swm/domain/prime/substrate_fusion.py",
+          "line": 132,
+          "context": "\"\"\"Outcome of ``ArachneProtocol.observe_peer_prime()``."
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/realtime_encoder/takwin_hook.py",
+          "line": 28,
+          "context": "ArachneProtocol's emission stream and exposes a per-cycle health"
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/realtime_encoder/accumulator.py",
+          "line": 1,
+          "context": "\"\"\"Translates ArachneProtocol observer records into EmitEvents."
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/realtime_encoder/meta_learner_bridge.py",
+          "line": 6,
+          "context": "`ArachneProtocol.assign` emissions. After the 2026-04-27 codebase audit,"
+        },
+        {
+          "file": "kimera_swm/infrastructure/o_phase_1/__init__.py",
+          "line": 5,
+          "context": "(ArachneProtocol). Per the layering principle, neither side imports"
+        },
+        {
+          "file": "kimera_swm/infrastructure/o_phase_1/__init__.py",
+          "line": 11,
+          "context": "on_packet_received callback to ArachneProtocol.observe_peer_prime,"
+        },
+        {
+          "file": "kimera_swm/infrastructure/o_phase_1/router_arachne_bridge.py",
+          "line": 2,
+          "context": "to ArachneProtocol.observe_peer_prime."
+        },
+        {
+          "file": "kimera_swm/infrastructure/o_phase_1/router_arachne_bridge.py",
+          "line": 6,
+          "context": "- Phase 1.1 (PR #163) added ``ArachneProtocol.observe_peer_prime`` +"
+        },
+        {
+          "file": "kimera_swm/infrastructure/o_phase_1/router_arachne_bridge.py",
+          "line": 60,
+          "context": "from kimera_swm.domain.prime.arachne_protocol import ArachneProtocol"
+        },
+        {
+          "file": "kimera_swm/infrastructure/o_phase_1/router_arachne_bridge.py",
+          "line": 103,
+          "context": "arachne: \"ArachneProtocol\","
+        },
+        {
+          "file": "kimera_swm/infrastructure/o_phase_1/router_arachne_bridge.py",
+          "line": 113,
+          "context": "arachne : ArachneProtocol"
+        },
+        {
+          "file": "kimera_swm/infrastructure/encoder_snapshot/snapshot_encoder.py",
+          "line": 4,
+          "context": "manifest) into a callable encoder that ``ArachneProtocol._encoder``"
+        },
+        {
+          "file": "kimera_swm/infrastructure/encoder_snapshot/snapshot_encoder.py",
+          "line": 175,
+          "context": "# Public encoder contract \u2014 matches what ArachneProtocol expects"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": "arachne",
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:14.770323+00:00"
+    }
+  },
+  {
+    "name": "Rosetta",
+    "canonical_class": "RosettaStele",
+    "family_tags": [
+      "nervous_system",
+      "language"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/semantic/rosetta_stele.py",
+      "source_line": 284,
+      "docstring": "Unified facade composing all empirically-validated Rosetta enhancements.\n\nComposes (no modification of any component):\n  - `ArachneProtocol`              R8 prime emission across channels\n  - `SemanticRosettaService`        R1-R5 normalize + tier-aware mass\n  - `PhonologicalRosettaBridge`     R7 sound-meaning resonance\n  - `selective_flatten`             EV-23 IPR ambiguity correction\n\nAdoption:\n    stele = RosettaStele()\n    result = stele.process(payload, concept=concept_name)\n    # result.prime, result.semantic_mass, result.ipr_in_zone, etc.\n\nThe facade is stateful only in the rolling health metrics it\nmaintains; the underlying primitives carry the actual prime registry\n(Arachne) and tier dictionary (Rosetta service). Two `RosettaStele`\ninstances sharing the same `arachne` and `rosetta_service` see the\nsame registry.",
+      "method_names": [
+        "__init__",
+        "process",
+        "_process_text",
+        "_process_field",
+        "_process_image",
+        "mass",
+        "phonological_resonance",
+        "quantum_fidelity",
+        "health",
+        "_classify_input",
+        "_channel_for",
+        "_maybe_flatten",
+        "_tier_lookup",
+        "_phonological_resonance"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "collections.Counter",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "typing.Any",
+        "typing.Literal",
+        "numpy",
+        "kimera_swm.core.resource_registry.get_rosetta_service",
+        "kimera_swm.domain.linguistic.integration.phonological_rosetta_bridge.PhonologicalRosettaBridge",
+        "kimera_swm.domain.prime.arachne_protocol.ArachnePrime",
+        "kimera_swm.domain.prime.arachne_protocol.ArachneProtocol",
+        "kimera_swm.domain.prime.arachne_protocol._field_to_embedding",
+        "kimera_swm.domain.prime.arachne_protocol._image_to_embedding",
+        "kimera_swm.domain.semantic.rosetta_service.SemanticRosettaService",
+        "kimera_swm.domain.thermodynamic.ipr_flatten.DEFAULT_TARGET_IPR_HIGH",
+        "kimera_swm.domain.thermodynamic.ipr_flatten.DEFAULT_TARGET_IPR_LOW",
+        "kimera_swm.domain.thermodynamic.ipr_flatten.FlattenResult",
+        "kimera_swm.domain.thermodynamic.ipr_flatten.selective_flatten"
+      ],
+      "n_callers": 21,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3336,
+          "context": "# The RosettaStele facade unifies cross-modal prime emission"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25098,
+          "context": "Routes through the RosettaStele facade when"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25120,
+          "context": "RosettaStele,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25122,
+          "context": "self._rosetta_stele = RosettaStele("
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25139,
+          "context": "on, via ``RosettaStele.process(image, concept=concept)``). This"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25165,
+          "context": "RosettaStele,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25167,
+          "context": "self._rosetta_stele = RosettaStele("
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25180,
+          "context": "via ``RosettaStele.process(audio, concept=concept)``), or directly"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25213,
+          "context": "RosettaStele,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25215,
+          "context": "self._rosetta_stele = RosettaStele("
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 7,
+          "context": "module is the code-level analogue. ``RosettaStele.process()`` carries the"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 16,
+          "context": "``RosettaStele``). Per CLAUDE.md's primitive-naming rule \u2014"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 21,
+          "context": "referent-native rename to ``RosettaStele`` was applied 2026-04-26 late"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 78,
+          "context": "A single class `RosettaStele` exposes a polymorphic `process()` entry"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 102,
+          "context": "stele = RosettaStele()"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 114,
+          "context": "`RosettaStele` sits BESIDE the existing `SemanticRosettaService` and"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 171,
+          "context": "\"\"\"Result of a single `RosettaStele.process()` call."
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 284,
+          "context": "class RosettaStele:"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 294,
+          "context": "stele = RosettaStele()"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 300,
+          "context": "(Arachne) and tier dictionary (Rosetta service). Two `RosettaStele`"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 695,
+          "context": "\"RosettaStele\","
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": "rosetta",
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:15.351589+00:00"
+    }
+  },
+  {
+    "name": "ZetaBridge",
+    "canonical_class": "ZetaBridge",
+    "family_tags": [
+      "nervous_system",
+      "physics"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+      "source_line": 260,
+      "docstring": "Zero-parameter thermodynamic prime emergence.\n\nMaps any embedding vector to a prime number through the partition-\nfunction identity between the Riemann zeta function and the inverse\nparticipation ratio of Born-rule probabilities.\n\nUsage::\n\n    bridge = ZetaBridge()\n    result = bridge.emerge(embedding_vector)\n    print(result.prime)       # The emergent prime\n    print(result.beta_star)   # The matched temperature\n    print(result.ipr)         # The embedding's concentration\n\nThread-safe (stateless after __init__).",
+      "method_names": [
+        "__init__",
+        "_build_spline",
+        "_audit_spline",
+        "emerge",
+        "_sanitise",
+        "_born_rule_statistics",
+        "_match_temperature",
+        "_match_temperature_bisect",
+        "primes"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "logging",
+        "math",
+        "dataclasses.dataclass",
+        "numpy"
+      ],
+      "n_callers": 47,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25182,
+          "context": "spectral field for ZetaBridge purposes)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 1870,
+          "context": "# Phase 268: Arachne uses ZetaBridge (zero-parameter)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 1873,
+          "context": "# ZetaBridge(prime_limit=50000)`` in its __init__; the prior"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 2195,
+          "context": "# ZetaBridge exposes .primes (sorted list); legacy EntropicAddresser"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+          "line": 2200,
+          "context": "# ZetaBridge path (Phase 268)"
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 260,
+          "context": "class ZetaBridge:"
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 269,
+          "context": "bridge = ZetaBridge()"
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 308,
+          "context": "cost: ~600 KB extra per ZetaBridge instance; build-time"
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 327,
+          "context": "\"ZetaBridge initialised: %d primes, sieve limit %d, spline=%d points (%.1f KB)\","
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 354,
+          "context": "logger.warning(\"ZetaBridge: spline table empty \u2014 bisection fallback only\")"
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 362,
+          "context": "\"ZetaBridge SPLINE AUDIT FAIL: %d monotonicity violations \u2014 \""
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 379,
+          "context": "\"ZetaBridge SPLINE AUDIT FAIL: max error %.2e exceeds 1e-4 \u2014 \""
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 387,
+          "context": "\"ZetaBridge spline audit PASS: monotonic, max \u03b2* error %.2e\","
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 506,
+          "context": "\"ZetaBridge: IPR %.6e outside spline domain [%.6e, %.6e] \u2014 bisection fallback\","
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 551,
+          "context": "_DEFAULT_BRIDGE: ZetaBridge | None = None"
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 555,
+          "context": "def get_zeta_bridge() -> ZetaBridge:"
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 556,
+          "context": "\"\"\"Get or create the default ZetaBridge singleton.\"\"\""
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/zeta_bridge.py",
+          "line": 561,
+          "context": "_DEFAULT_BRIDGE = ZetaBridge()"
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/ipr_flatten.py",
+          "line": 1,
+          "context": "\"\"\"IPR flattening \u2014 adaptive preprocessor for ZetaBridge embeddings."
+        },
+        {
+          "file": "kimera_swm/domain/thermodynamic/ipr_flatten.py",
+          "line": 6,
+          "context": "EV-20 characterized the ZetaBridge response curve:"
+        },
+        {
+          "file": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line": 64,
+          "context": "ZetaBridge has a narrow ~5\u00d7-IPR discrimination zone. Inputs in"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 117,
+          "context": "path. ZetaBridge's IPR assumes unit-L2 float32 inputs; this keeps"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 154,
+          "context": "\"\"\"Deterministic 2D physics field \u2192 pseudo-embedding for ZetaBridge."
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 185,
+          "context": "\"\"\"Deterministic image \u2192 pseudo-embedding for ZetaBridge."
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 188,
+          "context": "image's own 2D spectrum feeds ZetaBridge directly; no encoder, no"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 353,
+          "context": "# \"zeta\"     \u2014 assign uses encoder \u2192 IPR \u2192 ZetaBridge \u2192 p_thermo"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 547,
+          "context": "# behaviour unchanged; assign(text) goes encoder \u2192 ZetaBridge"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 560,
+          "context": "# 2026-04-26: defer to ZetaBridge's own default (raised 50k \u2192 1M"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 565,
+          "context": "from kimera_swm.domain.thermodynamic.zeta_bridge import ZetaBridge"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 567,
+          "context": "self._bridge = ZetaBridge()"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1334,
+          "context": "web's response, not from ZetaBridge over an embedding. The"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1445,
+          "context": "\u2014 the field's own spectral content feeds ZetaBridge via"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1466,
+          "context": "field's spectral signature via ZetaBridge; ``p_identity``"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1583,
+          "context": "the image's 2D spectral content feeds ZetaBridge directly via"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1607,
+          "context": "image's spectral signature via ZetaBridge; ``p_identity``"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1728,
+          "context": "# (image). It replaces the `embedding \u2192 ZetaBridge` step with a"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1740,
+          "context": "# gated promotion (F.2.5+), and comparison against ZetaBridge."
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1755,
+          "context": "p_thermo is emerged by ZetaBridge from an embedding."
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1816,
+          "context": "# from ZetaBridge here; record 0.0 + reading observables so"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1824,
+          "context": "free_energy=0.0,  # ZetaBridge diagnostic not applicable"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 1925,
+          "context": "# emission. The `assign*` methods still use ZetaBridge, unchanged."
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 2540,
+          "context": "# \u2550\u2550\u2550 F.2.5 \u2014 Assign strategy (ZetaBridge vs lyriform) \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 2551,
+          "context": "ZetaBridge \u2192 p_thermo) or ``\"lyriform\"`` (F.2.5 \u2014"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_web.py",
+          "line": 24,
+          "context": "``text/field/image \u2192 ZetaBridge \u2192 p_thermo``."
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/realtime_encoder/events.py",
+          "line": 35,
+          "context": "ZetaBridge, and emitted a prime that did not already exist in the"
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/realtime_encoder/pairs.py",
+          "line": 10,
+          "context": "through ZetaBridge to the same prime."
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/realtime_encoder/pairs.py",
+          "line": 11,
+          "context": "(Not implemented yet \u2014 needs ZetaBridge inversion.)"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": null,
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:15.915451+00:00"
+    }
+  },
+  {
+    "name": "Piovra",
+    "canonical_class": "ArmGanglion",
+    "family_tags": [
+      "sensory"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/piovra/arm_ganglion.py",
+      "source_line": 66,
+      "docstring": "Local decision-making module for a Piovra arm.\n\nEach arm has its own ganglion that:\n  1. Assesses novelty of each signal (RND curiosity)\n  2. Learns from what it processes (predictor training)\n  3. Maps novelty to epistemic status and confidence\n  4. Provides arm-local assessment that goes into PrimePacket\n\nThe ganglion is the difference between an arm that REPORTS\nand an arm that THINKS.",
+      "method_names": [
+        "__init__",
+        "assess",
+        "learn",
+        "get_diagnostics",
+        "save_state",
+        "load_state",
+        "select_operator",
+        "_curiosity_to_epistemic",
+        "_neutral_assessment"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "hashlib",
+        "logging",
+        "math",
+        "typing.Any",
+        "numpy"
+      ],
+      "n_callers": 9,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3701,
+          "context": "from kimera_swm.domain.piovra.arm_ganglion import ArmGanglion"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3705,
+          "context": "self._piovra_text_ganglion = ArmGanglion("
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3769,
+          "context": "from kimera_swm.domain.piovra.arm_ganglion import ArmGanglion as _AG3"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3836,
+          "context": "from kimera_swm.domain.piovra.arm_ganglion import ArmGanglion as _AGV"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3899,
+          "context": "from kimera_swm.domain.piovra.arm_ganglion import ArmGanglion as _AGM"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 23269,
+          "context": "from kimera_swm.domain.piovra.arm_ganglion import ArmGanglion as _AG8"
+        },
+        {
+          "file": "kimera_swm/domain/piovra/arm_ganglion.py",
+          "line": 66,
+          "context": "class ArmGanglion:"
+        },
+        {
+          "file": "kimera_swm/domain/piovra/arm_ganglion.py",
+          "line": 141,
+          "context": "\"[Piovra] ArmGanglion initialized: arm=%s, dim=%d, seed=%d, params=%d\","
+        },
+        {
+          "file": "kimera_swm/domain/piovra/prime_index_client.py",
+          "line": 94,
+          "context": "ganglion: ArmGanglion instance for local decision-making."
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": "piovra",
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:16.511818+00:00"
+    }
+  },
+  {
+    "name": "Geoid",
+    "canonical_class": "Atlas",
+    "family_tags": [
+      "body"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/geoid/geoid_1_3_1_enforcement.py",
+      "source_line": 737,
+      "docstring": "Enforces the 1+3+1 structure on ALL Geoid operations.\n\nThis is the GUARDIAN of structural integrity - ensuring that every\nGeoid maintains its fundamental 5D architecture through all transformations.",
+      "method_names": [
+        "__init__",
+        "validate_structure",
+        "enforce_transformation",
+        "get_enforcement_statistics"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "logging",
+        "math",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "datetime.UTC",
+        "datetime.datetime",
+        "enum.Enum",
+        "typing.Any",
+        "uuid.uuid4",
+        "numpy",
+        "numpy.typing.NDArray"
+      ],
+      "n_callers": 16,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 12151,
+          "context": "logger.debug(\"Phase 309: Atlas failed: %s\", _g131_exc)"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/thermodynamic_geometric_integration.py",
+          "line": 377,
+          "context": "from .geoid_1_3_1_enforcement import Atlas"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/thermodynamic_geometric_integration.py",
+          "line": 379,
+          "context": "enforcer = Atlas(strict_enforcement=False)  # We'll handle strictness"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/geoid_structural_integration.py",
+          "line": 18,
+          "context": "Wired to Takwin pipeline via Atlas integration."
+        },
+        {
+          "file": "kimera_swm/domain/geoid/geoid_structural_integration.py",
+          "line": 30,
+          "context": "Atlas,"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/geoid_structural_integration.py",
+          "line": 49,
+          "context": "def __init__(self, enforcer: Atlas | None = None):"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/geoid_structural_integration.py",
+          "line": 56,
+          "context": "self.enforcer = enforcer or Atlas(strict_enforcement=True)"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/geoid_1_3_1_enforcement.py",
+          "line": 737,
+          "context": "class Atlas:"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/advanced_geoid_1_3_1_integration.py",
+          "line": 37,
+          "context": "Atlas,"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/advanced_geoid_1_3_1_integration.py",
+          "line": 63,
+          "context": "self.enforcer = Atlas(strict_enforcement=False)"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/advanced_geoid_1_3_1_integration.py",
+          "line": 553,
+          "context": "enforcer = Atlas(strict_enforcement=False)"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/__init__.py",
+          "line": 116,
+          "context": "\"Atlas\","
+        },
+        {
+          "file": "kimera_swm/domain/governance/law_registry.py",
+          "line": 152,
+          "context": "(Atlas, the geoid-skeleton organ)."
+        },
+        {
+          "file": "kimera_swm/domain/quantum/quantum_processor_enhanced.py",
+          "line": 187,
+          "context": "Atlas,"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/quantum_processor_enhanced.py",
+          "line": 193,
+          "context": "self.structure_enforcer = Atlas(strict_enforcement=False)"
+        },
+        {
+          "file": "kimera_swm/infrastructure/frozen_on_fall/takwin_integration.py",
+          "line": 46,
+          "context": "elsewhere \u2014 see ``Atlas``). Synthesizing a 5-tuple"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": null,
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:17.119073+00:00"
+    }
+  },
+  {
+    "name": "Astrolabe",
+    "canonical_class": "Astrolabe",
+    "family_tags": [
+      "body",
+      "topology"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/geoid/spherical_5d_geometry.py",
+      "source_line": 391,
+      "docstring": "Geometric engine for 5D spherical semantic space.\n\nProvides operations for:\n- Distance calculations\n- Geodesic computation\n- Curvature analysis\n- Volume elements\n- Parallel transport",
+      "method_names": [
+        "__init__",
+        "geodesic_distance",
+        "calculate_geodesic_distance",
+        "calculate_geodesic_distances_batch",
+        "geodesic_distances_vectorized",
+        "geodesic_distance_matrix",
+        "compute_geodesic",
+        "compute_volume_5_sphere",
+        "compute_surface_area_4_sphere",
+        "sectional_curvature",
+        "ricci_curvature",
+        "scalar_curvature",
+        "parallel_transport",
+        "exponential_map",
+        "logarithm_map",
+        "metric_tensor",
+        "inverse_metric_tensor",
+        "christoffel_symbols",
+        "covariant_derivative",
+        "covariant_derivative_numerical",
+        "_interpolate_field",
+        "_cartesian_to_hyperspherical",
+        "clear_caches"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "logging",
+        "math",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "enum.Enum",
+        "typing.Any",
+        "numpy",
+        "geoid_1_3_1_enforcement.Geoid1_3_1_Structure"
+      ],
+      "n_callers": 45,
+      "top_callers": [
+        {
+          "file": "kimera_swm/benchmark_math_foundations.py",
+          "line": 21,
+          "context": "Astrolabe,"
+        },
+        {
+          "file": "kimera_swm/benchmark_math_foundations.py",
+          "line": 51,
+          "context": "self.geometry = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/system/integration_optimizer.py",
+          "line": 81,
+          "context": "Astrolabe,"
+        },
+        {
+          "file": "kimera_swm/system/integration_optimizer.py",
+          "line": 84,
+          "context": "self._geometry_engine = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/system/integration_optimizer.py",
+          "line": 85,
+          "context": "logger.info(\"Initialized shared Astrolabe engine\")"
+        },
+        {
+          "file": "kimera_swm/system/integration_optimizer.py",
+          "line": 87,
+          "context": "logger.warning(f\"Could not import Astrolabe: {e}\")"
+        },
+        {
+          "file": "kimera_swm/system/integration_optimizer.py",
+          "line": 111,
+          "context": "Astrolabe instance or None"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 5845,
+          "context": "# Phase 287: Astrolabe \u2014 true geodesic distance calculations"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 5852,
+          "context": "Astrolabe as _S5DGeom,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 5856,
+          "context": "logger.info(\"[Phase 287] Astrolabe wired (geodesic distances on S\u2074)\")"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 5858,
+          "context": "logger.debug(\"[INIT] Astrolabe not installed: %s\", _exc)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 5860,
+          "context": "logger.warning(\"[INIT] Astrolabe init FAILED: %s\", _exc)"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/message_passing_engine.py",
+          "line": 46,
+          "context": "from .spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/message_passing_engine.py",
+          "line": 53,
+          "context": "from .spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/message_passing_engine.py",
+          "line": 89,
+          "context": "self.geometry_engine = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/thermodynamic_geometric_integration.py",
+          "line": 36,
+          "context": "from .spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/thermodynamic_geometric_integration.py",
+          "line": 87,
+          "context": "def __init__(self, geometry_engine: Astrolabe | None = None):"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/thermodynamic_geometric_integration.py",
+          "line": 94,
+          "context": "self.geometry_engine = geometry_engine or Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/__init__.py",
+          "line": 256,
+          "context": "\"Astrolabe\","
+        },
+        {
+          "file": "kimera_swm/domain/geoid/spherical_5d_geometry.py",
+          "line": 391,
+          "context": "class Astrolabe:"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/neural_projection_insights_integration.py",
+          "line": 32,
+          "context": "from .spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/neural_projection_insights_integration.py",
+          "line": 57,
+          "context": "self.geometry = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/context_binding_processor.py",
+          "line": 48,
+          "context": "from .spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/context_binding_processor.py",
+          "line": 93,
+          "context": "self.geometry_engine: Astrolabe | None = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/semantic_processor.py",
+          "line": 30,
+          "context": "from .spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/semantic_processor.py",
+          "line": 96,
+          "context": "self.geometry_engine = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/geoid_resonance_processor.py",
+          "line": 33,
+          "context": "from .spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/geoid_resonance_processor.py",
+          "line": 197,
+          "context": "self.geometry_engine: Astrolabe | None = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/domain/vault/spherical_memory_vault.py",
+          "line": 47,
+          "context": "Astrolabe,"
+        },
+        {
+          "file": "kimera_swm/domain/vault/spherical_memory_vault.py",
+          "line": 175,
+          "context": "self.geometry_engine = Astrolabe() if use_geodesic_distances and dimension == 5 else None"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/quantum_processor_enhanced.py",
+          "line": 172,
+          "context": "Astrolabe,"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/quantum_processor_enhanced.py",
+          "line": 175,
+          "context": "self.geometry_engine = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/topology/riemann_spectral_operator.py",
+          "line": 29,
+          "context": "Astrolabe,"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/topology/riemann_spectral_operator.py",
+          "line": 48,
+          "context": "self.geometry = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/sat/sat_geoid_encoder.py",
+          "line": 40,
+          "context": "4. Use Astrolabe for coordinate mapping"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/_async_quarantine/temporal_evolution_processor.py",
+          "line": 51,
+          "context": "from ..spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/_async_quarantine/temporal_evolution_processor.py",
+          "line": 98,
+          "context": "self.geometry_engine: Astrolabe | None = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/application/services/analytical_service.py",
+          "line": 47,
+          "context": "Astrolabe,"
+        },
+        {
+          "file": "kimera_swm/application/services/analytical_service.py",
+          "line": 157,
+          "context": "self._geometry_engine = Astrolabe() if Astrolabe else None"
+        },
+        {
+          "file": "kimera_swm/tests/infrastructure/benchmark_gpu_acceleration.py",
+          "line": 63,
+          "context": "from kimera_swm.domain.geoid.spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/tests/infrastructure/benchmark_gpu_acceleration.py",
+          "line": 325,
+          "context": "geometry = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/tests/infrastructure/test_gpu_acceleration_fixes.py",
+          "line": 60,
+          "context": "from kimera_swm.domain.geoid.spherical_5d_geometry import Astrolabe"
+        },
+        {
+          "file": "kimera_swm/tests/infrastructure/test_gpu_acceleration_fixes.py",
+          "line": 318,
+          "context": "geometry = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/tests/infrastructure/test_gpu_acceleration_fixes.py",
+          "line": 354,
+          "context": "geometry = Astrolabe()"
+        },
+        {
+          "file": "kimera_swm/tests/infrastructure/test_gpu_acceleration_fixes.py",
+          "line": 404,
+          "context": "geometry = Astrolabe()"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": "astrolabe",
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:17.701460+00:00"
+    }
+  },
+  {
+    "name": "PrimeWaveQuantumEngine",
+    "canonical_class": "PrimeWaveQuantumEngine",
+    "family_tags": [
+      "physics",
+      "nervous_system"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/quantum/prime_wave_quantum_engine.py",
+      "source_line": 386,
+      "docstring": "The quantum-native engine for Kimera SWM.\n\nReplaces generic qubit simulation with Kimera's own mathematics:\n- Prime roots of unity as basis states\n- Zeta zeros as Hamiltonian eigenvalues\n- Wave sieve superpositions as quantum superpositions\n- Geodesic evolution on S\u2074 as unitary gates\n\nThis engine can also operate in standard circuit mode\nfor compatibility, but its native mode uses prime wave states.",
+      "method_names": [
+        "__init__",
+        "create_prime_state",
+        "create_composite_state",
+        "create_wave_superposition",
+        "create_zeta_eigenstate",
+        "create_thermal_state",
+        "evolve_state",
+        "apply_prime_phase_gate",
+        "apply_wave_interference",
+        "apply_pressure_coupling",
+        "measure_prime_basis",
+        "measure_energy",
+        "_prime_basis_energy",
+        "measure_entanglement",
+        "fidelity",
+        "quantum_distance",
+        "simulate_circuit",
+        "_load_zeta_zeros",
+        "_sieve_primes",
+        "_is_prime",
+        "_factorize",
+        "_prime_energy",
+        "_composite_energy",
+        "_wave_entropy",
+        "get_statistics"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "logging",
+        "threading",
+        "uuid",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "datetime.datetime",
+        "enum.Enum",
+        "typing.Any",
+        "numpy",
+        "exceptions.QuantumCircuitError",
+        "exceptions.QuantumStateError"
+      ],
+      "n_callers": 31,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 1001,
+          "context": "# Phase 100 Domain 1: PrimeWaveQuantumEngine + QuantumFeedbackController."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 7951,
+          "context": "(\"_quantum_engine\", \"PrimeWaveQuantumEngine\"),"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3381,
+          "context": "# primitives per CLAUDE.md (PrimeWaveQuantumEngine maps primes \u2192 quantum"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 21188,
+          "context": "# PrimeWaveQuantumEngine reports a high-entanglement quantum state"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25335,
+          "context": "\"\"\"Project a PrimeWaveQuantumEngine high-entanglement event into a payload."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 25338,
+          "context": "layer (PrimeWaveQuantumEngine, composite states formed from the"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 33239,
+          "context": "(\"_quantum_engine\", \"PrimeWaveQuantumEngine\"),"
+        },
+        {
+          "file": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line": 2417,
+          "context": "\"quantum_amplitude_burst\",   # 2026-05-06 Round 4 \u2014 PrimeWaveQuantumEngine entanglement burst"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/kimera_quantum_system.py",
+          "line": 8,
+          "context": "PrimeWaveQuantumEngine  \u2192  state creation, Hamiltonian, measurement"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/kimera_quantum_system.py",
+          "line": 41,
+          "context": "PrimeWaveQuantumEngine,"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/kimera_quantum_system.py",
+          "line": 117,
+          "context": "self.prime_engine = PrimeWaveQuantumEngine(num_zeta_zeros=num_zeta_zeros)"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/__init__.py",
+          "line": 76,
+          "context": "PrimeWaveQuantumEngine,"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/__init__.py",
+          "line": 199,
+          "context": "\"PrimeWaveQuantumEngine\","
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 9,
+          "context": "canonical_hasher(SHA-256) \u2192 find_next_prime.  The PrimeWaveQuantumEngine"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 34,
+          "context": "- PrimeWave: PrimeWaveQuantumEngine (domain/quantum/prime_wave_quantum_engine.py)"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 98,
+          "context": "Bridges Rosetta semantic primes to PrimeWaveQuantumEngine states."
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 102,
+          "context": "engine = PrimeWaveQuantumEngine(...)"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 125,
+          "context": "quantum_engine: PrimeWaveQuantumEngine instance (optional, lazy-loaded via DI)"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 154,
+          "context": "\"\"\"Lazy-load PrimeWaveQuantumEngine from DI if not provided.\"\"\""
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 163,
+          "context": "logger.warning(f\"Could not lazy-load PrimeWaveQuantumEngine: {e}\")"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 443,
+          "context": "# ----- PrimeWaveQuantumEngine Integration -----"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 463,
+          "context": "logger.warning(\"PrimeWaveQuantumEngine not available for state creation\")"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/rosetta_quantum_bridge.py",
+          "line": 490,
+          "context": "logger.warning(\"PrimeWaveQuantumEngine not available for composite state creation\")"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/prime_wave_quantum_engine.py",
+          "line": 386,
+          "context": "class PrimeWaveQuantumEngine:"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/prime_wave_quantum_engine.py",
+          "line": 438,
+          "context": "f\"PrimeWaveQuantumEngine initialized: \""
+        },
+        {
+          "file": "kimera_swm/domain/quantum/prime_wave_quantum_engine.py",
+          "line": 1372,
+          "context": "\"engine\": \"PrimeWaveQuantumEngine\","
+        },
+        {
+          "file": "kimera_swm/domain/quantum/prime_wave_quantum_engine.py",
+          "line": 1387,
+          "context": "_engine: PrimeWaveQuantumEngine | None = None"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/prime_wave_quantum_engine.py",
+          "line": 1391,
+          "context": "def get_prime_wave_quantum_engine() -> PrimeWaveQuantumEngine:"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/prime_wave_quantum_engine.py",
+          "line": 1392,
+          "context": "\"\"\"Get the global PrimeWaveQuantumEngine instance (thread-safe).\"\"\""
+        },
+        {
+          "file": "kimera_swm/domain/quantum/prime_wave_quantum_engine.py",
+          "line": 1397,
+          "context": "_engine = PrimeWaveQuantumEngine()"
+        },
+        {
+          "file": "kimera_swm/application/services/mathematical_application_service.py",
+          "line": 249,
+          "context": "\"`PrimeWaveQuantumEngine` directly.\""
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": null,
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:18.238819+00:00"
+    }
+  },
+  {
+    "name": "SPDE",
+    "canonical_class": "SPDEEngine",
+    "family_tags": [
+      "physics"
+    ],
+    "static": {
+      "source_file": "kimera_swm/infrastructure/temporal/spde_engine.py",
+      "source_line": 45,
+      "docstring": "Semantic Pressure Diffusion Engine.\nSimulates the flow of semantic pressure across a knowledge graph.\nUses vectorized Laplacian diffusion for performance.",
+      "method_names": [
+        "__init__",
+        "_update_matrices",
+        "set_diffusion_coefficient",
+        "get_diffusion_coefficient",
+        "start",
+        "stop",
+        "set_pressure",
+        "add_node",
+        "add_edge",
+        "_run_simulation",
+        "simulation_step",
+        "get_node_pressure",
+        "get_all_pressures",
+        "is_stable",
+        "has_privileged_information"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "asyncio",
+        "logging",
+        "numpy"
+      ],
+      "n_callers": 50,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 6425,
+          "context": "# graph. We maintain a long-lived basic SPDEEngine whose graph"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 6435,
+          "context": "SPDEEngine as _SPDE,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 6438,
+          "context": "logger.info(\"[2026-04-27] SPDEEngine (field) wired\")"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 6448,
+          "context": "logger.info(\"[2026-04-27] EikonalCognition repointed to field SPDEEngine\")"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 6459,
+          "context": "logger.info(\"[2026-04-27] TuringCognition wired with field SPDEEngine\")"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/helmholtz_semantic_field.py",
+          "line": 48,
+          "context": "- SPDEEngine provides the pressure field on the graph (\u2207 pressure = flow)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/helmholtz_semantic_field.py",
+          "line": 210,
+          "context": "# Feed pressure values from SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/helmholtz_semantic_field.py",
+          "line": 246,
+          "context": "pressures: Dict[node_id, pressure_value] from SPDEEngine."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/helmholtz_semantic_field.py",
+          "line": 418,
+          "context": "Decompose directly from an SPDEEngine instance."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/helmholtz_semantic_field.py",
+          "line": 423,
+          "context": "spde_engine: SPDEEngine with .graph attribute (networkx.Graph)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/turing_cognition.py",
+          "line": 28,
+          "context": "SPDEEngine already implements \u2202u/\u2202t = D\u00b7\u2207\u00b2u on a networkx graph"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/turing_cognition.py",
+          "line": 209,
+          "context": "spde_engine: SPDEEngine from kimera_swm.infrastructure.temporal."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl_liturgy.py",
+          "line": 34,
+          "context": "from ...infrastructure.temporal.spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl_liturgy.py",
+          "line": 186,
+          "context": "spde_engine: SPDEEngine,  # Accepts both SPDEEngine and OptimizedSPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/eikonal_cognition.py",
+          "line": 28,
+          "context": "SPDEEngine already maintains a networkx graph with add_node/add_edge."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/eikonal_cognition.py",
+          "line": 129,
+          "context": "spde_engine: SPDEEngine instance from kimera_swm.infrastructure.temporal."
+        },
+        {
+          "file": "kimera_swm/domain/quantum/kimera_quantum_system.py",
+          "line": 373,
+          "context": "2. Evolve on graph (SPDEEngine)"
+        },
+        {
+          "file": "kimera_swm/domain/system_safety/contradiction/unified_contradiction_engine.py",
+          "line": 127,
+          "context": "- SPDEEngine: Semantic pressure diffusion"
+        },
+        {
+          "file": "kimera_swm/domain/system_safety/validation/compliance_validator.py",
+          "line": 534,
+          "context": "from kimera_swm.infrastructure.temporal.spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/system_safety/validation/compliance_validator.py",
+          "line": 539,
+          "context": "standard_file = inspect.getfile(SPDEEngine)"
+        },
+        {
+          "file": "kimera_swm/domain/utilities/temporal/__init__.py",
+          "line": 21,
+          "context": "SPDEEngine = None"
+        },
+        {
+          "file": "kimera_swm/domain/utilities/temporal/__init__.py",
+          "line": 31,
+          "context": "SPDEEngine, \\"
+        },
+        {
+          "file": "kimera_swm/domain/utilities/temporal/__init__.py",
+          "line": 50,
+          "context": "from kimera_swm.infrastructure.temporal.spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/utilities/temporal/__init__.py",
+          "line": 83,
+          "context": "\"SPDEEngine\","
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl/unified_orchestrator.py",
+          "line": 165,
+          "context": "SPDEEngine = None"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl/unified_orchestrator.py",
+          "line": 170,
+          "context": "from kimera_swm.infrastructure.temporal.spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl/unified_orchestrator.py",
+          "line": 175,
+          "context": "from ...infrastructure.temporal.spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl/unified_orchestrator.py",
+          "line": 177,
+          "context": "logger.warning(\"SPDEEngine not available\")"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl/unified_orchestrator.py",
+          "line": 191,
+          "context": "if SPDEEngine is not None and SemanticThermodynamicsEngine is not None:"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl/unified_orchestrator.py",
+          "line": 194,
+          "context": "if SPDEEngine is None:"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl/unified_orchestrator.py",
+          "line": 195,
+          "context": "logger.warning(\"SPDEEngine not available\")"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl/unified_orchestrator.py",
+          "line": 351,
+          "context": "spde_engine: SPDEEngine,  # Accepts both SPDEEngine and OptimizedSPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl/unified_orchestrator.py",
+          "line": 389,
+          "context": "\"Core dependencies (SPDEEngine, SemanticThermodynamicsEngine) are required \""
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/mycorrhiza/cognitive_pipeline.py",
+          "line": 229,
+          "context": "spde_engine : Optional pre-built SPDEEngine."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/mycorrhiza/holographic_turing_band.py",
+          "line": 139,
+          "context": "spde_engine : SPDEEngine or SimpleNamespace with .graph"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/validation/mackay_simulation.py",
+          "line": 40,
+          "context": "from kimera_swm.infrastructure.temporal.spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/validation/mackay_simulation.py",
+          "line": 60,
+          "context": "spde_engine = SPDEEngine()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/_archive/tier2_dead_subdirs/validation/mackay_simulation.py",
+          "line": 35,
+          "context": "from kimera_swm.infrastructure.temporal.spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/_archive/tier2_dead_subdirs/validation/mackay_simulation.py",
+          "line": 55,
+          "context": "spde_engine = SPDEEngine()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/_archive/tier3_dead_scattered/picogk_integration/cognitive_pipeline.py",
+          "line": 229,
+          "context": "spde_engine : Optional pre-built SPDEEngine."
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/spde_modulator.py",
+          "line": 23,
+          "context": "from kimera_swm.infrastructure.temporal.spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/spde_modulator.py",
+          "line": 83,
+          "context": "spde_engine: SPDEEngine | None = None,"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/spde_modulator.py",
+          "line": 94,
+          "context": "self.spde_engine: SPDEEngine | None = spde_engine"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/spde_modulator.py",
+          "line": 359,
+          "context": "spde_engine: SPDEEngine | None = None,"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/spde_engine.py",
+          "line": 45,
+          "context": "class SPDEEngine:"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/prime_wave_spde_engine.py",
+          "line": 40,
+          "context": "from .spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/prime_wave_spde_engine.py",
+          "line": 45,
+          "context": "class PrimeWaveSPDEEngine(SPDEEngine):"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/spde_integration.py",
+          "line": 27,
+          "context": "from kimera_swm.infrastructure.temporal.spde_engine import SPDEEngine"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/spde_integration.py",
+          "line": 38,
+          "context": "spde_engine: SPDEEngine | None = None,"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/spde_integration.py",
+          "line": 66,
+          "context": "from kimera_swm.infrastructure.temporal.spde_engine import SPDEEngine"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": null,
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:18.833677+00:00"
+    }
+  },
+  {
+    "name": "Cronos",
+    "canonical_class": "CronosSync",
+    "family_tags": [
+      "time"
+    ],
+    "static": {
+      "source_file": "kimera_swm/infrastructure/temporal/cronos/cronos_sync.py",
+      "source_line": 119,
+      "docstring": "L5 \u2014 Distribution layer connecting Cronos to Kimera EventBus.\n\nResponsibilities:\n1. Format CronosTick events from the master orchestrator\n2. Publish ticks to the EventBus with transparent-clock compensation\n3. Accept ReversePTP offset reports from consumers\n4. Track distribution health and latency statistics",
+      "method_names": [
+        "__init__",
+        "set_event_bus",
+        "distribute_tick",
+        "report_consumer_offset",
+        "compute_adjustment_for_consumer",
+        "get_state",
+        "get_consumer_offsets",
+        "get_health"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "math",
+        "time",
+        "collections.deque",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "typing.Any",
+        "kimera_swm.core.logging_config.get_logger"
+      ],
+      "n_callers": 15,
+      "top_callers": [
+        {
+          "file": "kimera_swm/infrastructure/temporal/temporal_initializer.py",
+          "line": 187,
+          "context": "# Late-bind EventBus to L5 CronosSync"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_sync.py",
+          "line": 2,
+          "context": "L5 \u2014 CronosSync: Software Clock Distribution Layer."
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_sync.py",
+          "line": 34,
+          "context": "CronosSync \u2192 EventBus \u2192 KCCL / SPDE / TemporalCoordinatorService"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_sync.py",
+          "line": 119,
+          "context": "class CronosSync:"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_sync.py",
+          "line": 190,
+          "context": "\"CronosSync initialised  lucky_window=%d  drift_threshold=%.1f ppb  kp=%.2f  ki=%.3f\","
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_sync.py",
+          "line": 265,
+          "context": "logger.warning(\"CronosSync dispatch failed: %s\", e)"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_sync.py",
+          "line": 362,
+          "context": "logger.warning(\"CronosSync adjust dispatch failed: %s\", e)"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/__init__.py",
+          "line": 16,
+          "context": "L5  CronosSync        \u2013 Distribution to Kimera event bus"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/__init__.py",
+          "line": 38,
+          "context": "from kimera_swm.infrastructure.temporal.cronos.cronos_sync import CronosSync"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/__init__.py",
+          "line": 56,
+          "context": "\"CronosSync\","
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_atomic_clock.py",
+          "line": 14,
+          "context": "L5 CronosSync         - EventBus distribution & phase-advance correction"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_atomic_clock.py",
+          "line": 32,
+          "context": "from kimera_swm.infrastructure.temporal.cronos.cronos_sync import CronosSync, CronosTick"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_atomic_clock.py",
+          "line": 87,
+          "context": "self._l5_sync = CronosSync(master_rate_hz=self._config.master_rate_hz)"
+        },
+        {
+          "file": "kimera_swm/infrastructure/temporal/cronos/cronos_atomic_clock.py",
+          "line": 418,
+          "context": "self._l5_sync = CronosSync(master_rate_hz=self._config.master_rate_hz)"
+        },
+        {
+          "file": "kimera_swm/api/routers/cronos_router.py",
+          "line": 113,
+          "context": "Returns health status of each layer (L0 ThoriumCore through L5 CronosSync),"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": null,
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:19.587248+00:00"
+    }
+  },
+  {
+    "name": "GWF",
+    "canonical_class": "GWFProtocol",
+    "family_tags": [
+      "defence"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/security/gyroscopic_water_fortress/gwf_protocol.py",
+      "source_line": 83,
+      "docstring": "Gyroscopic Water Fortress \u2014 unified security protocol.\n\nUsage:\n    gwf = GWFProtocol()\n\n    # Screen input before cognitive processing\n    verdict = gwf.screen_input(input_features, established_features, energy_values)\n    if not verdict.allowed:\n        # Input blocked by GWF membrane\n        handle_blocked_input(verdict)\n\n    # ... cognitive processing happens ...\n\n    # Validate output before release\n    output_ok = gwf.validate_output(output_features, concept_depths)\n    if not output_ok.allowed:\n        handle_blocked_output(output_ok)\n\n    # Run maintenance cycle\n    gwf.maintenance_cycle(system_coherence=0.85)",
+      "method_names": [
+        "__init__",
+        "__setattr__",
+        "_seed_immune_cells",
+        "screen_input",
+        "_screen_input_locked",
+        "validate_output",
+        "maintenance_cycle",
+        "_maintenance_locked_recovery",
+        "_maintenance_cycle_locked",
+        "get_state",
+        "get_metrics",
+        "force_lockdown",
+        "release_lockdown"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "logging",
+        "math",
+        "threading",
+        "time",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "typing.Any",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.abyssal_absorption_engine.AbsorptionResult",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.abyssal_absorption_engine.AbyssalAbsorptionEngine",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.gyroscopic_core.GyroscopicCore",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.marine_immune_system.MarineImmuneSystem",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.models.GWFSystemState",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.models.ThreatSeverity",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.models.ThreatSignature",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.models.TidalPhase",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.tidal_phi_breathing.BreathingPhase",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.tidal_phi_breathing.TidalPhiBreathing",
+        "kimera_swm.domain.security.gyroscopic_water_fortress.viscous_fluid_layer.ViscousFluidLayer"
+      ],
+      "n_callers": 11,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3009,
+          "context": "GWFProtocol,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3012,
+          "context": "self._gwf_protocol = GWFProtocol()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 6635,
+          "context": "GWFProtocol as _GWFVerifyClass,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 6911,
+          "context": "or \"GWFProtocol\" not in getattr(_si_method, \"__qualname__\", \"\")"
+        },
+        {
+          "file": "kimera_swm/domain/security/gyroscopic_water_fortress/models.py",
+          "line": 449,
+          "context": "and is called by `GWFProtocol.health` at `gwf_protocol.py:685`."
+        },
+        {
+          "file": "kimera_swm/domain/security/gyroscopic_water_fortress/gwf_protocol.py",
+          "line": 83,
+          "context": "class GWFProtocol:"
+        },
+        {
+          "file": "kimera_swm/domain/security/gyroscopic_water_fortress/gwf_protocol.py",
+          "line": 87,
+          "context": "gwf = GWFProtocol()"
+        },
+        {
+          "file": "kimera_swm/domain/security/gyroscopic_water_fortress/gwf_protocol.py",
+          "line": 148,
+          "context": "_si = GWFProtocol.screen_input"
+        },
+        {
+          "file": "kimera_swm/domain/security/gyroscopic_water_fortress/gwf_protocol.py",
+          "line": 165,
+          "context": "raise AttributeError(f\"Cannot replace '{name}' on GWFProtocol after initialization\")"
+        },
+        {
+          "file": "kimera_swm/domain/security/gyroscopic_water_fortress/__init__.py",
+          "line": 33,
+          "context": "GWFProtocol,"
+        },
+        {
+          "file": "kimera_swm/domain/security/gyroscopic_water_fortress/__init__.py",
+          "line": 67,
+          "context": "\"GWFProtocol\","
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": "gwf",
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:20.219753+00:00"
+    }
+  },
+  {
+    "name": "Ouroboros",
+    "canonical_class": "OuroborosKernel",
+    "family_tags": [
+      "self_model"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/mathematical/ouroboros_kernel.py",
+      "source_line": 205,
+      "docstring": "The Recursive Metabolic Kernel \u2014 Kimera's digestive system.\n\nIntegrates:\n- **Immune System** (Vacuum Decay): Filters toxic/false inputs\n- **Fusion Reactor** (Coulomb Barrier): Compresses valid data into insights\n- **Brain** (Singularity Handler): Resolves paradoxes via superposition\n\nThe kernel processes raw input through this pipeline and stores the\nresult in core memory as compressed \"Heavy Element\" concepts.\n\nArgs:\n    seed: Optional RNG seed for reproducibility\n    immune_energy_scale: Multiplier for input complexity \u2192 immune energy\n    fusion_temperature_base: Base temperature for the fusion reactor",
+      "method_names": [
+        "__init__",
+        "_fuse_origin_types",
+        "metabolize",
+        "_trim_buffers",
+        "dream_cycle",
+        "get_memory_summary",
+        "get_event_log",
+        "_store_raw"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "logging",
+        "random",
+        "dataclasses.dataclass",
+        "enum.Enum",
+        "kimera_swm.domain.mathematical.coulomb_barrier.FusionOutcome",
+        "kimera_swm.domain.mathematical.coulomb_barrier.ParticleType",
+        "kimera_swm.domain.mathematical.coulomb_barrier.SemanticFusionReactor",
+        "kimera_swm.domain.mathematical.coulomb_barrier.SemanticIsotope",
+        "kimera_swm.domain.mathematical.singularity_handler.ResolutionStrategy",
+        "kimera_swm.domain.mathematical.singularity_handler.SingularityHandler",
+        "kimera_swm.domain.mathematical.vacuum_decay.CollisionOutcome",
+        "kimera_swm.domain.mathematical.vacuum_decay.HyperscaleNode",
+        "kimera_swm.domain.mathematical.vacuum_decay.IsotopeType"
+      ],
+      "n_callers": 30,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 359,
+          "context": "# alexandria_compression: True when Alexandria OuroborosKernel produced at least"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 925,
+          "context": "from kimera_swm.domain.mathematical.ouroboros_kernel import OuroborosKernel"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 934,
+          "context": "self._ouroboros = OuroborosKernel()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 3165,
+          "context": "# Feed trajectory concepts to the Alexandria Protocol (OuroborosKernel)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 1135,
+          "context": "# alexandria_compression: True when Alexandria OuroborosKernel produced at least"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 2892,
+          "context": "from kimera_swm.domain.mathematical.ouroboros_kernel import OuroborosKernel"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 2893,
+          "context": "self._ouroboros = OuroborosKernel()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 4876,
+          "context": "# AlexandriaInterface wraps OuroborosKernel (immune/fusion/paradox/memory)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 17227,
+          "context": "# Feed trajectory concepts to the Alexandria Protocol (OuroborosKernel)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 32729,
+          "context": "\"P282: %d circular paradox(es) \u2192 forced %d OuroborosKernel dream collisions\","
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/ouroboros_kernel.py",
+          "line": 32,
+          "context": "Wired to Takwin as ``self._ouroboros = OuroborosKernel()`` at takwin.py:2200."
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/ouroboros_kernel.py",
+          "line": 205,
+          "context": "class OuroborosKernel:"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 15,
+          "context": "- Works with any OuroborosKernel instance (post-Alexandria or standalone)."
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 80,
+          "context": "OuroborosKernel,"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 141,
+          "context": "OuroborosKernel surface."
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 310,
+          "context": "kernel: The primary OuroborosKernel instance. Labelled \"primary\""
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 312,
+          "context": "additional_kernels: Optional mapping of label \u2192 OuroborosKernel for"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 320,
+          "context": "kernel: OuroborosKernel,"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 322,
+          "context": "additional_kernels: dict[str, OuroborosKernel] | None = None,"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 325,
+          "context": "self._additional_kernels: dict[str, OuroborosKernel] = dict(additional_kernels or {})"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 339,
+          "context": "def _all_kernels(self) -> list[tuple[str, OuroborosKernel]]:"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/oracle_protocol.py",
+          "line": 341,
+          "context": "pairs: list[tuple[str, OuroborosKernel]] = [(\"primary\", self._kernel)]"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/vault_homology.py",
+          "line": 22,
+          "context": "These should be fed to OuroborosKernel for forced resolution."
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/vault_homology.py",
+          "line": 200,
+          "context": "\"(beta_1=%d). Flagging for OuroborosKernel resolution.\","
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/alexandria_protocol.py",
+          "line": 33,
+          "context": "Wraps OuroborosKernel for text-corpus ingestion and semantic compression."
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/alexandria_protocol.py",
+          "line": 52,
+          "context": "OuroborosKernel,"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/alexandria_protocol.py",
+          "line": 146,
+          "context": "# Higher than OuroborosKernel's default (10 keV) because curated"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/alexandria_protocol.py",
+          "line": 157,
+          "context": "self.kernel = OuroborosKernel("
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/metacognitive/reflective_cortex_system.py",
+          "line": 54,
+          "context": "OuroborosKernel,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/metacognitive/reflective_cortex_system.py",
+          "line": 262,
+          "context": "ouroboros: OuroborosKernel | None = None,"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": "ouroboros",
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:20.767089+00:00"
+    }
+  },
+  {
+    "name": "Echoform",
+    "canonical_class": "EchoformOperatorSystem",
+    "family_tags": [
+      "form_algebra"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/ecosystem_form/echoform_operator_system.py",
+      "source_line": 405,
+      "docstring": "Echoform Operator System - Complete Implementation\n\nManages the catalog of Echoform operators and enforces transformation\nrules following the SWM specification.\n\nKey Responsibilities:\n- Operator registration and management\n- Transformation application with validation\n- \u0394S \u2265 0 axiom enforcement (CRITICAL)\n- Closure principle enforcement\n- Operator composition\n- Catalog persistence (JSON)\n\nIntegration:\n- Works with SemanticThermodynamicsEngine for entropy calculations\n- Used by KCCL Step 3 (Transformation)\n- Enforces Law Registry rules",
+      "method_names": [
+        "__init__",
+        "_initialize_builtin_operators",
+        "register_operator",
+        "apply_operator",
+        "_build_single_node_graph",
+        "_calculate_entropy",
+        "_estimate_entropy_from_geoid",
+        "_transform_merge",
+        "_transform_split",
+        "_transform_shift",
+        "_transform_rotate",
+        "_transform_scale",
+        "_transform_project",
+        "_transform_reflect",
+        "_transform_compress",
+        "_transform_invert",
+        "_transform_compose",
+        "_transform_crop",
+        "_transform_pad",
+        "_transform_color_shift",
+        "_transform_tile",
+        "export_catalog",
+        "import_catalog",
+        "_operator_from_dict",
+        "get_catalog_json",
+        "get_operator",
+        "list_operators",
+        "get_transformation_history",
+        "get_statistics"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "copy",
+        "json",
+        "logging",
+        "uuid",
+        "collections.abc.Callable",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "datetime.UTC",
+        "datetime.datetime",
+        "enum.Enum",
+        "typing.Any",
+        "numpy"
+      ],
+      "n_callers": 50,
+      "top_callers": [
+        {
+          "file": "kimera_swm/research/phase10_market_feeding.py",
+          "line": 46,
+          "context": "EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/research/phase10_market_feeding.py",
+          "line": 204,
+          "context": "Adapter to make EchoformOperatorSystem compatible with"
+        },
+        {
+          "file": "kimera_swm/research/phase10_market_feeding.py",
+          "line": 208,
+          "context": "def __init__(self, echoform_system: EchoformOperatorSystem):"
+        },
+        {
+          "file": "kimera_swm/research/phase10_market_feeding.py",
+          "line": 213,
+          "context": "echoform_system: EchoformOperatorSystem instance"
+        },
+        {
+          "file": "kimera_swm/research/phase10_market_feeding.py",
+          "line": 304,
+          "context": "self.echoform_system = EchoformOperatorSystem(thermodynamics_engine=thermodynamics_engine)"
+        },
+        {
+          "file": "kimera_swm/research/phase10_market_feeding_live.py",
+          "line": 54,
+          "context": "EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/research/phase10_market_feeding_live.py",
+          "line": 138,
+          "context": "self.echoform_system = EchoformOperatorSystem(thermodynamics_engine=thermodynamics_engine)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 6020,
+          "context": "# \u2500\u2500 Build EchoformOperatorSystem (lazy, lightweight) \u2500\u2500"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 6023,
+          "context": "EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 6026,
+          "context": "_logger.warning(\"Phase 103: EchoformOperatorSystem import failed: %s\", _ie)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 6034,
+          "context": "eos = EchoformOperatorSystem(thermodynamics_engine=_MinimalThermo())"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 6036,
+          "context": "_logger.warning(\"Phase 103: EchoformOperatorSystem init failed: %s\", _init_exc)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3719,
+          "context": "EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3725,
+          "context": "_piovra_eos = EchoformOperatorSystem(thermodynamics_engine=_PiovraThermo())"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3727,
+          "context": "logger.info(\"Piovra EchoformOperatorSystem not available: %s\", _eos_e)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3787,
+          "context": "EchoformOperatorSystem as _EOS3,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3819,
+          "context": "# Bug 32 fix: each arm gets its own EchoformOperatorSystem"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3852,
+          "context": "EchoformOperatorSystem as _EOSV,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 3915,
+          "context": "EchoformOperatorSystem as _EOSM,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 4287,
+          "context": "EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 4312,
+          "context": "_eos = EchoformOperatorSystem(thermodynamics_engine=_SynthThermo())"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 29338,
+          "context": "# \u2500\u2500 Build EchoformOperatorSystem (lazy, lightweight) \u2500\u2500"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 29341,
+          "context": "EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 29346,
+          "context": "_ef_log.getLogger(__name__).warning(\"Phase 103: EchoformOperatorSystem import failed: %s\", _ie)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 29354,
+          "context": "eos = EchoformOperatorSystem(thermodynamics_engine=_MinimalThermo())"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 29367,
+          "context": "_ef_log2.getLogger(__name__).warning(\"Phase 103: EchoformOperatorSystem init failed: %s\", _init_exc)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/neuroplasticity_controller.py",
+          "line": 70,
+          "context": "echoform_engine: Any,  # EchoformOperatorSystem or EchoformEngine"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl_liturgy.py",
+          "line": 35,
+          "context": "from ..ecosystem_form.echoform_operator_system import EchoformOperatorSystem"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl_liturgy.py",
+          "line": 229,
+          "context": "# Initialize EchoformOperatorSystem (Sprint 2.2 integration)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl_liturgy.py",
+          "line": 230,
+          "context": "self._echoform = EchoformOperatorSystem(thermodynamics_engine=thermodynamics_engine, config=self._config)"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl_liturgy.py",
+          "line": 261,
+          "context": "f\"EchoformOperatorSystem ({len(self._echoform.list_operators())} operators), \""
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/kccl_liturgy.py",
+          "line": 702,
+          "context": "Uses EchoformOperatorSystem to perform semantic transformations on Geoids,"
+        },
+        {
+          "file": "kimera_swm/domain/ecosystem_form/echoform_operator_system.py",
+          "line": 26,
+          "context": "(Bug 32 fix: each Piovra arm gets its own EchoformOperatorSystem)."
+        },
+        {
+          "file": "kimera_swm/domain/ecosystem_form/echoform_operator_system.py",
+          "line": 256,
+          "context": "echoform_system: EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/domain/ecosystem_form/echoform_operator_system.py",
+          "line": 405,
+          "context": "class EchoformOperatorSystem:"
+        },
+        {
+          "file": "kimera_swm/domain/ecosystem_form/echoform_operator_system.py",
+          "line": 484,
+          "context": "\"EchoformOperatorSystem: thermodynamics engine %s has \""
+        },
+        {
+          "file": "kimera_swm/domain/ecosystem_form/echoform_operator_system.py",
+          "line": 491,
+          "context": "\"EchoformOperatorSystem: thermodynamics engine %s \""
+        },
+        {
+          "file": "kimera_swm/domain/ecosystem_form/echoform_operator_system.py",
+          "line": 2230,
+          "context": "\"EchoformOperatorSystem\","
+        },
+        {
+          "file": "kimera_swm/domain/ecosystem_form/transformation_discovery.py",
+          "line": 53,
+          "context": "echoform_system,  # EchoformOperatorSystem"
+        },
+        {
+          "file": "kimera_swm/domain/ecosystem_form/advanced_resonance.py",
+          "line": 22,
+          "context": "existing EchoformOperatorSystem infrastructure."
+        },
+        {
+          "file": "kimera_swm/domain/solutions/neural_echoform_scar.py",
+          "line": 209,
+          "context": "actual_delta_s: Observed entropy change from EchoformOperatorSystem."
+        },
+        {
+          "file": "kimera_swm/domain/visual/arc_integration.py",
+          "line": 6,
+          "context": "Integrates VisualGeoidEncoder, TransformationDiscovery, and EchoformOperatorSystem."
+        },
+        {
+          "file": "kimera_swm/domain/visual/arc_integration.py",
+          "line": 29,
+          "context": "EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/domain/visual/arc_integration.py",
+          "line": 68,
+          "context": "echoform: EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/domain/piovra/prime_index_client.py",
+          "line": 95,
+          "context": "echoform_system: EchoformOperatorSystem for \u0394S \u2265 0 transforms."
+        },
+        {
+          "file": "kimera_swm/domain/evolutionary/scar_integration.py",
+          "line": 289,
+          "context": "echoform_system: EchoformOperatorSystem to register operators"
+        },
+        {
+          "file": "kimera_swm/domain/evolutionary/gravity_evolution.py",
+          "line": 587,
+          "context": "echoform_system: EchoformOperatorSystem to register operators"
+        },
+        {
+          "file": "kimera_swm/domain/evolutionary/operator_synthesis.py",
+          "line": 28,
+          "context": "EchoformOperatorSystem,"
+        },
+        {
+          "file": "kimera_swm/domain/evolutionary/operator_synthesis.py",
+          "line": 44,
+          "context": "def __init__(self, echoform_system: EchoformOperatorSystem):"
+        },
+        {
+          "file": "kimera_swm/domain/quantum/quantum_echoform_bridge.py",
+          "line": 9,
+          "context": "The EchoformOperatorSystem currently applies operators sequentially"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": null,
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:21.001160+00:00"
+    }
+  },
+  {
+    "name": "Alexandria",
+    "canonical_class": "AlexandriaInterface",
+    "family_tags": [
+      "governance",
+      "memory"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/mathematical/alexandria_protocol.py",
+      "source_line": 126,
+      "docstring": "Feed a text corpus through the Ouroboros Kernel and extract insights.\n\nThe interface fragments incoming text, feeds it through the kernel's\nmetabolic pipeline (immune \u2192 fusion \u2192 paradox \u2192 memory), and then\nruns dream cycles to consolidate knowledge.\n\nArgs:\n    seed: RNG seed for reproducibility\n    micro_dream_interval: Trigger a micro-dream every N particles\n    micro_dream_collisions: Number of dream collisions per micro-dream",
+      "method_names": [
+        "__init__",
+        "ingest_corpus",
+        "ingest_enriched_concepts",
+        "warm_start_from_scars",
+        "deep_dream",
+        "analyze_mind",
+        "run_full_protocol",
+        "_fragment_text"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "heapq",
+        "logging",
+        "time",
+        "dataclasses.dataclass",
+        "kimera_swm.domain.mathematical.ouroboros_kernel.Insight",
+        "kimera_swm.domain.mathematical.ouroboros_kernel.KernelMetrics",
+        "kimera_swm.domain.mathematical.ouroboros_kernel.MetabolicEvent",
+        "kimera_swm.domain.mathematical.ouroboros_kernel.MetabolicOutcome",
+        "kimera_swm.domain.mathematical.ouroboros_kernel.OuroborosKernel",
+        "kimera_swm.domain.mathematical.vacuum_decay.CollisionOutcome"
+      ],
+      "n_callers": 10,
+      "top_callers": [
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 1361,
+          "context": "from kimera_swm.domain.mathematical.alexandria_protocol import AlexandriaInterface"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 1377,
+          "context": "self._alexandria = AlexandriaInterface("
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 7957,
+          "context": "(\"_alexandria\", \"AlexandriaInterface\"),"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 4876,
+          "context": "# AlexandriaInterface wraps OuroborosKernel (immune/fusion/paradox/memory)."
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 4884,
+          "context": "AlexandriaInterface,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 4887,
+          "context": "self._alexandria = AlexandriaInterface("
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 4895,
+          "context": "\"AlexandriaInterface init failed (Alexandria compression disabled): %s\","
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 33245,
+          "context": "(\"_alexandria\", \"AlexandriaInterface\"),"
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/alexandria_protocol.py",
+          "line": 32,
+          "context": "``self._alexandria = AlexandriaInterface(...)``."
+        },
+        {
+          "file": "kimera_swm/domain/mathematical/alexandria_protocol.py",
+          "line": 126,
+          "context": "class AlexandriaInterface:"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": null,
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:21.537633+00:00"
+    }
+  },
+  {
+    "name": "Pentecost",
+    "canonical_class": "Pentecost",
+    "family_tags": [
+      "language"
+    ],
+    "static": {
+      "source_file": "kimera_swm/domain/linguistic/one_plus_three_plus_one_enforcer.py",
+      "source_line": 128,
+      "docstring": "Enforces the 1+3+1 rule for all semantic analyses.\n\nThis is the systematic implementation of the core SWM principle that\nEVERY significant knowledge exploration must pass through multiple\nunrelated linguistic and symbolic perspectives.",
+      "method_names": [
+        "__init__",
+        "_initialize_diversity_matrix",
+        "_initialize_default_axes",
+        "_initialize_basic_axes",
+        "_initialize_symbolic_layers",
+        "enforce_one_plus_three_plus_one",
+        "_select_root_axis",
+        "_select_unrelated_axes",
+        "_calculate_diversity_score",
+        "_analyze_from_perspective",
+        "_rotate_vector",
+        "_generate_phonological_projection",
+        "_generate_prosodic_vector",
+        "_generate_syntactic_projection",
+        "_generate_morphological_projection",
+        "_extract_semantic_field",
+        "_analyze_morphology",
+        "_extract_cultural_context",
+        "_analyze_grammatical_structure",
+        "_analyze_pragmatics",
+        "_analyze_symbolic_layer",
+        "_extract_mathematical_form",
+        "_generate_visual_metaphors",
+        "_identify_archetypal_patterns",
+        "_identify_paradoxes",
+        "_analyze_chaotic_dimensions",
+        "_detect_cross_perspective_resonances",
+        "_detect_cross_perspective_contradictions",
+        "_synthesize_emergent_insights",
+        "get_enforcement_statistics",
+        "available_axes",
+        "get_axis_definitions",
+        "symbolic_layers",
+        "diversity_matrix"
+      ],
+      "parent_classes": [],
+      "imports": [
+        "__future__.annotations",
+        "logging",
+        "dataclasses.dataclass",
+        "dataclasses.field",
+        "datetime.UTC",
+        "datetime.datetime",
+        "enum.Enum",
+        "typing.TYPE_CHECKING",
+        "typing.Any",
+        "uuid.uuid4",
+        "numpy"
+      ],
+      "n_callers": 39,
+      "top_callers": [
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 545,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/core/system_orchestrator.py",
+          "line": 551,
+          "context": "else Pentecost()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 1435,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 1451,
+          "context": "enforcer = Pentecost()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 3296,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/pulse.py",
+          "line": 3298,
+          "context": "_enforcer_131 = Pentecost()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 6539,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 6553,
+          "context": "enforcer = Pentecost()"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 17603,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/takwin.py",
+          "line": 17606,
+          "context": "_enforcer_131 = Pentecost()"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/neural_projection_linguistic_integration.py",
+          "line": 78,
+          "context": "\"\"\"Get or create the Pentecost instance (lazy initialization).\"\"\""
+        },
+        {
+          "file": "kimera_swm/domain/geoid/neural_projection_linguistic_integration.py",
+          "line": 89,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/neural_projection_linguistic_integration.py",
+          "line": 92,
+          "context": "self._enforcer = Pentecost("
+        },
+        {
+          "file": "kimera_swm/domain/geoid/neural_projection_linguistic_integration.py",
+          "line": 98,
+          "context": "logger.debug(\"Pentecost initialized for neural projection\")"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/neural_projection_linguistic_integration.py",
+          "line": 102,
+          "context": "logger.warning(f\"Pentecost not available: {e}\")"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/neural_projection_linguistic_integration.py",
+          "line": 107,
+          "context": "f\"Failed to initialize Pentecost: {e}\","
+        },
+        {
+          "file": "kimera_swm/domain/geoid/neural_projection_linguistic_integration.py",
+          "line": 181,
+          "context": "logger.warning(\"Pentecost not available, skipping linguistic analysis\")"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/semantic_dimension_registry.py",
+          "line": 66,
+          "context": "and through language.  Authoritative source: Pentecost"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/semantic_dimension_registry.py",
+          "line": 78,
+          "context": "Pentecost (MATHEMATICAL, VISUAL_METAPHOR,"
+        },
+        {
+          "file": "kimera_swm/domain/geoid/semantic_dimension_registry.py",
+          "line": 130,
+          "context": "primary_class=\"Pentecost\","
+        },
+        {
+          "file": "kimera_swm/domain/geoid/semantic_dimension_registry.py",
+          "line": 146,
+          "context": "primary_class=\"Pentecost\","
+        },
+        {
+          "file": "kimera_swm/domain/sensory/text_sensory_cortex.py",
+          "line": 37,
+          "context": "# class + silent-feature-off fallback for Pentecost."
+        },
+        {
+          "file": "kimera_swm/domain/sensory/text_sensory_cortex.py",
+          "line": 60,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/domain/sensory/text_sensory_cortex.py",
+          "line": 63,
+          "context": "_OnePlusThreePlusOneEnforcer = Pentecost"
+        },
+        {
+          "file": "kimera_swm/domain/sensory/text_sensory_cortex.py",
+          "line": 117,
+          "context": "2. Pentecost selects 3 typologically-distant axes"
+        },
+        {
+          "file": "kimera_swm/domain/sensory/text_sensory_cortex.py",
+          "line": 148,
+          "context": "enforcer: Optional Pentecost instance."
+        },
+        {
+          "file": "kimera_swm/domain/sensory/text_sensory_cortex.py",
+          "line": 168,
+          "context": "logger.debug(\"Pentecost initialized in TextSensoryCortex\")"
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/siphonophore_stack.py",
+          "line": 12,
+          "context": "The 5 linguistic axes from Pentecost are reframed as 5 zooids"
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/__init__.py",
+          "line": 46,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/__init__.py",
+          "line": 116,
+          "context": "\"Pentecost\","
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/unified_linguistic_bridge.py",
+          "line": 116,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/unified_linguistic_bridge.py",
+          "line": 119,
+          "context": "enforcer = Pentecost(thermodynamic_bridge=self._governor)"
+        },
+        {
+          "file": "kimera_swm/domain/linguistic/one_plus_three_plus_one_enforcer.py",
+          "line": 128,
+          "context": "class Pentecost:"
+        },
+        {
+          "file": "kimera_swm/domain/governance/law_registry.py",
+          "line": 150,
+          "context": "that all linguistic outputs must pass through Pentecost (the perception"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/empathy/mirror_neuron_system.py",
+          "line": 24,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/domain/cognitive/empathy/mirror_neuron_system.py",
+          "line": 53,
+          "context": "enforcer: Pentecost,"
+        },
+        {
+          "file": "kimera_swm/infrastructure/factories/installers/domain_installer.py",
+          "line": 1657,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/infrastructure/factories/installers/domain_installer.py",
+          "line": 1662,
+          "context": "Pentecost,"
+        },
+        {
+          "file": "kimera_swm/infrastructure/factories/installers/domain_installer.py",
+          "line": 1663,
+          "context": "Pentecost,"
+        }
+      ],
+      "notes": []
+    },
+    "adapter": {
+      "target": "pentecost",
+      "is_available": false
+    },
+    "dynamic": {
+      "discovery_field_count": null,
+      "discovery_field_sample": [],
+      "audit_finding_count": null,
+      "audit_severity_histogram": {},
+      "instrumenting_wall_time_p50_s": null,
+      "instrumenting_cpu_time_p50_s": null
+    },
+    "provenance": {
+      "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+      "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+      "captured_at": "2026-05-15T14:14:22.138235+00:00"
+    }
+  }
+]

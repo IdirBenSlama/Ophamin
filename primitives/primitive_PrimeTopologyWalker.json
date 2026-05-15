@@ -1,0 +1,222 @@
+{
+  "name": "Walker",
+  "canonical_class": "PrimeTopologyWalker",
+  "family_tags": [
+    "brain",
+    "topology",
+    "coordination"
+  ],
+  "static": {
+    "source_file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+    "source_line": 242,
+    "docstring": "Physics-driven agentic graph-search agent.\n\nThe walker traverses a prime-topology graph using the four neuromorphic\nmechanisms from Phase 58 as its decision logic. Decision-making (which\nconcept to commit to, when to halt, when to roll back, when to leap)\nemerges from the oscillator dynamics of CognitiveRhythm. Three documented\nsafety nets \u2014 death_debounce (transient-coherence filter), neighborhood-\nexhaustion fallback (jump to nearest_unvisited when local edges are\nfully visited), and stall-jump after 20 idle ticks (prevent budget\nexhaustion when gamma never leads) \u2014 provide bounded escape from\npathological substrate states without overriding the M1-M4 gates that\nfire when conditions are met.\n\nUsage\n-----\n::\n\n    walker = PrimeTopologyWalker(n_nodes=30, start_node=0)\n    state  = walker.traverse(max_steps=50, latency_per_hop=0.003)\n    print(state.trajectory, state.rollbacks, state.halt_reason)",
+    "method_names": [
+      "__init__",
+      "traverse"
+    ],
+    "parent_classes": [],
+    "imports": [
+      "__future__.annotations",
+      "logging",
+      "math",
+      "random",
+      "dataclasses.dataclass"
+    ],
+    "n_callers": 35,
+    "top_callers": [
+      {
+        "file": "kimera_swm/domain/cognitive/pulse.py",
+        "line": 15,
+        "context": "\u2193 Step 3-4: TRAVERSAL      PrimeTopologyWalker.traverse() \u2192 WalkerState"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/pulse.py",
+        "line": 75,
+        "context": "from kimera_swm.domain.cognitive.prime_topology_walker import PrimeTopologyWalker"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/pulse.py",
+        "line": 76,
+        "context": "return PrimeTopologyWalker"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/pulse.py",
+        "line": 734,
+        "context": "Wires SemanticGeoidBridge (Phase 60) \u2192 PrimeTopologyWalker (Phase 59/60)"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/pulse.py",
+        "line": 5762,
+        "context": "Run PrimeTopologyWalker on the GeoidGraph."
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/pulse.py",
+        "line": 5795,
+        "context": "PrimeTopologyWalker = _get_walker_class()"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/pulse.py",
+        "line": 5906,
+        "context": "walker = PrimeTopologyWalker(start_node=start_nid, graph=graph)"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/takwin.py",
+        "line": 15,
+        "context": "\u2193 Step 3-4: TRAVERSAL      PrimeTopologyWalker.traverse() \u2192 WalkerState"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/takwin.py",
+        "line": 196,
+        "context": "from kimera_swm.domain.cognitive.prime_topology_walker import PrimeTopologyWalker"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/takwin.py",
+        "line": 198,
+        "context": "return PrimeTopologyWalker"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/takwin.py",
+        "line": 2234,
+        "context": "Wires SemanticGeoidBridge (Phase 60) \u2192 PrimeTopologyWalker (Phase 59/60)"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/takwin.py",
+        "line": 27553,
+        "context": "Consumes the Phase 359 widening of ``PrimeTopologyWalker``'s"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/takwin.py",
+        "line": 28331,
+        "context": "Run PrimeTopologyWalker on the GeoidGraph."
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/takwin.py",
+        "line": 28364,
+        "context": "PrimeTopologyWalker = _get_walker_class()"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/takwin.py",
+        "line": 28641,
+        "context": "walker = PrimeTopologyWalker(start_node=start_nid, graph=graph)"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/takwin.py",
+        "line": 30535,
+        "context": "# by SemanticGeoidBridge and PrimeTopologyWalker."
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/geoid_activator.py",
+        "line": 6,
+        "context": "after a completed PrimeTopologyWalker traversal."
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/geoid_activator.py",
+        "line": 10,
+        "context": "After ``PrimeTopologyWalker.walk()`` returns a ``WalkerState``, none of the"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/geoid_activator.py",
+        "line": 38,
+        "context": "walker_state=walker_state,       # WalkerState from PrimeTopologyWalker.walk()"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/geoid_activator.py",
+        "line": 86,
+        "context": "Return value of ``PrimeTopologyWalker.walk()`` (or ``.traverse()``)."
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/jax_hamiltonian_walker.py",
+        "line": 5,
+        "context": "Phase 2: Replaces sequential PrimeTopologyWalker with a global eigen-solver."
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+        "line": 85,
+        "context": "\"\"\"Final state returned by PrimeTopologyWalker.traverse().\"\"\""
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+        "line": 238,
+        "context": "# PrimeTopologyWalker"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+        "line": 242,
+        "context": "class PrimeTopologyWalker:"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+        "line": 261,
+        "context": "walker = PrimeTopologyWalker(n_nodes=30, start_node=0)"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+        "line": 283,
+        "context": "raise ValueError(\"PrimeTopologyWalker: graph must have at least 1 node\")"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+        "line": 287,
+        "context": "f\"PrimeTopologyWalker: start_node={self._start_node} out of range \""
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/prime_topology_walker.py",
+        "line": 669,
+        "context": "\"PrimeTopologyWalker\","
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+        "line": 5,
+        "context": "Connects the PrimeTopologyWalker (Phase 59) to concept-string inputs."
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+        "line": 71,
+        "context": "\u2192 PrimeTopologyWalker(graph=geoid_graph)  [oscillator-driven traversal]"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+        "line": 313,
+        "context": "PrimeTopologyWalker.traverse() works without modification:"
+      },
+      {
+        "file": "kimera_swm/domain/cognitive/semantic_geoid_bridge.py",
+        "line": 1764,
+        "context": "walker = PrimeTopologyWalker(start_node=0, graph=graph)"
+      },
+      {
+        "file": "kimera_swm/domain/geoid/prime_resonance_engine.py",
+        "line": 141,
+        "context": "distance in PrimeTopologyWalker, or GeoidNode.prime storage)."
+      },
+      {
+        "file": "kimera_swm/domain/linguistic/kimera_linguistic_engine.py",
+        "line": 84,
+        "context": "trajectory      : ordered concept list from PrimeTopologyWalker"
+      },
+      {
+        "file": "kimera_swm/api/routers/specialized_router.py",
+        "line": 1264,
+        "context": "PrimeTopologyWalker \u2192 IIT \u03a6 \u2192 KCCL \u2192 SCAR persistence \u2192 LLMTranslator)."
+      }
+    ],
+    "notes": []
+  },
+  "adapter": {
+    "target": "walker",
+    "is_available": false
+  },
+  "dynamic": {
+    "discovery_field_count": null,
+    "discovery_field_sample": [],
+    "audit_finding_count": null,
+    "audit_severity_histogram": {},
+    "instrumenting_wall_time_p50_s": null,
+    "instrumenting_cpu_time_p50_s": null
+  },
+  "provenance": {
+    "kimera_repo": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+    "kimera_git_commit": "179edd233c157441c8b052bbea45e19fcc666561",
+    "captured_at": "2026-05-15T14:13:06.004021+00:00"
+  }
+}

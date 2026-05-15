@@ -13,6 +13,8 @@
                                           + drift on every Kimera HEAD change
     ophamin audit <path>                  orchestrate static-analysis pillars; signed audit record
     ophamin report <record.json>          render a proof or audit record as HTML / Markdown / LaTeX
+    ophamin inspect <kimera-repo> <name>  per-primitive profile (static + optional dynamic)
+    ophamin inspect-all <kimera-repo>     survey every catalogued Kimera primitive
 """
 
 from __future__ import annotations
@@ -35,6 +37,7 @@ from ophamin.seeing.discovery import (
 )
 from ophamin.auditing import AuditRunner
 from ophamin.auditing.pillars import DEFAULT_PILLAR_CLASSES
+from ophamin.inspecting import PrimitiveInspector
 from ophamin.reporting import ReportFormat, ReportRunner
 from ophamin.comparing.drift import ProofIndex, detect_drift
 from ophamin.comparing.orchestration.experiment import ExperimentRunner
@@ -362,6 +365,112 @@ def cmd_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_inspect(args: argparse.Namespace) -> int:
+    """Per-primitive profile (static introspection + optional dynamic).
+
+    Reads the Kimera source tree to extract the primitive's docstring,
+    methods, parent classes, imports, and caller count. Optional flags
+    add Layer A schema discovery (``--with-discovery``) and a single-file
+    static audit (``--with-audit``).
+    """
+    repo = Path(args.repo)
+    if not repo.is_dir():
+        print(f"kimera repo not found: {repo}", file=sys.stderr)
+        return 2
+    try:
+        inspector = PrimitiveInspector(repo)
+    except NotADirectoryError as exc:
+        print(f"inspector failed: {exc}", file=sys.stderr)
+        return 2
+    profile = inspector.inspect(
+        args.primitive,
+        with_discovery=args.with_discovery,
+        with_audit=args.with_audit,
+    )
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    base = out_dir / f"primitive_{profile.canonical_class}"
+    profile.to_json(str(base.with_suffix(".json")))
+    profile.to_markdown(str(base.with_suffix(".md")))
+    print(f"primitive       : {profile.name}")
+    print(f"canonical class : {profile.canonical_class}")
+    print(f"family          : {', '.join(profile.family_tags) or '(unclassified)'}")
+    if profile.source_file:
+        print(f"located         : {profile.source_file}:{profile.source_line}")
+    else:
+        print(f"located         : NOT FOUND in source tree")
+    print(f"methods         : {len(profile.method_names)}")
+    print(f"callers         : {profile.n_callers}")
+    if profile.discovery_field_count is not None:
+        print(f"discovery       : {profile.discovery_field_count} field paths")
+    if profile.audit_finding_count is not None:
+        print(f"audit findings  : {profile.audit_finding_count}")
+    if profile.notes:
+        print(f"notes           :")
+        for n in profile.notes:
+            print(f"  - {n}")
+    print(f"written         : {base.with_suffix('.json')}")
+    print(f"                  {base.with_suffix('.md')}")
+    return 0
+
+
+def cmd_inspect_all(args: argparse.Namespace) -> int:
+    """Survey every catalogued primitive against the given Kimera repo.
+
+    Produces a JSON array of profiles + a Markdown summary table. Optional
+    flags add dynamic readings (slower).
+    """
+    repo = Path(args.repo)
+    if not repo.is_dir():
+        print(f"kimera repo not found: {repo}", file=sys.stderr)
+        return 2
+    inspector = PrimitiveInspector(repo)
+    profiles = inspector.inspect_all(
+        with_discovery=args.with_discovery,
+        with_audit=args.with_audit,
+        family_filter=args.family or None,
+    )
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # JSON array of profiles
+    json_path = out_dir / "primitives_survey.json"
+    json_path.write_text(
+        json.dumps([p.to_dict() for p in profiles], indent=2, default=str),
+        encoding="utf-8",
+    )
+
+    # Markdown summary table
+    md_path = out_dir / "primitives_survey.md"
+    lines = [
+        "# Kimera primitives — survey\n",
+        f"**Kimera repo:** `{repo.resolve()}`  ",
+        f"**Kimera commit:** `{inspector.kimera_commit[:12]}`  ",
+        f"**Primitives surveyed:** {len(profiles)}\n",
+        "| name | class | family | located | methods | callers |",
+        "|---|---|---|---|---|---|",
+    ]
+    for p in profiles:
+        loc = (
+            f"`{p.source_file}:{p.source_line}`" if p.source_file
+            else "_not found_"
+        )
+        lines.append(
+            f"| {p.name} | `{p.canonical_class}` | "
+            f"{', '.join(p.family_tags)} | {loc} | "
+            f"{len(p.method_names)} | {p.n_callers} |"
+        )
+    md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    n_located = sum(1 for p in profiles if p.source_file)
+    print(f"primitives surveyed : {len(profiles)}")
+    print(f"located in source    : {n_located} / {len(profiles)}")
+    print(f"missing in source    : {len(profiles) - n_located}")
+    print(f"written              : {json_path}")
+    print(f"                       {md_path}")
+    return 0
+
+
 def cmd_audit(args: argparse.Namespace) -> int:
     """Orchestrate static-analysis pillars against a target path.
 
@@ -620,6 +729,49 @@ def build_parser() -> argparse.ArgumentParser:
         help="directory to write the rendered output (default: reports/)",
     )
     p_report.set_defaults(func=cmd_report)
+
+    p_insp = sub.add_parser(
+        "inspect",
+        help="per-primitive profile (static introspection + optional dynamic)",
+    )
+    p_insp.add_argument("repo", help="path to the Kimera-SWM repository")
+    p_insp.add_argument("primitive", help="primitive name or class name")
+    p_insp.add_argument(
+        "--with-discovery", action="store_true",
+        help="run Layer A schema mining if the primitive has a wired target",
+    )
+    p_insp.add_argument(
+        "--with-audit", action="store_true",
+        help="run a single-file static audit against the primitive's source",
+    )
+    p_insp.add_argument(
+        "--out-dir", default="primitives",
+        help="directory to write the profile JSON + Markdown (default: primitives/)",
+    )
+    p_insp.set_defaults(func=cmd_inspect)
+
+    p_insp_all = sub.add_parser(
+        "inspect-all",
+        help="survey every catalogued Kimera primitive",
+    )
+    p_insp_all.add_argument("repo", help="path to the Kimera-SWM repository")
+    p_insp_all.add_argument(
+        "--family", default="",
+        help="filter by biological-family tag (brain / nervous_system / sensory / …)",
+    )
+    p_insp_all.add_argument(
+        "--with-discovery", action="store_true",
+        help="run Layer A schema mining for every primitive with a wired target",
+    )
+    p_insp_all.add_argument(
+        "--with-audit", action="store_true",
+        help="run a single-file static audit per located primitive",
+    )
+    p_insp_all.add_argument(
+        "--out-dir", default="primitives",
+        help="directory to write the survey JSON + Markdown (default: primitives/)",
+    )
+    p_insp_all.set_defaults(func=cmd_inspect_all)
 
     return parser
 
