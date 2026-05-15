@@ -15,6 +15,7 @@
     ophamin report <record.json>          render a proof or audit record as HTML / Markdown / LaTeX
     ophamin inspect <kimera-repo> <name>  per-primitive profile (static + optional dynamic)
     ophamin inspect-all <kimera-repo>     survey every catalogued Kimera primitive
+    ophamin export <record.json>          export a record to SARIF (audit) / JUnit XML (proof)
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ from ophamin.seeing.discovery import (
 from ophamin.auditing import AuditRunner
 from ophamin.auditing.pillars import DEFAULT_PILLAR_CLASSES
 from ophamin.inspecting import PrimitiveInspector
+from ophamin.interop import JUnitXMLExporter, SARIFExporter
 from ophamin.reporting import ReportFormat, ReportRunner
 from ophamin.comparing.drift import ProofIndex, detect_drift
 from ophamin.comparing.orchestration.experiment import ExperimentRunner
@@ -362,6 +364,63 @@ def cmd_report(args: argparse.Namespace) -> int:
         if assets.is_dir():
             n = len(list(assets.glob("*.png")))
             print(f"         + {n} chart PNG(s) in {assets}")
+    return 0
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    """Export a signed Ophamin record to a standard interop format.
+
+    Audit records → SARIF 2.1.0 (consumed by VS Code Problems pane, GitHub
+    code-scanning, GitLab CI security panel, any SARIF-aware tool).
+
+    Proof records → JUnit XML (consumed by every CI's test-result aggregator
+    — GitHub Actions, GitLab CI, CircleCI, Jenkins).
+    """
+    record_path = Path(args.record)
+    if not record_path.is_file():
+        print(f"record not found: {record_path}", file=sys.stderr)
+        return 2
+    try:
+        payload = json.loads(record_path.read_text())
+    except json.JSONDecodeError as exc:
+        print(f"record is not valid JSON: {exc}", file=sys.stderr)
+        return 2
+
+    out_path = Path(args.output) if args.output else None
+    fmt = args.format.lower()
+
+    if fmt == "sarif":
+        if "audit_id" not in payload:
+            print(
+                "--format=sarif requires an Audit Record (got something without "
+                "'audit_id'); use --format=junit-xml for proof records",
+                file=sys.stderr,
+            )
+            return 2
+        out = SARIFExporter().export(
+            payload, out_path or record_path.with_suffix(".sarif")
+        )
+    elif fmt in ("junit", "junit-xml"):
+        if "claim" not in payload or "verdict" not in payload:
+            print(
+                "--format=junit-xml requires an Empirical Proof Record "
+                "(missing 'claim' and/or 'verdict'); use --format=sarif for audit records",
+                file=sys.stderr,
+            )
+            return 2
+        out = JUnitXMLExporter().export(
+            payload, out_path or record_path.with_suffix(".xml")
+        )
+    else:
+        print(
+            f"unknown format {args.format!r}; choose from: sarif, junit-xml",
+            file=sys.stderr,
+        )
+        return 2
+
+    print(f"record  : {record_path}")
+    print(f"format  : {fmt}")
+    print(f"written : {out}")
     return 0
 
 
@@ -772,6 +831,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="directory to write the survey JSON + Markdown (default: primitives/)",
     )
     p_insp_all.set_defaults(func=cmd_inspect_all)
+
+    p_export = sub.add_parser(
+        "export",
+        help="export a signed record to a standard interop format (SARIF / JUnit XML)",
+    )
+    p_export.add_argument("record", help="path to a signed Ophamin record JSON")
+    p_export.add_argument(
+        "--format", required=True,
+        choices=["sarif", "junit-xml", "junit"],
+        help=(
+            "target format: sarif (audit records → SARIF 2.1.0); "
+            "junit-xml (proof records → JUnit XML)"
+        ),
+    )
+    p_export.add_argument(
+        "--output", default="",
+        help="output path (default: record path with the target extension)",
+    )
+    p_export.set_defaults(func=cmd_export)
 
     return parser
 
