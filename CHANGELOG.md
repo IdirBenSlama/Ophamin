@@ -7,6 +7,27 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- **`KimeraInventory` + `ophamin inventory` — v0.2 Step 1**
+  ([`docs/KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md`](docs/KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md)).
+  Static enumeration of every observable surface in a Kimera-SWM working
+  tree, across nine strata: cognitive, interface, transport, persistence,
+  reconciliation, temporal, security, telemetry, lifecycle. Pure file
+  enumeration — does not import or execute Kimera. Output is a signed,
+  content-addressed, HMAC-verified `KimeraInventory` JSON + Markdown
+  report. Each stratum's discoverer is independent; absent files report as
+  "dormant" rather than crashing. 23 hardening tests in
+  `tests/test_kimera_inventory.py`.
+
+  First live measurement against the production Kimera-SWM working tree
+  (commit `a0adf1a0`, 2026-05-15): **336 observable surfaces, all 9 strata
+  live**. Cognitive: 11 · interface: 104 · transport: 8 · persistence: 42 ·
+  reconciliation: 8 · temporal: 36 · security: 64 · telemetry: 35 ·
+  lifecycle: 28. This is the empirical baseline against which the next
+  v0.2 steps (field projection, Prometheus consumer, per-stratum
+  scenarios) can be sized.
+
 ### Fixed
 
 - **`AuditRecord.to_markdown` shadow bug** — the loop variable `for path, count

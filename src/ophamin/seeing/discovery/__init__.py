@@ -26,6 +26,24 @@ drift detection — both sit on top of this layer.
 
 from __future__ import annotations
 
+from ophamin.seeing.discovery.kimera_inventory import (
+    DEFAULT_SIGN_KEY,
+    INVENTORY_SCHEMA_VERSION,
+    STRATA_DISCOVERERS,
+    KimeraInventory,
+    StratumInventory,
+    Surface,
+    discover_all,
+    discover_cognitive,
+    discover_interface,
+    discover_lifecycle,
+    discover_persistence,
+    discover_reconciliation,
+    discover_security,
+    discover_telemetry,
+    discover_temporal,
+    discover_transport,
+)
 from ophamin.seeing.discovery.schema_diff import FieldChange, SchemaDiff, diff_schemas
 from ophamin.seeing.discovery.schema_document import (
     FieldSchema,
@@ -43,15 +61,31 @@ from ophamin.seeing.discovery.watcher import (
 
 __all__ = [
     "DEFAULT_POLL_INTERVAL_S",
+    "DEFAULT_SIGN_KEY",
     "FieldChange",
     "FieldSchema",
+    "INVENTORY_SCHEMA_VERSION",
     "KimeraDiscoveryWatcher",
+    "KimeraInventory",
     "SchemaDiff",
     "SchemaDocument",
     "SchemaMiner",
+    "STRATA_DISCOVERERS",
+    "StratumInventory",
+    "Surface",
     "TargetSchema",
     "WatchOutcome",
     "diff_schemas",
+    "discover_all",
+    "discover_cognitive",
+    "discover_interface",
+    "discover_lifecycle",
+    "discover_persistence",
+    "discover_reconciliation",
+    "discover_security",
+    "discover_telemetry",
+    "discover_temporal",
+    "discover_transport",
     "kimera_head_commit",
     "write_schema_markdown",
 ]

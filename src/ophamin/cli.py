@@ -12,6 +12,7 @@
     ophamin watch <repo>                  many-small-eyes: continuously re-discover + diff
                                           + drift on every Kimera HEAD change
     ophamin audit <path>                  orchestrate static-analysis pillars; signed audit record
+    ophamin inventory <kimera-repo>       enumerate observable surface across 9 strata (static)
     ophamin report <record.json>          render a proof or audit record as HTML / Markdown / LaTeX
     ophamin inspect <kimera-repo> <name>  per-primitive profile (static + optional dynamic)
     ophamin inspect-all <kimera-repo>     survey every catalogued Kimera primitive
@@ -30,10 +31,13 @@ from ophamin.config.sweep import SweepSpec, get_in, load_config, load_sweep
 from ophamin.seeing.discovery import (
     DEFAULT_POLL_INTERVAL_S,
     KimeraDiscoveryWatcher,
+    KimeraInventory,
     SchemaDocument,
     SchemaMiner,
+    STRATA_DISCOVERERS,
     WatchOutcome,
     diff_schemas,
+    discover_all,
     write_schema_markdown,
 )
 from ophamin.auditing import AuditRunner
@@ -642,6 +646,53 @@ def cmd_audit(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_inventory(args: argparse.Namespace) -> int:
+    """Enumerate Kimera's observable surface across all 9 strata.
+
+    Pure static analysis — does NOT execute Kimera. Reads the Kimera repo at
+    the given path and emits a signed, content-addressed inventory JSON +
+    Markdown. Each stratum's discoverer is independent; a stratum with zero
+    surfaces is reported as ``dormant`` rather than as an error.
+    """
+    repo = Path(args.repo).expanduser().resolve()
+    if not repo.is_dir():
+        print(f"kimera repo path is not a directory: {repo}", file=sys.stderr)
+        return 2
+
+    strata: tuple[str, ...] | None = None
+    if args.strata:
+        strata = tuple(s.strip() for s in args.strata.split(",") if s.strip())
+        unknown = set(strata) - set(STRATA_DISCOVERERS)
+        if unknown:
+            print(f"unknown strata: {sorted(unknown)}", file=sys.stderr)
+            print(f"valid strata  : {sorted(STRATA_DISCOVERERS)}", file=sys.stderr)
+            return 2
+
+    print(f"inventorying    : {repo}")
+    inv = discover_all(repo, strata=strata)
+
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    short = inv.inventory_id[:16]
+    json_path = out_dir / f"inventory_{short}.json"
+    md_path = out_dir / f"inventory_{short}.md"
+    inv.to_json(str(json_path))
+    inv.to_markdown(str(md_path))
+
+    print(f"\nkimera commit   : {inv.kimera_git_commit or '(not a git repo)'}")
+    print(f"total surfaces  : {inv.total_surfaces()}")
+    print(f"live strata     : {len(inv.live_strata())}/{len(inv.strata)}")
+    print(f"\nper-stratum coverage:")
+    for s in inv.strata:
+        status = "live" if s.is_live else "dormant"
+        print(f"  {s.stratum:<16} {s.count:>4}  ({status}, expected ≥ {s.expected_count})")
+    if inv.dormant_strata():
+        print(f"\ndormant strata  : {', '.join(inv.dormant_strata())}")
+    print(f"\nwritten         : {json_path}")
+    print(f"                  {md_path}")
+    return 0
+
+
 def cmd_discover_diff(args: argparse.Namespace) -> int:
     """Structural diff between two SchemaDocuments (added/removed/type-changed)."""
     before = SchemaDocument.from_json(args.before)
@@ -822,6 +873,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="per-pillar timeout in seconds (default: 600)",
     )
     p_audit.set_defaults(func=cmd_audit)
+
+    p_inv = sub.add_parser(
+        "inventory",
+        help="enumerate Kimera's observable surface across all 9 strata "
+             "(static analysis — no Kimera execution required)",
+    )
+    p_inv.add_argument("repo", help="path to the Kimera-SWM repository")
+    p_inv.add_argument(
+        "--strata", default="",
+        help="comma-separated subset of strata to discover (default: all 9). "
+             f"Valid: {','.join(sorted(STRATA_DISCOVERERS))}",
+    )
+    p_inv.add_argument(
+        "--out-dir", default="inventory",
+        help="directory to write the inventory JSON + Markdown (default: inventory/)",
+    )
+    p_inv.set_defaults(func=cmd_inventory)
 
     p_report = sub.add_parser(
         "report",
