@@ -11,6 +11,7 @@
     ophamin drift-report                  cross-Kimera-commit drift over proof records (Layer C)
     ophamin watch <repo>                  many-small-eyes: continuously re-discover + diff
                                           + drift on every Kimera HEAD change
+    ophamin audit <path>                  orchestrate static-analysis pillars; signed audit record
 """
 
 from __future__ import annotations
@@ -31,6 +32,8 @@ from ophamin.seeing.discovery import (
     diff_schemas,
     write_schema_markdown,
 )
+from ophamin.auditing import AuditRunner
+from ophamin.auditing.pillars import DEFAULT_PILLAR_CLASSES
 from ophamin.comparing.drift import ProofIndex, detect_drift
 from ophamin.comparing.orchestration.experiment import ExperimentRunner
 from ophamin.comparing.provenance.lineage import LineageStore
@@ -315,6 +318,67 @@ def cmd_watch(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_audit(args: argparse.Namespace) -> int:
+    """Orchestrate static-analysis pillars against a target path.
+
+    Each pillar wraps one external tool (ruff, bandit, mypy, vulture, radon,
+    pip-audit). Tools that aren't installed report ``status="unavailable"``;
+    the rest run and contribute findings to a signed AuditRecord.
+    """
+    target = Path(args.target)
+    if not target.exists():
+        print(f"target does not exist: {target}", file=sys.stderr)
+        return 2
+    # filter pillars by --pillars list if given
+    pillar_classes = list(DEFAULT_PILLAR_CLASSES)
+    if args.pillars:
+        wanted = {name.strip() for name in args.pillars.split(",") if name.strip()}
+        pillar_classes = [cls for cls in pillar_classes if cls.name in wanted]
+        if not pillar_classes:
+            print(f"no pillars match --pillars={args.pillars}", file=sys.stderr)
+            return 2
+    runner = AuditRunner(pillars=[cls() for cls in pillar_classes])
+    print(f"auditing: {target}")
+    print(f"pillars : {', '.join(p.name for p in runner.pillars)}")
+    print(f"          ({len(runner.available_pillars())} available locally)")
+    record = runner.run(target, timeout_s=float(args.timeout))
+
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    short = record.audit_id[:16]
+    json_path = out_dir / f"audit_{short}.json"
+    md_path = out_dir / f"audit_{short}.md"
+    record.to_json(str(json_path))
+    record.to_markdown(str(md_path))
+
+    s = record.summary
+    print(f"\nsummary:")
+    print(f"  total findings  : {s.total_findings}")
+    print(f"  pillars run     : {len(s.pillars_run)} "
+          f"({', '.join(s.pillars_run) or '—'})")
+    if s.pillars_unavailable:
+        print(f"  pillars missing : {len(s.pillars_unavailable)} "
+              f"({', '.join(s.pillars_unavailable)})")
+    if s.pillars_errored:
+        print(f"  pillars errored : {len(s.pillars_errored)} "
+              f"({', '.join(s.pillars_errored)})")
+    if s.severity_histogram:
+        print(f"  severities      : ", end="")
+        print(", ".join(f"{sev}={n}" for sev, n in sorted(
+            s.severity_histogram.items(), key=lambda kv: -kv[1]
+        )))
+    if s.findings_per_pillar:
+        print(f"  per pillar      : ", end="")
+        print(", ".join(f"{p}={n}" for p, n in sorted(s.findings_per_pillar.items())))
+    if s.top_files:
+        print(f"  top hotspots    :")
+        for path, n in s.top_files[:5]:
+            print(f"    {n:>4}  {path}")
+    print(f"\nwritten         : {json_path}")
+    print(f"                  {md_path}")
+    return 0
+
+
 def cmd_discover_diff(args: argparse.Namespace) -> int:
     """Structural diff between two SchemaDocuments (added/removed/type-changed)."""
     before = SchemaDocument.from_json(args.before)
@@ -470,6 +534,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="run a single tick (mine if HEAD changed) and exit, instead of looping",
     )
     p_watch.set_defaults(func=cmd_watch)
+
+    p_audit = sub.add_parser(
+        "audit",
+        help="orchestrate static-analysis pillars against a target path",
+    )
+    p_audit.add_argument("target", help="path to audit (directory or file)")
+    p_audit.add_argument(
+        "--pillars",
+        default="",
+        help=(
+            "comma-separated subset of pillar names "
+            f"(default: all; available: {','.join(cls.name for cls in DEFAULT_PILLAR_CLASSES)})"
+        ),
+    )
+    p_audit.add_argument(
+        "--out-dir",
+        default="audits",
+        help="directory to write the audit JSON + Markdown (default: audits/)",
+    )
+    p_audit.add_argument(
+        "--timeout",
+        default="600",
+        help="per-pillar timeout in seconds (default: 600)",
+    )
+    p_audit.set_defaults(func=cmd_audit)
 
     return parser
 
