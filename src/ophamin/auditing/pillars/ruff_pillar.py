@@ -57,8 +57,9 @@ class RuffPillar(AuditPillar):
         if not self.is_available():
             return self.unavailable_result(target)
 
+        binary = self.resolved_binary() or self.tool_binary
         cmd = [
-            self.tool_binary, "check",
+            binary, "check",
             "--output-format=json",
             "--no-cache",          # honest run
             "--exit-zero",         # don't fail the subprocess on findings

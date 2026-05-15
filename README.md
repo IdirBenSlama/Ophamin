@@ -107,9 +107,30 @@ any traditional engineering tool.
 git clone https://github.com/IdirBenSlama/Ophamin.git
 cd Ophamin
 python3.12 -m venv .venv             # Python 3.10+ required; 3.12 recommended
+
+# Minimal install — runs MockSubstrate scenarios + the analytic pillars.
 .venv/bin/python -m pip install -e ".[dev,viz]"
-.venv/bin/python -m pytest -q          # 386 tests — substrate + pillars + wheels
+
+# Full install — everything Ophamin can do against Kimera, including the
+# audit pillars (ruff/bandit/mypy/vulture/radon/pip-audit), profile tools
+# (py-spy/memray), telemetry consumer (prometheus_client + opentelemetry),
+# and SBOM exporter (cyclonedx).
+.venv/bin/python -m pip install -e ".[dev,viz,audit,profile,telemetry,well,hydra]"
+# or shorthand:
+.venv/bin/python -m pip install -e ".[all,dev]"
+
+.venv/bin/python -m pytest -q                      # 551 tests, all green
 .venv/bin/python examples/run_mock_experiment.py   # end-to-end, no Kimera needed
+```
+
+If you skip the `[audit]` extra, `ophamin audit` will report each missing
+pillar as `status="unavailable"` with an install hint — loud failure, not
+silent skip. To verify all pillars resolve correctly:
+
+```bash
+.venv/bin/python -m ophamin.cli audit src/ophamin \
+  --pillars=ruff,bandit,mypy,vulture,radon,pip_audit \
+  --out-dir /tmp/audit-self --timeout 120
 ```
 
 `run_mock_experiment.py` runs a 4×2 parameter sweep on the `MockSubstrate`,

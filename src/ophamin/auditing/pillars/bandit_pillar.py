@@ -34,8 +34,9 @@ class BanditPillar(AuditPillar):
         if not self.is_available():
             return self.unavailable_result(target)
 
+        binary = self.resolved_binary() or self.tool_binary
         cmd = [
-            self.tool_binary, "-r", target,
+            binary, "-r", target,
             "-f", "json",
             "--quiet",                  # suppress progress bar
         ]

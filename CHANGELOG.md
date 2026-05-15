@@ -7,6 +7,27 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+- **Audit pillars now resolve binaries from the venv's bin/ first, not just PATH.**
+  When Ophamin runs as ``.venv/bin/python -m ophamin.cli`` without venv
+  activation, ``shutil.which("vulture")`` returns None even though vulture
+  is installed at ``.venv/bin/vulture``. The audit pillars consequently
+  marked vulture / radon / pip-audit as ``status="unavailable"`` against
+  Kimera, even when the user had run ``pip install -e '.[audit]'``. New
+  ``AuditPillar.resolved_binary()`` looks next to ``sys.executable`` first,
+  falling through to PATH. 3 regression tests pin venv-local-preferred,
+  PATH-fall-through, and nowhere-found loud failure.
+
+  Verified end-to-end against Kimera-SWM (2026-05-15): ``ophamin audit
+  kimera_swm/ --pillars=ruff,bandit,vulture,radon`` now reports **41,953
+  total findings** (ruff 18,838 + vulture 12,520 + radon 7,208 + bandit
+  3,387) — 81 critical, 9,106 high — across the entire substrate. Top
+  hotspot: ``takwin.py`` with 616 findings.
+
+  README + CONTRIBUTING + CI audit workflow updated to install all extras
+  by default. Test count: 551 → 554.
+
 ### Added
 
 - **`WiringProbe.scan_all()` + `ophamin wiring --all` — v0.2 Step 5b.**

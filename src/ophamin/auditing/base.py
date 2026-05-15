@@ -148,17 +148,45 @@ class AuditPillar(abc.ABC):
             )
 
     @classmethod
+    def _venv_binary(cls) -> str | None:
+        """Look for ``cls.tool_binary`` next to the running Python interpreter.
+
+        When Ophamin is invoked via ``.venv/bin/python -m ophamin.cli ...``
+        without first activating the venv, ``shutil.which`` doesn't see
+        venv-local binaries (the venv's bin/ isn't on PATH). Fall through
+        to inspecting ``sys.executable``'s directory so audit pillars that
+        the user installed via ``pip install -e '.[audit]'`` work without
+        requiring an explicit venv activation.
+        """
+        import os
+        import sys
+        bin_dir = os.path.dirname(sys.executable)
+        candidate = os.path.join(bin_dir, cls.tool_binary)
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+        return None
+
+    @classmethod
+    def resolved_binary(cls) -> str | None:
+        """Resolve the tool binary — venv-local first, then PATH."""
+        local = cls._venv_binary()
+        if local:
+            return local
+        return shutil.which(cls.tool_binary)
+
+    @classmethod
     def is_available(cls) -> bool:
-        """Is the wrapped tool installed on PATH?"""
-        return shutil.which(cls.tool_binary) is not None
+        """Is the wrapped tool resolvable (venv-local OR on PATH)?"""
+        return cls.resolved_binary() is not None
 
     def tool_version(self, timeout_s: float = 10.0) -> str:
         """Best-effort ``<tool> --version`` capture; empty string on failure."""
-        if not self.is_available():
+        binary = self.resolved_binary()
+        if binary is None:
             return ""
         try:
             result = subprocess.run(
-                [self.tool_binary, "--version"],
+                [binary, "--version"],
                 capture_output=True,
                 text=True,
                 timeout=timeout_s,

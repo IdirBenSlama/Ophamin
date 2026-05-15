@@ -38,7 +38,8 @@ class PipAuditPillar(AuditPillar):
         if not self.is_available():
             return self.unavailable_result(target)
 
-        cmd = [self.tool_binary, "-f", "json"]
+        binary = self.resolved_binary() or self.tool_binary
+        cmd = [binary, "-f", "json"]
         t0 = time.perf_counter()
         try:
             result = subprocess.run(

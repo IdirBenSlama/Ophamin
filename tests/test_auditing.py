@@ -228,6 +228,92 @@ def test_audit_pillar_requires_name_and_binary():
         _Bad()
 
 
+def test_resolved_binary_prefers_venv_local_over_path(tmp_path, monkeypatch):
+    """Regression: when Ophamin runs as ``.venv/bin/python -m ophamin.cli``
+    without venv activation, ``shutil.which("vulture")`` returns None even
+    though vulture is installed in ``.venv/bin/vulture``. Surface bug
+    2026-05-15 — the audit pillars marked vulture/radon/pip-audit as
+    "unavailable" against Kimera.
+
+    Fix: ``resolved_binary`` looks next to ``sys.executable`` first.
+    """
+    import sys
+
+    fake_venv = tmp_path / "venv"
+    bin_dir = fake_venv / "bin"
+    bin_dir.mkdir(parents=True)
+    fake_python = bin_dir / "python"
+    fake_python.write_text("#!/bin/sh\nexec /usr/bin/env python3 \"$@\"\n")
+    fake_python.chmod(0o755)
+    fake_tool = bin_dir / "fake_audit_tool"
+    fake_tool.write_text("#!/bin/sh\necho fake-tool 1.0\n")
+    fake_tool.chmod(0o755)
+
+    monkeypatch.setattr(sys, "executable", str(fake_python))
+
+    class _FakePillar(AuditPillar):
+        name = "fake_audit"
+        tool_binary = "fake_audit_tool"
+
+        def run(self, target_path, **_kwargs):
+            return None
+
+    pillar = _FakePillar()
+    assert pillar.is_available()
+    assert pillar.resolved_binary() == str(fake_tool)
+
+
+def test_resolved_binary_falls_through_to_path_when_no_venv_local(tmp_path, monkeypatch):
+    """If the binary is not next to sys.executable, fall through to PATH."""
+    import sys
+    import shutil as _sh
+
+    # Put fake interpreter in a directory that does NOT contain the tool.
+    fake_bin = tmp_path / "no_tool"
+    fake_bin.mkdir()
+    fake_python = fake_bin / "python"
+    fake_python.write_text("#!/bin/sh\nexec /usr/bin/env python3 \"$@\"\n")
+    fake_python.chmod(0o755)
+    monkeypatch.setattr(sys, "executable", str(fake_python))
+
+    # Pretend `ls` is on PATH (it always is on Linux/macOS).
+    class _LsPillar(AuditPillar):
+        name = "ls_audit"
+        tool_binary = "ls"
+
+        def run(self, target_path, **_kwargs):
+            return None
+
+    pillar = _LsPillar()
+    if _sh.which("ls"):
+        assert pillar.is_available()
+        assert pillar.resolved_binary() == _sh.which("ls")
+    else:
+        # Unusual but possible — skip if `ls` is genuinely not on PATH.
+        pytest.skip("ls not on PATH")
+
+
+def test_resolved_binary_returns_none_when_nowhere_found(tmp_path, monkeypatch):
+    import sys
+    fake_bin = tmp_path / "empty"
+    fake_bin.mkdir()
+    fake_python = fake_bin / "python"
+    fake_python.write_text("#!/bin/sh\nexec /usr/bin/env python3 \"$@\"\n")
+    fake_python.chmod(0o755)
+    monkeypatch.setattr(sys, "executable", str(fake_python))
+
+    class _MissingPillar(AuditPillar):
+        name = "missing_audit"
+        tool_binary = "totally_not_a_real_tool_xyz_2026"
+
+        def run(self, target_path, **_kwargs):
+            return None
+
+    pillar = _MissingPillar()
+    assert not pillar.is_available()
+    assert pillar.resolved_binary() is None
+
+
 # --------------------------------------------------------------------------
 # Concrete pillars — stubbed subprocess
 # --------------------------------------------------------------------------

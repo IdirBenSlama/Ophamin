@@ -26,8 +26,8 @@ discussion, and authorized contributions.
 git clone https://github.com/IdirBenSlama/Ophamin.git
 cd Ophamin
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -e ".[dev,viz,audit]"
-.venv/bin/python -m pytest -q          # all 386 tests must pass
+.venv/bin/python -m pip install -e ".[dev,viz,audit,profile,telemetry,well,hydra]"
+.venv/bin/python -m pytest -q          # all 551 tests must pass
 ```
 
 ### Optional: enable the pre-push test gate

@@ -48,8 +48,9 @@ class MypyPillar(AuditPillar):
         if not self.is_available():
             return self.unavailable_result(target)
 
+        binary = self.resolved_binary() or self.tool_binary
         cmd = [
-            self.tool_binary,
+            binary,
             "--no-error-summary",
             "--show-error-codes",
             "--show-column-numbers",

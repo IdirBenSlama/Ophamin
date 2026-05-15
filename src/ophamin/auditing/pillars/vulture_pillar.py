@@ -48,7 +48,8 @@ class VulturePillar(AuditPillar):
         if not self.is_available():
             return self.unavailable_result(target)
 
-        cmd = [self.tool_binary, target]
+        binary = self.resolved_binary() or self.tool_binary
+        cmd = [binary, target]
         t0 = time.perf_counter()
         try:
             result = subprocess.run(

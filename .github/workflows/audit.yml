@@ -42,12 +42,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[audit,viz]"
 
-      - name: Run ophamin audit (ruff + bandit + mypy)
+      - name: Run ophamin audit (all 6 pillars)
         env:
           PYTHONPATH: src
         run: |
           python -m ophamin.cli audit src/ophamin \
-            --pillars=ruff,bandit,mypy \
+            --pillars=ruff,bandit,mypy,vulture,radon,pip_audit \
             --out-dir audit-out \
             --timeout 600
 
