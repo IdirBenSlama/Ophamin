@@ -185,8 +185,14 @@ def confidence_interval_plot(
     fig, ax = plt.subplots(figsize=(8.0, 1.8))
 
     # x-range covers both the CI and the threshold with a padding
-    x_min = min(filter(lambda v: v is not None, [ci_low, observed_value, threshold_value]))
-    x_max = max(filter(lambda v: v is not None, [ci_high, observed_value, threshold_value]))
+    candidates_low: list[float] = [
+        v for v in (ci_low, observed_value, threshold_value) if v is not None
+    ]
+    candidates_high: list[float] = [
+        v for v in (ci_high, observed_value, threshold_value) if v is not None
+    ]
+    x_min = min(candidates_low)
+    x_max = max(candidates_high)
     pad = max(0.05, (x_max - x_min) * 0.10)
     ax.set_xlim(x_min - pad, x_max + pad)
     ax.set_ylim(0, 1)

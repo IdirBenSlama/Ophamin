@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Ophamin pre-push hook — runs the test suite before allowing a push.
+# Ophamin pre-push hook — local quality gate.
 #
-# This exists as a free-tier substitute for server-side branch protection
-# (which is GitHub Pro-only on private repos as of 2026). Enable with:
+# Runs four checks in order. Any single failure aborts the push.
+# The hook is a free-tier substitute for server-side branch protection
+# (GitHub Pro-only on private repos as of 2026). Enable with:
 #
 #   git config core.hooksPath .githooks
 #
@@ -10,20 +11,51 @@
 #
 #   git push --no-verify
 #
-# Keep the hook fast: 386 tests run in ~8 s on a recent laptop.
+# Checks (Stage 1 of the elevation roadmap):
+#   1. pytest (excludes tests/bench/ — those are timing-sensitive
+#      and run on demand only)
+#   2. pytest coverage threshold (≥ 77 % combined; raise as the
+#      framework hardens)
+#   3. mypy --strict on every file currently green (incremental
+#      ratchet — full strict-clean is the v0.6.0+ target)
+#   4. ruff check (style + simple bug-pattern detection)
 
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-# Choose Python interpreter — prefer in-tree .venv, fall back to system python.
+# Choose Python interpreter — prefer in-tree .venv, fall back to system.
 if [[ -x ".venv/bin/python" ]]; then
     PY=".venv/bin/python"
 else
     PY="python"
 fi
 
-echo "▶ Ophamin pre-push: running pytest -q ..."
-PYTHONPATH=src "$PY" -m pytest -q
-echo "✔ Tests green — push proceeding."
+echo "▶ Ophamin pre-push gate (1/4): pytest ..."
+PYTHONPATH=src "$PY" -m pytest -q --ignore=tests/bench
+
+echo "▶ Ophamin pre-push gate (2/4): coverage ≥ 77 % ..."
+PYTHONPATH=src "$PY" -m pytest -q --ignore=tests/bench \
+    --cov=src/ophamin --cov-branch --cov-fail-under=77 \
+    --cov-report=term:skip-covered > /dev/null
+
+echo "▶ Ophamin pre-push gate (3/4): mypy strict (full package) ..."
+# Phase S1 closed 2026-05-16: every file under src/ophamin/ is strict-clean.
+# This gate now runs --strict against the whole package — any regression
+# fails the push. The per-file STRICT_CLEAN ratchet is retired.
+"$PY" -m mypy --strict src/ophamin
+
+if command -v ruff >/dev/null 2>&1 || [[ -x ".venv/bin/ruff" ]]; then
+    if [[ -x ".venv/bin/ruff" ]]; then
+        RUFF=".venv/bin/ruff"
+    else
+        RUFF="ruff"
+    fi
+    echo "▶ Ophamin pre-push gate (4/4): ruff check ..."
+    "$RUFF" check src tests --quiet
+else
+    echo "▶ Ophamin pre-push gate (4/4): ruff not installed; skipping (install via .[audit])"
+fi
+
+echo "✔ All gates passed — push proceeding."

@@ -45,7 +45,7 @@ class MockSubstrate(SubstrateUnderTest):
         drift_rate: float = 0.0008,
         base_phi: float = 0.5,
         injection_effect: float = 0.15,
-        collapse_cells: list | None = None,
+        collapse_cells: list[Any] | None = None,
         collapse_entropy_below: float = 0.02,
         name: str = "mock",
     ) -> None:

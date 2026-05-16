@@ -80,7 +80,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -89,8 +89,31 @@ class PrimeCrossInstanceScenario(Scenario):
     """Strongest determinism claim: p_identity invariance across fresh Takwin instances."""
 
     name = "prime-cross-instance"
-    corpus_name = "kimera-cross-instance-prime"
-    target = "captured_cross_instance_arachne_lookup"
+    tier = Tier.EMPIRICAL_DEEP
+    family = "prime"
+    goal = (
+        "Test the strongest possible determinism claim: "
+        "p_identity invariance across fresh Takwin instances "
+        "(subprocess isolation + reset + warmup)."
+    )
+    explanation = (
+        "Round K extends Round H U3's within-process p_identity "
+        "invariance (251/251) to ACROSS multiple fresh Takwin "
+        "processes. CLAUDE.md F.1.1 states p_identity is "
+        "deterministic from SHA-256 of canonical name 'across all "
+        "runs and Takwin instances' — this scenario is the "
+        "operational test. Secondary measurements characterise "
+        "p_thermo (empirically ~50% cross-instance, suggesting "
+        "lyriform-path non-determinism — Pattern-T candidate), "
+        "substrate_state_stamp, and composite invariance rates."
+    )
+    method = "cross_process_invariance"
+    falsification_consequence = (
+        "Concept-name normalization is non-deterministic across "
+        "processes — refutes CLAUDE.md's 'all runs and Takwin "
+        "instances' p_identity claim; cross-node Archipel fusion "
+        "would not converge."
+    )
 
     def __init__(
         self,

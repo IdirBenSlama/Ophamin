@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass, field
+from typing import Iterable
 
 import numpy as np
 from scipy import stats
@@ -95,7 +96,7 @@ class CumulativeMetaAnalysis:
         self._trajectory.append(result)
         return result
 
-    def add_many(self, effects, variances) -> CMAResult:
+    def add_many(self, effects: "Iterable[float]", variances: "Iterable[float]") -> CMAResult:
         effects = list(effects)
         variances = list(variances)
         if len(effects) != len(variances):

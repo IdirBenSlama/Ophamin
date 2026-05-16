@@ -62,7 +62,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import Corpus, CorpusRecord
 from ophamin.seeing.discovery.kimera_inventory import (
     StratumInventory,
@@ -224,7 +224,29 @@ class InterfaceContractStabilityScenario(Scenario):
     """
 
     name = "interface-contract-stability"
-    corpus_name = "kimera-interface-stratum"
+    tier = Tier.SCIENTIFIC
+    family = "interface"
+    goal = (
+        "Test whether Kimera's interface stratum (REST routers, MCP "
+        "tools, GraphQL, CLI commands, WebSocket handlers) is "
+        "structurally well-formed at a given commit."
+    )
+    explanation = (
+        "The interface stratum is Kimera's public contract — 47 REST "
+        "routers + 24 controllers + 10 MCP tools + GraphQL + CLI. A "
+        "regression here breaks every downstream consumer. This "
+        "scenario is fully static (no substrate cycle, no running "
+        "server): for each interface module the inventory reports, "
+        "it parses cleanly as Python AND declares at least one "
+        "externally-callable handler. Per-commit drift detection "
+        "with 5% slack for in-flight refactors."
+    )
+    method = "static_parse_proportion"
+    falsification_consequence = (
+        "More than 5% of interface modules fail to parse OR lack a "
+        "callable handler — sustained drift on Kimera's public "
+        "contract boundary."
+    )
     target = "interface_stratum_static_probe"
 
     def __init__(self, kimera_repo: Path | str, threshold: float = 0.95) -> None:
@@ -296,7 +318,7 @@ class InterfaceContractStabilityScenario(Scenario):
         self,
         substrate: SubstrateUnderTest | None = None,
         *,
-        data_root=None,
+        data_root: str | Path | None = None,
         sign_key: bytes = DEFAULT_SIGN_KEY,
     ) -> EmpiricalProofRecord:
         """Probe every interface-stratum module, aggregate, emit signed record."""

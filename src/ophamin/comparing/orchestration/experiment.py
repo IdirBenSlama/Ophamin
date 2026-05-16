@@ -250,7 +250,7 @@ class ExperimentRunner:
     # -- per-run pillars ----------------------------------------------------
 
     def _summarise(self, bundles: list[MetricBundle]) -> dict[str, float]:
-        keys = set()
+        keys: set[str] = set()
         for b in bundles:
             keys.update(k for k, v in b.flat().items() if isinstance(v, (int, float)))
         summary: dict[str, float] = {}
@@ -261,7 +261,7 @@ class ExperimentRunner:
                 summary[f"{k}.std"] = float(s.std(ddof=1)) if s.size > 1 else 0.0
         return summary
 
-    def _pillar_spc(self, config: dict, bundles: list[MetricBundle]) -> PillarOutcome:
+    def _pillar_spc(self, config: dict[str, Any], bundles: list[MetricBundle]) -> PillarOutcome:
         series = _series(bundles, self.latency_metric)
         if series.size < 2:
             return PillarOutcome(
@@ -291,7 +291,7 @@ class ExperimentRunner:
             },
         )
 
-    def _pillar_srm(self, config: dict, variants: list[Any]) -> PillarOutcome:
+    def _pillar_srm(self, config: dict[str, Any], variants: list[Any]) -> PillarOutcome:
         expected = get_in(config, "observability.srm.expected_ratios", None)
         if not expected or not variants:
             return PillarOutcome(
@@ -319,7 +319,7 @@ class ExperimentRunner:
             },
         )
 
-    def _pillar_msprt(self, config: dict, primary: np.ndarray) -> PillarOutcome:
+    def _pillar_msprt(self, config: dict[str, Any], primary: np.ndarray) -> PillarOutcome:
         if primary.size < 3:
             return PillarOutcome("A.msprt", "skipped", "primary metric series too short")
         # H0: the metric mean equals its early-window baseline; detect drift away.
@@ -353,7 +353,7 @@ class ExperimentRunner:
             },
         )
 
-    def _pillar_mccv(self, config: dict, primary: np.ndarray) -> PillarOutcome:
+    def _pillar_mccv(self, config: dict[str, Any], primary: np.ndarray) -> PillarOutcome:
         if primary.size < 6:
             return PillarOutcome("N.mccv", "skipped", "primary metric series too short")
         n_iter = int(get_in(config, "robustness.n_iterations", 200))
@@ -586,8 +586,10 @@ class ExperimentRunner:
                 "M.mea", "skipped", f"'{key_mean}' missing for some child runs"
             )
         try:
-            mea = MultiExperimentAnalysis(assignments, [float(o) for o in outcome])
-            marginal = {}
+            mea = MultiExperimentAnalysis(
+                assignments, [float(o) for o in outcome if o is not None]
+            )
+            marginal: dict[str, dict[str, Any]] = {}
             for exp in keys:
                 try:
                     effects = mea.marginal_effect(exp)

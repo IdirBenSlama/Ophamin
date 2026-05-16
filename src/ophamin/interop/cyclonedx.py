@@ -217,12 +217,12 @@ class CycloneDXExporter:
         )
         return self._write(sbom, out_path)
 
-    def export_record(self, record: dict, out_path: str | Path) -> Path:
+    def export_record(self, record: dict[str, Any], out_path: str | Path) -> Path:
         sbom = build_cyclonedx_sbom_from_record(record)
         return self._write(sbom, out_path)
 
     @staticmethod
-    def _write(sbom: dict, out_path: str | Path) -> Path:
+    def _write(sbom: dict[str, Any], out_path: str | Path) -> Path:
         out = Path(out_path)
         if out.suffix.lower() not in (".json", ".cdx.json"):
             out = out.with_suffix(".cdx.json")

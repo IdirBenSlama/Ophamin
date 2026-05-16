@@ -29,21 +29,30 @@ def get_in(config: Any, dotted: str, default: Any = None) -> Any:
     return value
 
 
-def set_in(config: dict, dotted: str, value: Any) -> None:
+def _as_dict(obj: Any) -> dict[str, Any]:
+    """Coerce an OmegaConf-to_container result to a dict (loud-fail if it isn't)."""
+    if not isinstance(obj, dict):
+        raise TypeError(
+            f"expected a dict from OmegaConf.to_container, got {type(obj).__name__}"
+        )
+    return dict(obj)
+
+
+def set_in(config: dict[str, Any], dotted: str, value: Any) -> None:
     """Write a nested value by dotted key, in place (OmegaConf.update)."""
     cfg = OmegaConf.create(config)
     OmegaConf.update(cfg, dotted, value, force_add=True)
     config.clear()
-    config.update(OmegaConf.to_container(cfg, resolve=False))
+    config.update(_as_dict(OmegaConf.to_container(cfg, resolve=False)))
 
 
-def deep_merge(base: dict, override: dict) -> dict:
+def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     """Recursively merge ``override`` onto ``base`` (OmegaConf.merge).
 
     Neither input is mutated; the result shares no state with either.
     """
     merged = OmegaConf.merge(OmegaConf.create(base), OmegaConf.create(override))
-    return OmegaConf.to_container(merged, resolve=True)
+    return _as_dict(OmegaConf.to_container(merged, resolve=True))
 
 
 def _resolve_base_path(base: str, relative_to: Path) -> Path:
@@ -62,7 +71,7 @@ def _resolve_base_path(base: str, relative_to: Path) -> Path:
     )
 
 
-def load_config(path: str | Path) -> dict:
+def load_config(path: str | Path) -> dict[str, Any]:
     """Load a YAML config via OmegaConf, resolving a ``base:`` reference if present.
 
     A config may declare ``base: <path>``; the loaded base is merged under the
@@ -83,18 +92,18 @@ def load_config(path: str | Path) -> dict:
             load_config(_resolve_base_path(str(base_ref), path))
         )
         merged = OmegaConf.merge(base_cfg, rest)
-        return OmegaConf.to_container(merged, resolve=True)
-    return OmegaConf.to_container(cfg, resolve=True)
+        return _as_dict(OmegaConf.to_container(merged, resolve=True))
+    return _as_dict(OmegaConf.to_container(cfg, resolve=True))
 
 
 @dataclass
 class SweepSpec:
     """A parent experiment plus a parameter grid expanding into child configs."""
 
-    base_config: dict = field(default_factory=dict)
+    base_config: dict[str, Any] = field(default_factory=dict)
     parent_name: str = "ophamin-experiment"
     parent_description: str = ""
-    grid: dict[str, list] = field(default_factory=dict)
+    grid: dict[str, list[Any]] = field(default_factory=dict)
     stimuli: list[Any] = field(default_factory=list)
     diagnostics: dict[str, Any] = field(default_factory=dict)
 
@@ -108,12 +117,12 @@ class SweepSpec:
 
     def expand(self) -> list[tuple[dict[str, Any], dict[str, Any]]]:
         """Expand the grid into ``(child_config, sweep_point)`` pairs (OmegaConf-built)."""
-        out: list[tuple[dict, dict]] = []
+        out: list[tuple[dict[str, Any], dict[str, Any]]] = []
         for point in self.points():
             cfg = OmegaConf.create(self.base_config)
             for dotted, value in point.items():
                 OmegaConf.update(cfg, dotted, value, force_add=True)
-            out.append((OmegaConf.to_container(cfg, resolve=True), point))
+            out.append((_as_dict(OmegaConf.to_container(cfg, resolve=True)), point))
         return out
 
     def __len__(self) -> int:
@@ -134,15 +143,16 @@ def load_sweep(path: str | Path) -> SweepSpec:
         load_config(_resolve_base_path(str(base_ref), path)) if base_ref else {}
     )
 
-    parent = OmegaConf.to_container(
+    parent = _as_dict(OmegaConf.to_container(
         OmegaConf.select(raw, "parent_experiment", default=OmegaConf.create({})),
         resolve=True,
-    )
+    ))
     grid_cfg = OmegaConf.select(raw, "sweep", default=OmegaConf.create({}))
-    grid = OmegaConf.to_container(grid_cfg, resolve=True) or {}
+    grid_raw = OmegaConf.to_container(grid_cfg, resolve=True) or {}
+    grid: dict[str, list[Any]] = _as_dict(grid_raw)
     for k, v in grid.items():
         if not isinstance(v, list) or not v:
-            raise ValueError(f"sweep key '{k}' must map to a non-empty list")
+            raise ValueError(f"sweep key '{k!s}' must map to a non-empty list")
 
     stimuli_cfg = OmegaConf.select(raw, "stimuli", default=None)
     stimuli: list[Any] = []
@@ -166,15 +176,15 @@ def load_sweep(path: str | Path) -> SweepSpec:
             else:
                 raise ValueError(f"unknown stimuli source: {source!r}")
 
-    diagnostics = OmegaConf.to_container(
+    diagnostics = _as_dict(OmegaConf.to_container(
         OmegaConf.select(raw, "diagnostics", default=OmegaConf.create({})),
         resolve=True,
-    )
+    ))
 
     return SweepSpec(
         base_config=base_config,
-        parent_name=parent.get("name", "ophamin-experiment"),
-        parent_description=parent.get("description", ""),
+        parent_name=str(parent.get("name", "ophamin-experiment")),
+        parent_description=str(parent.get("description", "")),
         grid=grid,
         stimuli=stimuli,
         diagnostics=diagnostics or {},

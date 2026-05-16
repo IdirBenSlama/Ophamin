@@ -81,7 +81,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -106,6 +106,32 @@ class CrossChannelMutualInformationScenario(Scenario):
     """Pairwise MI across captured Kimera substrate channels."""
 
     name = "cross-channel-mi"
+    tier = Tier.EMPIRICAL_DEEP
+    family = "mutual_information"
+    goal = (
+        "Detect non-trivial mutual information between Kimera "
+        "substrate channels, validated by cross-backend agreement "
+        "(pyitlib + ennemi)."
+    )
+    explanation = (
+        "Given a captured multi-channel trajectory, compute "
+        "pairwise MI between selected channel pairs. Default pairs "
+        "probe predicted couplings: phi <-> "
+        "arachne_web_kuramoto_order (both downstream of coupling "
+        "dynamics), alexandria_knowledge_mass <-> cycle_index "
+        "(deterministic), phi <-> dissonance_events_count (related "
+        "signal-handling layers). Every MI is computed via TWO "
+        "backends (pyitlib Shannon + ennemi KSG); cross-backend "
+        "agreement is the measurement-machinery validation, "
+        "headline pair count is the substrate finding."
+    )
+    method = "mi_floor_pair_count"
+    falsification_consequence = (
+        "No tested channel pair exceeds the 0.05-nat MI floor — "
+        "either the substrate channels are functionally "
+        "independent (refutes the coupling framing) or the MI "
+        "estimators are noise-floored at this sample size."
+    )
     corpus_name = "kimera-multichannel-trajectory"
     target = "captured_phi_kuramoto_alex_dissonance_walker_trajectory"
 

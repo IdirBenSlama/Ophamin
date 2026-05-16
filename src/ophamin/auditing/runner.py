@@ -19,7 +19,7 @@ pip install 'ophamin[audit]'"). Loud failure on actual runtime errors.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 from ophamin.auditing.audit_record import AuditRecord
 from ophamin.auditing.base import AuditPillar, PillarResult
@@ -47,7 +47,7 @@ class AuditRunner:
         """Subset of configured pillars whose tool is installed."""
         return [p for p in self.pillars if p.is_available()]
 
-    def run(self, target_path: str | Path, **pillar_kwargs) -> AuditRecord:
+    def run(self, target_path: str | Path, **pillar_kwargs: Any) -> AuditRecord:
         """Run every configured pillar against ``target_path``, return signed AuditRecord.
 
         ``pillar_kwargs`` are forwarded to each pillar's ``run`` (e.g.

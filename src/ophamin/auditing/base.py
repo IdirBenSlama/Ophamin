@@ -67,6 +67,19 @@ class Finding:
             "extra": self.extra,
         }
 
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "Finding":
+        return cls(
+            pillar_name=str(data["pillar_name"]),
+            rule_id=str(data.get("rule_id", "")),
+            severity=FindingSeverity(str(data["severity"])),
+            message=str(data.get("message", "")),
+            path=str(data.get("path", "")),
+            line=int(data.get("line", 0)),
+            column=int(data.get("column", 0)),
+            extra=dict(data.get("extra") or {}),
+        )
+
 
 @dataclass(frozen=True)
 class PillarResult:
@@ -119,7 +132,29 @@ class PillarResult:
             "exit_code": self.exit_code,
             "wall_time_s": self.wall_time_s,
             "error_message": self.error_message,
+            "extra": self.extra,
         }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "PillarResult":
+        return cls(
+            pillar_name=str(data["pillar_name"]),
+            tool_name=str(data.get("tool_name", "")),
+            tool_version=str(data.get("tool_version", "")),
+            status=str(data.get("status", "ok")),
+            target_path=str(data.get("target_path", "")),
+            findings=tuple(
+                Finding.from_dict(f) for f in (data.get("findings") or ())
+            ),
+            raw_stdout_bytes=int(data.get("raw_stdout_bytes", 0)),
+            raw_stderr_bytes=int(data.get("raw_stderr_bytes", 0)),
+            exit_code=(
+                None if data.get("exit_code") is None else int(data["exit_code"])
+            ),
+            wall_time_s=float(data.get("wall_time_s", 0.0)),
+            error_message=str(data.get("error_message", "")),
+            extra=dict(data.get("extra") or {}),
+        )
 
 
 # --------------------------------------------------------------------------

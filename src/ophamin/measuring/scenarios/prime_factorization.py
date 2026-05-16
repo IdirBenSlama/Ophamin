@@ -79,7 +79,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.measuring.scenarios.prime_structure import (
     _identity_prime_from_canonical,
     _is_prime,
@@ -92,8 +92,30 @@ class PrimeFactorizationScenario(Scenario):
     """Deep F.1.1 verification: p_identity invariance + stamp recovery + p_thermo distribution."""
 
     name = "prime-factorization"
-    corpus_name = "kimera-prime-trajectory"
-    target = "captured_prime_chain_factorization"
+    tier = Tier.EMPIRICAL_DEEP
+    family = "prime"
+    goal = (
+        "Deep F.1.1 verification: p_identity cross-cycle "
+        "invariance + GCD stamp recovery + substrate_state_stamp "
+        "provenance."
+    )
+    explanation = (
+        "Family U Round H follow-on to Round G's PrimeStructure. "
+        "Three sub-probes: (1) same concept name across N cycles "
+        "must produce the same p_identity (deterministic SHA-256); "
+        "(2) GCD-recover the per-cycle stamp from composite chain, "
+        "verify stamp + recovered p_thermo are prime, characterize "
+        "the empirical distribution (CLAUDE.md cites lyriform range "
+        "[7, 29]); (3) determine whether OrchestratorResult's "
+        "substrate_state_stamp is the same as Arachne's internal "
+        "stamp or a separate content-derived signature."
+    )
+    method = "invariance_fraction"
+    falsification_consequence = (
+        "p_identity cross-cycle invariance drops below 99% — "
+        "concept-name normalization is non-deterministic upstream "
+        "of _identity_prime, contradicting CLAUDE.md F.1.1."
+    )
 
     def __init__(
         self,
@@ -267,7 +289,7 @@ class PrimeFactorizationScenario(Scenario):
             if not (isinstance(sss, int) and isinstance(chain, list)
                     and isinstance(walk, list) and len(chain) >= 2):
                 continue
-            qs: list[int] = []
+            qs = []
             for j, composite in enumerate(chain):
                 if j >= len(walk) or not isinstance(composite, (int, float)):
                     continue

@@ -75,7 +75,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -94,6 +94,30 @@ class CRDTLawsScenario(Scenario):
     """
 
     name = "crdt-laws"
+    tier = Tier.MEASUREMENT_MACHINERY
+    family = "crdt"
+    goal = (
+        "Verify the Yjs CRDT implementation Ophamin depends on "
+        "satisfies the four CRDT laws (idempotent / commutative / "
+        "associative / convergent) across both Python wrappers."
+    )
+    explanation = (
+        "Kimera-Archipel's distributed-substrate fusion relies on "
+        "the G-Set / SCAR-DAG / Echoform-chain CRDTs holding the "
+        "textbook merge laws. This scenario validates the Yjs/Yrs "
+        "Rust core (exposed via both pycrdt and y-py Python "
+        "wrappers) by generating Hypothesis-derived insert-op "
+        "sequences against a YText, applying each to both "
+        "backends, and asserting they converge to identical final "
+        "text. Both wrappers bind to the same Yrs Rust core, so "
+        "disagreement is a real bug."
+    )
+    method = "property_test"
+    falsification_consequence = (
+        "Yjs Python backends disagree on >1% of randomized op "
+        "sequences — surfaces a wrapper bug or Rust-core "
+        "regression; the upstream library Ophamin trusts is broken."
+    )
     corpus_name = "synthetic-crdt-op-sequences"
     target = "pycrdt+y_py-cross-backend"
 
@@ -212,7 +236,7 @@ class CRDTLawsScenario(Scenario):
         n_agreed = 0
         n_total = 0
         per_seq_results: list[dict[str, Any]] = []
-        sample_disagreements: list[dict[str, str]] = []
+        sample_disagreements: list[dict[str, Any]] = []
 
         # Per-backend wall-time tally (informational)
         import time as _time

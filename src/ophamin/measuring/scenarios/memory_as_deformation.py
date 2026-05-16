@@ -99,7 +99,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -116,6 +116,33 @@ class MemoryAsDeformationScenario(Scenario):
     """Cycle-level memory-as-deformation — recognition stable, halt mode CAN flip."""
 
     name = "memory-as-deformation"
+    tier = Tier.SCIENTIFIC
+    family = "memory"
+    goal = (
+        "Test whether Kimera's concept-extraction layer is "
+        "substrate-state-INDEPENDENT — re-exposed content should "
+        "be recognized regardless of accumulated experience."
+    )
+    explanation = (
+        "Round M extension of Session 013's memory-as-deformation "
+        "finding + Family A4. The substrate's recognition layer "
+        "(concept extraction) should be stable across re-exposure "
+        "pairs (same stimulus run at two cycle indices with "
+        "intervening experience). The threshold (default 0.80 "
+        "Jaccard floor) sits below the empirical floor of 0.846 "
+        "from Round G's 640 same-stimulus pairs. Secondary "
+        "measurements: halt-mode CAN flip between exposures (path "
+        "dependence at the cognitive-cycle layer — the 'sum of "
+        "conditional experience' axiom in action); Phi delta is "
+        "typically small (|dphi| < 0.05)."
+    )
+    method = "jaccard_floor"
+    falsification_consequence = (
+        "The substrate's concept-recognition layer regressed beyond "
+        "the Zetetic-noise bound — same content produces "
+        "substantially different concept sets across re-exposures, "
+        "violating the recognition-stability invariant."
+    )
     corpus_name = "kimera-trajectory-with-reexposure"
     target = "captured_takwin_trajectory"
 

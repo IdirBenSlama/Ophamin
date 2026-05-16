@@ -129,17 +129,17 @@ class FawltyDepsPillar(AuditPillar):
                 name = (entry.get("name") if isinstance(entry, dict) else None) or "<unknown>"
                 refs = (entry.get("references") if isinstance(entry, dict) else None) or []
                 # First reference's source file, if any, as the location.
-                file_path = ""
-                line = None
+                file_path: str = ""
+                parsed_line: int | None = None
                 if refs:
                     ref0 = refs[0] if isinstance(refs[0], dict) else {}
                     file_path = str(ref0.get("source", "")) or str(ref0.get("path", ""))
                     line_v = ref0.get("lineno") or ref0.get("line")
                     if line_v is not None:
                         try:
-                            line = int(line_v)
+                            parsed_line = int(line_v)
                         except (TypeError, ValueError):
-                            line = None
+                            parsed_line = None
                 rule_id = "FD_UNDECLARED" if section == "undeclared_deps" else "FD_UNUSED"
                 findings.append(Finding(
                     pillar_name="fawltydeps",
@@ -147,7 +147,7 @@ class FawltyDepsPillar(AuditPillar):
                     severity=severity,
                     message=f"{label}: {name}",
                     path=file_path or target_str,
-                    line=line or 0,
+                    line=parsed_line or 0,
                 ))
 
         return PillarResult(

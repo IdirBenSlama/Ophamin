@@ -122,19 +122,20 @@ class RunRecord:
 
     @property
     def parent_run_id(self) -> str | None:
-        return self.manifest.get("parent_run_id")
+        value = self.manifest.get("parent_run_id")
+        return None if value is None else str(value)
 
     @property
     def substrate_git_commit(self) -> str:
-        return self.manifest.get("substrate", {}).get("git_commit", "")
+        return str(self.manifest.get("substrate", {}).get("git_commit", ""))
 
     @property
     def config_hash(self) -> str:
-        return self.manifest.get("config_hash", "")
+        return str(self.manifest.get("config_hash", ""))
 
     @property
     def mlflow_run_id(self) -> str:
-        return self.manifest.get("mlflow_run_id", "")
+        return str(self.manifest.get("mlflow_run_id", ""))
 
 
 class LineageStore:
@@ -234,7 +235,7 @@ class LineageStore:
             mlflow.log_dict(manifest, "ophamin_manifest.json")
             if manifest.get("provenance"):
                 mlflow.log_dict(manifest["provenance"], "provenance.json")
-            return active.info.run_id
+            return str(active.info.run_id)
 
     def record_run(
         self,

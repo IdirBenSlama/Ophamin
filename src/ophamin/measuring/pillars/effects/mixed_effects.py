@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass, field
+from typing import Any
 
 import numpy as np
 from statsmodels.regression.mixed_linear_model import MixedLM
@@ -95,9 +96,9 @@ class RandomInterceptModel:
 
     def fit(
         self,
-        y,
-        X,
-        groups,
+        y: Any,
+        X: Any,
+        groups: Any,
         fit_intercept: bool = True,
         feature_names: list[str] | None = None,
     ) -> MixedEffectsResult:

@@ -1,7 +1,13 @@
 """KimeraAdapter — plug Kimera-SWM into Ophamin as a multi-component substrate.
 
-This is the *only* Kimera-coupled file in the framework. It models Kimera-SWM
-as what it is: a multi-component entity, not a single cognitive cycle.
+This is the central Kimera-coupling point in the framework — it adapts the
+substrate-under-test surface so the rest of Ophamin
+(``measuring/`` / ``comparing/`` / ``auditing/`` / ``reporting/``) operates
+against the abstract ``SubstrateUnderTest`` protocol. A small number of
+seeing-wheel-internal helpers (``seeing/discovery``, ``seeing/wiring``,
+``seeing/telemetry``) also reach into Kimera shapes — those are the same
+conceptual layer as ``KimeraAdapter`` itself. Models Kimera-SWM as what
+it is: a multi-component entity, not a single cognitive cycle.
 
 An experiment targets either the **whole entity** (``target="entity"`` — the
 integrated Takwin cycle) or a **named component** (``"walker"``, ``"gwf"``,
@@ -444,7 +450,15 @@ class KimeraAdapter(SubstrateUnderTest):
                 "traceback": completed.stderr[-4000:],
             }
         try:
-            return json.loads(completed.stdout.strip().splitlines()[-1])
+            parsed = json.loads(completed.stdout.strip().splitlines()[-1])
+            if not isinstance(parsed, dict):
+                return {
+                    "ok": False,
+                    "stage": "decode",
+                    "error": f"runner output was not a JSON object (got {type(parsed).__name__})",
+                    "traceback": completed.stdout[-2000:],
+                }
+            return dict(parsed)
         except json.JSONDecodeError as exc:
             return {
                 "ok": False,

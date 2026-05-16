@@ -22,6 +22,30 @@
     ophamin inspect <kimera-repo> <name>  per-primitive profile (static + optional dynamic)
     ophamin inspect-all <kimera-repo>     survey every catalogued Kimera primitive
     ophamin export <record.json>          export a record to SARIF (audit) / JUnit XML (proof)
+    ophamin audit-record show <path>      render an AuditRecord as Markdown
+    ophamin audit-record verify <path>    HMAC-verify an AuditRecord
+    ophamin audit-record validate <path>  structural + optional signature validation
+    ophamin audit-record ingest <path>    full-validate pipeline (loud-fail on any layer)
+    ophamin audit-record list <dir>       walk a directory; one row per audit JSON
+    ophamin corpus list                   list every registered corpus + availability
+    ophamin corpus show <name>            print one corpus's metadata + availability
+    ophamin substrate list                list every registered SubstrateProbe class
+    ophamin pillar list                   list every registered pillar (name + library + version)
+    ophamin pillar show <name>            print the full metadata block for one pillar
+    ophamin report-batch <records-dir>    render every signed record under a directory + INDEX.md
+    ophamin run-all [--repo R]            run the 6-phase composite (seeing → measuring → comparing
+                                          → instrumenting → auditing → reporting) and emit signed CampaignRecord
+    ophamin summarize <directory>         walk a proof corpus; emit campaign-level summary
+    ophamin diagnose <proof.json>         per-record diagnostic (verdict + siblings + claim)
+    ophamin analyze <metric> --across D   walk a corpus; trajectory + summary for one metric
+    ophamin scenario list                 list every registered scenario (name + tier + family + goal)
+    ophamin scenario show <name>          print the full metadata block for one scenario
+    ophamin proof show <path>             pretty-print a signed proof record to terminal
+    ophamin proof verify <path>           HMAC-verify a signed proof under a key (default: built-in)
+    ophamin proof validate <path>         JSON-Schema + structural + (optional) signature validation
+    ophamin proof ingest <path>           full pipeline: raise loud on any validation failure
+    ophamin proof list <directory>        walk a directory; emit one summary row per proof
+    ophamin proof index <directory>       generate master INDEX.md manifest for the corpus
 """
 
 from __future__ import annotations
@@ -30,6 +54,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 from ophamin import __version__
 from ophamin.config.sweep import SweepSpec, get_in, load_config, load_sweep
@@ -58,6 +83,12 @@ from ophamin.interop import (
     MLflowExporter,
     SARIFExporter,
 )
+from ophamin.measuring.proof import codec as proof_codec
+from ophamin.measuring.proof.codec import (
+    ProofCodecError,
+    ProofListEntry,
+)
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY
 from ophamin.reporting import ReportFormat, ReportRunner
 from ophamin.comparing.drift import ProofIndex, detect_drift
 from ophamin.comparing.orchestration.experiment import ExperimentRunner
@@ -87,6 +118,7 @@ from ophamin.verify import (
     render_text,
     run_all_checks,
 )
+from ophamin.seeing.substrate.base import SubstrateUnderTest
 from ophamin.seeing.substrate.kimera_adapter import KimeraAdapter, KimeraAdapterError
 from ophamin.seeing.substrate.mock import MockSubstrate
 
@@ -108,7 +140,7 @@ DEFAULT_DISCOVERY_STIMULI = [
 DEFAULT_DISCOVERY_TARGETS = ("entity", "rosetta", "gwf", "arachne", "walker")
 
 
-def build_substrate(config: dict):
+def build_substrate(config: dict[str, Any]) -> SubstrateUnderTest:
     """Construct the substrate under test from a config's ``substrate`` block."""
     kind = get_in(config, "substrate.kind", "mock")
     if kind == "mock":
@@ -151,7 +183,7 @@ def cmd_demo(args: argparse.Namespace) -> int:
         stimuli=["alpha stimulus", "beta stimulus", "gamma stimulus"],
         diagnostics={"anticipatory_failure": True, "cognitive_inertia": True},
     )
-    sut = MockSubstrate(seed=base["experiment"]["seed"])
+    sut = MockSubstrate(seed=int(base["experiment"]["seed"]))  # type: ignore[index]
     runner = ExperimentRunner(LineageStore(args.root))
     experiment = runner.run_sweep(sut, sweep)
     print(experiment.summary())
@@ -534,6 +566,8 @@ def cmd_inspect(args: argparse.Namespace) -> int:
         args.primitive,
         with_discovery=args.with_discovery,
         with_audit=args.with_audit,
+        with_comparing=getattr(args, "with_comparing", False),
+        with_instrumenting=getattr(args, "with_instrumenting", False),
     )
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -576,6 +610,8 @@ def cmd_inspect_all(args: argparse.Namespace) -> int:
     profiles = inspector.inspect_all(
         with_discovery=args.with_discovery,
         with_audit=args.with_audit,
+        with_comparing=getattr(args, "with_comparing", False),
+        with_instrumenting=getattr(args, "with_instrumenting", False),
         family_filter=args.family or None,
     )
     out_dir = Path(args.out_dir)
@@ -648,7 +684,7 @@ def cmd_audit(args: argparse.Namespace) -> int:
             return 2
     else:
         pillar_classes = list(DEFAULT_PILLAR_CLASSES)
-    runner = AuditRunner(pillars=[cls() for cls in pillar_classes])
+    runner = AuditRunner(pillars=[cls() for cls in pillar_classes])  # type: ignore[abstract]
     print(f"auditing: {target}")
     print(f"pillars : {', '.join(p.name for p in runner.pillars)}")
     print(f"          ({len(runner.available_pillars())} available locally)")
@@ -912,10 +948,11 @@ def cmd_wiring(args: argparse.Namespace) -> int:
     print()
     print(f"{'stratum':<16} {'total':>6} {'wired':>6} {'wc':>4} {'orphan':>7} "
           f"{'arch':>5} {'perr':>5} {'wired%':>7} {'orph%':>7}")
-    for s in report.per_stratum:
-        print(f"{s.stratum:<16} {s.n_total:>6} {s.n_wired:>6} {s.n_wire_candidate:>4} "
-              f"{s.n_orphan:>7} {s.n_archived:>5} {s.n_parse_error:>5} "
-              f"{s.wired_rate*100:>6.1f}% {s.orphan_rate*100:>6.1f}%")
+    for stratum_s in report.per_stratum:
+        print(f"{stratum_s.stratum:<16} {stratum_s.n_total:>6} {stratum_s.n_wired:>6} "
+              f"{stratum_s.n_wire_candidate:>4} "
+              f"{stratum_s.n_orphan:>7} {stratum_s.n_archived:>5} {stratum_s.n_parse_error:>5} "
+              f"{stratum_s.wired_rate*100:>6.1f}% {stratum_s.orphan_rate*100:>6.1f}%")
     print()
     orphans = report.orphan_surfaces()
     wc = report.wire_candidate_surfaces()
@@ -923,8 +960,8 @@ def cmd_wiring(args: argparse.Namespace) -> int:
     print(f"WIRE_CANDIDATE surfaces : {len(wc)}")
     if orphans:
         print(f"\norphan action list (first 10):")
-        for s in orphans[:10]:
-            print(f"  [{s.stratum:<14}] {s.file_path}")
+        for orphan_s in orphans[:10]:
+            print(f"  [{orphan_s.stratum:<14}] {orphan_s.file_path}")
         if len(orphans) > 10:
             print(f"  ... and {len(orphans) - 10} more in {md_path}")
     print(f"\nwritten         : {json_path}")
@@ -976,6 +1013,812 @@ def cmd_scrape(args: argparse.Namespace) -> int:
         for f in ranked:
             print(f"  {f.sample_count():>4}  {f.name:<40}  ({f.metric_type})")
     print(f"\nwritten         : {json_path}")
+    return 0
+
+
+def cmd_report_batch(args: argparse.Namespace) -> int:
+    """Render every signed record under a directory; emit an INDEX.md."""
+    from ophamin.reporting import ReportFormat, ReportRunner
+
+    records_dir = Path(args.records_dir)
+    if not records_dir.is_dir():
+        sys.stderr.write(
+            f"ophamin report-batch: {records_dir} is not a directory\n"
+        )
+        return 2
+    fmt_map = {
+        "html": ReportFormat.HTML,
+        "markdown": ReportFormat.MARKDOWN,
+        "latex": ReportFormat.LATEX,
+    }
+    fmt = fmt_map[args.format]
+    runner = ReportRunner()
+    summary = runner.run_batch(records_dir, Path(args.out_dir), fmt)
+    print(
+        f"OK: rendered {summary['n_rendered']} record(s) "
+        f"({summary['n_skipped']} skipped) into {summary['out_dir']}"
+    )
+    print(f"  format:     {summary['format']}")
+    print(f"  index:      {summary['index_path']}")
+    if summary["n_skipped"] > 0:
+        print(f"  skipped:")
+        for path, reason in summary["skipped_paths"]:
+            print(f"    - {path}: {reason}")
+    return 0
+
+
+def cmd_watch_proofs(args: argparse.Namespace) -> int:
+    """Compare two proof-corpus snapshots; emit a signed RegressionAlertRecord.
+
+    Exit codes:
+      0 — no regressions detected (transitions may include recoveries or
+          unchanged-pairs);
+      1 — at least one regression detected (verdict went VALIDATED /
+          INCONCLUSIVE → REFUTED);
+      2 — CLI error (missing directory etc.).
+    """
+    from ophamin.comparing.regression_alert import (
+        compute_regression_alert,
+        dump_alert,
+    )
+
+    before = Path(args.before)
+    after = Path(args.after)
+    if not before.is_dir():
+        sys.stderr.write(f"ophamin watch-proofs: --before {before} is not a directory\n")
+        return 2
+    if not after.is_dir():
+        sys.stderr.write(f"ophamin watch-proofs: --after {after} is not a directory\n")
+        return 2
+    alert = compute_regression_alert(before, after)
+    if args.key:
+        alert.sign(_resolve_proof_key(args.key))
+    elif not args.no_sign:
+        alert.sign(DEFAULT_SIGN_KEY)
+    if args.out:
+        out_path = Path(args.out)
+        dump_alert(alert, out_path)
+        print(f"OK: regression-alert written to {out_path}")
+    if args.json:
+        print(json.dumps(alert.to_dict(), indent=2, default=str))
+    else:
+        print(alert.to_markdown())
+    return 1 if alert.has_regressions else 0
+
+
+def cmd_audit_record(args: argparse.Namespace) -> int:
+    """Umbrella for the `ophamin audit-record <action>` subcommands.
+
+    Mirrors `ophamin proof` but operates on AuditRecord JSON.
+    """
+    from ophamin.auditing import codec as audit_codec
+    from ophamin.auditing.codec import AuditCodecError
+
+    action = args.audit_action
+    if action == "show":
+        path = Path(args.path)
+        try:
+            record = audit_codec.load(path)
+        except AuditCodecError as exc:
+            sys.stderr.write(f"ophamin audit-record show: {exc}\n")
+            return 2
+        print(record.to_markdown())
+        return 0
+    if action == "verify":
+        try:
+            ok = audit_codec.verify_signature(
+                Path(args.path), _resolve_proof_key(args.key)
+            )
+        except AuditCodecError as exc:
+            sys.stderr.write(f"ophamin audit-record verify: {exc}\n")
+            return 2
+        if ok:
+            print(f"OK: signature verifies for {args.path}")
+            return 0
+        print(f"FAIL: signature did NOT verify for {args.path}", file=sys.stderr)
+        return 1
+    if action == "validate":
+        key = _resolve_proof_key(args.key) if args.key or args.with_signature else None
+        try:
+            report = audit_codec.validate(Path(args.path), key=key)
+        except AuditCodecError as exc:
+            sys.stderr.write(f"ophamin audit-record validate: {exc}\n")
+            return 2
+        print(f"path:           {args.path}")
+        print(f"record_ok:      {report.record_ok}")
+        if report.record_problems:
+            print("record_problems:")
+            for prob in report.record_problems:
+                print(f"  - {prob}")
+        print(f"signature_ok:   {report.signature_ok}")
+        print(f"all_ok:         {report.all_ok}")
+        return 0 if report.all_ok else 1
+    if action == "ingest":
+        key = (
+            _resolve_proof_key(args.key) if args.key or args.strict_signature else None
+        )
+        try:
+            record = audit_codec.ingest(
+                Path(args.path),
+                key=key,
+                strict_signature=bool(args.strict_signature),
+            )
+        except AuditCodecError as exc:
+            sys.stderr.write(f"ophamin audit-record ingest: {exc}\n")
+            return 1
+        print(f"OK: ingested {args.path}")
+        print(f"  audit_id:        {record.audit_id}")
+        print(f"  schema_version:  {record.schema_version}")
+        print(f"  total_findings:  {record.summary.total_findings}")
+        return 0
+    if action == "list":
+        directory = Path(args.directory)
+        if not directory.is_dir():
+            sys.stderr.write(f"ophamin audit-record list: {directory} is not a directory\n")
+            return 2
+        key = _resolve_proof_key(args.key) if args.key or args.with_signature else None
+        entries = audit_codec.list_audits(directory, key=key)
+        if args.json:
+            payload = [
+                {
+                    "path": str(e.path),
+                    "audit_id": e.audit_id,
+                    "total_findings": e.total_findings,
+                    "schema_version": e.schema_version,
+                    "target_path": e.target_path,
+                    "signature_ok": e.signature_ok,
+                    "error": e.error,
+                }
+                for e in entries
+            ]
+            print(json.dumps(payload, indent=2))
+            return 0
+        if not entries:
+            print(f"(no JSON files under {directory})")
+            return 0
+        print(f"{'findings':>10}  {'schema':<10}  path")
+        print("-" * 80)
+        for e in entries:
+            if e.error:
+                print(f"{'ERROR':>10}  {'?':<10}  {e.path}  ({e.error})")
+                continue
+            print(
+                f"{e.total_findings:>10}  {e.schema_version or '?':<10}  {e.path}"
+            )
+        return 0
+    sys.stderr.write(f"ophamin audit-record: unknown action {action!r}\n")
+    return 2
+
+
+def cmd_corpus(args: argparse.Namespace) -> int:
+    """Umbrella for `ophamin corpus <action>` subcommands.
+
+    Two actions:
+    - ``list`` — print every registered corpus name + availability.
+    - ``show <name>`` — print the corpus's source / kind / n_records
+      and whether its data is downloaded.
+    """
+    from ophamin.seeing.corpus import (
+        CORPUS_FACTORIES,
+        available_corpora,
+        get_corpus,
+    )
+
+    action = args.corpus_action
+    if action == "list":
+        avail = available_corpora()
+        entries = [
+            {"name": name, "available": bool(avail.get(name, False))}
+            for name in sorted(CORPUS_FACTORIES)
+        ]
+        if args.json:
+            print(json.dumps(entries, indent=2))
+            return 0
+        print(f"{'name':<20}  available")
+        print("-" * 40)
+        for e in entries:
+            print(f"{e['name']:<20}  {'yes' if e['available'] else 'no'}")
+        print()
+        print(f"({len(entries)} corpus/corpora registered)")
+        return 0
+    if action == "show":
+        if args.name not in CORPUS_FACTORIES:
+            sys.stderr.write(
+                f"ophamin corpus show: unknown corpus {args.name!r}\n"
+                f"  available: {', '.join(sorted(CORPUS_FACTORIES))}\n"
+            )
+            return 2
+        corpus = get_corpus(args.name)
+        print(f"name:        {args.name}")
+        print(f"kind:        {getattr(corpus, 'kind', '?')}")
+        print(f"source:      {getattr(corpus, 'source', '?')}")
+        print(f"available:   {corpus.is_available()}")
+        if corpus.is_available():
+            try:
+                print(f"n_records:   {corpus.count()}")
+            except Exception as exc:  # noqa: BLE001
+                print(f"n_records:   (unable to count: {exc})")
+        return 0
+    sys.stderr.write(f"ophamin corpus: unknown action {action!r}\n")
+    return 2
+
+
+def cmd_substrate(args: argparse.Namespace) -> int:
+    """Umbrella for `ophamin substrate <action>` — list registered probes."""
+    from ophamin.registry import SUBSTRATE_FACTORIES
+
+    action = args.substrate_action
+    if action == "list":
+        entries = [
+            {
+                "name": name,
+                "class": f"{SUBSTRATE_FACTORIES[name].__module__}."
+                         f"{SUBSTRATE_FACTORIES[name].__qualname__}",
+            }
+            for name in sorted(SUBSTRATE_FACTORIES)
+        ]
+        if args.json:
+            print(json.dumps(entries, indent=2))
+            return 0
+        print(f"{'name':<20}  class")
+        print("-" * 80)
+        for e in entries:
+            print(f"{e['name']:<20}  {e['class']}")
+        print()
+        print(f"({len(entries)} substrate(s) registered)")
+        return 0
+    sys.stderr.write(f"ophamin substrate: unknown action {action!r}\n")
+    return 2
+
+
+def cmd_pillar(args: argparse.Namespace) -> int:
+    """Umbrella for `ophamin pillar <action>` subcommands.
+
+    Two actions:
+    - ``list`` — print every registered pillar (name + library +
+      version) as a table, or as JSON via ``--json``.
+    - ``show <name>`` — print the full metadata block for one pillar
+      (name + library + version + class + module + docstring summary).
+    """
+    # Import the pillars package to fire registration of every shipped
+    # adapter; the registry is otherwise empty on a fresh interpreter.
+    from ophamin.measuring import pillars  # noqa: F401
+    from ophamin.registry import PILLARS
+
+    action = args.pillar_action
+    if action == "list":
+        return _pillar_list(PILLARS, as_json=bool(args.json))
+    if action == "show":
+        return _pillar_show(PILLARS, args.name)
+    sys.stderr.write(f"ophamin pillar: unknown action {action!r}\n")
+    return 2
+
+
+def _pillar_list(pillars_dict: dict[str, Any], *, as_json: bool) -> int:
+    entries = [
+        {
+            "name": p.pillar_name,
+            "library": p.library,
+            "library_version": p.library_version,
+            "class": f"{type(p).__module__}.{type(p).__qualname__}",
+        }
+        for p in (pillars_dict[k] for k in sorted(pillars_dict))
+    ]
+    if as_json:
+        print(json.dumps(entries, indent=2))
+        return 0
+    if not entries:
+        print("(no pillars registered)")
+        return 0
+    name_w = max(len(e["name"]) for e in entries)
+    lib_w = max(len(e["library"]) for e in entries)
+    print(f"{'pillar_name':<{name_w}}  {'library':<{lib_w}}  version")
+    print("-" * (name_w + lib_w + 20))
+    for e in entries:
+        print(
+            f"{e['name']:<{name_w}}  {e['library']:<{lib_w}}  "
+            f"{e['library_version']}"
+        )
+    print()
+    print(f"({len(entries)} pillar(s) registered)")
+    return 0
+
+
+def _pillar_show(pillars_dict: dict[str, Any], name: str) -> int:
+    pillar = pillars_dict.get(name)
+    if pillar is None:
+        sys.stderr.write(
+            f"ophamin pillar show: unknown pillar {name!r}\n"
+            f"  available: {', '.join(sorted(pillars_dict))}\n"
+        )
+        return 2
+    cls = type(pillar)
+    doc = (cls.__doc__ or "").strip().split("\n\n")[0].replace("\n", " ")
+    print(f"pillar_name:       {pillar.pillar_name}")
+    print(f"library:           {pillar.library}")
+    print(f"library_version:   {pillar.library_version}")
+    print(f"class:             {cls.__module__}.{cls.__qualname__}")
+    print(f"protocol_check:    isinstance(pillar, Pillar) = True")
+    print()
+    print("summary:")
+    for line in _wrap_paragraph(doc, width=76):
+        print(f"  {line}")
+    return 0
+
+
+def cmd_run_all(args: argparse.Namespace) -> int:
+    """Run the 6-phase composite-run orchestrator against MockSubstrate
+    (or a Kimera adapter when ``--repo`` is provided) and emit a signed
+    CampaignRecord."""
+    from ophamin.campaign import (
+        CANONICAL_PHASE_ORDER,
+        dump_campaign,
+        run_campaign,
+    )
+    from ophamin.measuring.scenarios import SCENARIOS
+    from ophamin.seeing.substrate import MockSubstrate
+
+    substrate: SubstrateUnderTest
+    if args.repo:
+        try:
+            from ophamin.seeing.substrate.kimera_adapter import KimeraAdapter
+            substrate = KimeraAdapter(
+                kimera_repo=args.repo,
+                target=args.target,
+                mode="batch",
+            )
+        except Exception as exc:
+            sys.stderr.write(f"ophamin run-all: could not construct KimeraAdapter: {exc}\n")
+            return 2
+    else:
+        substrate = MockSubstrate(seed=1)
+
+    if args.scenarios:
+        names = [s.strip() for s in args.scenarios.split(",") if s.strip()]
+        unknown = [n for n in names if n not in SCENARIOS]
+        if unknown:
+            sys.stderr.write(
+                f"ophamin run-all: unknown scenario(s): {unknown}\n"
+                f"  available: {', '.join(sorted(SCENARIOS))}\n"
+            )
+            return 2
+        scenarios = [SCENARIOS[n] for n in names]
+    else:
+        scenarios = None  # let run_campaign pick default-instantiable
+
+    if args.skip:
+        skip = {s.strip() for s in args.skip.split(",") if s.strip()}
+        unknown_phases = skip - set(CANONICAL_PHASE_ORDER)
+        if unknown_phases:
+            sys.stderr.write(
+                f"ophamin run-all: unknown phase(s): {sorted(unknown_phases)}\n"
+                f"  canonical phases: {list(CANONICAL_PHASE_ORDER)}\n"
+            )
+            return 2
+        enable_phases = set(CANONICAL_PHASE_ORDER) - skip
+    else:
+        enable_phases = set(CANONICAL_PHASE_ORDER)
+
+    out_dir = Path(args.out_dir)
+    record = run_campaign(
+        substrate=substrate,
+        scenarios=scenarios,
+        enable_phases=enable_phases,
+        out_dir=out_dir,
+    )
+
+    campaign_path = out_dir / "CAMPAIGN.json"
+    dump_campaign(record, campaign_path)
+    print(f"OK: campaign complete (id={record.campaign_id[:16]}...)")
+    print(f"  target:     {record.target_name} @ {record.target_git_commit[:12]}")
+    print(f"  phases:     {record.status_counts}")
+    print(f"  campaign:   {campaign_path}")
+    if not args.quiet:
+        print()
+        print(record.to_markdown())
+    return 0 if not record.any_failed else 1
+
+
+def cmd_summarize(args: argparse.Namespace) -> int:
+    """Walk a proof directory; emit a campaign-level summary."""
+    from ophamin.comparing.synthesis import summarize_directory
+
+    directory = Path(args.directory)
+    if not directory.is_dir():
+        sys.stderr.write(
+            f"ophamin summarize: {directory} is not a directory\n"
+        )
+        return 2
+    summary = summarize_directory(directory)
+    if args.json:
+        payload = {
+            "root": str(summary.root),
+            "generated_at": summary.generated_at,
+            "total": summary.total,
+            "n_decode_errors": summary.n_decode_errors,
+            "by_verdict": summary.by_verdict,
+            "by_family": summary.by_family,
+            "by_substrate_commit": summary.by_substrate_commit,
+            "verdict_flips": [
+                {
+                    "family": f.family,
+                    "commit_a": f.commit_a,
+                    "commit_b": f.commit_b,
+                    "verdict_a": f.verdict_a,
+                    "verdict_b": f.verdict_b,
+                    "proof_a": str(f.proof_a),
+                    "proof_b": str(f.proof_b),
+                }
+                for f in summary.verdict_flips
+            ],
+        }
+        text = json.dumps(payload, indent=2)
+    else:
+        text = summary.to_markdown()
+    if args.out:
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text, encoding="utf-8")
+        print(f"OK: wrote {out} ({summary.total} entries)")
+    else:
+        print(text)
+    return 0
+
+
+def cmd_diagnose(args: argparse.Namespace) -> int:
+    """Build a per-record diagnostic and emit it."""
+    from ophamin.comparing.synthesis import diagnose_proof
+    from ophamin.measuring.proof.codec import ProofDecodeError
+
+    path = Path(args.path)
+    corpus_dir = Path(args.corpus_dir) if args.corpus_dir else None
+    try:
+        diag = diagnose_proof(path, corpus_dir=corpus_dir)
+    except ProofDecodeError as exc:
+        sys.stderr.write(f"ophamin diagnose: {exc}\n")
+        return 2
+    if args.json:
+        payload = {
+            "proof_path": str(diag.proof_path),
+            "proof_id": diag.proof_id,
+            "verdict_outcome": diag.verdict_outcome,
+            "verdict_observed": diag.verdict_observed,
+            "verdict_threshold": diag.verdict_threshold_describe,
+            "claim": diag.claim_statement,
+            "closest_family_siblings": [
+                {"path": str(s.path), "verdict": s.verdict}
+                for s in diag.closest_family_siblings
+            ],
+        }
+        print(json.dumps(payload, indent=2))
+    else:
+        print(diag.to_markdown())
+    return 0
+
+
+def cmd_analyze(args: argparse.Namespace) -> int:
+    """Walk a corpus; extract every value of one metric; summarise."""
+    from ophamin.comparing.synthesis import analyze_metric
+
+    directory = Path(args.directory)
+    if not directory.is_dir():
+        sys.stderr.write(
+            f"ophamin analyze: {directory} is not a directory\n"
+        )
+        return 2
+    trajectory = analyze_metric(args.metric, directory)
+    if args.json:
+        payload = {
+            "metric": trajectory.metric,
+            "root": str(trajectory.root),
+            "n_proofs_scanned": trajectory.n_proofs_scanned,
+            "n_values": trajectory.n_values,
+            "values": [
+                {"path": str(p), "value": v} for p, v in trajectory.values
+            ],
+            "mean": trajectory.mean,
+            "stdev": trajectory.stdev,
+            "minimum": trajectory.minimum,
+            "maximum": trajectory.maximum,
+        }
+        print(json.dumps(payload, indent=2))
+    else:
+        print(trajectory.to_markdown())
+    return 0
+
+
+def cmd_scenario(args: argparse.Namespace) -> int:
+    """Umbrella for `ophamin scenario <action>` subcommands.
+
+    Three actions:
+    - ``list`` — print every registered scenario (name + tier + family +
+      goal) as a table, or as JSON via ``--json``;
+    - ``show <name>`` — print the full metadata block for one scenario
+      (tier + family + goal + explanation + method +
+      falsification_consequence + corpus + target + n_cycles);
+    - ``info <name>`` — same as ``show`` (alias).
+
+    Per Move E's design, scenario execution itself is wired via the
+    existing ``ophamin run / sweep`` entry points; ``cmd_scenario`` is
+    the **discovery surface** that surfaces what's available + their
+    metadata. The CLI does not duplicate the runner machinery.
+    """
+    from ophamin.measuring.scenarios import SCENARIOS
+
+    action = args.scenario_action
+    if action == "list":
+        return _scenario_list(SCENARIOS, as_json=bool(args.json), tier_filter=args.tier or None)
+    if action in ("show", "info"):
+        return _scenario_show(SCENARIOS, args.name)
+    sys.stderr.write(f"ophamin scenario: unknown action {action!r}\n")
+    return 2
+
+
+def _scenario_list(scenarios_dict: dict[str, Any], *, as_json: bool, tier_filter: str | None) -> int:
+    entries = []
+    for name, cls in sorted(scenarios_dict.items()):
+        tier_value = cls.tier.value if hasattr(cls.tier, "value") else str(cls.tier)
+        if tier_filter and tier_value != tier_filter:
+            continue
+        entries.append({
+            "name": name,
+            "tier": tier_value,
+            "family": cls.family,
+            "goal": cls.goal,
+            "method": cls.method or None,
+            "corpus": cls.corpus_name,
+            "target": cls.target,
+        })
+    if as_json:
+        print(json.dumps(entries, indent=2))
+        return 0
+    if not entries:
+        suffix = f" matching tier={tier_filter!r}" if tier_filter else ""
+        print(f"(no scenarios registered{suffix})")
+        return 0
+    name_w = max(len(e["name"]) for e in entries)
+    tier_w = max(len(e["tier"]) for e in entries)
+    family_w = max(len(e["family"]) for e in entries)
+    print(
+        f"{'name':<{name_w}}  {'tier':<{tier_w}}  "
+        f"{'family':<{family_w}}  goal"
+    )
+    print("-" * (name_w + tier_w + family_w + 60))
+    for e in entries:
+        goal = e["goal"]
+        if len(goal) > 80:
+            goal = goal[:77] + "..."
+        print(
+            f"{e['name']:<{name_w}}  {e['tier']:<{tier_w}}  "
+            f"{e['family']:<{family_w}}  {goal}"
+        )
+    print()
+    print(f"({len(entries)} scenario(s) registered)")
+    return 0
+
+
+def _scenario_show(scenarios_dict: dict[str, Any], name: str) -> int:
+    cls = scenarios_dict.get(name)
+    if cls is None:
+        sys.stderr.write(
+            f"ophamin scenario show: unknown scenario {name!r}\n"
+            f"  available: {', '.join(sorted(scenarios_dict))}\n"
+        )
+        return 2
+    tier_value = cls.tier.value if hasattr(cls.tier, "value") else str(cls.tier)
+    print(f"name:                        {cls.name}")
+    print(f"tier:                        {tier_value}")
+    print(f"family:                      {cls.family}")
+    print(f"corpus_name:                 {cls.corpus_name}")
+    print(f"target:                      {cls.target}")
+    print(f"n_cycles (default):          {cls.n_cycles}")
+    if cls.method:
+        print(f"method:                      {cls.method}")
+    print()
+    print(f"goal:")
+    print(f"  {cls.goal}")
+    print()
+    print(f"explanation:")
+    for line in _wrap_paragraph(cls.explanation, width=76):
+        print(f"  {line}")
+    print()
+    if cls.falsification_consequence:
+        print(f"falsification consequence:")
+        for line in _wrap_paragraph(cls.falsification_consequence, width=76):
+            print(f"  {line}")
+        print()
+    print(f"qualified class:             {cls.__module__}.{cls.__qualname__}")
+    return 0
+
+
+def _wrap_paragraph(text: str, *, width: int) -> list[str]:
+    """Word-wrap a paragraph into lines no longer than ``width``."""
+    import textwrap
+    return textwrap.wrap(text, width=width) or [""]
+
+
+def _resolve_proof_key(arg_value: str) -> bytes:
+    """Resolve the ``--key`` CLI argument into HMAC key bytes.
+
+    Special value ``"default"`` (or empty) maps to
+    :data:`DEFAULT_SIGN_KEY`. Otherwise the argument is interpreted as
+    a UTF-8 string of the key.
+    """
+    if not arg_value or arg_value == "default":
+        return DEFAULT_SIGN_KEY
+    return arg_value.encode("utf-8")
+
+
+def cmd_proof(args: argparse.Namespace) -> int:
+    """Umbrella for the `ophamin proof <action>` subcommands.
+
+    Dispatches to one of: show / verify / validate / ingest / list.
+    Returns an exit code suitable for shells (0 on success, non-zero on
+    any failure surfaced by the codec layer).
+    """
+    action = args.proof_action
+    if action == "show":
+        return _proof_show(Path(args.path))
+    if action == "verify":
+        return _proof_verify(Path(args.path), _resolve_proof_key(args.key))
+    if action == "validate":
+        key: bytes | None = (
+            _resolve_proof_key(args.key) if args.key or args.with_signature else None
+        )
+        return _proof_validate(Path(args.path), key)
+    if action == "ingest":
+        key_opt: bytes | None = (
+            _resolve_proof_key(args.key) if args.key or args.strict_signature else None
+        )
+        if args.allow_any_schema_version:
+            require_version: str | None = None
+        elif args.require_schema_version:
+            require_version = args.require_schema_version
+        else:
+            require_version = proof_codec.SCHEMA_VERSION
+        return _proof_ingest(
+            Path(args.path),
+            key=key_opt,
+            strict_signature=bool(args.strict_signature),
+            require_schema_version=require_version,
+        )
+    if action == "list":
+        key_or_none: bytes | None = (
+            _resolve_proof_key(args.key) if args.key or args.with_signature else None
+        )
+        return _proof_list(
+            Path(args.directory),
+            key=key_or_none,
+            as_json=bool(args.json),
+        )
+    if action == "index":
+        out_path: Path | None = Path(args.out) if args.out else None
+        return _proof_index(Path(args.directory), out=out_path)
+    sys.stderr.write(f"ophamin proof: unknown action {action!r}\n")
+    return 2
+
+
+def _proof_show(path: Path) -> int:
+    try:
+        record = proof_codec.load(path)
+    except ProofCodecError as exc:
+        sys.stderr.write(f"ophamin proof show: {exc}\n")
+        return 2
+    print(record.to_markdown())
+    return 0
+
+
+def _proof_verify(path: Path, key: bytes) -> int:
+    try:
+        ok = proof_codec.verify_signature(path, key)
+    except ProofCodecError as exc:
+        sys.stderr.write(f"ophamin proof verify: {exc}\n")
+        return 2
+    if ok:
+        print(f"OK: signature verifies for {path}")
+        return 0
+    print(f"FAIL: signature did NOT verify for {path}", file=sys.stderr)
+    return 1
+
+
+def _proof_validate(path: Path, key: bytes | None) -> int:
+    try:
+        report = proof_codec.validate(path, key=key)
+    except ProofCodecError as exc:
+        sys.stderr.write(f"ophamin proof validate: {exc}\n")
+        return 2
+    print(f"path:           {path}")
+    print(f"schema_ok:      {report.schema_ok}")
+    if report.schema_errors:
+        print("schema_errors:")
+        for err in report.schema_errors:
+            print(f"  - {err}")
+    print(f"record_ok:      {report.record_ok}")
+    if report.record_problems:
+        print("record_problems:")
+        for prob in report.record_problems:
+            print(f"  - {prob}")
+    print(f"signature_ok:   {report.signature_ok}")
+    print(f"all_ok:         {report.all_ok}")
+    return 0 if report.all_ok else 1
+
+
+def _proof_ingest(
+    path: Path,
+    *,
+    key: bytes | None,
+    strict_signature: bool,
+    require_schema_version: str | None,
+) -> int:
+    try:
+        record = proof_codec.ingest(
+            path,
+            key=key,
+            strict_signature=strict_signature,
+            require_schema_version=require_schema_version,
+        )
+    except ProofCodecError as exc:
+        sys.stderr.write(f"ophamin proof ingest: {exc}\n")
+        return 1
+    print(f"OK: ingested {path}")
+    print(f"  proof_id:        {record.proof_id}")
+    print(f"  verdict:         {record.verdict.outcome}")
+    print(f"  schema_version:  {record.schema_version}")
+    print(f"  signature:       {'verified' if strict_signature else '(not strictly checked)'}")
+    return 0
+
+
+def _proof_index(directory: Path, *, out: Path | None) -> int:
+    if not directory.is_dir():
+        sys.stderr.write(f"ophamin proof index: {directory} is not a directory\n")
+        return 2
+    index = proof_codec.build_index(directory)
+    markdown = index.to_markdown()
+    if out is not None:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(markdown, encoding="utf-8")
+        print(f"OK: wrote {out} ({index.total} entries, {index.n_decode_errors} errors)")
+    else:
+        print(markdown)
+    return 0
+
+
+def _proof_list(directory: Path, *, key: bytes | None, as_json: bool) -> int:
+    if not directory.is_dir():
+        sys.stderr.write(f"ophamin proof list: {directory} is not a directory\n")
+        return 2
+    entries = proof_codec.list_proofs(directory, key=key)
+    if as_json:
+        payload = [
+            {
+                "path": str(e.path),
+                "proof_id": e.proof_id,
+                "verdict": e.verdict,
+                "schema_version": e.schema_version,
+                "claim_statement": e.claim_statement,
+                "signature_ok": e.signature_ok,
+                "error": e.error,
+            }
+            for e in entries
+        ]
+        print(json.dumps(payload, indent=2))
+        return 0
+    if not entries:
+        print(f"(no JSON files under {directory})")
+        return 0
+    sig_column = "  sig" if key is not None else ""
+    print(f"{'verdict':<12} {'schema':<6}{sig_column}  path")
+    print("-" * 80)
+    for e in entries:
+        if e.error:
+            print(f"{'ERROR':<12} {'?':<6}{'    ?' if key is not None else ''}  {e.path}  ({e.error})")
+            continue
+        sig_cell = ""
+        if key is not None:
+            sig_cell = f"  {'ok' if e.signature_ok else 'NO':<3}"
+        print(
+            f"{e.verdict or '?':<12} {e.schema_version or '?':<6}{sig_cell}  {e.path}"
+        )
     return 0
 
 
@@ -1329,6 +2172,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="run a single-file static audit against the primitive's source",
     )
     p_insp.add_argument(
+        "--with-comparing", action="store_true",
+        help="run a brief drift-detection probe on the primitive's phi stream "
+             "(Move K)",
+    )
+    p_insp.add_argument(
+        "--with-instrumenting", action="store_true",
+        help="wrap the primitive's adapter in InstrumentedSubstrate to harvest "
+             "per-cycle resource profile (Move K)",
+    )
+    p_insp.add_argument(
         "--out-dir", default="primitives",
         help="directory to write the profile JSON + Markdown (default: primitives/)",
     )
@@ -1350,6 +2203,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_insp_all.add_argument(
         "--with-audit", action="store_true",
         help="run a single-file static audit per located primitive",
+    )
+    p_insp_all.add_argument(
+        "--with-comparing", action="store_true",
+        help="run a brief drift-detection probe per primitive (Move K)",
+    )
+    p_insp_all.add_argument(
+        "--with-instrumenting", action="store_true",
+        help="wrap each primitive's adapter in InstrumentedSubstrate (Move K)",
     )
     p_insp_all.add_argument(
         "--out-dir", default="primitives",
@@ -1388,13 +2249,398 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_export.set_defaults(func=cmd_export)
 
+    # ophamin run-all — six-phase composite-run orchestrator
+    p_runall = sub.add_parser(
+        "run-all",
+        help="run the 6-phase composite-run orchestrator (seeing / "
+             "measuring / comparing / instrumenting / auditing / reporting) "
+             "and emit a signed CampaignRecord",
+    )
+    p_runall.add_argument(
+        "--repo",
+        default="",
+        help="path to a Kimera repo (default: MockSubstrate — no Kimera needed)",
+    )
+    p_runall.add_argument(
+        "--target",
+        default="entity",
+        help="adapter target when --repo is set (default: entity = full Takwin)",
+    )
+    p_runall.add_argument(
+        "--scenarios",
+        default="",
+        help="comma-separated list of scenario names to run in the measuring "
+             "phase (default: every default-instantiable registered scenario)",
+    )
+    p_runall.add_argument(
+        "--skip",
+        default="",
+        help="comma-separated list of phases to skip "
+             "(seeing,measuring,comparing,instrumenting,auditing,reporting)",
+    )
+    p_runall.add_argument(
+        "--out-dir",
+        default="campaigns/latest",
+        help="directory for per-phase artifacts + final CAMPAIGN.json "
+             "(default: campaigns/latest)",
+    )
+    p_runall.add_argument(
+        "--quiet",
+        action="store_true",
+        help="suppress the per-phase Markdown summary on stdout (still "
+             "writes CAMPAIGN.json + REPORT.md to --out-dir)",
+    )
+    p_runall.set_defaults(func=cmd_run_all)
+
+    # ophamin summarize — campaign-level synthesis over a proof corpus
+    p_sum = sub.add_parser(
+        "summarize",
+        help="walk a proof directory; emit a campaign-level summary "
+             "(by-verdict + by-family + per-substrate-commit + verdict-flips)",
+    )
+    p_sum.add_argument("directory", help="directory to walk recursively")
+    p_sum.add_argument(
+        "--out",
+        default="",
+        help="optional output path (default: print to stdout)",
+    )
+    p_sum.add_argument(
+        "--json", action="store_true",
+        help="emit JSON instead of the human-readable Markdown",
+    )
+    p_sum.set_defaults(func=cmd_summarize)
+
+    # ophamin diagnose — per-record diagnostic
+    p_diag = sub.add_parser(
+        "diagnose",
+        help="per-record diagnostic — verdict + siblings + comparison",
+    )
+    p_diag.add_argument("path", help="path to one proof JSON")
+    p_diag.add_argument(
+        "--corpus-dir",
+        default="",
+        help="optional broader corpus directory for sibling detection "
+             "(default: the proof's containing directory)",
+    )
+    p_diag.add_argument(
+        "--json", action="store_true",
+        help="emit JSON instead of the human-readable Markdown",
+    )
+    p_diag.set_defaults(func=cmd_diagnose)
+
+    # ophamin analyze — per-metric trajectory across a corpus
+    p_anl = sub.add_parser(
+        "analyze",
+        help="walk a corpus; extract every PillarEvidence value for one "
+             "metric; emit trajectory + summary statistics",
+    )
+    p_anl.add_argument("metric", help="statistic name to extract (e.g. gwf_false_positive_rate)")
+    p_anl.add_argument(
+        "--across",
+        dest="directory",
+        required=True,
+        help="directory to walk for proof records",
+    )
+    p_anl.add_argument(
+        "--json", action="store_true",
+        help="emit JSON instead of the human-readable Markdown",
+    )
+    p_anl.set_defaults(func=cmd_analyze)
+
+    # ophamin report-batch — campaign-level rendering across a directory
+    p_rb = sub.add_parser(
+        "report-batch",
+        help="render every signed record under a directory + emit an "
+             "INDEX.md (Move M — campaign-level reporting surface)",
+    )
+    p_rb.add_argument("records_dir", help="directory of proof / audit JSON files")
+    p_rb.add_argument(
+        "--format", default="markdown",
+        choices=["html", "markdown", "latex"],
+        help="output format (default: markdown)",
+    )
+    p_rb.add_argument(
+        "--out-dir", default="reports/batch",
+        help="directory to write the rendered outputs (default: reports/batch/)",
+    )
+    p_rb.set_defaults(func=cmd_report_batch)
+
+    # ophamin watch-proofs — before/after regression alert
+    p_wp = sub.add_parser(
+        "watch-proofs",
+        help="compare two proof-corpus snapshots; emit a signed "
+             "RegressionAlertRecord (exit 1 if any regression detected)",
+    )
+    p_wp.add_argument("--before", required=True, help="proof corpus snapshot at the prior commit")
+    p_wp.add_argument("--after", required=True, help="proof corpus snapshot at the new commit")
+    p_wp.add_argument("--out", default="", help="optional output path for the signed alert JSON")
+    p_wp.add_argument("--key", default="", help="HMAC sign key (default: built-in DEFAULT_SIGN_KEY)")
+    p_wp.add_argument("--no-sign", action="store_true", help="emit the alert unsigned")
+    p_wp.add_argument("--json", action="store_true", help="emit JSON instead of Markdown")
+    p_wp.set_defaults(func=cmd_watch_proofs)
+
+    # ophamin audit-record — umbrella for the AuditRecord codec surface
+    p_ar = sub.add_parser(
+        "audit-record",
+        help="audit-record codec — show / verify / validate / ingest / list "
+             "(Move H — parallel to `ophamin proof`)",
+    )
+    ar_sub = p_ar.add_subparsers(
+        dest="audit_action",
+        metavar="action",
+        required=True,
+    )
+    p_ar_show = ar_sub.add_parser("show", help="render an AuditRecord as Markdown")
+    p_ar_show.add_argument("path")
+    p_ar_show.set_defaults(func=cmd_audit_record)
+
+    p_ar_verify = ar_sub.add_parser("verify", help="HMAC-verify an AuditRecord")
+    p_ar_verify.add_argument("path")
+    p_ar_verify.add_argument("--key", default="default")
+    p_ar_verify.set_defaults(func=cmd_audit_record)
+
+    p_ar_validate = ar_sub.add_parser("validate", help="structural + optional signature check")
+    p_ar_validate.add_argument("path")
+    p_ar_validate.add_argument("--with-signature", action="store_true")
+    p_ar_validate.add_argument("--key", default="")
+    p_ar_validate.set_defaults(func=cmd_audit_record)
+
+    p_ar_ingest = ar_sub.add_parser("ingest", help="full-validate pipeline; loud-fail")
+    p_ar_ingest.add_argument("path")
+    p_ar_ingest.add_argument("--strict-signature", action="store_true")
+    p_ar_ingest.add_argument("--key", default="")
+    p_ar_ingest.set_defaults(func=cmd_audit_record)
+
+    p_ar_list = ar_sub.add_parser("list", help="walk a directory; one row per audit JSON")
+    p_ar_list.add_argument("directory")
+    p_ar_list.add_argument("--with-signature", action="store_true")
+    p_ar_list.add_argument("--key", default="")
+    p_ar_list.add_argument("--json", action="store_true")
+    p_ar_list.set_defaults(func=cmd_audit_record)
+
+    # ophamin corpus — umbrella for the corpus-registry discovery surface
+    p_cor = sub.add_parser(
+        "corpus",
+        help="corpus registry — list / show registered corpora (Move N)",
+    )
+    cor_sub = p_cor.add_subparsers(
+        dest="corpus_action", metavar="action", required=True,
+    )
+    p_cor_list = cor_sub.add_parser("list", help="print every registered corpus + availability")
+    p_cor_list.add_argument("--json", action="store_true")
+    p_cor_list.set_defaults(func=cmd_corpus)
+    p_cor_show = cor_sub.add_parser("show", help="print one corpus's metadata + availability")
+    p_cor_show.add_argument("name")
+    p_cor_show.set_defaults(func=cmd_corpus)
+
+    # ophamin substrate — umbrella for the SubstrateProbe registry
+    p_sub_s = sub.add_parser(
+        "substrate",
+        help="substrate registry — list registered SubstrateProbe classes (Move N)",
+    )
+    sub_s_sub = p_sub_s.add_subparsers(
+        dest="substrate_action", metavar="action", required=True,
+    )
+    p_sub_list = sub_s_sub.add_parser("list", help="print every registered substrate class")
+    p_sub_list.add_argument("--json", action="store_true")
+    p_sub_list.set_defaults(func=cmd_substrate)
+
+    # ophamin pillar — umbrella for the pillar-registry discovery surface
+    p_pil = sub.add_parser(
+        "pillar",
+        help="pillar registry — list / show metadata for every registered pillar",
+    )
+    pil_sub = p_pil.add_subparsers(
+        dest="pillar_action",
+        metavar="action",
+        required=True,
+    )
+    p_pil_list = pil_sub.add_parser(
+        "list",
+        help="print every registered pillar (name + library + version)",
+    )
+    p_pil_list.add_argument(
+        "--json", action="store_true",
+        help="emit JSON instead of the human-readable table",
+    )
+    p_pil_list.set_defaults(func=cmd_pillar)
+
+    p_pil_show = pil_sub.add_parser(
+        "show",
+        help="print the full metadata block for one pillar",
+    )
+    p_pil_show.add_argument("name", help="pillar name (e.g. O.spc, M.mixed_effects)")
+    p_pil_show.set_defaults(func=cmd_pillar)
+
+    # ophamin scenario — umbrella for the scenario-registry discovery surface
+    p_scen = sub.add_parser(
+        "scenario",
+        help="scenario registry — list / show metadata for every registered scenario",
+    )
+    scen_sub = p_scen.add_subparsers(
+        dest="scenario_action",
+        metavar="action",
+        required=True,
+    )
+
+    p_scen_list = scen_sub.add_parser(
+        "list",
+        help="print every registered scenario (name + tier + family + goal)",
+    )
+    p_scen_list.add_argument(
+        "--tier",
+        default="",
+        help="filter to one tier (scientific / engineering / philosophical "
+             "/ empirical_deep / measurement_machinery)",
+    )
+    p_scen_list.add_argument(
+        "--json",
+        action="store_true",
+        help="emit JSON instead of the human-readable table",
+    )
+    p_scen_list.set_defaults(func=cmd_scenario)
+
+    p_scen_show = scen_sub.add_parser(
+        "show",
+        help="print the full metadata block for one scenario",
+    )
+    p_scen_show.add_argument("name", help="scenario name (e.g. memory-as-deformation)")
+    p_scen_show.set_defaults(func=cmd_scenario)
+
+    p_scen_info = scen_sub.add_parser(
+        "info",
+        help="alias for `show`",
+    )
+    p_scen_info.add_argument("name", help="scenario name")
+    p_scen_info.set_defaults(func=cmd_scenario)
+
+    # ophamin proof — umbrella for the proof-record codec surface
+    p_proof = sub.add_parser(
+        "proof",
+        help="proof-record codec — show / verify / validate / ingest / list",
+    )
+    proof_sub = p_proof.add_subparsers(
+        dest="proof_action",
+        metavar="action",
+        required=True,
+    )
+
+    p_proof_show = proof_sub.add_parser(
+        "show",
+        help="pretty-print a signed proof record (renders to Markdown)",
+    )
+    p_proof_show.add_argument("path", help="path to the proof JSON")
+    p_proof_show.set_defaults(func=cmd_proof)
+
+    p_proof_verify = proof_sub.add_parser(
+        "verify",
+        help="HMAC-verify a signed proof under a key",
+    )
+    p_proof_verify.add_argument("path", help="path to the proof JSON")
+    p_proof_verify.add_argument(
+        "--key",
+        default="default",
+        help="HMAC key (UTF-8 string; default: framework's DEFAULT_SIGN_KEY)",
+    )
+    p_proof_verify.set_defaults(func=cmd_proof)
+
+    p_proof_validate = proof_sub.add_parser(
+        "validate",
+        help="JSON-Schema + structural + (optional) signature validation",
+    )
+    p_proof_validate.add_argument("path", help="path to the proof JSON")
+    p_proof_validate.add_argument(
+        "--with-signature",
+        action="store_true",
+        help="also verify the HMAC signature under --key (or DEFAULT_SIGN_KEY)",
+    )
+    p_proof_validate.add_argument(
+        "--key",
+        default="",
+        help="HMAC key for the signature check (default: built-in)",
+    )
+    p_proof_validate.set_defaults(func=cmd_proof)
+
+    p_proof_ingest = proof_sub.add_parser(
+        "ingest",
+        help="full pipeline (load + schema + structural + optional signature); "
+             "loud failure on any problem",
+    )
+    p_proof_ingest.add_argument("path", help="path to the proof JSON")
+    p_proof_ingest.add_argument(
+        "--strict-signature",
+        action="store_true",
+        help="require the signature to verify under --key (or DEFAULT_SIGN_KEY) "
+             "or raise loud",
+    )
+    p_proof_ingest.add_argument(
+        "--key",
+        default="",
+        help="HMAC key for signature check (default: framework's DEFAULT_SIGN_KEY)",
+    )
+    p_proof_ingest.add_argument(
+        "--require-schema-version",
+        default="",
+        help=(
+            "required proof-record schema version "
+            f"(default: current = {proof_codec.SCHEMA_VERSION}); pass "
+            "--allow-any-schema-version to opt out of the version gate"
+        ),
+    )
+    p_proof_ingest.add_argument(
+        "--allow-any-schema-version",
+        action="store_true",
+        help="accept proofs of any schema version (e.g. for migration tooling)",
+    )
+    p_proof_ingest.set_defaults(func=cmd_proof)
+
+    p_proof_index = proof_sub.add_parser(
+        "index",
+        help="generate INDEX.md master manifest from a proof directory",
+    )
+    p_proof_index.add_argument(
+        "directory", help="directory to index recursively"
+    )
+    p_proof_index.add_argument(
+        "--out",
+        default="",
+        help="optional output path for the rendered Markdown (default: print "
+             "to stdout; conventional location: <directory>/INDEX.md)",
+    )
+    p_proof_index.set_defaults(func=cmd_proof)
+
+    p_proof_list = proof_sub.add_parser(
+        "list",
+        help="walk a directory; emit one summary row per proof JSON found",
+    )
+    p_proof_list.add_argument(
+        "directory", help="directory to walk recursively for *.json files"
+    )
+    p_proof_list.add_argument(
+        "--with-signature",
+        action="store_true",
+        help="also report signature verification under --key (or DEFAULT_SIGN_KEY)",
+    )
+    p_proof_list.add_argument(
+        "--key",
+        default="",
+        help="HMAC key for signature check (default: built-in)",
+    )
+    p_proof_list.add_argument(
+        "--json",
+        action="store_true",
+        help="emit JSON instead of the human-readable table",
+    )
+    p_proof_list.set_defaults(func=cmd_proof)
+
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    return args.func(args)
+    rc: int = args.func(args)
+    return rc
 
 
 if __name__ == "__main__":

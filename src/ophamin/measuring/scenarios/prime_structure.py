@@ -123,7 +123,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -132,8 +132,30 @@ class PrimeStructureScenario(Scenario):
     """Multi-faceted probe of substrate's prime emission structure."""
 
     name = "prime-structure"
-    corpus_name = "kimera-prime-trajectory"
-    target = "captured_prime_chain_emission"
+    tier = Tier.EMPIRICAL_DEEP
+    family = "prime"
+    goal = (
+        "Probe four structural properties of Kimera's prime "
+        "emission: concept recognition, composite Jaccard, "
+        "identity coverage, vocabulary growth."
+    )
+    explanation = (
+        "Substrate's primes are load-bearing (CLAUDE.md §F.1.1: "
+        "composite = p_thermo * p_identity * stamp). Composite-set "
+        "Jaccard is near 0 by stamp-factor design; recognition "
+        "lives at the concept layer. Session 013 reported "
+        "recognition Jaccard >= 0.94; the threshold here (default "
+        "0.50) allows substantial substrate-state drift. Identity "
+        "coverage near 1.0 confirms every concept gets a registered "
+        "prime; linear vocabulary growth confirms the stamp factor "
+        "is doing its job per-cycle."
+    )
+    method = "jaccard_floor"
+    falsification_consequence = (
+        "Concept-set Jaccard floor for repeated stimuli drops below "
+        "0.50 — substrate's recognition layer is non-deterministic "
+        "or the upstream concept extractor is unstable."
+    )
 
     def __init__(
         self,
@@ -273,10 +295,10 @@ class PrimeStructureScenario(Scenario):
                 continue
             for i in range(len(chains)):
                 for j in range(i + 1, len(chains)):
-                    a, b = chains[i], chains[j]
-                    if not a and not b:
+                    pa, pb = chains[i], chains[j]
+                    if not pa and not pb:
                         continue
-                    j_val = len(a & b) / max(len(a | b), 1)
+                    j_val = len(pa & pb) / max(len(pa | pb), 1)
                     all_composite_jaccards.append(j_val)
 
         if not all_concept_jaccards:

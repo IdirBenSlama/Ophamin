@@ -20,7 +20,7 @@ collapse-prone topological cells, with repetitions. The decision rule:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any, Callable, Iterable, Sequence
 
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -87,7 +87,7 @@ class OracleKernelCouplingDiagnostic:
 
     def __init__(
         self,
-        entropy_coefficients=(0.005, 0.01, 0.05, 0.20),
+        entropy_coefficients: "Sequence[float]" = (0.005, 0.01, 0.05, 0.20),
         n_reps: int = 5,
         persist_threshold: float = 0.5,
     ) -> None:
@@ -113,7 +113,7 @@ class OracleKernelCouplingDiagnostic:
     def sweep(
         self,
         sut: SubstrateUnderTest,
-        cells,
+        cells: "Iterable[Any]",
         *,
         collapse_signal: CollapseSignal = default_collapse_signal,
         base_params: dict[str, Any] | None = None,

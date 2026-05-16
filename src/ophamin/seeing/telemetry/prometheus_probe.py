@@ -87,7 +87,7 @@ class MetricSample:
     def from_dict(cls, data: dict[str, Any]) -> MetricSample:
         return cls(
             name=str(data["name"]),
-            labels=tuple(tuple(lp) for lp in data["labels"]),  # type: ignore[arg-type]
+            labels=tuple(tuple(lp) for lp in data["labels"]),
             value=float(data["value"]),
             timestamp=(float(data["timestamp"]) if data.get("timestamp") is not None else None),
         )

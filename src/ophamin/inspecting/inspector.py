@@ -64,6 +64,8 @@ class PrimitiveInspector:
         *,
         with_discovery: bool = False,
         with_audit: bool = False,
+        with_comparing: bool = False,
+        with_instrumenting: bool = False,
     ) -> PrimitiveProfile:
         """Produce a PrimitiveProfile for one named primitive.
 
@@ -108,6 +110,10 @@ class PrimitiveInspector:
             self._fill_discovery(profile, entry)
         if with_audit and profile.source_file:
             self._fill_audit(profile)
+        if with_comparing and entry.adapter_target:
+            self._fill_comparing(profile, entry)
+        if with_instrumenting and entry.adapter_target:
+            self._fill_instrumenting(profile, entry)
 
         return profile
 
@@ -118,6 +124,8 @@ class PrimitiveInspector:
         *,
         with_discovery: bool = False,
         with_audit: bool = False,
+        with_comparing: bool = False,
+        with_instrumenting: bool = False,
         family_filter: str | None = None,
     ) -> list[PrimitiveProfile]:
         """Inspect every catalogued primitive (optionally filtered by family)."""
@@ -126,7 +134,11 @@ class PrimitiveInspector:
             entries = [e for e in entries if family_filter in e.family_tags]
         return [
             self.inspect(
-                e.name, with_discovery=with_discovery, with_audit=with_audit,
+                e.name,
+                with_discovery=with_discovery,
+                with_audit=with_audit,
+                with_comparing=with_comparing,
+                with_instrumenting=with_instrumenting,
             )
             for e in entries
         ]
@@ -134,6 +146,7 @@ class PrimitiveInspector:
     # -- dynamic-wheel integrations (best-effort, fail-soft) ------------
 
     def _fill_discovery(self, profile: PrimitiveProfile, entry: PrimitiveEntry) -> None:
+        assert entry.adapter_target is not None, "caller must gate on adapter_target"
         """Run a small Layer A schema-mining probe for this primitive's target.
 
         Spawns a Kimera subprocess (via KimeraAdapter). If the construction
@@ -192,6 +205,129 @@ class PrimitiveInspector:
         profile.discovery_field_sample = tuple(
             f.path for f in target_schema.fields[:8]
         )
+
+    def _fill_comparing(self, profile: PrimitiveProfile, entry: PrimitiveEntry) -> None:
+        """Run a small drift-detection probe against this primitive's adapter target.
+
+        Assumes caller has verified ``entry.adapter_target`` is set.
+
+        Streams a fixed N stimuli through the primitive, extracts the phi
+        stream (or per-cycle wall-time when phi isn't present), feeds it
+        through River ADWIN, and reports the detected drift-event count.
+        Best-effort: if the adapter / River / extraction fails, the failure
+        is captured as a note rather than crashing the inspection.
+        """
+        assert entry.adapter_target is not None, "caller must gate on adapter_target"
+        try:
+            from ophamin.comparing.drift_detection import (
+                StreamDriftDetector,
+                extract_phi_stream,
+            )
+            from ophamin.seeing.substrate import KimeraAdapter
+        except ImportError as exc:
+            profile.notes = profile.notes + (
+                f"comparing skipped — import failed: {exc}",
+            )
+            return
+        try:
+            adapter = KimeraAdapter(
+                self.kimera_repo,
+                target=entry.adapter_target,
+                mode="batch",
+                batch_timeout=300.0,
+            )
+        except Exception as exc:  # noqa: BLE001
+            profile.notes = profile.notes + (
+                f"comparing skipped — KimeraAdapter ctor failed: "
+                f"{type(exc).__name__}: {exc}",
+            )
+            return
+        profile.adapter_is_available = True
+
+        stimuli = [
+            "the quarterly earnings report shows steady revenue growth.",
+            "memory is the deformation of the manifold by accumulated experience.",
+            "Reminder: the Tuesday status meeting will be at 3pm.",
+            "the substrate accumulates semantic mass like Earth's geoid.",
+            "an immune membrane screens inputs against intent anchors.",
+        ]
+        try:
+            results = adapter.run_batch(stimuli)
+            phi_stream = extract_phi_stream(results)
+            if not phi_stream:
+                profile.notes = profile.notes + (
+                    "comparing skipped — no phi_value stream extractable from cycles",
+                )
+                return
+            detector = StreamDriftDetector(
+                detector_name="adwin",
+                stream_name="phi_value",
+            )
+            scan = detector.scan(phi_stream)
+            profile.comparing_n_drift_events = scan.n_events
+            profile.comparing_detector_name = "adwin"
+            profile.comparing_stream_name = "phi_value"
+        except Exception as exc:  # noqa: BLE001
+            profile.notes = profile.notes + (
+                f"comparing skipped — drift detection failed: "
+                f"{type(exc).__name__}: {exc}",
+            )
+
+    def _fill_instrumenting(self, profile: PrimitiveProfile, entry: PrimitiveEntry) -> None:
+        """Run a small instrumented batch + harvest the resource profile.
+
+        Wraps the KimeraAdapter in an InstrumentedSubstrate and runs N
+        stimuli. Best-effort — failures captured as notes.
+
+        Assumes caller has verified ``entry.adapter_target`` is set.
+        """
+        assert entry.adapter_target is not None, "caller must gate on adapter_target"
+        try:
+            from ophamin.instrumenting import InstrumentedSubstrate
+            from ophamin.seeing.substrate import KimeraAdapter
+        except ImportError as exc:
+            profile.notes = profile.notes + (
+                f"instrumenting skipped — import failed: {exc}",
+            )
+            return
+        try:
+            adapter = KimeraAdapter(
+                self.kimera_repo,
+                target=entry.adapter_target,
+                mode="batch",
+                batch_timeout=300.0,
+            )
+        except Exception as exc:  # noqa: BLE001
+            profile.notes = profile.notes + (
+                f"instrumenting skipped — KimeraAdapter ctor failed: "
+                f"{type(exc).__name__}: {exc}",
+            )
+            return
+        profile.adapter_is_available = True
+
+        stimuli = [f"stimulus_{i}" for i in range(5)]
+        try:
+            wrapped = InstrumentedSubstrate(adapter)
+            results = wrapped.run_batch(stimuli)
+            last = wrapped.last_profile()
+            prof: dict[str, Any] = last.to_dict() if last is not None else {}
+        except Exception as exc:  # noqa: BLE001
+            profile.notes = profile.notes + (
+                f"instrumenting skipped — batch failed: "
+                f"{type(exc).__name__}: {exc}",
+            )
+            return
+        # InstrumentedSubstrate exposes batch_wall_time_s / batch_cpu_total_s /
+        # rss_peak / process_count_max — derive a p50 from the cycle count.
+        n = len(results) or 1
+        wall = float(prof.get("batch_wall_time_s", 0.0))
+        cpu = float(prof.get("batch_cpu_total_s", 0.0))
+        profile.instrumenting_wall_time_p50_s = wall / n
+        profile.instrumenting_cpu_time_p50_s = cpu / n
+        profile.instrumenting_n_cycles_observed = n
+        rss_peak = prof.get("rss_peak")
+        if isinstance(rss_peak, (int, float)):
+            profile.instrumenting_rss_peak_bytes = int(rss_peak)
 
     def _fill_audit(self, profile: PrimitiveProfile) -> None:
         """Run an audit (static analysis) against the primitive's source file.

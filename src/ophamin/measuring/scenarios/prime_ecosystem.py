@@ -81,7 +81,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -90,8 +90,32 @@ class PrimeEcosystemScenario(Scenario):
     """Characterise non-core prime systems: fused primes + quantum basis + internal events."""
 
     name = "prime-ecosystem"
-    corpus_name = "kimera-prime-trajectory"
-    target = "captured_fused_quantum_internal_event_primes"
+    tier = Tier.EMPIRICAL_DEEP
+    family = "prime"
+    goal = (
+        "Characterise the non-core prime systems: Alexandria fused "
+        "primes + quantum prime basis entropy + internal-event "
+        "prime emission."
+    )
+    explanation = (
+        "Round I follow-on covering three substrate phenomena "
+        "outside the core prime apparatus: (U6) Alexandria's "
+        "knowledge-fusion engine should produce a STABLE vocabulary "
+        "of persistent fusions (>= 5 keys appearing in >= 90% of "
+        "cycles); (U7) quantum_prime_basis_entropy is empirically "
+        "bimodal — many cycles at 0 (concentrated), many at >= 3 "
+        "nats (spread); (U8) internal-event prime emission "
+        "(ouroboros / cronos / spde / thermodynamic / quantum) "
+        "re-verifies EV-37's 4/5-fire-per-cycle finding on this "
+        "commit."
+    )
+    method = "persistence_count"
+    falsification_consequence = (
+        "Fewer than 5 Alexandria fused-prime keys persist across "
+        ">= 90% of cycles — the substrate's fusion engine produces "
+        "ephemeral fusions only; the 'knowledge index' promise is "
+        "structurally broken."
+    )
 
     def __init__(
         self,

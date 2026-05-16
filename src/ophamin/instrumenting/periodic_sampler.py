@@ -113,12 +113,12 @@ class PeriodicSubprocessSampler:
         self._lock = threading.Lock()
 
     @classmethod
-    def for_self(cls, **kwargs) -> "PeriodicSubprocessSampler":
-        return cls(pid=None, **kwargs)
+    def for_self(cls, **kwargs: object) -> "PeriodicSubprocessSampler":
+        return cls(pid=None, **kwargs)  # type: ignore[arg-type]
 
     @classmethod
-    def for_pid(cls, pid: int, **kwargs) -> "PeriodicSubprocessSampler":
-        return cls(pid=pid, **kwargs)
+    def for_pid(cls, pid: int, **kwargs: object) -> "PeriodicSubprocessSampler":
+        return cls(pid=pid, **kwargs)  # type: ignore[arg-type]
 
     # -- thread lifecycle ---------------------------------------------
 

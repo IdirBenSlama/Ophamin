@@ -35,8 +35,8 @@ from typing import Iterator
 import statsmodels as _statsmodels
 
 from ophamin.instrumenting import InstrumentedSubstrate
-from ophamin.measuring.proof import Claim, PillarEvidence, Threshold
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.proof import Claim, EmpiricalProofRecord, PillarEvidence, Threshold
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus.base import Corpus, CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -45,6 +45,29 @@ class ThroughputCeilingScenario(Scenario):
     """Engineering-tier scenario: p95 per-cycle wall-time ceiling."""
 
     name = "throughput-ceiling"
+    tier = Tier.ENGINEERING
+    family = "throughput"
+    goal = (
+        "Measure Kimera's p95 per-cycle wall-time ceiling — "
+        "engineering-tier claim about substrate cost rather than "
+        "cognitive output."
+    )
+    explanation = (
+        "First engineering-tier scenario: the pre-registered claim "
+        "is about resource cost, not behaviour. Wraps the base "
+        "substrate in an InstrumentedSubstrate to capture exact "
+        "per-cycle wall-time across a balanced corpus, then "
+        "compares the 95th-percentile against a configured ceiling "
+        "(default 4.0s). Secondary descriptive evidence: batch CPU "
+        "total, RSS peak, threads, process tree (psutil-backed via "
+        "InstrumentedSubstrate.last_profile())."
+    )
+    method = "p95_percentile_ceiling"
+    falsification_consequence = (
+        "Kimera's p95 per-cycle wall-time exceeds the engineering "
+        "ceiling — surfaces a throughput regression, not a "
+        "correctness defect."
+    )
     corpus_name = "cyber"               # any text corpus works; cyber has labelled records
     target = "entity"
 
@@ -139,9 +162,9 @@ class ThroughputCeilingScenario(Scenario):
         self,
         substrate: SubstrateUnderTest,
         *,
-        data_root: Path | None = None,
+        data_root: str | Path | None = None,
         sign_key: bytes = DEFAULT_SIGN_KEY,
-    ):
+    ) -> "EmpiricalProofRecord":
         """Override Scenario.run to wrap the substrate in InstrumentedSubstrate.
 
         The wrapping preserves the substrate's interface; the resulting

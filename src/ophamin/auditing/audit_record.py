@@ -40,7 +40,12 @@ from ophamin import __version__
 from ophamin.auditing.base import PillarResult
 
 
-SCHEMA_VERSION = "audit/1.0"
+SCHEMA_VERSION = "audit/1.1"
+
+#: schema versions this codec is willing to accept on read. Older
+#: versions are loaded into the current shape with their optional
+#: fields defaulting to None (per Move L's backward-compat contract).
+SUPPORTED_SCHEMA_VERSIONS: tuple[str, ...] = ("audit/1.0", "audit/1.1")
 
 
 def _now_utc_iso() -> str:
@@ -123,6 +128,26 @@ class AuditSummary:
         }
 
     @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "AuditSummary":
+        """Reconstruct an AuditSummary from its ``to_dict`` payload.
+
+        ``top_files`` round-trips as a list of [path, count] pairs (JSON
+        doesn't carry tuples natively); we coerce back into the (str, int)
+        tuple shape this dataclass declares.
+        """
+        return cls(
+            total_findings=int(data["total_findings"]),
+            severity_histogram=dict(data.get("severity_histogram") or {}),
+            findings_per_pillar=dict(data.get("findings_per_pillar") or {}),
+            top_files=[
+                (str(p), int(c)) for p, c in (data.get("top_files") or [])
+            ],
+            pillars_run=tuple(data.get("pillars_run") or ()),
+            pillars_unavailable=tuple(data.get("pillars_unavailable") or ()),
+            pillars_errored=tuple(data.get("pillars_errored") or ()),
+        )
+
+    @classmethod
     def from_pillar_results(
         cls, results: list[PillarResult], top_n_files: int = 20
     ) -> "AuditSummary":
@@ -148,7 +173,15 @@ class AuditSummary:
 
 @dataclass
 class AuditRecord:
-    """One audit run's full artefact — signed, content-addressable."""
+    """One audit run's full artefact — signed, content-addressable.
+
+    As of schema audit/1.1 (Move L, 2026-05-16), an AuditRecord MAY
+    carry an optional :class:`PreRegistration` + chosen statistic
+    metric + :class:`Verdict`, turning the descriptive record into a
+    falsifiable artefact for CI gating. Records written under
+    schema audit/1.0 (no pre-registration fields) load cleanly under
+    the v1.1 codec — the optional fields default to None.
+    """
 
     target_path: str
     target_content_hash: str
@@ -161,6 +194,10 @@ class AuditRecord:
     signature: str = ""
     # optional knobs for downstream tooling
     reproduction_command: str = ""
+    # Move L additions (optional; absent in schema audit/1.0)
+    pre_registration: Any = None       # ophamin.measuring.proof.PreRegistration | None
+    pre_registered_metric: str = ""    # statistic name the threshold applies to
+    verdict: Any = None                # ophamin.measuring.proof.Verdict | None
 
     @classmethod
     def build(
@@ -181,7 +218,7 @@ class AuditRecord:
         )
 
     def _body(self) -> dict[str, Any]:
-        return {
+        body: dict[str, Any] = {
             "schema_version": self.schema_version,
             "identity": {
                 "ophamin_version": self.ophamin_version,
@@ -196,6 +233,15 @@ class AuditRecord:
             "summary": self.summary.to_dict(),
             "reproduction": {"command": self.reproduction_command},
         }
+        # Move L optional fields — present only when attach_pre_registration
+        # has stamped them. Excluding them when unset keeps schema 1.0
+        # records bit-identical and signatures stable for the legacy path.
+        if self.pre_registration is not None:
+            body["preregistration"] = self.pre_registration.to_dict()
+            body["pre_registered_metric"] = self.pre_registered_metric
+        if self.verdict is not None:
+            body["verdict"] = self.verdict.to_dict()
+        return body
 
     @property
     def audit_id(self) -> str:
@@ -228,6 +274,202 @@ class AuditRecord:
         if path:
             Path(path).write_text(text, encoding="utf-8")
         return text
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "AuditRecord":
+        """Reconstruct an AuditRecord from its ``to_dict`` payload.
+
+        Accepts both schema audit/1.0 and audit/1.1 payloads. v1.0
+        records have no ``preregistration`` / ``verdict`` fields; v1.1
+        records may have one or both. Loud-fails on malformed shapes
+        rather than silent partial deserialisation.
+        """
+        identity = data.get("identity") or {}
+        target = data.get("target") or {}
+        reproduction = data.get("reproduction") or {}
+        record = cls(
+            target_path=str(target.get("target_path", "")),
+            target_content_hash=str(target.get("target_content_hash", "")),
+            pillars=[PillarResult.from_dict(p) for p in data.get("pillars", [])],
+            summary=AuditSummary.from_dict(data["summary"]),
+            ophamin_version=str(identity.get("ophamin_version", "")),
+            ophamin_git_commit=str(identity.get("ophamin_git_commit", "")),
+            captured_at=str(identity.get("captured_at", _now_utc_iso())),
+            schema_version=str(data.get("schema_version", SCHEMA_VERSION)),
+            reproduction_command=str(reproduction.get("command", "")),
+        )
+        # Move L optional fields — present iff schema audit/1.1 producer
+        # stamped them. Lazy import keeps the audit module decoupled
+        # from the proof module at load time.
+        if "preregistration" in data:
+            from ophamin.measuring.proof import PreRegistration
+            record.pre_registration = PreRegistration.from_dict(
+                data["preregistration"]
+            )
+            record.pre_registered_metric = str(
+                data.get("pre_registered_metric", "")
+            )
+        if "verdict" in data:
+            from ophamin.measuring.proof import Verdict
+            record.verdict = Verdict.from_dict(data["verdict"])
+        record.signature = str(data.get("signature", ""))
+        return record
+
+    def attach_pre_registration(
+        self,
+        *,
+        claim: Any,                # ophamin.measuring.proof.Claim
+        observed_value: float,
+        metric: str = "total_findings",
+        analysis_plan: str = "audit-side pre-registration: gate on a chosen audit statistic",
+    ) -> "AuditRecord":
+        """Stamp an in-place pre-registration + verdict onto this record.
+
+        Per Move L's full universalization of the pre-registration
+        discipline: convert this descriptive audit into a falsifiable
+        artefact by attaching a Claim's threshold + a decided Verdict.
+        Returns self for chaining; bumps the record's schema_version to
+        ``audit/1.1`` if it wasn't already there.
+
+        Sign() must be re-called after attach to refresh the signature
+        (the body changed, so the old signature is invalid).
+        """
+        from ophamin.measuring.proof import (
+            PreRegistration,
+            Verdict,
+            content_hash,
+        )
+
+        self.pre_registration = PreRegistration(
+            config_hash=content_hash({
+                "audit_id_pre_attach": "computed-at-attach-time",
+                "metric": metric,
+            }),
+            data_hash=self.target_content_hash,
+            analysis_plan=analysis_plan,
+            preregistered_at=self.captured_at,
+        )
+        self.pre_registered_metric = metric
+        self.verdict = Verdict.decide(observed_value, claim.threshold)
+        self.schema_version = SCHEMA_VERSION
+        return self
+
+    @classmethod
+    def from_json(cls, path: str | Path) -> "AuditRecord":
+        """Load an AuditRecord from a JSON file written by :meth:`to_json`."""
+        return cls.from_dict(json.loads(Path(path).read_text(encoding="utf-8")))
+
+    def wrap_as_proof(
+        self,
+        *,
+        claim: Any,                  # ophamin.measuring.proof.Claim (lazy import)
+        observed_value: float,
+        pillar_name: str = "audit",
+        statistic_name: str = "total_findings",
+        library: str = "ophamin",
+        library_version: str = "",
+        analysis_plan: str = "wrap-audit-as-proof: pre-register a threshold over an audit statistic for CI gating",
+        sign_key: bytes | None = None,
+    ) -> Any:
+        """Wrap this AuditRecord into a pre-registered EmpiricalProofRecord.
+
+        Per Move I: audits are descriptive by default, but a caller that
+        wants CI gating (e.g. ``total_findings <= 50``) can wrap the
+        record in a proof record that carries the falsifiable claim +
+        threshold. The wrapping is lossless — the audit's forensic detail
+        (target path + content hash + per-pillar findings + summary) is
+        kept in the proof's reproduction + evidence sections.
+
+        Args:
+            claim: an :class:`ophamin.measuring.proof.Claim` whose threshold
+                is the gate (e.g. ``Threshold("total_findings", "<=", 50)``).
+            observed_value: the statistic to evaluate the claim against
+                (typically ``record.summary.total_findings`` or a per-severity
+                count).
+            pillar_name: PillarEvidence pillar identifier in the wrapped
+                proof. Default ``"audit"``.
+            statistic_name: PillarEvidence statistic name. Default
+                ``"total_findings"``.
+            library: PillarEvidence library attribution. Default
+                ``"ophamin"`` since the audit aggregation IS Ophamin's
+                code.
+            library_version: PillarEvidence library version. Default
+                empty — caller fills if known.
+            analysis_plan: PreRegistration analysis plan. Default explains
+                the wrap-shape.
+            sign_key: HMAC-SHA256 sign key. If ``None``, the proof is
+                returned unsigned (caller's responsibility to sign
+                before persisting).
+
+        Returns:
+            A signed (or unsigned, if ``sign_key=None``)
+            :class:`EmpiricalProofRecord`.
+        """
+        # Lazy imports keep the audit module decoupled from the proof
+        # module at top-level (no circular-import risk; wrap_as_proof
+        # is the only place that needs the upward dependency).
+        from ophamin import __version__ as _ophamin_version
+        from ophamin.measuring.proof import (
+            DatasetRef,
+            EmpiricalProofRecord,
+            PillarEvidence,
+            PreRegistration,
+            Reproduction,
+            Verdict,
+            content_hash,
+        )
+
+        # PreRegistration's data_hash is the audit's target_content_hash —
+        # that's the "data" the audit ran against.
+        prereg = PreRegistration(
+            config_hash=content_hash({
+                "audit_id": self.audit_id,
+                "pillar_name": pillar_name,
+                "statistic_name": statistic_name,
+            }),
+            data_hash=self.target_content_hash,
+            analysis_plan=analysis_plan,
+            preregistered_at=self.captured_at,
+        )
+        dataset = DatasetRef(
+            name=f"audit-target:{self.target_path}",
+            content_hash=self.target_content_hash,
+            n_records=max(self.summary.total_findings, 1),
+            source=self.target_path,
+            kind="audit_target_tree",
+        )
+        evidence = PillarEvidence(
+            pillar=pillar_name,
+            statistic_name=statistic_name,
+            statistic_value=observed_value,
+            library=library,
+            library_version=library_version or _ophamin_version,
+            detail={
+                "audit_id": self.audit_id,
+                "total_findings": self.summary.total_findings,
+                "severity_histogram": dict(self.summary.severity_histogram),
+                "pillars_run": list(self.summary.pillars_run),
+            },
+        )
+        verdict = Verdict.decide(observed_value, claim.threshold)
+        record = EmpiricalProofRecord(
+            claim=claim,
+            preregistration=prereg,
+            datasets=[dataset],
+            substrate_name="ophamin.auditing.AuditRecord",
+            substrate_git_commit=self.ophamin_git_commit,
+            evidence=[evidence],
+            verdict=verdict,
+            reproduction=Reproduction(
+                command=self.reproduction_command or "ophamin audit <target>"
+            ),
+            ophamin_version=self.ophamin_version,
+            ophamin_git_commit=self.ophamin_git_commit,
+            created_at=self.captured_at,
+        )
+        if sign_key is not None:
+            record.sign(sign_key)
+        return record
 
     def to_markdown(self, path: str | None = None) -> str:
         """Render the audit as a human-readable Markdown report."""

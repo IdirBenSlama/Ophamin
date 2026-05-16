@@ -148,7 +148,7 @@ def numpyro_posterior_for_normal_mean(
     if obs.size < 2:
         raise ValueError(f"need ≥ 2 observations; got {obs.size}")
 
-    def model(y):
+    def model(y: Any) -> None:
         mu = numpyro.sample("mu", dist.Normal(prior_mean, prior_sd))
         sigma = numpyro.sample("sigma", dist.HalfNormal(1.0))
         numpyro.sample("y", dist.Normal(mu, sigma), obs=y)

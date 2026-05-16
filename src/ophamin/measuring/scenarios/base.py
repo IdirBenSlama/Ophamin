@@ -7,19 +7,47 @@ and emits a signed ``EmpiricalProofRecord``.
 The harness is substrate-agnostic — it runs identically against ``MockSubstrate``
 (tests) or ``KimeraAdapter`` (real catastrophic runs). Pre-registration is
 captured *before* the run; the proof record is content-addressed and signed.
+
+Scenario registration
+=====================
+
+Every concrete subclass of :class:`Scenario` that sets a ``name`` attribute
+distinct from the base sentinel ``"scenario"`` is **automatically
+registered** in the module-level :data:`SCENARIOS` mapping via the
+:meth:`Scenario.__init_subclass__` hook. There is no manual editing of an
+``__init__.py`` dict required; the registry is built by class-definition
+side effect.
+
+Registration is **loud-failure**:
+
+- A duplicate ``name`` across two subclasses raises
+  :class:`DuplicateScenarioNameError` at class-definition time.
+- A subclass that sets ``name = "scenario"`` (the unchanged base default)
+  raises :class:`ScenarioNameNotOverriddenError`.
+- A subclass that opts out via ``register=False`` (e.g. an abstract
+  intermediate parent in a class hierarchy) is skipped silently. This is
+  the *only* sanctioned skip path.
+
+Third-party / out-of-tree scenarios reach the same registry by simply
+inheriting from :class:`Scenario` in their own package; importing their
+module fires the registration hook.
 """
 
 from __future__ import annotations
 
 import abc
+import enum
 import itertools
 from dataclasses import dataclass, field
 from typing import Iterator
 
 from ophamin import __version__
 from ophamin.seeing.corpus import Corpus, CorpusRecord, get_corpus
+from pathlib import Path  # noqa: F401 — typed-only Path import
+
 from ophamin.measuring.proof import (
     Claim,
+    DatasetRef,  # noqa: F401 — typed reference in _build_provenance
     EmpiricalProofRecord,
     PillarEvidence,
     PreRegistration,
@@ -36,6 +64,148 @@ from ophamin.seeing.substrate.field_catalog import (
 )
 
 DEFAULT_SIGN_KEY = b"ophamin-scenario-proof-key"
+
+#: name reserved for the abstract :class:`Scenario` base — no subclass may
+#: keep this value as its ``name`` attribute.
+_BASE_SCENARIO_NAME = "scenario"
+
+#: registry of every concrete Scenario subclass that has been imported,
+#: keyed by ``cls.name``. Populated by :meth:`Scenario.__init_subclass__`
+#: at class-definition time. Read by ``ophamin.measuring.scenarios.__init__``
+#: and re-exported as ``SCENARIOS`` for back-compat.
+SCENARIOS: dict[str, type["Scenario"]] = {}
+
+
+class DuplicateScenarioNameError(RuntimeError):
+    """Two Scenario subclasses declared the same ``name``.
+
+    Names are the substrate's CLI handle (``ophamin scenario <name>``) and
+    the proof-record identifier; duplicates would silently collide. Raised
+    at class-definition time so the conflict surfaces at import — the
+    earliest possible point.
+    """
+
+    def __init__(self, name: str, existing: type, incoming: type) -> None:
+        self.name = name
+        self.existing = existing
+        self.incoming = incoming
+        super().__init__(
+            f"Scenario name {name!r} is already registered by "
+            f"{existing.__module__}.{existing.__qualname__}; "
+            f"cannot also register {incoming.__module__}.{incoming.__qualname__}"
+        )
+
+
+class ScenarioNameNotOverriddenError(RuntimeError):
+    """A Scenario subclass kept the abstract base's ``name`` sentinel.
+
+    Every concrete scenario must declare its own kebab-case identifier
+    (e.g. ``name = "memory-as-deformation"``). Raised at class-definition
+    time to catch the omission immediately.
+    """
+
+    def __init__(self, cls: type) -> None:
+        self.cls = cls
+        super().__init__(
+            f"{cls.__module__}.{cls.__qualname__} kept the base sentinel "
+            f"name {_BASE_SCENARIO_NAME!r}; declare a unique kebab-case name "
+            f"(e.g. name = \"my-scenario\")"
+        )
+
+
+class ScenarioMetadataMissingError(RuntimeError):
+    """A Scenario subclass omitted one of the required metadata fields.
+
+    Every concrete scenario must declare ``tier`` / ``family`` / ``goal``
+    / ``explanation`` so that proof records carry self-describing
+    classification + intent text. Raised at class-definition time to
+    surface the omission at import — the earliest possible point.
+    """
+
+    def __init__(self, cls: type, missing: tuple[str, ...]) -> None:
+        self.cls = cls
+        self.missing = missing
+        details = ", ".join(missing)
+        super().__init__(
+            f"{cls.__module__}.{cls.__qualname__} is missing required "
+            f"Scenario metadata field(s): {details}. Declare them as "
+            f"class attributes (tier: Tier; family / goal / explanation: "
+            f"non-empty str)."
+        )
+
+
+class Tier(str, enum.Enum):
+    """The experimentation tier a scenario lives in.
+
+    Tiers carry epistemic shape, not just bookkeeping:
+
+    - ``SCIENTIFIC`` — claims about substrate *behaviour* (does the
+      substrate do X under condition Y?).
+    - ``ENGINEERING`` — claims about substrate *cost* (does X stay
+      under threshold T?).
+    - ``PHILOSOPHICAL`` — claims about substrate *self-model* (does
+      the substrate respond differently to self-referential vs
+      neutral input?).
+    - ``EMPIRICAL_DEEP`` — substrate-physics characterisation
+      scenarios that target Kimera's prime apparatus / Φ /
+      cross-channel behaviour and mirror Family A-V claims in
+      Kimera's ``EMPIRICAL_VALIDATION.md``.
+    - ``MEASUREMENT_MACHINERY`` — validation of the upstream libraries
+      Ophamin itself depends on (e.g. CRDT laws against pycrdt +
+      y-py as cross-check oracle).
+
+    Inheriting from ``str`` makes a Tier serialise as its value
+    string in JSON; the JSON proof-record schema sees a plain string,
+    not a Python-specific enum encoding.
+    """
+
+    SCIENTIFIC = "scientific"
+    ENGINEERING = "engineering"
+    PHILOSOPHICAL = "philosophical"
+    EMPIRICAL_DEEP = "empirical_deep"
+    MEASUREMENT_MACHINERY = "measurement_machinery"
+
+
+#: required Scenario metadata attribute names (validated at class-def time).
+_REQUIRED_METADATA: tuple[str, ...] = ("tier", "family", "goal", "explanation")
+
+
+def _missing_metadata(cls: type) -> tuple[str, ...]:
+    """Return the names of any required metadata fields missing on ``cls``.
+
+    *Missing* means: attribute not declared (only inherited from the
+    abstract base, which has no value), or declared but empty / sentinel.
+    A field that is present and non-empty / non-sentinel passes.
+
+    For ``tier`` specifically: the abstract base declares the attribute
+    as a type-annotation only (no value). Subclasses MUST assign an
+    actual :class:`Tier` member. ``hasattr`` on the abstract base will
+    return False because Python doesn't materialise annotation-only
+    class attributes; subclasses that don't assign will inherit that
+    absence.
+    """
+    missing: list[str] = []
+    for attr in _REQUIRED_METADATA:
+        # Walk the MRO except the abstract base itself. A field is
+        # considered set if a non-Scenario-base ancestor declared a
+        # non-empty value.
+        value = None
+        for base in cls.__mro__:
+            if base is Scenario:
+                break
+            if attr in base.__dict__:
+                value = base.__dict__[attr]
+                break
+        if value is None:
+            missing.append(attr)
+            continue
+        if attr == "tier":
+            if not isinstance(value, Tier):
+                missing.append(attr)
+        else:
+            if not isinstance(value, str) or not value.strip():
+                missing.append(attr)
+    return tuple(missing)
 
 
 class ScenarioFieldContractViolation(RuntimeError):
@@ -68,12 +238,89 @@ class ScenarioScore:
 
 
 class Scenario(abc.ABC):
-    """Binds corpus + target + pre-registered claim -> a signed proof record."""
+    """Binds corpus + target + pre-registered claim -> a signed proof record.
 
-    name: str = "scenario"
+    Every concrete subclass declares a metadata block (``name``, ``tier``,
+    ``family``, ``goal``, ``explanation``, and optionally ``method`` +
+    ``falsification_consequence``) that classifies the experiment and
+    explains its intent without requiring the reader to chase docstrings.
+    The metadata is validated at class-definition time by
+    :meth:`__init_subclass__` (loud-failure on omission) and surfaces into
+    every signed ``EmpiricalProofRecord`` produced by the scenario.
+    """
+
+    #: Kebab-case CLI identifier (e.g. ``"memory-as-deformation"``).
+    #: Must be overridden — :exc:`ScenarioNameNotOverriddenError` is
+    #: raised on subclass definition if the sentinel value below is kept.
+    name: str = _BASE_SCENARIO_NAME
+
+    #: Experimentation tier — see :class:`Tier` for the five values.
+    #: Required on every concrete subclass.
+    tier: Tier
+
+    #: Family group (e.g. ``"prime"``, ``"phi"``, ``"immune"``). Two
+    #: scenarios in the same family probe the same substrate aspect
+    #: from different angles. Used by ``proofs/`` directory organization
+    #: and the README scenarios table grouping.
+    family: str
+
+    #: One-sentence answer to *"what question does this scenario test?"*
+    #: Required; read by ``ophamin scenario list`` + ``ophamin
+    #: summarize`` + the proof-record human-facing renderers.
+    goal: str
+
+    #: Paragraph explaining *"why this scenario is interesting"* — what
+    #: substrate property a verdict on the claim would tell us about,
+    #: what would be at stake if the substrate's behaviour shifted.
+    #: Required; longer than ``goal``, shorter than the file docstring.
+    explanation: str
+
+    #: Optional one-line scoring-shape tag (e.g.
+    #: ``"distribution_floor"``, ``"wilson_ci_proportion"``). Empty by
+    #: default; helps cross-scenario synthesis classify similar
+    #: scoring shapes.
+    method: str = ""
+
+    #: Optional one-line description of what a REFUTED verdict would
+    #: mean concretely (e.g. *"substrate's recognition layer regressed
+    #: beyond the Zetetic-noise bound"*). Empty by default. Read by
+    #: ``ophamin diagnose`` when a REFUTED verdict surfaces.
+    falsification_consequence: str = ""
+
     corpus_name: str = ""
     target: str = "entity"
     n_cycles: int = 1000
+
+    def __init_subclass__(cls, /, register: bool = True, **kwargs: object) -> None:
+        """Auto-register concrete subclasses in :data:`SCENARIOS`.
+
+        Skips registration when ``register=False`` (abstract intermediate
+        parents, test-internal scenarios). Otherwise:
+
+        - raises :class:`ScenarioNameNotOverriddenError` if the subclass
+          kept the base sentinel name;
+        - raises :class:`ScenarioMetadataMissingError` if any of
+          ``tier`` / ``family`` / ``goal`` / ``explanation`` is unset or
+          empty;
+        - raises :class:`DuplicateScenarioNameError` if another subclass
+          already registered the same name.
+
+        Re-registration of the *same class object* under the same name is
+        idempotent — this is necessary so module reloads (e.g. test
+        fixtures, ``importlib.reload``) don't trip the duplicate guard.
+        """
+        super().__init_subclass__(**kwargs)
+        if not register:
+            return
+        if cls.name == _BASE_SCENARIO_NAME:
+            raise ScenarioNameNotOverriddenError(cls)
+        missing = _missing_metadata(cls)
+        if missing:
+            raise ScenarioMetadataMissingError(cls, missing)
+        existing = SCENARIOS.get(cls.name)
+        if existing is not None and existing is not cls:
+            raise DuplicateScenarioNameError(cls.name, existing, cls)
+        SCENARIOS[cls.name] = cls
 
     # -- the per-scenario contract -----------------------------------------
 
@@ -117,7 +364,11 @@ class Scenario(abc.ABC):
 
     # -- the harness -------------------------------------------------------
 
-    def _build_provenance(self, substrate: SubstrateUnderTest, dataset) -> ProvenanceGraph:
+    def _build_provenance(
+        self,
+        substrate: SubstrateUnderTest,
+        dataset: "DatasetRef",
+    ) -> ProvenanceGraph:
         prov = ProvenanceGraph()
         agent_ophamin = prov.agent(
             "ophamin", role="experimentation_framework", version=__version__
@@ -145,7 +396,7 @@ class Scenario(abc.ABC):
         self,
         substrate: SubstrateUnderTest,
         *,
-        data_root=None,
+        data_root: str | "Path" | None = None,
         sign_key: bytes = DEFAULT_SIGN_KEY,
     ) -> EmpiricalProofRecord:
         """Run the scenario end-to-end and return a signed Empirical Proof Record."""

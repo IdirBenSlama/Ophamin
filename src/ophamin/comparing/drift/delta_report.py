@@ -18,7 +18,10 @@ that caused it.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from ophamin.comparing.drift.proof_index import ProofIndexEntry
 
 
 def ci_overlaps(
@@ -103,7 +106,7 @@ class DriftReport:
         }
 
     @classmethod
-    def from_proofs(cls, before, after) -> DriftReport:
+    def from_proofs(cls, before: "ProofIndexEntry", after: "ProofIndexEntry") -> DriftReport:
         """Build a DriftReport from two ProofIndexEntry objects."""
         if before.primary_statistic_name != after.primary_statistic_name:
             raise ValueError(

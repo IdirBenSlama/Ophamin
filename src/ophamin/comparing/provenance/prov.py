@@ -51,7 +51,7 @@ class ProvenanceGraph:
             return None
         return {f"{_NS_PREFIX}:{k}": _primitive(v) for k, v in kwargs.items()}
 
-    def _resolve(self, ref: Any):
+    def _resolve(self, ref: Any) -> Any:
         """Accept a prov node or an id string; return a prov node.
 
         An id referenced in a relation but never declared is registered as a
@@ -66,7 +66,7 @@ class ProvenanceGraph:
 
     # -- nodes --------------------------------------------------------------
 
-    def entity(self, identifier: str, **attributes: Any):
+    def entity(self, identifier: str, **attributes: Any) -> Any:
         key = str(identifier)
         node = self._doc.entity(
             self._qname(key), other_attributes=self._attrs(attributes)
@@ -80,7 +80,7 @@ class ProvenanceGraph:
         start_time: Any = None,
         end_time: Any = None,
         **attributes: Any,
-    ):
+    ) -> Any:
         key = str(identifier)
         node = self._doc.activity(
             self._qname(key),
@@ -91,7 +91,7 @@ class ProvenanceGraph:
         self._nodes[key] = node
         return node
 
-    def agent(self, identifier: str, **attributes: Any):
+    def agent(self, identifier: str, **attributes: Any) -> Any:
         key = str(identifier)
         node = self._doc.agent(
             self._qname(key), other_attributes=self._attrs(attributes)
@@ -101,49 +101,49 @@ class ProvenanceGraph:
 
     # -- relations ----------------------------------------------------------
 
-    def used(self, activity: Any, entity: Any, **attributes: Any):
+    def used(self, activity: Any, entity: Any, **attributes: Any) -> Any:
         return self._doc.used(
             self._resolve(activity),
             self._resolve(entity),
             other_attributes=self._attrs(attributes),
         )
 
-    def was_generated_by(self, entity: Any, activity: Any, **attributes: Any):
+    def was_generated_by(self, entity: Any, activity: Any, **attributes: Any) -> Any:
         return self._doc.wasGeneratedBy(
             self._resolve(entity),
             self._resolve(activity),
             other_attributes=self._attrs(attributes),
         )
 
-    def was_associated_with(self, activity: Any, agent: Any, **attributes: Any):
+    def was_associated_with(self, activity: Any, agent: Any, **attributes: Any) -> Any:
         return self._doc.wasAssociatedWith(
             self._resolve(activity),
             self._resolve(agent),
             other_attributes=self._attrs(attributes),
         )
 
-    def was_attributed_to(self, entity: Any, agent: Any, **attributes: Any):
+    def was_attributed_to(self, entity: Any, agent: Any, **attributes: Any) -> Any:
         return self._doc.wasAttributedTo(
             self._resolve(entity),
             self._resolve(agent),
             other_attributes=self._attrs(attributes),
         )
 
-    def was_derived_from(self, entity: Any, source_entity: Any, **attributes: Any):
+    def was_derived_from(self, entity: Any, source_entity: Any, **attributes: Any) -> Any:
         return self._doc.wasDerivedFrom(
             self._resolve(entity),
             self._resolve(source_entity),
             other_attributes=self._attrs(attributes),
         )
 
-    def was_informed_by(self, activity: Any, informant: Any, **attributes: Any):
+    def was_informed_by(self, activity: Any, informant: Any, **attributes: Any) -> Any:
         return self._doc.wasInformedBy(
             self._resolve(activity),
             self._resolve(informant),
             other_attributes=self._attrs(attributes),
         )
 
-    def acted_on_behalf_of(self, agent: Any, responsible: Any, **attributes: Any):
+    def acted_on_behalf_of(self, agent: Any, responsible: Any, **attributes: Any) -> Any:
         return self._doc.actedOnBehalfOf(
             self._resolve(agent),
             self._resolve(responsible),
@@ -154,7 +154,8 @@ class ProvenanceGraph:
 
     def to_prov_json(self) -> dict[str, Any]:
         """Emit a W3C PROV-JSON document (via the prov library serializer)."""
-        return json.loads(self._doc.serialize(format="json"))
+        result: dict[str, Any] = json.loads(self._doc.serialize(format="json"))
+        return result
 
     def to_dict(self) -> dict[str, Any]:
         """Alias for :meth:`to_prov_json` — the canonical serialisation."""

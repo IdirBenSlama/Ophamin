@@ -17,7 +17,7 @@ import tarfile
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
 
 from ophamin.seeing.corpus.base import Corpus, CorpusRecord, CorpusUnavailableError
 
@@ -58,7 +58,7 @@ class EnronCorpus(Corpus):
                 for p in message.walk()
                 if p.get_content_type() == "text/plain"
             ]
-            raw = b"\n".join(p for p in parts if p)
+            raw = b"\n".join(p for p in parts if isinstance(p, (bytes, bytearray)))
         else:
             payload = message.get_payload(decode=True)
             raw = payload if isinstance(payload, bytes) else b""
@@ -174,7 +174,7 @@ class FloresCorpus(Corpus):
     kind = "parallel_corpus"
     source = "https://dl.fbaipublicfiles.com/nllb/flores200_dataset.tar.gz"
 
-    def __init__(self, root, split: str = "dev", aligned: bool = True) -> None:
+    def __init__(self, root: str | Path, split: str = "dev", aligned: bool = True) -> None:
         super().__init__(root)
         self.split = split
         self.aligned = aligned
@@ -361,7 +361,7 @@ class OffensiveSecurityCorpus(Corpus):
         )
         return hashlib.sha256(repr(parts).encode("utf-8")).hexdigest()
 
-    def _tabular_frames(self, src: _Source):
+    def _tabular_frames(self, src: _Source) -> Iterator[Any]:
         import pandas as pd
 
         for f in self._source_files(src):
@@ -728,7 +728,7 @@ class FinancialCorpus(Corpus):
 # The Well — physics-simulation datasets (foreign-signal corpus)
 # --------------------------------------------------------------------------
 
-def _require_h5py():
+def _require_h5py() -> Any:
     """Import h5py loudly — it is an optional extra (``pip install ophamin[well]``)."""
     try:
         import h5py
@@ -739,7 +739,7 @@ def _require_h5py():
     return h5py
 
 
-def _jsonable_attr(value):
+def _jsonable_attr(value: Any) -> Any:
     """Coerce an HDF5 attribute to a plain JSON-ish value for record metadata."""
     import numpy as np
 
@@ -810,7 +810,7 @@ class TheWellCorpus(Corpus):
         return len(self.included_datasets()) > 0
 
     @classmethod
-    def _field_groups(cls, handle) -> dict[str, list[str]]:
+    def _field_groups(cls, handle: Any) -> dict[str, list[str]]:
         """Map each ``t<rank>_fields`` group to its sorted field names."""
         groups: dict[str, list[str]] = {}
         for key in handle.keys():
@@ -823,7 +823,7 @@ class TheWellCorpus(Corpus):
         return groups
 
     @classmethod
-    def _file_dims(cls, handle, path: Path) -> tuple[int, int]:
+    def _file_dims(cls, handle: Any, path: Path) -> tuple[int, int]:
         """``(n_trajectories, n_timesteps)`` from the first field's shape."""
         for grp, names in cls._field_groups(handle).items():
             shape = handle[grp][names[0]].shape
@@ -870,7 +870,7 @@ class TheWellCorpus(Corpus):
                         f"the-well: {path} has no t*_fields groups"
                     )
                 n_traj, n_time = self._file_dims(handle, path)
-                fields: dict[str, dict] = {}
+                fields: dict[str, dict[str, Any]] = {}
                 for grp, names in groups.items():
                     for fname in names:
                         full_shape = list(handle[grp][fname].shape)
@@ -918,7 +918,7 @@ class TheWellCorpus(Corpus):
         yield from self._records_for_dataset(dataset_name)
 
     @staticmethod
-    def load_snapshot(record: CorpusRecord) -> dict:
+    def load_snapshot(record: CorpusRecord) -> dict[str, Any]:
         """Materialise the physics fields for one ``(trajectory, timestep)`` record.
 
         Lazy by design — ``records()`` streams metadata specs; the field arrays
@@ -928,7 +928,7 @@ class TheWellCorpus(Corpus):
         h5py = _require_h5py()
         meta = record.metadata
         traj, step = meta["trajectory"], meta["timestep"]
-        out: dict = {}
+        out: dict[str, Any] = {}
         with h5py.File(meta["hdf5_path"], "r") as handle:
             for name, spec in meta["fields"].items():
                 out[name] = handle[spec["group"]][name][traj, step]

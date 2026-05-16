@@ -33,14 +33,14 @@ from __future__ import annotations
 import hashlib
 import random
 from collections import defaultdict
-from typing import Iterator
+from typing import Any, Iterator
 
 import statsmodels as _statsmodels
 from statsmodels.stats.proportion import proportion_confint
 
 from ophamin.seeing.corpus import Corpus, CorpusRecord
 from ophamin.measuring.proof import Claim, PillarEvidence, Threshold
-from ophamin.measuring.scenarios.base import Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import Scenario, ScenarioScore, Tier
 from ophamin.seeing.substrate.base import CycleResult
 
 
@@ -48,6 +48,29 @@ class RosettaScalingScenario(Scenario):
     """Rosetta universal-semantic-address invariance across N languages."""
 
     name = "rosetta-scaling"
+    tier = Tier.SCIENTIFIC
+    family = "rosetta"
+    goal = (
+        "Test Rosetta's universal-semantic-address promise: every "
+        "concept, in every language, should collapse to one canonical."
+    )
+    explanation = (
+        "Kimera's Rosetta layer claims to provide a language-invariant "
+        "semantic address — the same concept in English / French / "
+        "Arabic / Mandarin should map to the same canonical (and, "
+        "downstream, the same prime). This scenario samples K aligned "
+        "translations per FLORES-200 sentence group and measures the "
+        "fraction of groups whose first K translations all agree on a "
+        "single canonical. The threshold (default 80% at K=10) tests "
+        "whether the registry + encoder-fallback together honour the "
+        "promise on whole sentences."
+    )
+    method = "all_k_agree_proportion"
+    falsification_consequence = (
+        "Rosetta is encoder-fallback-dominated outside its ~54-entry "
+        "UNIVERSAL_REGISTRY; the universal-semantic-address promise "
+        "does not hold for arbitrary input."
+    )
     corpus_name = "flores"
     target = "rosetta"
 
@@ -231,7 +254,7 @@ class RosettaScalingScenario(Scenario):
     def score(
         self, cycle_results: list[CycleResult], records: list[CorpusRecord]
     ) -> ScenarioScore:
-        groups: dict[str, list[dict]] = defaultdict(list)
+        groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
         adapter_errors = 0
         for result, record in zip(cycle_results, records):
             if result.halt_mode == "adapter_error":
@@ -253,7 +276,7 @@ class RosettaScalingScenario(Scenario):
             {*self._K_REPORT, self.k_max, self.primary_k}
         )
 
-        def _agreement_at_k(k: int) -> dict:
+        def _agreement_at_k(k: int) -> dict[str, Any]:
             n_groups = 0
             agreed_canonical = 0
             agreed_prime = 0

@@ -201,12 +201,12 @@ class ResourceWatcher:
         self._sampler: PeriodicSubprocessSampler | None = None
 
     @classmethod
-    def for_self(cls, **kwargs) -> "ResourceWatcher":
-        return cls(pid=None, **kwargs)
+    def for_self(cls, **kwargs: object) -> "ResourceWatcher":
+        return cls(pid=None, **kwargs)  # type: ignore[arg-type]
 
     @classmethod
-    def for_pid(cls, pid: int, **kwargs) -> "ResourceWatcher":
-        return cls(pid=pid, **kwargs)
+    def for_pid(cls, pid: int, **kwargs: object) -> "ResourceWatcher":
+        return cls(pid=pid, **kwargs)  # type: ignore[arg-type]
 
     # -- one-shot sample ------------------------------------------------
 

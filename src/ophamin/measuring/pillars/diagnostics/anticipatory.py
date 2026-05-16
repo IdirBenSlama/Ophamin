@@ -51,14 +51,14 @@ class ConformalPredictor:
         self._scr: SplitConformalRegressor | None = None
 
     @staticmethod
-    def _as_2d(X) -> np.ndarray:
-        X = np.asarray(X, dtype=float)
-        return X.reshape(-1, 1) if X.ndim == 1 else X
+    def _as_2d(X: Any) -> np.ndarray:
+        X_arr = np.asarray(X, dtype=float)
+        return X_arr.reshape(-1, 1) if X_arr.ndim == 1 else X_arr
 
     def calibrate(
         self,
-        X,
-        y,
+        X: Any,
+        y: Any,
         calibration_fraction: float = 0.4,
         random_state: int | None = None,
     ) -> "ConformalPredictor":
@@ -91,7 +91,7 @@ class ConformalPredictor:
             raise RuntimeError("ConformalPredictor.calibrate must be called first")
         return self._scr
 
-    def predict_interval(self, X) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def predict_interval(self, X: Any) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Return ``(point_prediction, lower, upper)`` arrays for the rows of X."""
         scr = self._require()
         y_pred, y_int = scr.predict_interval(self._as_2d(X))
@@ -99,13 +99,13 @@ class ConformalPredictor:
         y_int = np.asarray(y_int, dtype=float)
         return y_pred, y_int[:, 0, 0], y_int[:, 1, 0]
 
-    def is_conforming(self, X, y_observed) -> np.ndarray:
+    def is_conforming(self, X: Any, y_observed: Any) -> np.ndarray:
         """Boolean array — is each observed outcome inside its conformal interval?"""
         _, lower, upper = self.predict_interval(X)
-        y_observed = np.asarray(y_observed, dtype=float).ravel()
-        return (y_observed >= lower) & (y_observed <= upper)
+        y_observed_arr = np.asarray(y_observed, dtype=float).ravel()
+        return (y_observed_arr >= lower) & (y_observed_arr <= upper)
 
-    def coverage(self, X, y) -> float:
+    def coverage(self, X: Any, y: Any) -> float:
         """Empirical coverage on a held-out set — for validating the guarantee."""
         return float(np.mean(self.is_conforming(X, y)))
 
@@ -150,7 +150,7 @@ class AnticipatoryFailureClassifier:
 
     def assess(
         self,
-        features,
+        features: Any,
         observed_outcome: float,
         known_failure_signal: bool | None = None,
     ) -> str:

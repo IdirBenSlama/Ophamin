@@ -60,7 +60,7 @@ def _esc(value: Any) -> str:
     return html.escape(str(value))
 
 
-def _img(b64: str, alt: str = "") -> str:
+def _img(b64: "str | Path", alt: str = "") -> str:
     return (
         f'<div class="chart">'
         f'<img alt="{_esc(alt)}" src="data:image/png;base64,{b64}" />'
@@ -251,7 +251,7 @@ def _render_audit_body(record: dict[str, Any]) -> str:
     sev_hist: dict[str, int] = summary.get("severity_histogram", {}) or {}
     if sev_hist:
         labels = list(sev_hist.keys())
-        counts = [sev_hist[k] for k in labels]
+        counts: list[float] = [float(sev_hist[k]) for k in labels]
         parts.append("<h3>Severity histogram</h3>")
         parts.append(_img(
             pie_chart(labels, counts, title="Findings by severity", color_map=SEVERITY_COLORS),
@@ -262,7 +262,7 @@ def _render_audit_body(record: dict[str, Any]) -> str:
     per_pillar: dict[str, int] = summary.get("findings_per_pillar", {}) or {}
     if per_pillar:
         labels = list(per_pillar.keys())
-        counts = [per_pillar[k] for k in labels]
+        counts = [float(per_pillar[k]) for k in labels]
         parts.append("<h3>Findings per pillar</h3>")
         parts.append(_img(
             bar_chart(labels, counts, title="Findings per pillar"),
@@ -274,7 +274,7 @@ def _render_audit_body(record: dict[str, Any]) -> str:
     if top_files:
         parts.append("<h3>Top hotspot files</h3>")
         labels = [_short_path(p) for p, _ in top_files]
-        counts = [c for _, c in top_files]
+        counts = [float(c) for _, c in top_files]
         parts.append(_img(
             bar_chart(labels, counts, title="Top files by finding count", horizontal=True),
             alt="hotspots",

@@ -77,7 +77,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -90,8 +90,30 @@ class QuantumBasisCorrelationScenario(Scenario):
     """Disambiguate WHAT TRIGGERS Round I U7's bimodality."""
 
     name = "quantum-basis-correlation"
-    corpus_name = "kimera-prime-trajectory"
-    target = "qbe_bimodality_trigger_analysis"
+    tier = Tier.EMPIRICAL_DEEP
+    family = "quantum"
+    goal = (
+        "Disambiguate what triggers Round I U7's "
+        "quantum_prime_basis_entropy bimodality (stimulus class? "
+        "halt mode? prime-chain length?)."
+    )
+    explanation = (
+        "Round I found QBE empirically bimodal: 56.5% of cycles at "
+        "QBE=0 (focused on one prime), 40.5% at QBE >= 3 nats "
+        "(spread), only 2.5% in between. Round J asks WHAT TRIGGERS "
+        "the bimodality. Initial partition analysis surfaces three "
+        "differentiating factors: stimulus class (mixed-pool ~3x "
+        "more likely high-QBE than axioms), prime_chain length "
+        "(high-QBE cycles emit fewer primes), halt_reason "
+        "(high-QBE rarely amplitude_death). Headline: stimulus-class "
+        "QBE difference >= 15pp."
+    )
+    method = "content_class_effect_difference"
+    falsification_consequence = (
+        "QBE bimodality is content-INDEPENDENT — the substrate's "
+        "quantum basis state has no relationship to the content it "
+        "processes; the bimodality is random or substrate-state-only."
+    )
 
     def __init__(
         self,

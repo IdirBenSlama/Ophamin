@@ -80,7 +80,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.measuring.scenarios.prime_structure import _is_prime
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
@@ -90,8 +90,32 @@ class PrimeDirectLookupScenario(Scenario):
     """Validates the substrate's actual p_thermo emission via direct ArachnePrime lookup."""
 
     name = "prime-direct-lookup"
-    corpus_name = "kimera-arachne-lookup-trajectory"
-    target = "captured_arachne_prime_lookup_per_concept"
+    tier = Tier.EMPIRICAL_DEEP
+    family = "prime"
+    goal = (
+        "Validate the substrate's actual p_thermo emission via "
+        "direct ArachneProtocol.lookup() — closes Round H U4's "
+        "p_thermo=1-majority puzzle."
+    )
+    explanation = (
+        "Round H U4 found 74% of GCD-recovered p_thermo values = "
+        "1, contradicting CLAUDE.md F.1.1's documented lyriform "
+        "range [7, 29]. Round J2 root-caused: when p_thermo values "
+        "within one cycle share common factors, GCD recovery "
+        "collapses them to 1 (an artefact of the reconstruction "
+        "technique, not the substrate). The fix: query "
+        "ArachneProtocol.lookup(concept) directly per cycle to get "
+        "the actual (p_thermo, p_identity, stamp, composite) tuple. "
+        "VALIDATED here closes the puzzle; REFUTED would refute "
+        "F.1.1 itself."
+    )
+    method = "prime_emission_fraction"
+    falsification_consequence = (
+        "Substrate IS genuinely emitting p_thermo=1 for most "
+        "concepts — refutes CLAUDE.md F.1.1 architecture's "
+        "small-prime-per-concept claim. Round H's apparent finding "
+        "would be substrate-real, not GCD artefact."
+    )
 
     def __init__(
         self,

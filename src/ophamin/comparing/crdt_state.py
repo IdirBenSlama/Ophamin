@@ -80,12 +80,18 @@ class YDocFacade:
             return str(text)
 
     def encode_state(self) -> bytes:
-        """Encode the doc's full state as bytes (for sync to another node)."""
+        """Encode the doc's full state as an update payload (for sync to another node).
+
+        Both backends return an *update* — the operation stream another doc
+        can replay via :meth:`apply_state` to converge. Note: pycrdt's
+        ``get_state()`` returns the state *vector* (a logical clock summary,
+        unusable as an update), so we route through ``get_update()`` instead.
+        """
         if self.backend == "pycrdt":
-            return bytes(self._doc.get_state())
+            return bytes(self._doc.get_update())
         else:
             import y_py as Y
-            return Y.encode_state_as_update(self._doc)
+            return bytes(Y.encode_state_as_update(self._doc))
 
     def apply_state(self, state: bytes) -> None:
         """Apply an encoded state from another node (idempotent + commutative)."""

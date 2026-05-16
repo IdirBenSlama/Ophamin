@@ -59,8 +59,10 @@ from typing import Any
 # MLflow is a hard dependency of ophamin (see pyproject.toml), but the
 # import is lazy here so unit tests can stub it cleanly.
 _MLFLOW_IMPORT_ERROR: ImportError | None = None
+mlflow: Any  # rebound to module on successful import, else None
 try:
-    import mlflow  # type: ignore[import-untyped]
+    import mlflow as _mlflow_mod
+    mlflow = _mlflow_mod
 except ImportError as _exc:
     mlflow = None
     _MLFLOW_IMPORT_ERROR = _exc
@@ -76,7 +78,7 @@ _PARAM_MAX_LEN = 5900
 _TAG_MAX_LEN = 4900
 
 
-def _ensure_mlflow():
+def _ensure_mlflow() -> None:
     """Raise loudly if MLflow couldn't be imported."""
     if mlflow is None:
         raise ImportError(
@@ -103,7 +105,7 @@ def _safe_metric_key(name: str) -> str:
 
 
 def export_proof_record(
-    record: dict,
+    record: dict[str, Any],
     *,
     tracking_uri: str | None = None,
     experiment_name: str = DEFAULT_PROOF_EXPERIMENT,
@@ -191,11 +193,11 @@ def export_proof_record(
 
         # artifact: the full proof record as a single JSON file
         _log_record_artifact(record, name=f"proof_record_{short_proof_id}.json")
-        return run.info.run_id
+        return str(run.info.run_id)
 
 
 def export_audit_record(
-    record: dict,
+    record: dict[str, Any],
     *,
     tracking_uri: str | None = None,
     experiment_name: str = DEFAULT_AUDIT_EXPERIMENT,
@@ -263,10 +265,10 @@ def export_audit_record(
 
         # artifact: the full audit record
         _log_record_artifact(record, name=f"audit_record_{short_audit_id}.json")
-        return run.info.run_id
+        return str(run.info.run_id)
 
 
-def _log_record_artifact(record: dict, *, name: str) -> None:
+def _log_record_artifact(record: dict[str, Any], *, name: str) -> None:
     """Write the record JSON to a temp file and log it as an MLflow artifact."""
     with tempfile.TemporaryDirectory() as td:
         path = Path(td) / name
@@ -286,7 +288,7 @@ class MLflowExporter:
         self.tracking_uri = tracking_uri
         self.experiment_name = experiment_name
 
-    def export(self, record: dict, *, kind: str | None = None) -> str:
+    def export(self, record: dict[str, Any], *, kind: str | None = None) -> str:
         """Export a proof or audit record. ``kind`` is auto-detected if None.
 
         Returns the MLflow run_id.
@@ -310,7 +312,7 @@ class MLflowExporter:
         )
 
     @staticmethod
-    def _classify(record: dict) -> str:
+    def _classify(record: dict[str, Any]) -> str:
         if "audit_id" in record and "pillars" in record:
             return "audit"
         if "claim" in record and "verdict" in record:

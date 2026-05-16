@@ -24,7 +24,10 @@ import hashlib
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterator
+from typing import TYPE_CHECKING, Any, Iterator
+
+if TYPE_CHECKING:
+    from ophamin.measuring.proof import DatasetRef
 
 
 class CorpusUnavailableError(RuntimeError):
@@ -160,7 +163,7 @@ class Corpus(abc.ABC):
                 h.update(chunk)
         return h.hexdigest()
 
-    def dataset_ref(self):
+    def dataset_ref(self) -> "DatasetRef":
         """Produce the proof-record ``DatasetRef`` for this corpus."""
         from ophamin.measuring.proof import DatasetRef
 

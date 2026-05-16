@@ -30,14 +30,14 @@ characterize the substrate's behavior on a real organizational corpus
 from __future__ import annotations
 
 from statistics import mean, median
-from typing import Iterator
+from typing import Iterator, Sequence
 
 import statsmodels as _statsmodels
 from statsmodels.stats.proportion import proportion_confint
 
 from ophamin.seeing.corpus import Corpus, CorpusRecord
 from ophamin.measuring.proof import Claim, PillarEvidence, Threshold
-from ophamin.measuring.scenarios.base import Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import Scenario, ScenarioScore, Tier
 from ophamin.seeing.substrate.base import CycleResult
 
 
@@ -45,6 +45,27 @@ class OrganizationalDissonanceScenario(Scenario):
     """Dissonance-layer firing rate on routine organizational email."""
 
     name = "organizational-dissonance"
+    tier = Tier.SCIENTIFIC
+    family = "dissonance"
+    goal = (
+        "Measure whether Kimera's dissonance machinery fires reliably "
+        "on routine non-engineered organizational text."
+    )
+    explanation = (
+        "The dissonance layer downstream of GWF should be reliably "
+        "ACTIVE on real-world organizational content — silence on "
+        "routine input would indicate a wiring or calibration gap. "
+        "This scenario streams ~500k Enron executive emails through "
+        "Takwin and measures the fraction of GWF-cleared cycles in "
+        "which dissonance_events_count >= 1. The threshold (default "
+        "90%) pins the layer's expected baseline activity."
+    )
+    method = "wilson_ci_proportion"
+    falsification_consequence = (
+        "The dissonance layer is silent on routine organizational "
+        "content more than 10% of the time — surfaces a wiring or "
+        "calibration gap downstream of GWF."
+    )
     corpus_name = "enron"
     target = "entity"
 
@@ -338,7 +359,7 @@ class OrganizationalDissonanceScenario(Scenario):
         )
 
     @staticmethod
-    def _distribution_stats(values: list[float | int]) -> dict:
+    def _distribution_stats(values: Sequence[float | int]) -> dict[str, float | int]:
         """Cheap descriptive stats — never report distribution claims as
         falsifiable; these are *descriptive secondary evidence* per the
         Empirical Proof Record discipline."""

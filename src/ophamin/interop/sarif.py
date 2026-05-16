@@ -71,7 +71,7 @@ def _file_uri(path: str) -> str:
     return Path(path).as_uri() if Path(path).is_absolute() else path
 
 
-def _build_rule(rule_id: str, finding_sample: dict) -> dict:
+def _build_rule(rule_id: str, finding_sample: dict[str, Any]) -> dict[str, Any]:
     """Build a reportingDescriptor (SARIF rule) entry for a rule_id."""
     return {
         "id": rule_id or "ophamin/unknown",
@@ -92,7 +92,7 @@ def _build_rule(rule_id: str, finding_sample: dict) -> dict:
     }
 
 
-def _build_result(finding: dict) -> dict:
+def _build_result(finding: dict[str, Any]) -> dict[str, Any]:
     """Build a SARIF result entry from one Ophamin Finding dict."""
     severity = finding.get("severity", "low")
     level, sec_severity, rank = _level_for(severity)
@@ -122,15 +122,15 @@ def _build_result(finding: dict) -> dict:
     }
 
 
-def _build_run_for_pillar(pillar: dict, record: dict) -> dict | None:
+def _build_run_for_pillar(pillar: dict[str, Any], record: dict[str, Any]) -> dict[str, Any] | None:
     """One SARIF run per pillar — but only when the pillar status is 'ok'.
 
     Unavailable / errored pillars are surfaced in invocations.properties so
     downstream tools see honestly which pillars ran. Returns None for empty
     runs (no findings AND no diagnostic value).
     """
-    findings: list[dict] = list(pillar.get("findings", []) or [])
-    rule_index: dict[str, dict] = {}
+    findings: list[dict[str, Any]] = list(pillar.get("findings", []) or [])
+    rule_index: dict[str, dict[str, Any]] = {}
     for f in findings:
         rule_id = f.get("rule_id") or "ophamin/unknown"
         if rule_id not in rule_index:
@@ -167,7 +167,7 @@ def _build_run_for_pillar(pillar: dict, record: dict) -> dict | None:
     }
 
 
-def audit_record_to_sarif(record: dict) -> dict:
+def audit_record_to_sarif(record: dict[str, Any]) -> dict[str, Any]:
     """Convert an Audit Record dict (as produced by AuditRecord.to_dict()) into
     a SARIF 2.1.0 log dict.
 
@@ -181,7 +181,7 @@ def audit_record_to_sarif(record: dict) -> dict:
             "(missing 'pillars' and/or 'audit_id')"
         )
 
-    runs: list[dict] = []
+    runs: list[dict[str, Any]] = []
     for pillar in record.get("pillars", []):
         run = _build_run_for_pillar(pillar, record)
         if run is not None:
@@ -211,7 +211,7 @@ class SARIFExporter:
     Audit records only; proof records use ``JUnitXMLExporter``.
     """
 
-    def export(self, audit_record: dict, out_path: str | Path) -> Path:
+    def export(self, audit_record: dict[str, Any], out_path: str | Path) -> Path:
         sarif = audit_record_to_sarif(audit_record)
         out = Path(out_path)
         if out.suffix.lower() != ".sarif":

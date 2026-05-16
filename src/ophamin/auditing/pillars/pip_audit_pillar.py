@@ -83,7 +83,8 @@ class PipAuditPillar(AuditPillar):
         binary = self.resolved_binary() or self.tool_binary
         cmd = [binary, "-f", "json"]
         # Per-call override: caller can override ignore_vulns / python_exe.
-        per_call_python: Path | None = _kwargs.get("python_exe")  # type: ignore[assignment]
+        per_call_python: Path | None = _kwargs.get("python_exe")
+        python_exe: Path | None
         if per_call_python is not None:
             python_exe = Path(per_call_python).expanduser()
         else:

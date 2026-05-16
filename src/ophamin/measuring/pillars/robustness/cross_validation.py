@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any, Callable, Iterable
 
 import numpy as np
 from sklearn.model_selection import (
@@ -28,7 +28,7 @@ from sklearn.model_selection import (
 )
 from sklearn.utils import resample
 
-Evaluator = Callable[[list, list], float]
+Evaluator = Callable[[list[Any], list[Any]], float]
 
 _Z95 = 1.959963984540054  # standard normal 97.5th percentile
 
@@ -61,7 +61,7 @@ class CVResult:
         )
 
 
-def _seed(rng):
+def _seed(rng: Any) -> Any:
     """Normalise an rng argument to a value scikit-learn's ``random_state`` accepts."""
     if rng is None:
         return None
@@ -74,16 +74,16 @@ def _seed(rng):
     raise TypeError(f"unsupported rng type for cross-validation: {type(rng)!r}")
 
 
-def _resolve_groups(n_items: int, groups) -> list | None:
+def _resolve_groups(n_items: int, groups: Any) -> list[Any] | None:
     if groups is None:
         return None
-    groups = list(groups)
-    if len(groups) != n_items:
+    groups_list = list(groups)
+    if len(groups_list) != n_items:
         raise ValueError("groups must have one label per item")
-    return groups
+    return groups_list
 
 
-def _to_splits(sklearn_splits, order_rng: np.random.Generator) -> list[CVSplit]:
+def _to_splits(sklearn_splits: Any, order_rng: np.random.Generator) -> list[CVSplit]:
     """Convert scikit-learn (train, test) index arrays into order-permuted CVSplits."""
     out: list[CVSplit] = []
     for train_idx, test_idx in sklearn_splits:
@@ -99,8 +99,8 @@ def monte_carlo_splits(
     n_items: int,
     n_iterations: int,
     train_fraction: float,
-    rng=None,
-    groups=None,
+    rng: Any = None,
+    groups: Any = None,
 ) -> list[CVSplit]:
     """Repeated random holdout splits — scikit-learn ``ShuffleSplit`` / ``GroupShuffleSplit``."""
     if n_items < 2:
@@ -129,7 +129,7 @@ def monte_carlo_splits(
 
 
 def k_fold_splits(
-    n_items: int, k: int, rng=None, shuffle: bool = True, groups=None
+    n_items: int, k: int, rng: Any = None, shuffle: bool = True, groups: Any = None
 ) -> list[CVSplit]:
     """k mutually exclusive folds — scikit-learn ``KFold`` / ``GroupKFold``."""
     if k < 2:
@@ -159,7 +159,7 @@ def k_fold_splits(
     return _to_splits(splitter.split(x, groups=grp), order_rng)
 
 
-def bootstrap_splits(n_items: int, n_iterations: int, rng=None) -> list[CVSplit]:
+def bootstrap_splits(n_items: int, n_iterations: int, rng: Any = None) -> list[CVSplit]:
     """Sampling with replacement (``sklearn.utils.resample``); test set is out-of-bag."""
     if n_items < 2:
         raise ValueError("need at least 2 items to bootstrap")
@@ -181,15 +181,15 @@ def bootstrap_splits(n_items: int, n_iterations: int, rng=None) -> list[CVSplit]
     return splits
 
 
-def cross_validate(items, evaluator: Evaluator, splits: list[CVSplit]) -> CVResult:
+def cross_validate(items: Iterable[Any], evaluator: Evaluator, splits: list[CVSplit]) -> CVResult:
     """Apply ``evaluator`` across ``splits`` and aggregate the scores."""
-    items = list(items)
+    items_list: list[Any] = list(items)
     if not splits:
         raise ValueError("no splits provided")
     scores: list[float] = []
     for sp in splits:
-        train = [items[i] for i in sp.train_indices]
-        test = [items[i] for i in sp.test_indices]
+        train = [items_list[i] for i in sp.train_indices]
+        test = [items_list[i] for i in sp.test_indices]
         scores.append(float(evaluator(train, test)))
     arr = np.asarray(scores, dtype=float)
     mean = float(arr.mean())
@@ -208,45 +208,45 @@ def cross_validate(items, evaluator: Evaluator, splits: list[CVSplit]) -> CVResu
 
 
 def monte_carlo_cv(
-    items,
+    items: Iterable[Any],
     evaluator: Evaluator,
     n_iterations: int = 200,
     train_fraction: float = 0.7,
-    rng=None,
-    groups=None,
+    rng: Any = None,
+    groups: Any = None,
 ) -> CVResult:
     """Monte Carlo cross-validation — the N-pillar workhorse (scikit-learn-backed)."""
-    items = list(items)
+    items_list = list(items)
     splits = monte_carlo_splits(
-        len(items), n_iterations, train_fraction, rng=rng, groups=groups
+        len(items_list), n_iterations, train_fraction, rng=rng, groups=groups
     )
-    result = cross_validate(items, evaluator, splits)
+    result = cross_validate(items_list, evaluator, splits)
     result.method = "monte_carlo"
     return result
 
 
 def k_fold_cv(
-    items,
+    items: Iterable[Any],
     evaluator: Evaluator,
     k: int = 5,
-    rng=None,
+    rng: Any = None,
     shuffle: bool = True,
-    groups=None,
+    groups: Any = None,
 ) -> CVResult:
     """k-fold cross-validation (scikit-learn-backed)."""
-    items = list(items)
-    splits = k_fold_splits(len(items), k, rng=rng, shuffle=shuffle, groups=groups)
-    result = cross_validate(items, evaluator, splits)
+    items_list = list(items)
+    splits = k_fold_splits(len(items_list), k, rng=rng, shuffle=shuffle, groups=groups)
+    result = cross_validate(items_list, evaluator, splits)
     result.method = f"{k}_fold"
     return result
 
 
 def bootstrap_cv(
-    items, evaluator: Evaluator, n_iterations: int = 200, rng=None
+    items: Iterable[Any], evaluator: Evaluator, n_iterations: int = 200, rng: Any = None
 ) -> CVResult:
     """Bootstrap cross-validation with out-of-bag evaluation (scikit-learn-backed)."""
-    items = list(items)
-    splits = bootstrap_splits(len(items), n_iterations, rng=rng)
-    result = cross_validate(items, evaluator, splits)
+    items_list = list(items)
+    splits = bootstrap_splits(len(items_list), n_iterations, rng=rng)
+    result = cross_validate(items_list, evaluator, splits)
     result.method = "bootstrap"
     return result

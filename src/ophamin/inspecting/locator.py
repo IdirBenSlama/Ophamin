@@ -25,6 +25,7 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Iterator
 
 from ophamin.inspecting.primitive_profile import CallerReference
 
@@ -131,7 +132,7 @@ class PrimitiveLocator:
 
     # -- helpers --------------------------------------------------------
 
-    def _iter_py_files(self, root: Path):
+    def _iter_py_files(self, root: Path) -> "Iterator[Path]":
         """Yield every .py under ``root`` except __pycache__ + .venv."""
         for path in root.rglob("*.py"):
             if "__pycache__" in path.parts or ".venv" in path.parts:

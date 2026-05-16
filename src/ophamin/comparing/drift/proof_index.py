@@ -21,7 +21,7 @@ import json
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Iterator
 
 from ophamin.measuring.proof import EmpiricalProofRecord
 
@@ -95,7 +95,7 @@ class ProofIndex:
     def __len__(self) -> int:
         return len(self._entries)
 
-    def __iter__(self):
+    def __iter__(self) -> "Iterator[ProofIndexEntry]":
         return iter(self._entries)
 
     def all_entries(self) -> tuple[ProofIndexEntry, ...]:

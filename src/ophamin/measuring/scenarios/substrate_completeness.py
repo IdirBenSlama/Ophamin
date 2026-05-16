@@ -49,6 +49,8 @@ from typing import Any
 import statsmodels as _sm  # noqa: F401
 from statsmodels.stats.proportion import proportion_confint
 
+from ophamin.measuring.scenarios.base import Tier
+
 from ophamin import __version__
 from ophamin.comparing.provenance import ProvenanceGraph
 from ophamin.comparing.provenance.lineage import (
@@ -70,8 +72,8 @@ from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, Scenari
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.discovery import discover_all
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
+from ophamin.seeing.discovery.kimera_inventory import _capture_kimera_commit
 from ophamin.seeing.wiring import CompletenessReport, WiringProbe
-from ophamin.seeing.wiring.wiring_probe import _capture_kimera_commit
 
 
 class SubstrateCompletenessScenario(Scenario):
@@ -89,7 +91,30 @@ class SubstrateCompletenessScenario(Scenario):
     """
 
     name = "substrate-completeness"
-    corpus_name = "kimera-inventory-static-probe"
+    tier = Tier.SCIENTIFIC
+    family = "completeness"
+    goal = (
+        "Measure Kimera's aggregate orphan rate across all 9 "
+        "inventory strata — empirical feedback for substrate "
+        "completion."
+    )
+    explanation = (
+        "Per owner directive, Ophamin's load-bearing value is "
+        "empirical feedback to drive Kimera substrate completion. "
+        "This scenario probes Kimera's static structure (no cycle "
+        "runs): an import-graph walk + WIRED/WIRE_CANDIDATE/ARCHIVED "
+        "annotation scan classifies every inventoried surface as "
+        "wired / wire_candidate / orphan / archived. The threshold "
+        "(default 20%) is the starting bar; ratchets down as Kimera "
+        "matures. The output evidence carries the orphan + "
+        "WIRE_CANDIDATE action lists for direct operator pickup."
+    )
+    method = "aggregate_orphan_rate"
+    falsification_consequence = (
+        "Load-bearing infrastructure is sitting unwired across more "
+        "than 20% of inventoried surfaces — the operator's "
+        "completion-action list is the concrete output."
+    )
     target = "all_strata_static_probe"
 
     def __init__(
@@ -176,7 +201,7 @@ class SubstrateCompletenessScenario(Scenario):
         self,
         substrate: SubstrateUnderTest | None = None,
         *,
-        data_root=None,
+        data_root: str | Path | None = None,
         sign_key: bytes = DEFAULT_SIGN_KEY,
     ) -> EmpiricalProofRecord:
         """Build inventory + completeness report, aggregate, emit signed record."""

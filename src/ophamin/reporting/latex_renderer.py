@@ -14,7 +14,7 @@ crash compilation.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from ophamin.reporting.base import ReportFormat, ReportRenderer
 from ophamin.reporting.chart_helpers import (
@@ -44,7 +44,9 @@ def _esc(value: Any) -> str:
     return str(value).translate(_LATEX_ESCAPE)
 
 
-def _write_chart(assets_dir: Path, name: str, factory) -> str:
+def _write_chart(
+    assets_dir: Path, name: str, factory: Callable[[Path], object]
+) -> str:
     """Write a chart PNG to assets_dir/name; return the LaTeX-include filename
     (without extension, since ``\\includegraphics`` handles the extension)."""
     assets_dir.mkdir(parents=True, exist_ok=True)
@@ -131,16 +133,17 @@ def _render_proof_latex(record: dict[str, Any], tex_path: Path) -> str:
         None,
     )
     if primary_ev and primary_ev.get("ci_low") is not None:
+        primary_metric_str = str(primary_metric) if primary_metric is not None else "metric"
         ref = _write_chart(
-            assets, f"ci_{_safe_filename(primary_metric)}.png",
+            assets, f"ci_{_safe_filename(primary_metric_str)}.png",
             lambda out: confidence_interval_plot(
                 observed_value=float(primary_ev["statistic_value"]),
                 ci_low=primary_ev["ci_low"],
                 ci_high=primary_ev["ci_high"],
                 threshold_value=float(threshold["value"]),
                 threshold_comparator=threshold.get("comparator", ">="),
-                title=f"{primary_metric}: observed value vs pre-registered threshold",
-                xlabel=primary_metric,
+                title=f"{primary_metric_str}: observed value vs pre-registered threshold",
+                xlabel=primary_metric_str,
                 out_path=out,
             ),
         )

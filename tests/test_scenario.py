@@ -26,8 +26,13 @@ from ophamin.seeing.substrate import MockSubstrate
 from ophamin.seeing.substrate.base import CycleResult
 
 
-class _HarnessProbe(Scenario):
-    """A trivial scenario for testing the harness end-to-end without Kimera."""
+class _HarnessProbe(Scenario, register=False):
+    """A trivial scenario for testing the harness end-to-end without Kimera.
+
+    Uses ``register=False`` so it does NOT enter the global SCENARIOS
+    registry and is exempt from metadata validation (per the 2026-05-16
+    auto-registration + metadata-required design — test-internal classes
+    are the sanctioned opt-out case)."""
 
     name = "harness-probe"
     corpus_name = "flores"

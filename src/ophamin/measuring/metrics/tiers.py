@@ -136,9 +136,9 @@ class MetricBundle:
             out[f"t1.counter.{k}"] = v
         for k, v in self.tier1.gauges.items():
             out[f"t1.gauge.{k}"] = v
-        for k, v in self.tier1.timers.items():
+        for k, samples in self.tier1.timers.items():
             # timers flatten to their mean; raw samples stay in tier1.timers
-            out[f"t1.timer.{k}.mean"] = sum(v) / len(v) if v else None
+            out[f"t1.timer.{k}.mean"] = sum(samples) / len(samples) if samples else None
         for k, v in self.tier2.to_dict().items():
             out[f"t2.{k}"] = v
         for k, v in self.tier3.to_dict().items():

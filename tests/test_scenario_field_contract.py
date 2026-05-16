@@ -72,11 +72,17 @@ class _FakeSubstrate(SubstrateUnderTest):
 
 
 def _make_scenario_class(scenario_name: str, contract: ScenarioFieldContract | None):
-    """Build a minimal Scenario subclass for testing."""
+    """Build a minimal Scenario subclass for testing.
+
+    Uses ``register=False`` so the test class does NOT enter the global
+    :data:`SCENARIOS` registry — multiple test functions can reuse the
+    same ``scenario_name`` without colliding under the auto-registration
+    guard introduced 2026-05-16.
+    """
 
     _CONTRACT = contract
 
-    class _TestScenario(Scenario):
+    class _TestScenario(Scenario, register=False):
         name = scenario_name
         corpus_name = "fake"
         target = "entity"

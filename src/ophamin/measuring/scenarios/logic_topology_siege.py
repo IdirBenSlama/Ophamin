@@ -31,14 +31,14 @@ from __future__ import annotations
 
 from collections import Counter
 from statistics import mean, median
-from typing import Iterator
+from typing import Iterator, Sequence
 
 import statsmodels as _statsmodels
 from statsmodels.stats.proportion import proportion_confint
 
 from ophamin.seeing.corpus import Corpus, CorpusRecord
 from ophamin.measuring.proof import Claim, PillarEvidence, Threshold
-from ophamin.measuring.scenarios.base import Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import Scenario, ScenarioScore, Tier
 from ophamin.seeing.substrate.base import CycleResult
 
 
@@ -46,6 +46,28 @@ class LogicTopologySiegeScenario(Scenario):
     """Walker sustained-traversal rate on Linux kernel commit messages."""
 
     name = "logic-topology-siege"
+    tier = Tier.SCIENTIFIC
+    family = "walker"
+    goal = (
+        "Measure Kimera's walker sustained-traversal rate on technical "
+        "content (Linux kernel commit messages)."
+    )
+    explanation = (
+        "Kimera's walker should sustain traversal on technical "
+        "reasoning content rather than collapsing to amplitude_death "
+        "(silent walker collapse). Probe finding (5 hand-picked kernel "
+        "stimuli, 2026-05-15): all 5 GWF-cleared, all 5 "
+        "halt_mode=exhausted, dissonance fires 10-27 events each — "
+        "technical content sustains the walker more reliably than "
+        "narrative content. This scenario tests whether ~1.4M Linux "
+        "commit messages produce a >=60% sustained-traversal rate."
+    )
+    method = "wilson_ci_proportion"
+    falsification_consequence = (
+        "The walker collapses to amplitude_death on more than 40% of "
+        "GWF-cleared technical content — surfaces a calibration gap in "
+        "the walker / step-budget / coherence machinery."
+    )
     corpus_name = "linux"
     target = "entity"
 
@@ -178,7 +200,7 @@ class LogicTopologySiegeScenario(Scenario):
         return float(lo), float(hi)
 
     @staticmethod
-    def _distribution_stats(values: list[float | int]) -> dict:
+    def _distribution_stats(values: Sequence[float | int]) -> dict[str, float | int]:
         if not values:
             return {
                 "n": 0,

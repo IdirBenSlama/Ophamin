@@ -1,0 +1,34 @@
+# Ophamin — Docker build context filter (Phase S4, 2026-05-16)
+#
+# Keep the build context lean: only ship what the Dockerfile actually COPYs.
+
+# build / cache / venv artefacts — never want these in the image
+.git/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# coverage + test artefacts
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# bench output
+tests/bench/output/
+
+# IDE / editor noise
+.idea/
+.vscode/
+.DS_Store
+
+# Local-only files
+*.log
+.env
+.env.*

@@ -338,7 +338,7 @@ def _list_modules(kimera_repo: Path, rel_dir: str, *, recursive: bool = False) -
     return out
 
 
-def _module_to_surface(repo_root: Path, p: Path, *, kind: str = "module", metadata: dict | None = None) -> Surface:
+def _module_to_surface(repo_root: Path, p: Path, *, kind: str = "module", metadata: dict[str, Any] | None = None) -> Surface:
     rel = p.relative_to(repo_root).as_posix()
     return Surface(
         name=p.stem,

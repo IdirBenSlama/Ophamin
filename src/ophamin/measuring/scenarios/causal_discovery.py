@@ -71,7 +71,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -89,6 +89,32 @@ class CausalDiscoveryScenario(Scenario):
     """PCMCI-based causal discovery on a captured Kimera trajectory."""
 
     name = "causal-discovery"
+    tier = Tier.EMPIRICAL_DEEP
+    family = "causal"
+    goal = (
+        "Detect directed causal links between Kimera substrate "
+        "channels at lags 0..max_lag via PCMCI on a captured "
+        "trajectory."
+    )
+    explanation = (
+        "Cross-channel mutual information tells us WHICH channels "
+        "are coupled; PCMCI (PC + MCI via Tigramite) tells us "
+        "WHICH DIRECTION the arrow points and at what lag. Tests "
+        "include: cycle_index -> alexandria_knowledge_mass "
+        "(deterministic ground truth); phi <-> dissonance_events "
+        "direction (Family L T4 found MI=1.02 but couldn't "
+        "disambiguate); kuramoto_order -> arachne_web_order_param "
+        "(predicted by memory-as-deformation framing). Headline "
+        "verdict: at least one expected-direction link found at "
+        "p < 0.05."
+    )
+    method = "pcmci_significant_links"
+    falsification_consequence = (
+        "PCMCI finds NO directed link above alpha=0.05 across all "
+        "tested channel pairs — either the substrate has no "
+        "recoverable causal structure at the sampled cadence or "
+        "Tigramite is mis-configured for this signal regime."
+    )
     corpus_name = "kimera-multichannel-trajectory"
     target = "captured_substrate_time_series_pcmci"
 

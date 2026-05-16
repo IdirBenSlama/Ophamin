@@ -39,7 +39,7 @@ import statsmodels as _statsmodels
 from scipy import stats as _scipy_stats
 
 from ophamin.measuring.proof import Claim, PillarEvidence, Threshold
-from ophamin.measuring.scenarios.base import Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus.base import Corpus, CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult
 
@@ -86,6 +86,30 @@ class PhilosophicalSelfReferenceScenario(Scenario):
     """Paired-comparison: self-referential text vs neutral text, dissonance gap."""
 
     name = "philosophical-self-reference"
+    tier = Tier.PHILOSOPHICAL
+    family = "self_reference"
+    goal = (
+        "Test whether Kimera produces a measurably different "
+        "cognitive signature on text about itself vs neutral text "
+        "of comparable structure."
+    )
+    explanation = (
+        "Paired-comparison shape: splits the corpus into two "
+        "labelled sub-populations (~30 hand-curated sentences about "
+        "Kimera primitives + neutral Enron baseline). Score is "
+        "Cohen's d of dissonance_events_count, one-sided (self_ref > "
+        "neutral). Effect-size interpretation: d=0.2 small, d=0.5 "
+        "medium, d=0.8 large (Cohen 1988). The threshold (default "
+        "0.30 — small-to-medium) tests for a small but real "
+        "self-recognition signal. Secondary: Mann-Whitney U p-value, "
+        "per-group dissonance distributions, Φ distributions."
+    )
+    method = "cohens_d_paired"
+    falsification_consequence = (
+        "Kimera is NOT differentially activated by self-referential "
+        "content — the substrate processes content about itself the "
+        "same way it processes any other text."
+    )
     corpus_name = "enron"           # source of neutral baseline records
     target = "entity"
 
@@ -243,7 +267,7 @@ class PhilosophicalSelfReferenceScenario(Scenario):
         pooled = ((n_a - 1) * var_a + (n_b - 1) * var_b) / (n_a + n_b - 2)
         if pooled <= 0:
             return 0.0
-        return (mean_a - mean_b) / (pooled ** 0.5)
+        return float((mean_a - mean_b) / (pooled ** 0.5))
 
     @staticmethod
     def _dist_stats(values: list[float]) -> dict[str, float]:

@@ -55,7 +55,7 @@ def _add_property(properties: ET.Element, name: str, value: Any) -> None:
     })
 
 
-def proof_record_to_junit_xml(record: dict) -> ET.Element:
+def proof_record_to_junit_xml(record: dict[str, Any]) -> ET.Element:
     """Convert an Empirical Proof Record dict (as produced by
     EmpiricalProofRecord.to_dict()) into a JUnit ``<testsuites>`` element.
 
@@ -168,7 +168,7 @@ def proof_record_to_junit_xml(record: dict) -> ET.Element:
 
 
 def _add_outcome(
-    case: ET.Element, outcome: str, verdict: dict, threshold: dict
+    case: ET.Element, outcome: str, verdict: dict[str, Any], threshold: dict[str, Any]
 ) -> None:
     """Wire the verdict outcome onto the testcase element."""
     reasoning = verdict.get("reasoning", "")
@@ -211,7 +211,7 @@ def _add_outcome(
         error.text = reasoning
 
 
-def _scenario_name_from_record(record: dict) -> str:
+def _scenario_name_from_record(record: dict[str, Any]) -> str:
     """Best-effort scenario name from the reproduction command or claim.
 
     Looks for ``scenario <name>`` anywhere in the reproduction command,
@@ -219,7 +219,7 @@ def _scenario_name_from_record(record: dict) -> str:
     ``PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario foo``, so
     a simple positional check misses the name.
     """
-    cmd = record.get("reproduction", {}).get("command", "")
+    cmd = str(record.get("reproduction", {}).get("command", ""))
     if cmd:
         parts = cmd.split()
         for i, token in enumerate(parts):
@@ -241,7 +241,7 @@ def _prettify(element: ET.Element) -> str:
 class JUnitXMLExporter:
     """Wrap ``proof_record_to_junit_xml`` for ergonomic CLI access."""
 
-    def export(self, proof_record: dict, out_path: str | Path) -> Path:
+    def export(self, proof_record: dict[str, Any], out_path: str | Path) -> Path:
         root = proof_record_to_junit_xml(proof_record)
         out = Path(out_path)
         if out.suffix.lower() not in (".xml", ".junit"):

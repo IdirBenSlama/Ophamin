@@ -203,14 +203,14 @@ class SchemaMiner:
                     )
                 )
             else:
-                samples = tuple(scalar_samples.get(path, []))
+                samples_tuple: tuple[Any, ...] = tuple(scalar_samples.get(path, []))
                 fields.append(
                     FieldSchema(
                         path=path,
                         types_seen=types,
                         occurrence_count=paths_seen[path],
                         n_cycles_target=n_cycles - n_adapter_errors,
-                        sample_values=samples,
+                        sample_values=samples_tuple,
                         sample_kind="values",
                     )
                 )
@@ -263,6 +263,4 @@ class SchemaMiner:
             meta = substrate.metadata()
         except Exception:  # noqa: BLE001 — substrate may not expose metadata
             return "<unknown>"
-        if isinstance(meta, dict):
-            return str(meta.get("target_class", "<unknown>"))
-        return "<unknown>"
+        return str(meta.get("target_class", "<unknown>"))

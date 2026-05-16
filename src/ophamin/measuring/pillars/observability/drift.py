@@ -15,6 +15,7 @@ confirmed change point.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Iterable
 
 from river import drift as _river_drift
 
@@ -63,7 +64,7 @@ class DriftMonitor:
     arguments are passed straight through to the river detector.
     """
 
-    def __init__(self, detector: str = "adwin", **detector_kwargs) -> None:
+    def __init__(self, detector: str = "adwin", **detector_kwargs: object) -> None:
         key = detector.lower()
         if key not in _DETECTORS:
             raise ValueError(
@@ -93,7 +94,7 @@ class DriftMonitor:
             self._warning_points.append(index)
         return detected
 
-    def update_many(self, values) -> "DriftMonitor":
+    def update_many(self, values: Iterable[float]) -> "DriftMonitor":
         for v in values:
             self.update(v)
         return self

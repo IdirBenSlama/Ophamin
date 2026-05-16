@@ -25,6 +25,7 @@ from __future__ import annotations
 import abc
 import math
 from dataclasses import dataclass
+from typing import Iterable
 
 # decision constants — plain strings keep results JSON-friendly
 ACCEPT_H0 = "accept_h0"
@@ -78,7 +79,7 @@ class SPRT(abc.ABC):
         self._n += 1
         return self.decision
 
-    def update_many(self, xs) -> str:
+    def update_many(self, xs: "Iterable[float]") -> str:
         for x in xs:
             decision = self.update(x)
             if decision != CONTINUE:
@@ -216,7 +217,7 @@ class MixtureSPRT:
             self._running_max_lr = lr
         return self.always_valid_pvalue
 
-    def update_many(self, xs) -> float:
+    def update_many(self, xs: "Iterable[float]") -> float:
         for x in xs:
             self.update(x)
         return self.always_valid_pvalue

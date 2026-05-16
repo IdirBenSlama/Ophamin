@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-from ophamin.seeing.discovery.schema_diff import diff_schemas
+from ophamin.seeing.discovery.schema_diff import SchemaDiff, diff_schemas
 from ophamin.seeing.discovery.schema_document import SchemaDocument
 from ophamin.seeing.discovery.schema_miner import SchemaMiner
 from ophamin.seeing.discovery.schema_writer import write_schema_markdown
@@ -198,7 +198,7 @@ class KimeraDiscoveryWatcher:
 
     @staticmethod
     def _write_diff_markdown(
-        diff, path: Path, before: SchemaDocument, after: SchemaDocument
+        diff: SchemaDiff, path: Path, before: SchemaDocument, after: SchemaDocument
     ) -> None:
         """Render the structural diff as a small Markdown report."""
         lines = [

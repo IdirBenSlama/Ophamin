@@ -60,6 +60,11 @@ class PrimitiveProfile:
     audit_severity_histogram: dict[str, int] = field(default_factory=dict)
     instrumenting_wall_time_p50_s: float | None = None
     instrumenting_cpu_time_p50_s: float | None = None
+    instrumenting_n_cycles_observed: int | None = None
+    instrumenting_rss_peak_bytes: int | None = None
+    comparing_n_drift_events: int | None = None
+    comparing_detector_name: str = ""
+    comparing_stream_name: str = ""
 
     # --- provenance ----------------------------------------------------
     kimera_repo: str = ""              # absolute path
@@ -93,6 +98,11 @@ class PrimitiveProfile:
                 "audit_severity_histogram": dict(self.audit_severity_histogram),
                 "instrumenting_wall_time_p50_s": self.instrumenting_wall_time_p50_s,
                 "instrumenting_cpu_time_p50_s": self.instrumenting_cpu_time_p50_s,
+                "instrumenting_n_cycles_observed": self.instrumenting_n_cycles_observed,
+                "instrumenting_rss_peak_bytes": self.instrumenting_rss_peak_bytes,
+                "comparing_n_drift_events": self.comparing_n_drift_events,
+                "comparing_detector_name": self.comparing_detector_name,
+                "comparing_stream_name": self.comparing_stream_name,
             },
             "provenance": {
                 "kimera_repo": self.kimera_repo,
@@ -169,6 +179,7 @@ class PrimitiveProfile:
             self.discovery_field_count is not None,
             self.audit_finding_count is not None,
             self.instrumenting_wall_time_p50_s is not None,
+            self.comparing_n_drift_events is not None,
         ]):
             lines.append("## Dynamic readings\n")
             if self.discovery_field_count is not None:
@@ -190,6 +201,16 @@ class PrimitiveProfile:
                     f"{self.instrumenting_wall_time_p50_s:.3f}s"
                     + (f", p50 CPU {self.instrumenting_cpu_time_p50_s:.3f}s"
                        if self.instrumenting_cpu_time_p50_s is not None else "")
+                    + (f", over {self.instrumenting_n_cycles_observed} cycle(s)"
+                       if self.instrumenting_n_cycles_observed else "")
+                    + (f", RSS peak {self.instrumenting_rss_peak_bytes // (1024*1024)} MB"
+                       if self.instrumenting_rss_peak_bytes else "")
+                )
+            if self.comparing_n_drift_events is not None:
+                lines.append(
+                    f"- Comparing (drift): {self.comparing_n_drift_events} drift "
+                    f"event(s) detected by `{self.comparing_detector_name or '?'}` on "
+                    f"stream `{self.comparing_stream_name or '?'}`"
                 )
             lines.append("")
 

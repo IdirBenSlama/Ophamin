@@ -32,7 +32,7 @@ import platform
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Callable
 
 SCHEMA_VERSION = "1.0"
 
@@ -43,7 +43,7 @@ INCONCLUSIVE = "INCONCLUSIVE"
 _OUTCOMES = {VALIDATED, REFUTED, INCONCLUSIVE}
 
 # falsifiable-threshold comparators
-_COMPARATORS = {
+_COMPARATORS: dict[str, Callable[[float, float], bool]] = {
     ">=": lambda obs, thr: obs >= thr,
     "<=": lambda obs, thr: obs <= thr,
     ">": lambda obs, thr: obs > thr,
@@ -98,6 +98,14 @@ class Threshold:
             raise ValueError(
                 f"comparator must be one of {sorted(_COMPARATORS)}, got {self.comparator!r}"
             )
+        # Move L defensive coercion: ensure value is always float so the
+        # canonical JSON form is stable across round-trips. Without this,
+        # passing `Threshold(metric, "<=", 10)` produces a Threshold whose
+        # to_dict gives `"value": 10` (int), but after load
+        # ``Threshold.from_dict(data)`` coerces to float and to_dict gives
+        # `"value": 10.0` — silent canonical-form drift that breaks
+        # signature verification.
+        self.value = float(self.value)
 
     def decide(self, observed: float) -> bool:
         """True iff the observed value satisfies the threshold."""
@@ -297,6 +305,9 @@ class Verdict:
     def __post_init__(self) -> None:
         if self.outcome not in _OUTCOMES:
             raise ValueError(f"outcome must be one of {sorted(_OUTCOMES)}")
+        # Move L defensive coercion: see Threshold.__post_init__ — without
+        # this, int-vs-float round-trip drift breaks signature verification.
+        self.observed_value = float(self.observed_value)
 
     @classmethod
     def decide(

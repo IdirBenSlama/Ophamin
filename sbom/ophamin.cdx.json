@@ -1,0 +1,5114 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:d8859349-f188-464a-a048-de36c57be45b",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-05-16T20:11:49.726406+00:00",
+    "tools": [
+      {
+        "vendor": "ophamin",
+        "name": "ophamin",
+        "version": "0.1.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:pypi/ophamin@0.6.0",
+      "name": "ophamin",
+      "version": "0.6.0",
+      "purl": "pkg:pypi/ophamin@0.6.0"
+    },
+    "properties": [
+      {
+        "name": "python.version",
+        "value": "3.14.3"
+      },
+      {
+        "name": "python.implementation",
+        "value": "cpython"
+      },
+      {
+        "name": "platform.os",
+        "value": "posix"
+      },
+      {
+        "name": "platform.sys",
+        "value": "darwin"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/adagio@0.2.6",
+      "name": "adagio",
+      "version": "0.2.6",
+      "purl": "pkg:pypi/adagio@0.2.6",
+      "description": "The Dag IO Framework for Fugue projects",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/fugue-project/adagio"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/aiohappyeyeballs@2.6.1",
+      "name": "aiohappyeyeballs",
+      "version": "2.6.1",
+      "purl": "pkg:pypi/aiohappyeyeballs@2.6.1",
+      "description": "Happy Eyeballs for asyncio",
+      "licenses": [
+        {
+          "license": {
+            "name": "PSF-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/aiohttp@3.13.5",
+      "name": "aiohttp",
+      "version": "3.13.5",
+      "purl": "pkg:pypi/aiohttp@3.13.5",
+      "description": "Async http client/server framework (asyncio)",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0 AND MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/aiohttp-retry@2.9.1",
+      "name": "aiohttp-retry",
+      "version": "2.9.1",
+      "purl": "pkg:pypi/aiohttp-retry@2.9.1",
+      "description": "Simple retry client for aiohttp",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/inyutin/aiohttp_retry"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/aiosignal@1.4.0",
+      "name": "aiosignal",
+      "version": "1.4.0",
+      "purl": "pkg:pypi/aiosignal@1.4.0",
+      "description": "aiosignal: a list of registered asynchronous callbacks",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/aio-libs/aiosignal"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/alembic@1.18.4",
+      "name": "alembic",
+      "version": "1.18.4",
+      "purl": "pkg:pypi/alembic@1.18.4",
+      "description": "A database migration tool for SQLAlchemy."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/amqp@5.3.1",
+      "name": "amqp",
+      "version": "5.3.1",
+      "purl": "pkg:pypi/amqp@5.3.1",
+      "description": "Low-level AMQP client for Python (fork of amqplib).",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/celery/py-amqp"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/annotated-doc@0.0.4",
+      "name": "annotated-doc",
+      "version": "0.0.4",
+      "purl": "pkg:pypi/annotated-doc@0.0.4",
+      "description": "Document parameters, class attributes, return types, and variables inline, with Annotated."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/annotated-types@0.7.0",
+      "name": "annotated-types",
+      "version": "0.7.0",
+      "purl": "pkg:pypi/annotated-types@0.7.0",
+      "description": "Reusable constraint types to use with typing.Annotated"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/antlr4-python3-runtime@4.9.3",
+      "name": "antlr4-python3-runtime",
+      "version": "4.9.3",
+      "purl": "pkg:pypi/antlr4-python3-runtime@4.9.3",
+      "description": "ANTLR 4.9.3 runtime for Python 3.7",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://www.antlr.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/anyio@4.13.0",
+      "name": "anyio",
+      "version": "4.13.0",
+      "purl": "pkg:pypi/anyio@4.13.0",
+      "description": "High-level concurrency and networking framework on top of asyncio or Trio"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/appdirs@1.4.4",
+      "name": "appdirs",
+      "version": "1.4.4",
+      "purl": "pkg:pypi/appdirs@1.4.4",
+      "description": "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\".",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/ActiveState/appdirs"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/arviz@1.1.0",
+      "name": "arviz",
+      "version": "1.1.0",
+      "purl": "pkg:pypi/arviz@1.1.0",
+      "description": "Expose features from _ArviZverse_ refactored packages together in the ``arviz`` namespace."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/arviz-base@1.1.0",
+      "name": "arviz-base",
+      "version": "1.1.0",
+      "purl": "pkg:pypi/arviz-base@1.1.0",
+      "description": "Base ArviZ features and converters."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/arviz-plots@1.1.0",
+      "name": "arviz-plots",
+      "version": "1.1.0",
+      "purl": "pkg:pypi/arviz-plots@1.1.0",
+      "description": "ArviZ-plots provides ready to use and composable plots for Bayesian Workflow."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/arviz-stats@1.1.0",
+      "name": "arviz-stats",
+      "version": "1.1.0",
+      "purl": "pkg:pypi/arviz-stats@1.1.0",
+      "description": "Statistical computation and diagnostics for ArviZ."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ast-serialize@0.4.0",
+      "name": "ast_serialize",
+      "version": "0.4.0",
+      "purl": "pkg:pypi/ast-serialize@0.4.0",
+      "description": "Python bindings for mypy AST serialization"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/astroid@4.0.4",
+      "name": "astroid",
+      "version": "4.0.4",
+      "purl": "pkg:pypi/astroid@4.0.4",
+      "description": "An abstract syntax tree for Python with inference support."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/asyncssh@2.23.0",
+      "name": "asyncssh",
+      "version": "2.23.0",
+      "purl": "pkg:pypi/asyncssh@2.23.0",
+      "description": "AsyncSSH: Asynchronous SSHv2 client and server library",
+      "licenses": [
+        {
+          "license": {
+            "name": "EPL-2.0 OR GPL-2.0-or-later"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/atpublic@7.0.0",
+      "name": "atpublic",
+      "version": "7.0.0",
+      "purl": "pkg:pypi/atpublic@7.0.0",
+      "description": "Keep all y'all's __all__'s in sync",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/attrs@26.1.0",
+      "name": "attrs",
+      "version": "26.1.0",
+      "purl": "pkg:pypi/attrs@26.1.0",
+      "description": "Classes Without Boilerplate"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/bandit@1.9.4",
+      "name": "bandit",
+      "version": "1.9.4",
+      "purl": "pkg:pypi/bandit@1.9.4",
+      "description": "Security oriented static analyser for python code.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://bandit.readthedocs.io/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/billiard@4.2.4",
+      "name": "billiard",
+      "version": "4.2.4",
+      "purl": "pkg:pypi/billiard@4.2.4",
+      "description": "Python multiprocessing fork with improvements and bugfixes",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/celery/billiard"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/black@26.3.1",
+      "name": "black",
+      "version": "26.3.1",
+      "purl": "pkg:pypi/black@26.3.1",
+      "description": "The uncompromising code formatter."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/blinker@1.9.0",
+      "name": "blinker",
+      "version": "1.9.0",
+      "purl": "pkg:pypi/blinker@1.9.0",
+      "description": "Fast, simple object-to-object and broadcast signaling"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/boltons@21.0.0",
+      "name": "boltons",
+      "version": "21.0.0",
+      "purl": "pkg:pypi/boltons@21.0.0",
+      "description": "When they're not builtins, they're boltons.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mahmoud/boltons"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/boolean.py@5.0",
+      "name": "boolean.py",
+      "version": "5.0",
+      "purl": "pkg:pypi/boolean.py@5.0",
+      "description": "Define boolean algebras, create and parse boolean expressions and create custom boolean DSL.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/bastikr/boolean.py"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/bracex@2.6",
+      "name": "bracex",
+      "version": "2.6",
+      "purl": "pkg:pypi/bracex@2.6",
+      "description": "Bash style brace expander."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cachecontrol@0.14.4",
+      "name": "CacheControl",
+      "version": "0.14.4",
+      "purl": "pkg:pypi/cachecontrol@0.14.4",
+      "description": "httplib2 caching for requests"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cachetools@6.2.6",
+      "name": "cachetools",
+      "version": "6.2.6",
+      "purl": "pkg:pypi/cachetools@6.2.6",
+      "description": "Extensible memoizing collections and decorators"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/causalml@0.16.0",
+      "name": "causalml",
+      "version": "0.16.0",
+      "purl": "pkg:pypi/causalml@0.16.0",
+      "description": "Python Package for Uplift Modeling and Causal Inference with Machine Learning Algorithms"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/causalpy@0.8.1",
+      "name": "CausalPy",
+      "version": "0.8.1",
+      "purl": "pkg:pypi/causalpy@0.8.1",
+      "description": "Causal inference for quasi-experiments in Python",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licens"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/celery@5.6.3",
+      "name": "celery",
+      "version": "5.6.3",
+      "purl": "pkg:pypi/celery@5.6.3",
+      "description": "Distributed Task Queue.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://docs.celeryq.dev/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/certifi@2026.4.22",
+      "name": "certifi",
+      "version": "2026.4.22",
+      "purl": "pkg:pypi/certifi@2026.4.22",
+      "description": "Python package for providing Mozilla's CA Bundle.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/certifi/python-certifi"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPL-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cffi@2.0.0",
+      "name": "cffi",
+      "version": "2.0.0",
+      "purl": "pkg:pypi/cffi@2.0.0",
+      "description": "Foreign Function Interface for Python calling C code."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/charset-normalizer@3.4.7",
+      "name": "charset-normalizer",
+      "version": "3.4.7",
+      "purl": "pkg:pypi/charset-normalizer@3.4.7",
+      "description": "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet.",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/click@8.3.3",
+      "name": "click",
+      "version": "8.3.3",
+      "purl": "pkg:pypi/click@8.3.3",
+      "description": "Composable command line interface toolkit"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/click-didyoumean@0.3.1",
+      "name": "click-didyoumean",
+      "version": "0.3.1",
+      "purl": "pkg:pypi/click-didyoumean@0.3.1",
+      "description": "Enables git-like *did-you-mean* feature in click",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/click-contrib/click-didyoumean"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/click-option-group@0.5.9",
+      "name": "click-option-group",
+      "version": "0.5.9",
+      "purl": "pkg:pypi/click-option-group@0.5.9",
+      "description": "Option groups missing in Click"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/click-plugins@1.1.1.2",
+      "name": "click-plugins",
+      "version": "1.1.1.2",
+      "purl": "pkg:pypi/click-plugins@1.1.1.2",
+      "description": "An extension module for click to enable registering CLI commands via setuptools entry-points.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/click-contrib/click-plugins"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "New BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/click-repl@0.3.0",
+      "name": "click-repl",
+      "version": "0.3.0",
+      "purl": "pkg:pypi/click-repl@0.3.0",
+      "description": "REPL plugin for Click",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/untitaker/click-repl"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cloudpickle@3.1.2",
+      "name": "cloudpickle",
+      "version": "3.1.2",
+      "purl": "pkg:pypi/cloudpickle@3.1.2",
+      "description": "Pickler class to extend the standard pickle.Pickler functionality",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/cloudpipe/cloudpickle"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/colorama@0.4.6",
+      "name": "colorama",
+      "version": "0.4.6",
+      "purl": "pkg:pypi/colorama@0.4.6",
+      "description": "Cross-platform colored terminal text."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/configobj@5.0.9",
+      "name": "configobj",
+      "version": "5.0.9",
+      "purl": "pkg:pypi/configobj@5.0.9",
+      "description": "Config file reading, writing and validation.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/DiffSK/configobj"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cons@0.4.7",
+      "name": "cons",
+      "version": "0.4.7",
+      "purl": "pkg:pypi/cons@0.4.7",
+      "description": "An implementation of Lisp/Scheme-like cons in Python."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/contourpy@1.3.3",
+      "name": "contourpy",
+      "version": "1.3.3",
+      "purl": "pkg:pypi/contourpy@1.3.3",
+      "description": "Python library for calculating contours of 2D quadrilateral grids",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD 3-Clause License\n\n Copyright (c) 2021-2025, ContourPy Developers.\n All rights reserved.\n\n Redistribution and use in "
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/coreforecast@0.0.17",
+      "name": "coreforecast",
+      "version": "0.0.17",
+      "purl": "pkg:pypi/coreforecast@0.0.17",
+      "description": "Fast implementations of common forecasting routines",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cosmic-ray@8.4.6",
+      "name": "cosmic_ray",
+      "version": "8.4.6",
+      "purl": "pkg:pypi/cosmic-ray@8.4.6",
+      "description": "Mutation testing",
+      "licenses": [
+        {
+          "license": {
+            "name": "Copyright (c) 2015-2017 Sixty North AS\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof "
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/coverage@7.14.0",
+      "name": "coverage",
+      "version": "7.14.0",
+      "purl": "pkg:pypi/coverage@7.14.0",
+      "description": "Code coverage measurement for Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/coveragepy/coveragepy"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/crepes@0.9.0",
+      "name": "crepes",
+      "version": "0.9.0",
+      "purl": "pkg:pypi/crepes@0.9.0",
+      "description": "Conformal classifiers, regressors, and predictive systems (crepes)",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/henrikbostrom/crepes"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cryptography@46.0.7",
+      "name": "cryptography",
+      "version": "46.0.7",
+      "purl": "pkg:pypi/cryptography@46.0.7",
+      "description": "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cvc5@1.3.4",
+      "name": "cvc5",
+      "version": "1.3.4",
+      "purl": "pkg:pypi/cvc5@1.3.4",
+      "description": "Python bindings for cvc5 (BSD version)"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cycler@0.12.1",
+      "name": "cycler",
+      "version": "0.12.1",
+      "purl": "pkg:pypi/cycler@0.12.1",
+      "description": "Composable style cycles",
+      "licenses": [
+        {
+          "license": {
+            "name": "Copyright (c) 2015, matplotlib project\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or "
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cyclonedx-python-lib@11.7.0",
+      "name": "cyclonedx-python-lib",
+      "version": "11.7.0",
+      "purl": "pkg:pypi/cyclonedx-python-lib@11.7.0",
+      "description": "Python library for CycloneDX",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cython@3.2.4",
+      "name": "Cython",
+      "version": "3.2.4",
+      "purl": "pkg:pypi/cython@3.2.4",
+      "description": "The Cython compiler for writing C extensions in the Python language.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://cython.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/darts@0.44.1",
+      "name": "darts",
+      "version": "0.44.1",
+      "purl": "pkg:pypi/darts@0.44.1",
+      "description": "A python library for easy manipulation and forecasting of time series."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/databricks-sdk@0.108.0",
+      "name": "databricks-sdk",
+      "version": "0.108.0",
+      "purl": "pkg:pypi/databricks-sdk@0.108.0",
+      "description": "Databricks SDK for Python (Beta)"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/debtcollector@3.1.0",
+      "name": "debtcollector",
+      "version": "3.1.0",
+      "purl": "pkg:pypi/debtcollector@3.1.0",
+      "description": "A collection of Python deprecation patterns and strategies that help you collect your technical debt in a non-destructive manner.",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/decorator@5.2.1",
+      "name": "decorator",
+      "version": "5.2.1",
+      "purl": "pkg:pypi/decorator@5.2.1",
+      "description": "Decorators for Humans",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/defusedxml@0.7.1",
+      "name": "defusedxml",
+      "version": "0.7.1",
+      "purl": "pkg:pypi/defusedxml@0.7.1",
+      "description": "XML bomb protection for Python stdlib modules",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/tiran/defusedxml"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "PSFL"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/deprecated@1.3.1",
+      "name": "Deprecated",
+      "version": "1.3.1",
+      "purl": "pkg:pypi/deprecated@1.3.1",
+      "description": "Python @deprecated decorator to deprecate old python classes, functions or methods.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/laurent-laporte-pro/deprecated"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/deptry@0.25.1",
+      "name": "deptry",
+      "version": "0.25.1",
+      "purl": "pkg:pypi/deptry@0.25.1",
+      "description": "A command line utility to check for unused, missing and transitive dependencies in a Python project."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dictdiffer@0.9.0",
+      "name": "dictdiffer",
+      "version": "0.9.0",
+      "purl": "pkg:pypi/dictdiffer@0.9.0",
+      "description": "Dictdiffer is a library that helps you to diff and patch dictionaries.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/inveniosoftware/dictdiffer"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dill@0.4.1",
+      "name": "dill",
+      "version": "0.4.1",
+      "purl": "pkg:pypi/dill@0.4.1",
+      "description": "serialize all of Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/uqfoundation/dill"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/diskcache@5.6.3",
+      "name": "diskcache",
+      "version": "5.6.3",
+      "purl": "pkg:pypi/diskcache@5.6.3",
+      "description": "Disk Cache -- Disk and file backed persistent cache.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://www.grantjenks.com/docs/diskcache/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/distro@1.9.0",
+      "name": "distro",
+      "version": "1.9.0",
+      "purl": "pkg:pypi/distro@1.9.0",
+      "description": "Distro - an OS platform information API",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/python-distro/distro"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache License, Version 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dnspython@2.8.0",
+      "name": "dnspython",
+      "version": "2.8.0",
+      "purl": "pkg:pypi/dnspython@2.8.0",
+      "description": "DNS toolkit",
+      "licenses": [
+        {
+          "license": {
+            "name": "ISC"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/docker@7.1.0",
+      "name": "docker",
+      "version": "7.1.0",
+      "purl": "pkg:pypi/docker@7.1.0",
+      "description": "A Python library for the Docker Engine API."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dowhy@0.8",
+      "name": "dowhy",
+      "version": "0.8",
+      "purl": "pkg:pypi/dowhy@0.8",
+      "description": "DoWhy is a Python library for causal inference that supports explicit modeling and testing of causal assumptions.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/microsoft/dowhy"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dpath@2.2.0",
+      "name": "dpath",
+      "version": "2.2.0",
+      "purl": "pkg:pypi/dpath@2.2.0",
+      "description": "Filesystem-like pathing and searching for dictionaries",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/dpath-maintainers/dpath-python"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/duckdb@1.5.2",
+      "name": "duckdb",
+      "version": "1.5.2",
+      "purl": "pkg:pypi/duckdb@1.5.2",
+      "description": "DuckDB in-process database"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dulwich@1.2.1",
+      "name": "dulwich",
+      "version": "1.2.1",
+      "purl": "pkg:pypi/dulwich@1.2.1",
+      "description": "Python Git Library"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dvc@3.67.1",
+      "name": "dvc",
+      "version": "3.67.1",
+      "purl": "pkg:pypi/dvc@3.67.1",
+      "description": "Git for data scientists - manage your code and data together"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dvc-data@3.18.3",
+      "name": "dvc-data",
+      "version": "3.18.3",
+      "purl": "pkg:pypi/dvc-data@3.18.3",
+      "description": "DVC's data management subsystem"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dvc-http@2.32.0",
+      "name": "dvc-http",
+      "version": "2.32.0",
+      "purl": "pkg:pypi/dvc-http@2.32.0",
+      "description": "http plugin for dvc",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://dvc.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache License 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dvc-objects@5.2.0",
+      "name": "dvc-objects",
+      "version": "5.2.0",
+      "purl": "pkg:pypi/dvc-objects@5.2.0",
+      "description": "dvc objects - filesystem and object-db level abstractions to use in dvc and dvc-data"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dvc-render@1.0.2",
+      "name": "dvc-render",
+      "version": "1.0.2",
+      "purl": "pkg:pypi/dvc-render@1.0.2",
+      "description": "Dvc Render",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dvc-studio-client@0.22.0",
+      "name": "dvc-studio-client",
+      "version": "0.22.0",
+      "purl": "pkg:pypi/dvc-studio-client@0.22.0",
+      "description": "Small library to post data from DVC/DVCLive to Iterative Studio"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dvc-task@0.40.2",
+      "name": "dvc-task",
+      "version": "0.40.2",
+      "purl": "pkg:pypi/dvc-task@0.40.2",
+      "description": "Extensible task queue used in DVC.",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/econml@0.16.0",
+      "name": "econml",
+      "version": "0.16.0",
+      "purl": "pkg:pypi/econml@0.16.0",
+      "description": "This package contains several methods for calculating Conditional Average Treatment Effects"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ennemi@1.6.0",
+      "name": "ennemi",
+      "version": "1.6.0",
+      "purl": "pkg:pypi/ennemi@1.6.0",
+      "description": "Non-linear correlation detection with mutual information"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/entrypoints@0.4",
+      "name": "entrypoints",
+      "version": "0.4",
+      "purl": "pkg:pypi/entrypoints@0.4",
+      "description": "Discover and load entry points from installed packages.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/takluyver/entrypoints"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/etuples@0.3.10",
+      "name": "etuples",
+      "version": "0.3.10",
+      "purl": "pkg:pypi/etuples@0.3.10",
+      "description": "Python S-expression emulation using tuple-like objects."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/exceptiongroup@1.2.2",
+      "name": "exceptiongroup",
+      "version": "1.2.2",
+      "purl": "pkg:pypi/exceptiongroup@1.2.2",
+      "description": "Backport of PEP 654 (exception groups)"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/face@26.0.0",
+      "name": "face",
+      "version": "26.0.0",
+      "purl": "pkg:pypi/face@26.0.0",
+      "description": "A command-line application framework (and CLI parser). Friendly for users, full-featured for developers.",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/faiss-cpu@1.13.2",
+      "name": "faiss-cpu",
+      "version": "1.13.2",
+      "purl": "pkg:pypi/faiss-cpu@1.13.2",
+      "description": "A library for efficient similarity search and clustering of dense vectors."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/fastapi@0.136.1",
+      "name": "fastapi",
+      "version": "0.136.1",
+      "purl": "pkg:pypi/fastapi@0.136.1",
+      "description": "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/fawltydeps@0.20.0",
+      "name": "fawltydeps",
+      "version": "0.20.0",
+      "purl": "pkg:pypi/fawltydeps@0.20.0",
+      "description": "Find undeclared and unused 3rd-party dependencies in your Python project.",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT License\n\n Copyright (c) Tweag I/O Limited.\n Some parts are:\n Copyright (c) 2018 Michael Herrmann\n Copyright (c) 2015"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/filelock@3.29.0",
+      "name": "filelock",
+      "version": "3.29.0",
+      "purl": "pkg:pypi/filelock@3.29.0",
+      "description": "A platform independent file lock."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/flask@3.1.3",
+      "name": "Flask",
+      "version": "3.1.3",
+      "purl": "pkg:pypi/flask@3.1.3",
+      "description": "A simple framework for building complex web applications."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/flask-cors@6.0.2",
+      "name": "flask-cors",
+      "version": "6.0.2",
+      "purl": "pkg:pypi/flask-cors@6.0.2",
+      "description": "A Flask extension simplifying CORS support"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/flatten-dict@0.5.0",
+      "name": "flatten-dict",
+      "version": "0.5.0",
+      "purl": "pkg:pypi/flatten-dict@0.5.0",
+      "description": "A flexible utility for flattening and unflattening dict-like objects in Python.",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/flufl.lock@9.1.0",
+      "name": "flufl.lock",
+      "version": "9.1.0",
+      "purl": "pkg:pypi/flufl.lock@9.1.0",
+      "description": "NFS-safe file locking with timeouts for POSIX and Windows",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/fonttools@4.63.0",
+      "name": "fonttools",
+      "version": "4.63.0",
+      "purl": "pkg:pypi/fonttools@4.63.0",
+      "description": "Tools to manipulate font files",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/fonttools/fonttools"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/forestci@0.6",
+      "name": "forestci",
+      "version": "0.6",
+      "purl": "pkg:pypi/forestci@0.6",
+      "description": "forestci: confidence intervals for scikit-learn forest algorithms",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/scikit-learn-contrib/forest-confidence-interval"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/frozenlist@1.8.0",
+      "name": "frozenlist",
+      "version": "1.8.0",
+      "purl": "pkg:pypi/frozenlist@1.8.0",
+      "description": "A list-like structure which implements collections.abc.MutableSequence",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/aio-libs/frozenlist"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/fsspec@2026.4.0",
+      "name": "fsspec",
+      "version": "2026.4.0",
+      "purl": "pkg:pypi/fsspec@2026.4.0",
+      "description": "File-system specification"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/fugue@0.9.7",
+      "name": "fugue",
+      "version": "0.9.7",
+      "purl": "pkg:pypi/fugue@0.9.7",
+      "description": "An abstraction layer for distributed computing",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/funcy@2.0",
+      "name": "funcy",
+      "version": "2.0",
+      "purl": "pkg:pypi/funcy@2.0",
+      "description": "A fancy and practical functional tools",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/Suor/funcy"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/gitdb@4.0.12",
+      "name": "gitdb",
+      "version": "4.0.12",
+      "purl": "pkg:pypi/gitdb@4.0.12",
+      "description": "Git Object Database",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/gitpython-developers/gitdb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/gitpython@3.1.50",
+      "name": "GitPython",
+      "version": "3.1.50",
+      "purl": "pkg:pypi/gitpython@3.1.50",
+      "description": "GitPython is a Python library used to interact with Git repositories",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/gitpython-developers/GitPython"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/glom@25.12.0",
+      "name": "glom",
+      "version": "25.12.0",
+      "purl": "pkg:pypi/glom@25.12.0",
+      "description": "A declarative object transformer and formatter, for conglomerating nested data.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mahmoud/glom"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/google-auth@2.52.0",
+      "name": "google-auth",
+      "version": "2.52.0",
+      "purl": "pkg:pypi/google-auth@2.52.0",
+      "description": "Google Authentication Library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/googleapis/google-auth-library-python"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/googleapis-common-protos@1.75.0",
+      "name": "googleapis-common-protos",
+      "version": "1.75.0",
+      "purl": "pkg:pypi/googleapis-common-protos@1.75.0",
+      "description": "Common protobufs used in Google APIs",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/grandalf@0.8",
+      "name": "grandalf",
+      "version": "0.8",
+      "purl": "pkg:pypi/grandalf@0.8",
+      "description": "Graph and drawing algorithms framework",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/bdcht/grandalf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2 | EPLv1"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/graphene@3.4.3",
+      "name": "graphene",
+      "version": "3.4.3",
+      "purl": "pkg:pypi/graphene@3.4.3",
+      "description": "GraphQL Framework for Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/graphql-python/graphene"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/graphql-core@3.2.8",
+      "name": "graphql-core",
+      "version": "3.2.8",
+      "purl": "pkg:pypi/graphql-core@3.2.8",
+      "description": "GraphQL implementation for Python, a port of GraphQL.js, the JavaScript reference implementation for GraphQL.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/graphql-python/graphql-core"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT license"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/graphql-relay@3.2.0",
+      "name": "graphql-relay",
+      "version": "3.2.0",
+      "purl": "pkg:pypi/graphql-relay@3.2.0",
+      "description": "Relay library for graphql-core",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/graphql-python/graphql-relay-py"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/graphviz@0.21",
+      "name": "graphviz",
+      "version": "0.21",
+      "purl": "pkg:pypi/graphviz@0.21",
+      "description": "Simple Python interface for Graphviz"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/gto@1.9.0",
+      "name": "gto",
+      "version": "1.9.0",
+      "purl": "pkg:pypi/gto@1.9.0",
+      "description": "Version and deploy your models following GitOps principles",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache License 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/gudhi@3.12.0",
+      "name": "gudhi",
+      "version": "3.12.0",
+      "purl": "pkg:pypi/gudhi@3.12.0",
+      "description": "The Gudhi library is an open source library for Computational Topology and Topological Data Analysis (TDA)."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/gunicorn@25.3.0",
+      "name": "gunicorn",
+      "version": "25.3.0",
+      "purl": "pkg:pypi/gunicorn@25.3.0",
+      "description": "WSGI HTTP Server for UNIX"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/h11@0.16.0",
+      "name": "h11",
+      "version": "0.16.0",
+      "purl": "pkg:pypi/h11@0.16.0",
+      "description": "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/python-hyper/h11"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/h5py@3.16.0",
+      "name": "h5py",
+      "version": "3.16.0",
+      "purl": "pkg:pypi/h5py@3.16.0",
+      "description": "Read and write HDF5 files from Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/harfile@0.4.0",
+      "name": "harfile",
+      "version": "0.4.0",
+      "purl": "pkg:pypi/harfile@0.4.0",
+      "description": "Writer for HTTP Archive (HAR) files"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/hf-xet@1.5.0",
+      "name": "hf-xet",
+      "version": "1.5.0",
+      "purl": "pkg:pypi/hf-xet@1.5.0",
+      "description": "Fast transfer of large files with the Hugging Face Hub."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/holidays@0.96",
+      "name": "holidays",
+      "version": "0.96",
+      "purl": "pkg:pypi/holidays@0.96",
+      "description": "Open World Holidays Framework"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/hopcroftkarp@1.2.5",
+      "name": "hopcroftkarp",
+      "version": "1.2.5",
+      "purl": "pkg:pypi/hopcroftkarp@1.2.5",
+      "description": "Implementation of HopcroftKarp's algorithm",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/sofiat-olaosebikan/hopcroftkarp"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPL"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/httpcore@1.0.9",
+      "name": "httpcore",
+      "version": "1.0.9",
+      "purl": "pkg:pypi/httpcore@1.0.9",
+      "description": "A minimal low-level HTTP client."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/httpx@0.28.1",
+      "name": "httpx",
+      "version": "0.28.1",
+      "purl": "pkg:pypi/httpx@0.28.1",
+      "description": "The next generation HTTP client.",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/httpx-sse@0.4.3",
+      "name": "httpx-sse",
+      "version": "0.4.3",
+      "purl": "pkg:pypi/httpx-sse@0.4.3",
+      "description": "Consume Server-Sent Event (SSE) messages with HTTPX.",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/huey@2.6.0",
+      "name": "huey",
+      "version": "2.6.0",
+      "purl": "pkg:pypi/huey@2.6.0",
+      "description": "a little task queue"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/huggingface-hub@1.14.0",
+      "name": "huggingface_hub",
+      "version": "1.14.0",
+      "purl": "pkg:pypi/huggingface-hub@1.14.0",
+      "description": "Client library to download and publish models, datasets and other repos on the huggingface.co hub",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/huggingface/huggingface_hub"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/hydra-core@1.3.2",
+      "name": "hydra-core",
+      "version": "1.3.2",
+      "purl": "pkg:pypi/hydra-core@1.3.2",
+      "description": "A framework for elegantly configuring complex applications",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/facebookresearch/hydra"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/hypothesis@6.152.7",
+      "name": "hypothesis",
+      "version": "6.152.7",
+      "purl": "pkg:pypi/hypothesis@6.152.7",
+      "description": "The property-based testing library for Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/hypothesis-graphql@0.12.0",
+      "name": "hypothesis-graphql",
+      "version": "0.12.0",
+      "purl": "pkg:pypi/hypothesis-graphql@0.12.0",
+      "description": "Hypothesis strategies for GraphQL queries"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/hypothesis-jsonschema@0.23.1",
+      "name": "hypothesis-jsonschema",
+      "version": "0.23.1",
+      "purl": "pkg:pypi/hypothesis-jsonschema@0.23.1",
+      "description": "Generate test data from JSON schemata with Hypothesis",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/Zac-HD/hypothesis-jsonschema"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MPL 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/idna@3.15",
+      "name": "idna",
+      "version": "3.15",
+      "purl": "pkg:pypi/idna@3.15",
+      "description": "Internationalized Domain Names in Applications (IDNA)"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/igraph@1.0.0",
+      "name": "igraph",
+      "version": "1.0.0",
+      "purl": "pkg:pypi/igraph@1.0.0",
+      "description": "High performance graph data structures and algorithms",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://igraph.org/python"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GNU General Public License (GPL)"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/importlib-metadata@8.7.1",
+      "name": "importlib_metadata",
+      "version": "8.7.1",
+      "purl": "pkg:pypi/importlib-metadata@8.7.1",
+      "description": "Read metadata from Python packages"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/infomeasure@0.6.0",
+      "name": "infomeasure",
+      "version": "0.6.0",
+      "purl": "pkg:pypi/infomeasure@0.6.0",
+      "description": "Comprehensive collection of information measures."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/iniconfig@2.3.0",
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "purl": "pkg:pypi/iniconfig@2.3.0",
+      "description": "brain-dead simple config-ini parsing"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/interrogate@1.7.0",
+      "name": "interrogate",
+      "version": "1.7.0",
+      "purl": "pkg:pypi/interrogate@1.7.0",
+      "description": "Interrogate a codebase for docstring coverage.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://interrogate.readthedocs.io"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/isort@8.0.1",
+      "name": "isort",
+      "version": "8.0.1",
+      "purl": "pkg:pypi/isort@8.0.1",
+      "description": "A Python utility / library to sort Python imports."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/iterative-telemetry@0.0.10",
+      "name": "iterative-telemetry",
+      "version": "0.0.10",
+      "purl": "pkg:pypi/iterative-telemetry@0.0.10",
+      "description": "Common library for sending telemetry",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/iterative/telemetry-python"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/itsdangerous@2.2.0",
+      "name": "itsdangerous",
+      "version": "2.2.0",
+      "purl": "pkg:pypi/itsdangerous@2.2.0",
+      "description": "Safely pass data to untrusted environments and back."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/jax@0.10.0",
+      "name": "jax",
+      "version": "0.10.0",
+      "purl": "pkg:pypi/jax@0.10.0",
+      "description": "Differentiate, compile, and transform Numpy code.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/jax-ml/jax"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/jaxlib@0.10.0",
+      "name": "jaxlib",
+      "version": "0.10.0",
+      "purl": "pkg:pypi/jaxlib@0.10.0",
+      "description": "XLA library for JAX",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/jax-ml/jax"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/jinja2@3.1.6",
+      "name": "Jinja2",
+      "version": "3.1.6",
+      "purl": "pkg:pypi/jinja2@3.1.6",
+      "description": "A very fast and expressive template engine."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/joblib@1.5.3",
+      "name": "joblib",
+      "version": "1.5.3",
+      "purl": "pkg:pypi/joblib@1.5.3",
+      "description": "Lightweight pipelining with Python functions"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/jsonschema@4.25.1",
+      "name": "jsonschema",
+      "version": "4.25.1",
+      "purl": "pkg:pypi/jsonschema@4.25.1",
+      "description": "An implementation of JSON Schema validation for Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/jsonschema-specifications@2025.9.1",
+      "name": "jsonschema-specifications",
+      "version": "2025.9.1",
+      "purl": "pkg:pypi/jsonschema-specifications@2025.9.1",
+      "description": "The JSON Schema meta-schemas and vocabularies, exposed as a Registry"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/jsonschema-rs@0.46.5",
+      "name": "jsonschema_rs",
+      "version": "0.46.5",
+      "purl": "pkg:pypi/jsonschema-rs@0.46.5",
+      "description": "A high-performance JSON Schema validator for Python",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/junit-xml@1.9",
+      "name": "junit-xml",
+      "version": "1.9",
+      "purl": "pkg:pypi/junit-xml@1.9",
+      "description": "Creates JUnit XML test result documents that can be read by tools such as Jenkins",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/kyrus/python-junit-xml"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/kiwisolver@1.5.0",
+      "name": "kiwisolver",
+      "version": "1.5.0",
+      "purl": "pkg:pypi/kiwisolver@1.5.0",
+      "description": "A fast implementation of the Cassowary constraint solver",
+      "licenses": [
+        {
+          "license": {
+            "name": "=========================\n The Kiwi licensing terms\n=========================\nKiwi is licensed under the terms of the Mo"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/kmapper@2.1.0",
+      "name": "kmapper",
+      "version": "2.1.0",
+      "purl": "pkg:pypi/kmapper@2.1.0",
+      "description": "Python implementation of Mapper algorithm for Topological Data Analysis.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://kepler-mapper.scikit-tda.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/kombu@5.6.2",
+      "name": "kombu",
+      "version": "5.6.2",
+      "purl": "pkg:pypi/kombu@5.6.2",
+      "description": "Messaging library for Python.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://kombu.readthedocs.io"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/lazy-loader@0.5",
+      "name": "lazy-loader",
+      "version": "0.5",
+      "purl": "pkg:pypi/lazy-loader@0.5",
+      "description": "Makes it easy to load subpackages and functions on demand."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/libcst@1.8.6",
+      "name": "libcst",
+      "version": "1.8.6",
+      "purl": "pkg:pypi/libcst@1.8.6",
+      "description": "A concrete syntax tree with AST-like properties for Python 3.0 through 3.14 programs.",
+      "licenses": [
+        {
+          "license": {
+            "name": "All contributions towards LibCST are MIT licensed.\n\nSome Python files have been derived from the standard library and ar"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/librt@0.11.0",
+      "name": "librt",
+      "version": "0.11.0",
+      "purl": "pkg:pypi/librt@0.11.0",
+      "description": "Mypyc runtime library"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/license-expression@30.4.4",
+      "name": "license-expression",
+      "version": "30.4.4",
+      "purl": "pkg:pypi/license-expression@30.4.4",
+      "description": "license-expression is a comprehensive utility library to parse, compare, simplify and normalize license expressions (such as SPDX license expressions) using boolean logic.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/aboutcode-org/license-expression"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/lightgbm@4.6.0",
+      "name": "lightgbm",
+      "version": "4.6.0",
+      "purl": "pkg:pypi/lightgbm@4.6.0",
+      "description": "LightGBM Python-package",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/microsoft/LightGBM"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "The MIT License (MIT)\n\nCopyright (c) Microsoft Corporation\n\nPermission is hereby granted, free of charge, to any person "
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/linkify-it-py@2.1.0",
+      "name": "linkify-it-py",
+      "version": "2.1.0",
+      "purl": "pkg:pypi/linkify-it-py@2.1.0",
+      "description": "Links recognition library with FULL unicode support.",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/llvmlite@0.47.0",
+      "name": "llvmlite",
+      "version": "0.47.0",
+      "purl": "pkg:pypi/llvmlite@0.47.0",
+      "description": "lightweight wrapper around basic LLVM functionality",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://llvmlite.readthedocs.io"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/logical-unification@0.4.7",
+      "name": "logical-unification",
+      "version": "0.4.7",
+      "purl": "pkg:pypi/logical-unification@0.4.7",
+      "description": "Logical unification in Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/lxml@6.1.0",
+      "name": "lxml",
+      "version": "6.1.0",
+      "purl": "pkg:pypi/lxml@6.1.0",
+      "description": "Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://lxml.de/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mako@1.3.12",
+      "name": "Mako",
+      "version": "1.3.12",
+      "purl": "pkg:pypi/mako@1.3.12",
+      "description": "A super-fast templating language that borrows the best ideas from the existing templating languages.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.makotemplates.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mando@0.7.1",
+      "name": "mando",
+      "version": "0.7.1",
+      "purl": "pkg:pypi/mando@0.7.1",
+      "description": "Create Python CLI apps with little to no effort at all!",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://mando.readthedocs.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mapie@1.4.0",
+      "name": "MAPIE",
+      "version": "1.4.0",
+      "purl": "pkg:pypi/mapie@1.4.0",
+      "description": "A scikit-learn-compatible module for estimating prediction intervals."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/markdown-it-py@4.2.0",
+      "name": "markdown-it-py",
+      "version": "4.2.0",
+      "purl": "pkg:pypi/markdown-it-py@4.2.0",
+      "description": "Python port of markdown-it. Markdown parsing, done right!"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/markupsafe@3.0.3",
+      "name": "MarkupSafe",
+      "version": "3.0.3",
+      "purl": "pkg:pypi/markupsafe@3.0.3",
+      "description": "Safely add untrusted strings to HTML/XML markup."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/matplotlib@3.10.9",
+      "name": "matplotlib",
+      "version": "3.10.9",
+      "purl": "pkg:pypi/matplotlib@3.10.9",
+      "description": "Python plotting package",
+      "licenses": [
+        {
+          "license": {
+            "name": "License agreement for matplotlib versions 1.3.0 and later\n =========================================================\n\n 1"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mccabe@0.7.0",
+      "name": "mccabe",
+      "version": "0.7.0",
+      "purl": "pkg:pypi/mccabe@0.7.0",
+      "description": "McCabe checker, plugin for flake8",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/pycqa/mccabe"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Expat license"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mcp@1.23.3",
+      "name": "mcp",
+      "version": "1.23.3",
+      "purl": "pkg:pypi/mcp@1.23.3",
+      "description": "Model Context Protocol SDK",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mdit-py-plugins@0.6.1",
+      "name": "mdit-py-plugins",
+      "version": "0.6.1",
+      "purl": "pkg:pypi/mdit-py-plugins@0.6.1",
+      "description": "Collection of plugins for markdown-it-py"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mdurl@0.1.2",
+      "name": "mdurl",
+      "version": "0.1.2",
+      "purl": "pkg:pypi/mdurl@0.1.2",
+      "description": "Markdown URL utilities"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/memray@1.19.3",
+      "name": "memray",
+      "version": "1.19.3",
+      "purl": "pkg:pypi/memray@1.19.3",
+      "description": "A memory profiler for Python applications",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/bloomberg/memray"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/minikanren@1.0.5",
+      "name": "miniKanren",
+      "version": "1.0.5",
+      "purl": "pkg:pypi/minikanren@1.0.5",
+      "description": "Relational programming in Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ml-dtypes@0.5.4",
+      "name": "ml_dtypes",
+      "version": "0.5.4",
+      "purl": "pkg:pypi/ml-dtypes@0.5.4",
+      "description": "ml_dtypes is a stand-alone implementation of several NumPy dtype extensions used in machine learning."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mlflow@3.12.0",
+      "name": "mlflow",
+      "version": "3.12.0",
+      "purl": "pkg:pypi/mlflow@3.12.0",
+      "description": "MLflow is an open source platform for the complete machine learning lifecycle",
+      "licenses": [
+        {
+          "license": {
+            "name": "Copyright 2018 Databricks, Inc.  All rights reserved.\n\n\t\t\t\tApache License\n                           Version 2.0, Januar"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mlflow-skinny@3.12.0",
+      "name": "mlflow-skinny",
+      "version": "3.12.0",
+      "purl": "pkg:pypi/mlflow-skinny@3.12.0",
+      "description": "MLflow is an open source platform for the complete machine learning lifecycle",
+      "licenses": [
+        {
+          "license": {
+            "name": "Copyright 2018 Databricks, Inc.  All rights reserved.\n\n\t\t\t\tApache License\n                           Version 2.0, Januar"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mlflow-tracing@3.12.0",
+      "name": "mlflow-tracing",
+      "version": "3.12.0",
+      "purl": "pkg:pypi/mlflow-tracing@3.12.0",
+      "description": "MLflow Tracing SDK is an open-source, lightweight Python package that only includes the minimum set of dependencies and functionality to instrument your code/models/agents with MLflow Tracing.",
+      "licenses": [
+        {
+          "license": {
+            "name": "Copyright 2018 Databricks, Inc.  All rights reserved.\n\n\t\t\t\tApache License\n                           Version 2.0, Januar"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mpmath@1.3.0",
+      "name": "mpmath",
+      "version": "1.3.0",
+      "purl": "pkg:pypi/mpmath@1.3.0",
+      "description": "Python library for arbitrary-precision floating-point arithmetic",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://mpmath.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/msgpack@1.1.2",
+      "name": "msgpack",
+      "version": "1.1.2",
+      "purl": "pkg:pypi/msgpack@1.1.2",
+      "description": "MessagePack serializer"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/multidict@6.7.1",
+      "name": "multidict",
+      "version": "6.7.1",
+      "purl": "pkg:pypi/multidict@6.7.1",
+      "description": "multidict implementation",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/aio-libs/multidict"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache License 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/multipledispatch@1.0.0",
+      "name": "multipledispatch",
+      "version": "1.0.0",
+      "purl": "pkg:pypi/multipledispatch@1.0.0",
+      "description": "Multiple dispatch",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/mrocklin/multipledispatch/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/multiprocess@0.70.19",
+      "name": "multiprocess",
+      "version": "0.70.19",
+      "purl": "pkg:pypi/multiprocess@0.70.19",
+      "description": "better multiprocessing and multithreading in Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/uqfoundation/multiprocess"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mutmut@3.5.0",
+      "name": "mutmut",
+      "version": "3.5.0",
+      "purl": "pkg:pypi/mutmut@3.5.0",
+      "description": "mutation testing for Python 3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mypy@2.1.0",
+      "name": "mypy",
+      "version": "2.1.0",
+      "purl": "pkg:pypi/mypy@2.1.0",
+      "description": "Optional static typing for Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/mypy-extensions@1.1.0",
+      "name": "mypy_extensions",
+      "version": "1.1.0",
+      "purl": "pkg:pypi/mypy-extensions@1.1.0",
+      "description": "Type system extensions for programs checked with the mypy type checker."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/narwhals@2.21.0",
+      "name": "narwhals",
+      "version": "2.21.0",
+      "purl": "pkg:pypi/narwhals@2.21.0",
+      "description": "Extremely lightweight compatibility layer between dataframe libraries",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT License\n\nCopyright (c) 2024 to present, Marco Gorelli\n\nPermission is hereby granted, free of charge, to any person o"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/networkx@3.6.1",
+      "name": "networkx",
+      "version": "3.6.1",
+      "purl": "pkg:pypi/networkx@3.6.1",
+      "description": "Python package for creating and manipulating graphs and networks"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/nodeenv@1.10.0",
+      "name": "nodeenv",
+      "version": "1.10.0",
+      "purl": "pkg:pypi/nodeenv@1.10.0",
+      "description": "Node.js virtual environment builder",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ekalinin/nodeenv"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/npeet@1.0.1",
+      "name": "NPEET",
+      "version": "1.0.1",
+      "purl": "pkg:pypi/npeet@1.0.1",
+      "description": "Non-parametric Entropy Estimation Toolbox"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/numba@0.65.1",
+      "name": "numba",
+      "version": "0.65.1",
+      "purl": "pkg:pypi/numba@0.65.1",
+      "description": "compiling Python code using LLVM",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://numba.pydata.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/numpy@2.4.4",
+      "name": "numpy",
+      "version": "2.4.4",
+      "purl": "pkg:pypi/numpy@2.4.4",
+      "description": "Fundamental package for array computing in Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/numpyro@0.21.0",
+      "name": "numpyro",
+      "version": "0.21.0",
+      "purl": "pkg:pypi/numpyro@0.21.0",
+      "description": "Probabilistic programming with NumPy powered by JAX for autograd and JIT compilation to GPU/TPU/CPU."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/omegaconf@2.3.0",
+      "name": "omegaconf",
+      "version": "2.3.0",
+      "purl": "pkg:pypi/omegaconf@2.3.0",
+      "description": "A flexible configuration library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/omry/omegaconf"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-api@1.37.0",
+      "name": "opentelemetry-api",
+      "version": "1.37.0",
+      "purl": "pkg:pypi/opentelemetry-api@1.37.0",
+      "description": "OpenTelemetry Python API"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-exporter-otlp-proto-common@1.37.0",
+      "name": "opentelemetry-exporter-otlp-proto-common",
+      "version": "1.37.0",
+      "purl": "pkg:pypi/opentelemetry-exporter-otlp-proto-common@1.37.0",
+      "description": "OpenTelemetry Protobuf encoding"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-exporter-otlp-proto-http@1.37.0",
+      "name": "opentelemetry-exporter-otlp-proto-http",
+      "version": "1.37.0",
+      "purl": "pkg:pypi/opentelemetry-exporter-otlp-proto-http@1.37.0",
+      "description": "OpenTelemetry Collector Protobuf over HTTP Exporter"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-instrumentation@0.58b0",
+      "name": "opentelemetry-instrumentation",
+      "version": "0.58b0",
+      "purl": "pkg:pypi/opentelemetry-instrumentation@0.58b0",
+      "description": "Instrumentation Tools & Auto Instrumentation for OpenTelemetry Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-instrumentation-requests@0.58b0",
+      "name": "opentelemetry-instrumentation-requests",
+      "version": "0.58b0",
+      "purl": "pkg:pypi/opentelemetry-instrumentation-requests@0.58b0",
+      "description": "OpenTelemetry requests instrumentation"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-instrumentation-threading@0.58b0",
+      "name": "opentelemetry-instrumentation-threading",
+      "version": "0.58b0",
+      "purl": "pkg:pypi/opentelemetry-instrumentation-threading@0.58b0",
+      "description": "Thread context propagation support for OpenTelemetry"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-proto@1.37.0",
+      "name": "opentelemetry-proto",
+      "version": "1.37.0",
+      "purl": "pkg:pypi/opentelemetry-proto@1.37.0",
+      "description": "OpenTelemetry Python Proto"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-sdk@1.37.0",
+      "name": "opentelemetry-sdk",
+      "version": "1.37.0",
+      "purl": "pkg:pypi/opentelemetry-sdk@1.37.0",
+      "description": "OpenTelemetry Python SDK"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-semantic-conventions@0.58b0",
+      "name": "opentelemetry-semantic-conventions",
+      "version": "0.58b0",
+      "purl": "pkg:pypi/opentelemetry-semantic-conventions@0.58b0",
+      "description": "OpenTelemetry Semantic Conventions"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opentelemetry-util-http@0.58b0",
+      "name": "opentelemetry-util-http",
+      "version": "0.58b0",
+      "purl": "pkg:pypi/opentelemetry-util-http@0.58b0",
+      "description": "Web util for OpenTelemetry"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ophamin@0.4.0",
+      "name": "ophamin",
+      "version": "0.4.0",
+      "purl": "pkg:pypi/ophamin@0.4.0",
+      "description": "Ophamin: an empirical framework for scaling and verifying iterative experimentation on a substrate under test (built for Kimera-SWM, independent of it).",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ophamin@0.4.0",
+      "name": "ophamin",
+      "version": "0.4.0",
+      "purl": "pkg:pypi/ophamin@0.4.0",
+      "description": "Ophamin: an empirical framework for scaling and verifying iterative experimentation on a substrate under test (built for Kimera-SWM, independent of it).",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/opt-einsum@3.4.0",
+      "name": "opt_einsum",
+      "version": "3.4.0",
+      "purl": "pkg:pypi/opt-einsum@3.4.0",
+      "description": "Path optimization of einsum functions."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/orjson@3.11.9",
+      "name": "orjson",
+      "version": "3.11.9",
+      "purl": "pkg:pypi/orjson@3.11.9",
+      "description": "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/packageurl-python@0.17.6",
+      "name": "packageurl-python",
+      "version": "0.17.6",
+      "purl": "pkg:pypi/packageurl-python@0.17.6",
+      "description": "A purl aka. Package URL parser and builder",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/package-url/packageurl-python"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/packaging@26.2",
+      "name": "packaging",
+      "version": "26.2",
+      "purl": "pkg:pypi/packaging@26.2",
+      "description": "Core utilities for Python packages"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pacmap@0.9.1",
+      "name": "pacmap",
+      "version": "0.9.1",
+      "purl": "pkg:pypi/pacmap@0.9.1",
+      "description": "The official implementation for PaCMAP: Pairwise Controlled Manifold Approximation Projection",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pandas@2.3.3",
+      "name": "pandas",
+      "version": "2.3.3",
+      "purl": "pkg:pypi/pandas@2.3.3",
+      "description": "Powerful data structures for data analysis, time series, and statistics",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD 3-Clause License\n\n Copyright (c) 2008-2011, AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pandas-flavor@0.8.1",
+      "name": "pandas-flavor",
+      "version": "0.8.1",
+      "purl": "pkg:pypi/pandas-flavor@0.8.1",
+      "description": "The easy way to write your own Pandas flavor",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pathos@0.2.9",
+      "name": "pathos",
+      "version": "0.2.9",
+      "purl": "pkg:pypi/pathos@0.2.9",
+      "description": "parallel graph management and execution in heterogeneous computing",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/uqfoundation/pathos"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "3-clause BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pathspec@1.1.1",
+      "name": "pathspec",
+      "version": "1.1.1",
+      "purl": "pkg:pypi/pathspec@1.1.1",
+      "description": "Utility library for gitignore style pattern matching of file paths."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/patsy@1.0.2",
+      "name": "patsy",
+      "version": "1.0.2",
+      "purl": "pkg:pypi/patsy@1.0.2",
+      "description": "A Python package for describing statistical models and for building design matrices.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/pydata/patsy"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "2-clause BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/peewee@3.19.0",
+      "name": "peewee",
+      "version": "3.19.0",
+      "purl": "pkg:pypi/peewee@3.19.0",
+      "description": "a little orm"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/persim@0.3.8",
+      "name": "persim",
+      "version": "0.3.8",
+      "purl": "pkg:pypi/persim@0.3.8",
+      "description": "Distances and representations of persistence diagrams"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pillow@12.2.0",
+      "name": "pillow",
+      "version": "12.2.0",
+      "purl": "pkg:pypi/pillow@12.2.0",
+      "description": "Python Imaging Library (fork)"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pingouin@0.6.1",
+      "name": "pingouin",
+      "version": "0.6.1",
+      "purl": "pkg:pypi/pingouin@0.6.1",
+      "description": "Pingouin: statistical package for Python",
+      "licenses": [
+        {
+          "license": {
+            "name": "GPL-3.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pip@26.1.1",
+      "name": "pip",
+      "version": "26.1.1",
+      "purl": "pkg:pypi/pip@26.1.1",
+      "description": "The PyPA recommended tool for installing Python packages."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pip-api@0.0.34",
+      "name": "pip-api",
+      "version": "0.0.34",
+      "purl": "pkg:pypi/pip-api@0.0.34",
+      "description": "An unofficial, importable pip API",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/di/pip-api"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pip-requirements-parser@32.0.1",
+      "name": "pip-requirements-parser",
+      "version": "32.0.1",
+      "purl": "pkg:pypi/pip-requirements-parser@32.0.1",
+      "description": "pip requirements parser - a mostly correct pip requirements parsing library because it uses pip's own code.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/nexB/pip-requirements-parser"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pip-audit@2.10.0",
+      "name": "pip_audit",
+      "version": "2.10.0",
+      "purl": "pkg:pypi/pip-audit@2.10.0",
+      "description": "A tool for scanning Python environments for known vulnerabilities"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/platformdirs@4.9.6",
+      "name": "platformdirs",
+      "version": "4.9.6",
+      "purl": "pkg:pypi/platformdirs@4.9.6",
+      "description": "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pluggy@1.6.0",
+      "name": "pluggy",
+      "version": "1.6.0",
+      "purl": "pkg:pypi/pluggy@1.6.0",
+      "description": "plugin and hook calling mechanisms for python",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/polars@1.40.1",
+      "name": "polars",
+      "version": "1.40.1",
+      "purl": "pkg:pypi/polars@1.40.1",
+      "description": "Blazingly fast DataFrame library",
+      "licenses": [
+        {
+          "license": {
+            "name": "Copyright (c) 2025 Ritchie Vink\nCopyright (c) 2024 (Some portions) NVIDIA CORPORATION & AFFILIATES. All rights reserved."
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/polars-runtime-32@1.40.1",
+      "name": "polars-runtime-32",
+      "version": "1.40.1",
+      "purl": "pkg:pypi/polars-runtime-32@1.40.1",
+      "description": "Blazingly fast DataFrame library",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pot@0.9.6.post1",
+      "name": "POT",
+      "version": "0.9.6.post1",
+      "purl": "pkg:pypi/pot@0.9.6.post1",
+      "description": "Python Optimal Transport Library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/PythonOT/POT"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pox@0.3.7",
+      "name": "pox",
+      "version": "0.3.7",
+      "purl": "pkg:pypi/pox@0.3.7",
+      "description": "utilities for filesystem exploration and automated builds",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/uqfoundation/pox"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ppft@1.7.8",
+      "name": "ppft",
+      "version": "1.7.8",
+      "purl": "pkg:pypi/ppft@1.7.8",
+      "description": "distributed and parallel Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/uqfoundation/ppft"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/prettytable@3.17.0",
+      "name": "prettytable",
+      "version": "3.17.0",
+      "purl": "pkg:pypi/prettytable@3.17.0",
+      "description": "A simple Python library for easily displaying tabular data in a visually appealing ASCII table format"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/prometheus-client@0.25.0",
+      "name": "prometheus_client",
+      "version": "0.25.0",
+      "purl": "pkg:pypi/prometheus-client@0.25.0",
+      "description": "Python client for the Prometheus monitoring system."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/prompt-toolkit@3.0.52",
+      "name": "prompt_toolkit",
+      "version": "3.0.52",
+      "purl": "pkg:pypi/prompt-toolkit@3.0.52",
+      "description": "Library for building powerful interactive command lines in Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/propcache@0.5.2",
+      "name": "propcache",
+      "version": "0.5.2",
+      "purl": "pkg:pypi/propcache@0.5.2",
+      "description": "Accelerated property cache",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/aio-libs/propcache"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/prospector@1.18.0",
+      "name": "prospector",
+      "version": "1.18.0",
+      "purl": "pkg:pypi/prospector@1.18.0",
+      "description": "Prospector is a tool to analyse Python code by aggregating the result of other tools.",
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2+"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/protobuf@6.33.6",
+      "name": "protobuf",
+      "version": "6.33.6",
+      "purl": "pkg:pypi/protobuf@6.33.6",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://developers.google.com/protocol-buffers/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "3-Clause BSD License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/prov@2.1.1",
+      "name": "prov",
+      "version": "2.1.1",
+      "purl": "pkg:pypi/prov@2.1.1",
+      "description": "A library for W3C Provenance Data Model supporting PROV-JSON, PROV-XML and PROV-O (RDF)"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/psutil@7.2.2",
+      "name": "psutil",
+      "version": "7.2.2",
+      "purl": "pkg:pypi/psutil@7.2.2",
+      "description": "Cross-platform lib for process and system monitoring.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/giampaolo/psutil"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/puncc@0.9.1",
+      "name": "puncc",
+      "version": "0.9.1",
+      "purl": "pkg:pypi/puncc@0.9.1",
+      "description": "Predictive UNcertainty Calibration and Conformalization Library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/deel-ai/puncc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/py@1.11.0",
+      "name": "py",
+      "version": "1.11.0",
+      "purl": "pkg:pypi/py@1.11.0",
+      "description": "library with cross-python path, ini-parsing, io, code, log facilities",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://py.readthedocs.io/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT license"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/py-cpuinfo@9.0.0",
+      "name": "py-cpuinfo",
+      "version": "9.0.0",
+      "purl": "pkg:pypi/py-cpuinfo@9.0.0",
+      "description": "Get CPU info with pure Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/workhorsy/py-cpuinfo"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/py-serializable@2.1.0",
+      "name": "py-serializable",
+      "version": "2.1.0",
+      "purl": "pkg:pypi/py-serializable@2.1.0",
+      "description": "Library for serializing and deserializing Python Objects to and from JSON and XML.",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/py-spy@0.4.2",
+      "name": "py-spy",
+      "version": "0.4.2",
+      "purl": "pkg:pypi/py-spy@0.4.2",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/benfred/py-spy"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyarrow@23.0.1",
+      "name": "pyarrow",
+      "version": "23.0.1",
+      "purl": "pkg:pypi/pyarrow@23.0.1",
+      "description": "Python library for Apache Arrow"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyasn1@0.6.3",
+      "name": "pyasn1",
+      "version": "0.6.3",
+      "purl": "pkg:pypi/pyasn1@0.6.3",
+      "description": "Pure-Python implementation of ASN.1 types and DER/BER/CER codecs (X.208)",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-2-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyasn1-modules@0.4.2",
+      "name": "pyasn1_modules",
+      "version": "0.4.2",
+      "purl": "pkg:pypi/pyasn1-modules@0.4.2",
+      "description": "A collection of ASN.1-based protocols modules",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/pyasn1/pyasn1-modules"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pycparser@3.0",
+      "name": "pycparser",
+      "version": "3.0",
+      "purl": "pkg:pypi/pycparser@3.0",
+      "description": "C parser in Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pycrdt@0.13.0",
+      "name": "pycrdt",
+      "version": "0.13.0",
+      "purl": "pkg:pypi/pycrdt@0.13.0",
+      "description": "Python bindings for Yrs"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pydantic@2.13.4",
+      "name": "pydantic",
+      "version": "2.13.4",
+      "purl": "pkg:pypi/pydantic@2.13.4",
+      "description": "Data validation using Python type hints"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pydantic-settings@2.14.1",
+      "name": "pydantic-settings",
+      "version": "2.14.1",
+      "purl": "pkg:pypi/pydantic-settings@2.14.1",
+      "description": "Settings management using Pydantic"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pydantic-core@2.46.4",
+      "name": "pydantic_core",
+      "version": "2.46.4",
+      "purl": "pkg:pypi/pydantic-core@2.46.4",
+      "description": "Core functionality for Pydantic validation and serialization",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/pydantic/pydantic"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pydot@4.0.1",
+      "name": "pydot",
+      "version": "4.0.1",
+      "purl": "pkg:pypi/pydot@4.0.1",
+      "description": "Python interface to Graphviz's Dot"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pydotplus@2.0.2",
+      "name": "pydotplus",
+      "version": "2.0.2",
+      "purl": "pkg:pypi/pydotplus@2.0.2",
+      "description": "Python interface to Graphviz's Dot language",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://pydotplus.readthedocs.org/"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyemd@2.0.0",
+      "name": "pyemd",
+      "version": "2.0.0",
+      "purl": "pkg:pypi/pyemd@2.0.0",
+      "description": "A Python wrapper for Ofir Pele and Michael Werman's implementation of the Earth Mover's Distance."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pygit2@1.19.2",
+      "name": "pygit2",
+      "version": "1.19.2",
+      "purl": "pkg:pypi/pygit2@1.19.2",
+      "description": "Python bindings for libgit2.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/libgit2/pygit2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GPLv2 with linking exception"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pygments@2.20.0",
+      "name": "Pygments",
+      "version": "2.20.0",
+      "purl": "pkg:pypi/pygments@2.20.0",
+      "description": "Pygments is a syntax highlighting package written in Python."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pygtrie@2.5.0",
+      "name": "pygtrie",
+      "version": "2.5.0",
+      "purl": "pkg:pypi/pygtrie@2.5.0",
+      "description": "A pure Python trie data structure implementation.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/mina86/pygtrie"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyitlib@0.3.1",
+      "name": "pyitlib",
+      "version": "0.3.1",
+      "purl": "pkg:pypi/pyitlib@0.3.1",
+      "description": "A library of information-theoretic methods",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/pafoster/pyitlib"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyjwt@2.12.1",
+      "name": "PyJWT",
+      "version": "2.12.1",
+      "purl": "pkg:pypi/pyjwt@2.12.1",
+      "description": "JSON Web Token implementation in Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pylint@4.0.5",
+      "name": "pylint",
+      "version": "4.0.5",
+      "purl": "pkg:pypi/pylint@4.0.5",
+      "description": "python code static checker"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pymc@6.0.0",
+      "name": "pymc",
+      "version": "6.0.0",
+      "purl": "pkg:pypi/pymc@6.0.0",
+      "description": "Probabilistic Programming in Python: Bayesian Modeling and Probabilistic Machine Learning with PyTensor",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/pymc-devs/pymc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache License, Version 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pymongo@4.17.0",
+      "name": "pymongo",
+      "version": "4.17.0",
+      "purl": "pkg:pypi/pymongo@4.17.0",
+      "description": "PyMongo - the Official MongoDB Python driver"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pynndescent@0.6.0",
+      "name": "pynndescent",
+      "version": "0.6.0",
+      "purl": "pkg:pypi/pynndescent@0.6.0",
+      "description": "Nearest Neighbor Descent"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyod@3.5.1",
+      "name": "pyod",
+      "version": "3.5.1",
+      "purl": "pkg:pypi/pyod@3.5.1",
+      "description": "A Python library for anomaly detection across tabular, time series, graph, text, and image data. 60+ detectors, benchmark-backed ADEngine orchestration, and an agentic workflow for AI agents."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyparsing@3.3.2",
+      "name": "pyparsing",
+      "version": "3.3.2",
+      "purl": "pkg:pypi/pyparsing@3.3.2",
+      "description": "pyparsing - Classes and methods to define and execute parsing grammars"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyphi@1.2.0",
+      "name": "pyphi",
+      "version": "1.2.0",
+      "purl": "pkg:pypi/pyphi@1.2.0",
+      "description": "Python library for computing integrated information.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://github.com/wmayner/pyphi"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GNU General Public License v3.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyrate-limiter@4.1.0",
+      "name": "pyrate-limiter",
+      "version": "4.1.0",
+      "purl": "pkg:pypi/pyrate-limiter@4.1.0",
+      "description": "Python Rate-Limiter using Leaky-Bucket Algorithm"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyright@1.1.409",
+      "name": "pyright",
+      "version": "1.1.409",
+      "purl": "pkg:pypi/pyright@1.1.409",
+      "description": "Command line wrapper for pyright",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/RobertCraigie/pyright-python"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pysmt@0.9.6",
+      "name": "PySMT",
+      "version": "0.9.6",
+      "purl": "pkg:pypi/pysmt@0.9.6",
+      "description": "A solver-agnostic library for SMT Formulae manipulation and solving",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://www.pysmt.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "APACHE"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pytensor@3.0.2",
+      "name": "pytensor",
+      "version": "3.0.2",
+      "purl": "pkg:pypi/pytensor@3.0.2",
+      "description": "Optimizing compiler for evaluating mathematical expressions on CPUs and GPUs."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pytest@9.0.3",
+      "name": "pytest",
+      "version": "9.0.3",
+      "purl": "pkg:pypi/pytest@9.0.3",
+      "description": "pytest: simple powerful testing with Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pytest-benchmark@5.2.3",
+      "name": "pytest-benchmark",
+      "version": "5.2.3",
+      "purl": "pkg:pypi/pytest-benchmark@5.2.3",
+      "description": "A ``pytest`` fixture for benchmarking code. It will group the tests into rounds that are calibrated to the chosen timer."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pytest-cov@7.1.0",
+      "name": "pytest-cov",
+      "version": "7.1.0",
+      "purl": "pkg:pypi/pytest-cov@7.1.0",
+      "description": "Pytest plugin for measuring coverage."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/python-dateutil@2.9.0.post0",
+      "name": "python-dateutil",
+      "version": "2.9.0.post0",
+      "purl": "pkg:pypi/python-dateutil@2.9.0.post0",
+      "description": "Extensions to the standard Python datetime module",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/dateutil/dateutil"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Dual License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/python-dotenv@1.2.2",
+      "name": "python-dotenv",
+      "version": "1.2.2",
+      "purl": "pkg:pypi/python-dotenv@1.2.2",
+      "description": "Read key-value pairs from a .env file and set them as environment variables",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/python-igraph@1.0.0",
+      "name": "python-igraph",
+      "version": "1.0.0",
+      "purl": "pkg:pypi/python-igraph@1.0.0",
+      "description": "High performance graph data structures and algorithms (legacy package)",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://igraph.org/python"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GNU General Public License (GPL)"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/python-multipart@0.0.28",
+      "name": "python-multipart",
+      "version": "0.0.28",
+      "purl": "pkg:pypi/python-multipart@0.0.28",
+      "description": "A streaming multipart parser for Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pytokens@0.4.1",
+      "name": "pytokens",
+      "version": "0.4.1",
+      "purl": "pkg:pypi/pytokens@0.4.1",
+      "description": "A Fast, spec compliant Python 3.14+ tokenizer that runs on older Pythons.",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT License\n\nCopyright (c) 2024 Tushar Sadhwani\n\nPermission is hereby granted, free of charge, to any person obtaining a"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pytz@2026.2",
+      "name": "pytz",
+      "version": "2026.2",
+      "purl": "pkg:pypi/pytz@2026.2",
+      "description": "World timezone definitions, modern and historical",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://pythonhosted.org/pytz"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pywavelets@1.9.0",
+      "name": "PyWavelets",
+      "version": "1.9.0",
+      "purl": "pkg:pypi/pywavelets@1.9.0",
+      "description": "PyWavelets, wavelet transform module"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyyaml@6.0.3",
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "purl": "pkg:pypi/pyyaml@6.0.3",
+      "description": "YAML parser and emitter for Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://pyyaml.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/radon@6.0.1",
+      "name": "radon",
+      "version": "6.0.1",
+      "purl": "pkg:pypi/radon@6.0.1",
+      "description": "Code Metrics in Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://radon.readthedocs.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/rdflib@7.6.0",
+      "name": "rdflib",
+      "version": "7.6.0",
+      "purl": "pkg:pypi/rdflib@7.6.0",
+      "description": "RDFLib is a Python library for working with RDF, a simple yet powerful language for representing information.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/RDFLib/rdflib"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/redis@7.4.0",
+      "name": "redis",
+      "version": "7.4.0",
+      "purl": "pkg:pypi/redis@7.4.0",
+      "description": "Python client for Redis database and key-value store"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/referencing@0.37.0",
+      "name": "referencing",
+      "version": "0.37.0",
+      "purl": "pkg:pypi/referencing@0.37.0",
+      "description": "JSON Referencing + Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/refurb@2.3.1",
+      "name": "refurb",
+      "version": "2.3.1",
+      "purl": "pkg:pypi/refurb@2.3.1",
+      "description": "A tool for refurbishing and modernizing Python codebases",
+      "licenses": [
+        {
+          "license": {
+            "name": "GPL-3.0-only"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/regex@2026.5.9",
+      "name": "regex",
+      "version": "2026.5.9",
+      "purl": "pkg:pypi/regex@2026.5.9",
+      "description": "Alternative regular expression module, to replace re."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/requests@2.34.1",
+      "name": "requests",
+      "version": "2.34.1",
+      "purl": "pkg:pypi/requests@2.34.1",
+      "description": "Python HTTP for Humans.",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/requirements-parser@0.13.0",
+      "name": "requirements-parser",
+      "version": "0.13.0",
+      "purl": "pkg:pypi/requirements-parser@0.13.0",
+      "description": "This is a small Python module for parsing Pip requirement files.",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/rich@15.0.0",
+      "name": "rich",
+      "version": "15.0.0",
+      "purl": "pkg:pypi/rich@15.0.0",
+      "description": "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ripser@0.6.14",
+      "name": "ripser",
+      "version": "0.6.14",
+      "purl": "pkg:pypi/ripser@0.6.14",
+      "description": "A Lean Persistent Homology Library for Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/river@0.24.2",
+      "name": "river",
+      "version": "0.24.2",
+      "purl": "pkg:pypi/river@0.24.2",
+      "description": "Online machine learning in Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/rpds-py@0.30.0",
+      "name": "rpds-py",
+      "version": "0.30.0",
+      "purl": "pkg:pypi/rpds-py@0.30.0",
+      "description": "Python bindings to Rust's persistent data structures (rpds)"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ruamel.yaml@0.19.1",
+      "name": "ruamel.yaml",
+      "version": "0.19.1",
+      "purl": "pkg:pypi/ruamel.yaml@0.19.1",
+      "description": "ruamel.yaml is a YAML parser/emitter that supports roundtrip preservation of comments, seq/map flow style, and map key order",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ruamel.yaml.clib@0.2.15",
+      "name": "ruamel.yaml.clib",
+      "version": "0.2.15",
+      "purl": "pkg:pypi/ruamel.yaml.clib@0.2.15",
+      "description": "C version of reader, parser and emitter for ruamel.yaml derived from libyaml",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ruff@0.15.13",
+      "name": "ruff",
+      "version": "0.15.13",
+      "purl": "pkg:pypi/ruff@0.15.13",
+      "description": "An extremely fast Python linter and code formatter, written in Rust.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://docs.astral.sh/ruff"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/safetensors@0.7.0",
+      "name": "safetensors",
+      "version": "0.7.0",
+      "purl": "pkg:pypi/safetensors@0.7.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/safety@3.7.0",
+      "name": "safety",
+      "version": "3.7.0",
+      "purl": "pkg:pypi/safety@3.7.0",
+      "description": "Scan dependencies for known vulnerabilities and licenses."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/schemathesis@4.18.5",
+      "name": "schemathesis",
+      "version": "4.18.5",
+      "purl": "pkg:pypi/schemathesis@4.18.5",
+      "description": "Adaptive API testing for OpenAPI and GraphQL"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/scikit-learn@1.6.1",
+      "name": "scikit-learn",
+      "version": "1.6.1",
+      "purl": "pkg:pypi/scikit-learn@1.6.1",
+      "description": "A set of python modules for machine learning and data mining",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD 3-Clause License\n\n Copyright (c) 2007-2024 The scikit-learn developers.\n All rights reserved.\n\n Redistribution and u"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/scikit-tda@1.1.1",
+      "name": "scikit-tda",
+      "version": "1.1.1",
+      "purl": "pkg:pypi/scikit-tda@1.1.1",
+      "description": "Topological Data Analysis for humans",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/scikit-tda/scikit-tda"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/scipy@1.17.1",
+      "name": "scipy",
+      "version": "1.17.1",
+      "purl": "pkg:pypi/scipy@1.17.1",
+      "description": "Fundamental algorithms for scientific computing in Python",
+      "licenses": [
+        {
+          "license": {
+            "name": "Copyright (c) 2001-2002 Enthought, Inc. 2003, SciPy Developers.\n All rights reserved.\n\n Redistribution and use in source"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/scmrepo@3.6.2",
+      "name": "scmrepo",
+      "version": "3.6.2",
+      "purl": "pkg:pypi/scmrepo@3.6.2",
+      "description": "scmrepo"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/seaborn@0.13.2",
+      "name": "seaborn",
+      "version": "0.13.2",
+      "purl": "pkg:pypi/seaborn@0.13.2",
+      "description": "Statistical data visualization"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/semantic-version@2.10.0",
+      "name": "semantic-version",
+      "version": "2.10.0",
+      "purl": "pkg:pypi/semantic-version@2.10.0",
+      "description": "A library implementing the 'SemVer' scheme.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/rbarrois/python-semanticversion"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/semgrep@1.163.0",
+      "name": "semgrep",
+      "version": "1.163.0",
+      "purl": "pkg:pypi/semgrep@1.163.0",
+      "description": "Lightweight static analysis for many languages. Find bug variants with patterns that look like source code."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/semver@3.0.4",
+      "name": "semver",
+      "version": "3.0.4",
+      "purl": "pkg:pypi/semver@3.0.4",
+      "description": "Python helper for Semantic Versioning (https://semver.org)",
+      "licenses": [
+        {
+          "license": {
+            "name": "Copyright (c) 2013, Konstantine Rybnikov\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with o"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sentence-transformers@5.5.0",
+      "name": "sentence-transformers",
+      "version": "5.5.0",
+      "purl": "pkg:pypi/sentence-transformers@5.5.0",
+      "description": "Embeddings, Retrieval, and Reranking",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/setproctitle@1.3.7",
+      "name": "setproctitle",
+      "version": "1.3.7",
+      "purl": "pkg:pypi/setproctitle@1.3.7",
+      "description": "A Python module to customize the process title",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/dvarrazzo/py-setproctitle"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/setuptools@81.0.0",
+      "name": "setuptools",
+      "version": "81.0.0",
+      "purl": "pkg:pypi/setuptools@81.0.0",
+      "description": "Easily download, build, install, upgrade, and uninstall Python packages"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/shap@0.48.0",
+      "name": "shap",
+      "version": "0.48.0",
+      "purl": "pkg:pypi/shap@0.48.0",
+      "description": "A unified approach to explain the output of any machine learning model.",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/shellingham@1.5.4",
+      "name": "shellingham",
+      "version": "1.5.4",
+      "purl": "pkg:pypi/shellingham@1.5.4",
+      "description": "Tool to Detect Surrounding Shell",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/sarugaku/shellingham"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "ISC License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/shortuuid@1.0.13",
+      "name": "shortuuid",
+      "version": "1.0.13",
+      "purl": "pkg:pypi/shortuuid@1.0.13",
+      "description": "A generator library for concise, unambiguous and URL-safe UUIDs.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/skorokithakis/shortuuid/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/shtab@1.8.0",
+      "name": "shtab",
+      "version": "1.8.0",
+      "purl": "pkg:pypi/shtab@1.8.0",
+      "description": "Automagic shell tab completion for Python CLI applications"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/six@1.17.0",
+      "name": "six",
+      "version": "1.17.0",
+      "purl": "pkg:pypi/six@1.17.0",
+      "description": "Python 2 and 3 compatibility utilities",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/benjaminp/six"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/skops@0.14.0",
+      "name": "skops",
+      "version": "0.14.0",
+      "purl": "pkg:pypi/skops@0.14.0",
+      "description": "A set of tools, related to machine learning in production."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sktime@0.40.1",
+      "name": "sktime",
+      "version": "0.40.1",
+      "purl": "pkg:pypi/sktime@0.40.1",
+      "description": "A unified framework for machine learning with time series",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD 3-Clause License\n\nCopyright (c) 2019 - present, The sktime developers.\n\nAll rights reserved.\n\nRedistribution and use"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/slicer@0.0.8",
+      "name": "slicer",
+      "version": "0.0.8",
+      "purl": "pkg:pypi/slicer@0.0.8",
+      "description": "A small package for big slicing.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/interpretml/slicer"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/slipcover@1.0.18",
+      "name": "slipcover",
+      "version": "1.0.18",
+      "purl": "pkg:pypi/slipcover@1.0.18",
+      "description": "Near Zero-Overhead Python Code Coverage"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/smmap@5.0.3",
+      "name": "smmap",
+      "version": "5.0.3",
+      "purl": "pkg:pypi/smmap@5.0.3",
+      "description": "A pure Python implementation of a sliding window memory map manager",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/gitpython-developers/smmap"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sortedcontainers@2.4.0",
+      "name": "sortedcontainers",
+      "version": "2.4.0",
+      "purl": "pkg:pypi/sortedcontainers@2.4.0",
+      "description": "Sorted Containers -- Sorted List, Sorted Dict, Sorted Set",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "http://www.grantjenks.com/docs/sortedcontainers/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sparse@0.18.0",
+      "name": "sparse",
+      "version": "0.18.0",
+      "purl": "pkg:pypi/sparse@0.18.0",
+      "description": "Sparse n-dimensional arrays for the PyData ecosystem",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD 3-Clause License\n\nCopyright (c) 2018, Sparse developers\nAll rights reserved.\n\nRedistribution and use in source and b"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/spdx-tools@0.8.5",
+      "name": "spdx-tools",
+      "version": "0.8.5",
+      "purl": "pkg:pypi/spdx-tools@0.8.5",
+      "description": "SPDX parser and tools."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sqlalchemy@2.0.49",
+      "name": "SQLAlchemy",
+      "version": "2.0.49",
+      "purl": "pkg:pypi/sqlalchemy@2.0.49",
+      "description": "Database Abstraction Library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.sqlalchemy.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sqlparse@0.5.5",
+      "name": "sqlparse",
+      "version": "0.5.5",
+      "purl": "pkg:pypi/sqlparse@0.5.5",
+      "description": "A non-validating SQL parser."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sqltrie@0.11.2",
+      "name": "sqltrie",
+      "version": "0.11.2",
+      "purl": "pkg:pypi/sqltrie@0.11.2",
+      "description": "SQL-based prefix tree inspired by pygtrie and python-diskcache",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sse-starlette@3.4.4",
+      "name": "sse-starlette",
+      "version": "3.4.4",
+      "purl": "pkg:pypi/sse-starlette@3.4.4",
+      "description": "SSE plugin for Starlette"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/starlette@0.52.1",
+      "name": "starlette",
+      "version": "0.52.1",
+      "purl": "pkg:pypi/starlette@0.52.1",
+      "description": "The little ASGI library that shines."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/starlette-testclient@0.4.1",
+      "name": "starlette-testclient",
+      "version": "0.4.1",
+      "purl": "pkg:pypi/starlette-testclient@0.4.1",
+      "description": "A backport of Starlette TestClient using requests! \u23ea\ufe0f"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/statsforecast@2.0.3",
+      "name": "statsforecast",
+      "version": "2.0.3",
+      "purl": "pkg:pypi/statsforecast@2.0.3",
+      "description": "Time series forecasting suite using statistical models",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache Software License 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/statsmodels@0.14.6",
+      "name": "statsmodels",
+      "version": "0.14.6",
+      "purl": "pkg:pypi/statsmodels@0.14.6",
+      "description": "Statistical computations and models for Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://www.statsmodels.org/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/stevedore@5.7.0",
+      "name": "stevedore",
+      "version": "5.7.0",
+      "purl": "pkg:pypi/stevedore@5.7.0",
+      "description": "Manage dynamic plugins for Python applications",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/stumpy@1.14.1",
+      "name": "stumpy",
+      "version": "1.14.1",
+      "purl": "pkg:pypi/stumpy@1.14.1",
+      "description": "A powerful and scalable library that can be used for a variety of time series data mining tasks"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sympy@1.14.0",
+      "name": "sympy",
+      "version": "1.14.0",
+      "purl": "pkg:pypi/sympy@1.14.0",
+      "description": "Computer algebra system (CAS) in Python",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://sympy.org"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tabulate@0.10.0",
+      "name": "tabulate",
+      "version": "0.10.0",
+      "purl": "pkg:pypi/tabulate@0.10.0",
+      "description": "Pretty-print tabular data"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tadasets@0.2.2",
+      "name": "tadasets",
+      "version": "0.2.2",
+      "purl": "pkg:pypi/tadasets@0.2.2",
+      "description": "Great data sets for Topological Data Analysis."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tblib@3.2.2",
+      "name": "tblib",
+      "version": "3.2.2",
+      "purl": "pkg:pypi/tblib@3.2.2",
+      "description": "Traceback serialization library."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tenacity@9.1.4",
+      "name": "tenacity",
+      "version": "9.1.4",
+      "purl": "pkg:pypi/tenacity@9.1.4",
+      "description": "Retry code until it succeeds",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/jd/tenacity"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/texttable@1.7.0",
+      "name": "texttable",
+      "version": "1.7.0",
+      "purl": "pkg:pypi/texttable@1.7.0",
+      "description": "module to create simple ASCII tables",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/foutaise/texttable/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/textual@8.2.6",
+      "name": "textual",
+      "version": "8.2.6",
+      "purl": "pkg:pypi/textual@8.2.6",
+      "description": "Modern Text User Interface framework",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/threadpoolctl@3.6.0",
+      "name": "threadpoolctl",
+      "version": "3.6.0",
+      "purl": "pkg:pypi/threadpoolctl@3.6.0",
+      "description": "threadpoolctl",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/joblib/threadpoolctl"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tigramite@5.2.10.1",
+      "name": "tigramite",
+      "version": "5.2.10.1",
+      "purl": "pkg:pypi/tigramite@5.2.10.1",
+      "description": "Tigramite causal inference for time series",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/jakobrunge/tigramite/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "GNU General Public License v3.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tokenizers@0.22.2",
+      "name": "tokenizers",
+      "version": "0.22.2",
+      "purl": "pkg:pypi/tokenizers@0.22.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tomli@2.4.1",
+      "name": "tomli",
+      "version": "2.4.1",
+      "purl": "pkg:pypi/tomli@2.4.1",
+      "description": "A lil' TOML parser"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tomli-w@1.2.0",
+      "name": "tomli_w",
+      "version": "1.2.0",
+      "purl": "pkg:pypi/tomli-w@1.2.0",
+      "description": "A lil' TOML writer"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tomlkit@0.15.0",
+      "name": "tomlkit",
+      "version": "0.15.0",
+      "purl": "pkg:pypi/tomlkit@0.15.0",
+      "description": "Style preserving TOML library",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/toolz@1.1.0",
+      "name": "toolz",
+      "version": "1.1.0",
+      "purl": "pkg:pypi/toolz@1.1.0",
+      "description": "List processing tools and functional utilities"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/torch@2.12.0",
+      "name": "torch",
+      "version": "2.12.0",
+      "purl": "pkg:pypi/torch@2.12.0",
+      "description": "Tensors and Dynamic neural networks in Python with strong GPU acceleration",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tqdm@4.67.3",
+      "name": "tqdm",
+      "version": "4.67.3",
+      "purl": "pkg:pypi/tqdm@4.67.3",
+      "description": "Fast, Extensible Progress Meter",
+      "licenses": [
+        {
+          "license": {
+            "name": "MPL-2.0 AND MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/transformers@5.8.1",
+      "name": "transformers",
+      "version": "5.8.1",
+      "purl": "pkg:pypi/transformers@5.8.1",
+      "description": "Transformers: the model-definition framework for state-of-the-art machine learning models in text, vision, audio, and multimodal models, for both inference and training.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/huggingface/transformers"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache 2.0 License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/triad@1.0.2",
+      "name": "triad",
+      "version": "1.0.2",
+      "purl": "pkg:pypi/triad@1.0.2",
+      "description": "A collection of python utils for Fugue projects"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tsfresh@0.21.1",
+      "name": "tsfresh",
+      "version": "0.21.1",
+      "purl": "pkg:pypi/tsfresh@0.21.1",
+      "description": "tsfresh extracts relevant characteristics from time series",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/blue-yonder/tsfresh"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/typer@0.25.1",
+      "name": "typer",
+      "version": "0.25.1",
+      "purl": "pkg:pypi/typer@0.25.1",
+      "description": "Typer, build great CLIs. Easy to code. Based on Python type hints."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/typing-inspection@0.4.2",
+      "name": "typing-inspection",
+      "version": "0.4.2",
+      "purl": "pkg:pypi/typing-inspection@0.4.2",
+      "description": "Runtime typing introspection tools"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/typing-extensions@4.15.0",
+      "name": "typing_extensions",
+      "version": "4.15.0",
+      "purl": "pkg:pypi/typing-extensions@4.15.0",
+      "description": "Backported and Experimental Type Hints for Python 3.9+"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tzdata@2026.2",
+      "name": "tzdata",
+      "version": "2026.2",
+      "purl": "pkg:pypi/tzdata@2026.2",
+      "description": "Provider of IANA time zone data",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/python/tzdata"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/tzlocal@5.3.1",
+      "name": "tzlocal",
+      "version": "5.3.1",
+      "purl": "pkg:pypi/tzlocal@5.3.1",
+      "description": "tzinfo object for the local timezone",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/uc-micro-py@2.0.0",
+      "name": "uc-micro-py",
+      "version": "2.0.0",
+      "purl": "pkg:pypi/uc-micro-py@2.0.0",
+      "description": "Micro subset of unicode data files for linkify-it-py projects.",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/umap-learn@0.5.12",
+      "name": "umap-learn",
+      "version": "0.5.12",
+      "purl": "pkg:pypi/umap-learn@0.5.12",
+      "description": "Uniform Manifold Approximation and Projection",
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/urllib3@2.7.0",
+      "name": "urllib3",
+      "version": "2.7.0",
+      "purl": "pkg:pypi/urllib3@2.7.0",
+      "description": "HTTP library with thread-safe connection pooling, file post, and more."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/utilsforecast@0.2.16",
+      "name": "utilsforecast",
+      "version": "0.2.16",
+      "purl": "pkg:pypi/utilsforecast@0.2.16",
+      "description": "Forecasting utilities",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache Software License 2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/uvicorn@0.46.0",
+      "name": "uvicorn",
+      "version": "0.46.0",
+      "purl": "pkg:pypi/uvicorn@0.46.0",
+      "description": "The lightning-fast ASGI server."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/vine@5.1.0",
+      "name": "vine",
+      "version": "5.1.0",
+      "purl": "pkg:pypi/vine@5.1.0",
+      "description": "Python promises.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/celery/vine"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/voluptuous@0.16.0",
+      "name": "voluptuous",
+      "version": "0.16.0",
+      "purl": "pkg:pypi/voluptuous@0.16.0",
+      "description": "Python data validation library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/alecthomas/voluptuous"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/vulture@2.16",
+      "name": "vulture",
+      "version": "2.16",
+      "purl": "pkg:pypi/vulture@2.16",
+      "description": "Find dead code",
+      "licenses": [
+        {
+          "license": {
+            "name": "The MIT License (MIT)\n\nCopyright (c) 2012-2020 Jendrik Seipp (jendrikseipp@gmail.com)\n\nPermission is hereby granted, fre"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/wcmatch@8.5.2",
+      "name": "wcmatch",
+      "version": "8.5.2",
+      "purl": "pkg:pypi/wcmatch@8.5.2",
+      "description": "Wildcard/glob file name matcher."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/wcwidth@0.7.0",
+      "name": "wcwidth",
+      "version": "0.7.0",
+      "purl": "pkg:pypi/wcwidth@0.7.0",
+      "description": "Measures the displayed width of unicode strings in a terminal"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/werkzeug@3.1.8",
+      "name": "Werkzeug",
+      "version": "3.1.8",
+      "purl": "pkg:pypi/werkzeug@3.1.8",
+      "description": "The comprehensive WSGI web application library."
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/wrapt@1.17.3",
+      "name": "wrapt",
+      "version": "1.17.3",
+      "purl": "pkg:pypi/wrapt@1.17.3",
+      "description": "Module for decorators, wrappers and monkey patching.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/GrahamDumpleton/wrapt"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "BSD"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/xarray@2026.4.0",
+      "name": "xarray",
+      "version": "2026.4.0",
+      "purl": "pkg:pypi/xarray@2026.4.0",
+      "description": "N-D labeled arrays and datasets in Python"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/xarray-einstats@0.10.0",
+      "name": "xarray-einstats",
+      "version": "0.10.0",
+      "purl": "pkg:pypi/xarray-einstats@0.10.0",
+      "description": "Stats, linear algebra and einops for xarray"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/xgboost@3.2.0",
+      "name": "xgboost",
+      "version": "3.2.0",
+      "purl": "pkg:pypi/xgboost@3.2.0",
+      "description": "XGBoost Python Package",
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/y-py@0.6.2",
+      "name": "y-py",
+      "version": "0.6.2",
+      "purl": "pkg:pypi/y-py@0.6.2",
+      "description": "Python bindings for the Y-CRDT built from yrs (Rust)"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/yarl@1.23.0",
+      "name": "yarl",
+      "version": "1.23.0",
+      "purl": "pkg:pypi/yarl@1.23.0",
+      "description": "Yet another URL library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/aio-libs/yarl"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/z3-solver@4.16.0.0",
+      "name": "z3-solver",
+      "version": "4.16.0.0",
+      "purl": "pkg:pypi/z3-solver@4.16.0.0",
+      "description": "an efficient SMT solver library",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/Z3Prover/z3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT License"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/zc.lockfile@4.0",
+      "name": "zc.lockfile",
+      "version": "4.0",
+      "purl": "pkg:pypi/zc.lockfile@4.0",
+      "description": "Basic inter-process locks",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/zopefoundation/zc.lockfile"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "name": "ZPL-2.1"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/zipp@3.23.1",
+      "name": "zipp",
+      "version": "3.23.1",
+      "purl": "pkg:pypi/zipp@3.23.1",
+      "description": "Backport of pathlib-compatible object wrapper for zip files"
+    }
+  ]
+}

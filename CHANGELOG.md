@@ -7,6 +7,908 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+(empty — see [0.7.0] below for the latest cut.)
+
+## [0.7.0] — 2026-05-16
+
+This is the **Phase S1 + S2 + S4 + S5 + S6 closeout** — every Stage 1
+quality gate is now green. The framework is mypy-strict-clean across
+every file, has property-based tests for every signed codec, ships a
+pinned lockfile + reproducible Dockerfile, and emits a CycloneDX SBOM
+that the supply-chain tools accept.
+
+### Added
+
+- **Phase S1 closed — 138/138 source files mypy `--strict` clean.**
+  No `Any` leakage, no untyped defs, no missing type-args, no
+  unreachable code, no implicit re-exports. The pre-push hook gate
+  3/4 now runs `--strict` against the whole package (the per-file
+  `STRICT_CLEAN` ratchet retired with note kept in the script). A
+  total of **195 → 0** errors closed across 8 batched passes; the
+  campaign also surfaced + fixed two real defects:
+  - `PillarResult.to_dict()` silently dropped the `extra` field; the
+    round-trip would lose pillar-specific scope metadata after save +
+    load. Fixed in `src/ophamin/auditing/base.py`.
+  - `YDocFacade.encode_state()` was returning the *state vector*
+    (pycrdt's `get_state()`, ~10 bytes) which the receiver's
+    `apply_update()` cannot consume; cross-replica sync produced
+    `ValueError: Cannot decode update` on any non-trivial input.
+    Switched to `get_update()` (the actual operation stream); both
+    backends now produce a true update payload that
+    `apply_state()` can consume. Bit-equal across replicas now.
+- **Phase S6 — property-based round-trip tests for every signed codec
+  (Hypothesis 6.152).** 48 new property tests across four files:
+  - `tests/test_proof_record_property.py` — 12 tests pinning
+    Threshold / Claim / Verdict / PillarEvidence round-trip identity,
+    the Move-L int→float coercion (load-bearing for signature
+    verification), comparator semantics totality, and Verdict.decide
+    outcome correctness.
+  - `tests/test_audit_record_property.py` — 16 tests pinning
+    Finding / PillarResult / AuditSummary round-trips + finding-count
+    invariants + severity-histogram-sum invariants + top-N
+    monotonicity.
+  - `tests/test_drift_property.py` — 12 tests pinning
+    `ci_overlaps` commutativity + reflexivity, DeltaEntry.delta
+    consistency, significance-flag agreement, DriftReport
+    aggregation invariants.
+  - `tests/test_crdt_laws_property.py` — 8 tests pinning cross-backend
+    (pycrdt + y-py) agreement, idempotence of `apply_state`, and
+    two-replica convergence after state exchange.
+- **Phase S2 coverage closure — 21 new tests targeting the two files
+  under 80 % coverage:**
+  - `tests/test_discovery_watcher_coverage.py` — 7 tests for the
+    watcher's `_write_diff_markdown` / `_write_drift_report` helpers,
+    `run_forever`'s loop + Ctrl-C exit, and the
+    `kimera_head_commit` failure paths (subprocess timeout, non-zero
+    exit, missing repo).
+  - `tests/test_kimera_adapter_coverage.py` — 14 tests pinning every
+    KimeraAdapter constructor validation branch (unknown target,
+    unknown mode, missing repo, repo-without-kimera_swm/, missing
+    python_exe, missing runner_script) + the `reset()`/`env`
+    /`write_runner_template` helpers.
+- **Phase S4 reproducible-build infrastructure.**
+  - `requirements-lock.txt` — 369 pinned transitive dependencies
+    matching the working venv that produces the green test +
+    mypy-strict + coverage baseline. Use via
+    `pip install -r requirements-lock.txt`.
+  - `Dockerfile` — Python 3.12.7-slim-bookworm base, lock-pinned
+    layer cache, non-root runtime user, `ophamin --help` as the
+    default CMD. Matches `[tool.mypy] python_version = "3.12"`.
+  - `.dockerignore` — strips cache + venv + test-output artefacts
+    from the build context.
+- **Phase S5 SBOM + osv-scanner integration.**
+  `scripts/generate_sbom.sh` writes a CycloneDX 1.5 JSON + a
+  human-readable summary text file via Ophamin's own
+  `interop.cyclonedx` exporter. The script accepts `--scan` (run
+  osv-scanner if installed) and `--strict` (exit non-zero on any
+  advisory). Generated artefacts live in `sbom/`.
+- **Pytest deprecation-warning filter — known upstream issues
+  silenced.** `[tool.pytest.ini_options] filterwarnings` now drops the
+  ~1700 noise warnings from mlflow `codecs.open` (3.14 deprecation),
+  scipy moment-calculation precision-loss, stumpy flat-profile notes,
+  `pkg_resources` deprecation, and statsmodels `numpy.ptp` warnings.
+  Ophamin-side warnings remain visible.
+
+### Changed
+
+- **Pre-push hook gate 3 now runs `mypy --strict` against the entire
+  source tree** rather than the per-file `STRICT_CLEAN` array. The
+  ratchet was the right discipline during the campaign; with every
+  file clean, full-package strict is the regression guard going
+  forward.
+- Bumped version: `0.6.0` → `0.7.0`. `__version__` in
+  `src/ophamin/__init__.py` synced (was drifted at `0.1.0`),
+  CITATION.cff updated.
+
+### Fixed
+
+- (see "Added" — the two defects surfaced by the property-test
+  campaign: PillarResult.extra round-trip drop and YDocFacade
+  state-vector/update mismatch.)
+
+## [0.6.0] — 2026-05-16
+
+### Added
+
+- **Stage 1, Phase S2 — coverage baseline + targets pinned.**
+  `.coveragerc` with branch coverage enabled; baseline measured at
+  **77.7 % combined coverage** (13,671 lines + 3,674 branches, 1148
+  tests). Targets pinned in
+  [`docs/BENCHMARKS_AND_COVERAGE.md`](docs/BENCHMARKS_AND_COVERAGE.md):
+  whole-framework ≥ 85 % for v0.7.0; per-wheel ≥ 80-95 % with
+  scenarios + reporting + protocols already there. Five files below
+  the target with concrete remediation plans listed
+  (connectors / kimera_adapter / watcher / timeseries_helpers /
+  throughput_ceiling).
+- **Stage 1, Phase S3 — pytest-benchmark suite + pinned baselines.**
+  12 micro-benches across codec / pillar / synthesis layers under
+  `tests/bench/`. Run via `pytest tests/bench/ --benchmark-only
+  --benchmark-storage=file:./bench_storage --benchmark-save=...`.
+  Baseline numbers pinned in BENCHMARKS_AND_COVERAGE.md §"Baseline
+  numbers" — sub-µs per-observation streaming-pillar updates, ~60µs
+  HMAC sign, ~300µs proof round-trip, ~20ms 100-proof summarize.
+  Regression gate: > 20 % mean regression on any bench fails the
+  bench job.
+- **Stage 1, Phase S1.a — mypy strict configured + first 9 files
+  strict-clean.** `[tool.mypy]` strict in `pyproject.toml`,
+  `py.typed` marker shipped, baseline at **277 errors across 66
+  files** captured in
+  [`docs/MYPY_STRICT_BASELINE.md`](docs/MYPY_STRICT_BASELINE.md).
+  Phase S1.a closed 57 errors via upstream-library overrides +
+  surgical fixes to 9 small-error files; those 9 files are pinned in
+  `.githooks/pre-push`'s `STRICT_CLEAN` array — they cannot regress
+  without a hook bypass.
+
+### Changed
+
+- **Pre-push hook elevated to 4-gate local CI** (in place of
+  GitHub-Actions-on-private-repo). Gates: pytest → coverage ≥ 77 %
+  → mypy strict on the 9 strict-clean files → ruff. Any single
+  failure aborts the push.
+- **`pyproject.toml` dev extras**: added `pytest-cov>=7.0` and
+  `pytest-benchmark>=5.0` to `[property_test]` for the new Stage 1
+  tooling.
+- **`pyproject.toml` mypy overrides**: added `statsmodels`, `scipy`,
+  `sklearn`, `matplotlib`, `psutil` to the per-module
+  `ignore_missing_imports` set — these upstream libraries lack
+  `py.typed` markers or ship incomplete stubs.
+
+### Stage 1 still open (planned for v0.7.0 / v0.8.0)
+
+- **Phase S1.b/.c/.d** — clear the remaining 220 mypy strict errors
+  in the medium-error and heavy-error files (cli.py, connectors.py,
+  config/sweep.py, cross_validation.py, etc.). Per-layer plan in
+  the baseline doc.
+- **Phase S4** — reproducible build: lockfile + Dockerfile.
+- **Phase S5** — supply-chain hygiene: signed SBOM + osv-scanner cron.
+- **Phase S6** — formal correctness specs: property-based round-trip
+  tests for every codec; Hypothesis-driven CRDT-law tests against
+  cross-backend oracle.
+
+### Test counts
+
+- Tests: 1148 passed / 1 skipped / 0 failed (unchanged from 0.5.0;
+  Stage 1 phases were additive, not behavioural).
+- Bench: 12 micro-benches; 12/12 pass + 1 baseline saved.
+
+## [0.5.0] — 2026-05-16
+
+## [0.5.0] — 2026-05-16
+
+> **The "framework went open-source" inflection.** Re-licensing
+> from Proprietary to Apache-2.0 is a consumer-facing capability
+> change (commercial use + redistribution + derivative works become
+> permitted), not just metadata. Cut as 0.5.0 rather than 0.4.1 to
+> mark the inflection clearly.
+
+### Changed
+
+- **Re-licensed Proprietary → Apache-2.0 (2026-05-16, owner
+  directive).** The framework is now open-source under the Apache
+  License 2.0. Concrete changes:
+  - `LICENSE` replaced with the full Apache-2.0 text + boilerplate
+    notice (copyright "2026 Idir Ben Slama").
+  - New `NOTICE` file at repo root carrying the required attribution
+    statement + the runtime-dependency license catalogue + the
+    **Ophamin name-reservation clause** (the framework name is not
+    to be renamed; architecturally-divergent forks pick their own
+    name).
+  - `pyproject.toml` `license = { text = "Apache-2.0" }`.
+  - `README.md` license badge `Proprietary` (red) → `Apache-2.0`
+    (blue). Repository-structure entry refreshed.
+  - `CONTRIBUTING.md` "framework is proprietary" intro replaced with
+    Apache-2.0 + open-PR-flow + RFC-process pointer.
+  - `SECURITY.md` re-versioned to 0.4.x + Apache-2.0 framing;
+    backward support table widened to cover 0.3.x.
+  - `CITATION.cff` license `Proprietary` → `Apache-2.0`; version
+    bumped 0.1.0 → 0.4.0; date-released 2026-05-15 → 2026-05-16.
+  - `docs/ELEVATION_ROADMAP_2026_05_16.md` §7 (license decision)
+    + §8 (naming decision) resolved per owner-locked constraints.
+  No code under `src/ophamin/` was touched by the license change.
+  All 1148 tests still pass; the codebase is byte-identical except
+  for the seven doc/config files updated above.
+
+### Naming-policy lock-in
+
+- **Ophamin is the stable name.** Per owner directive 2026-05-16,
+  the framework name "Ophamin" — derived from the angelic order
+  Ophanim (Ezekiel 1:18, "wheels within wheels, covered with eyes")
+  — is reserved. Future architectural changes happen under this
+  name; downstream forks that diverge architecturally choose their
+  own name. This pins gap D from
+  `docs/ARCHITECTURE_INTENT_VS_REALITY_2026_05_16.md` as
+  intentionally not-renamed.
+
+## [0.4.0] — 2026-05-16
+
+### Added
+
+- **Regression-alert daemon — `comparing/regression_alert.py` +
+  `ophamin watch-proofs` CLI (Move J, 2026-05-16).** Closes gap F
+  from `docs/ARCHITECTURE_INTENT_VS_REALITY_2026_05_16.md` — the
+  closed-loop's Ophamin-paced side. Detects verdict transitions
+  across two proof-corpus snapshots (typically the same corpus at
+  two Kimera commits): regression (VALIDATED/INCONCLUSIVE → REFUTED),
+  recovery (REFUTED → VALIDATED), lateral (neither), unchanged.
+
+  - `ProofSnapshot` + `VerdictTransition` + `RegressionAlertRecord`
+    (signed + content-addressed). Pairing key combines family +
+    threshold metric + comparator + value so different-threshold
+    variants of the same scenario don't accidentally pair.
+  - `compute_regression_alert(before, after) → RegressionAlertRecord`
+    detector; `dump_alert / load_alert` codec; Markdown rendering.
+  - `ophamin watch-proofs --before <dir> --after <dir> [--out <path>]
+    [--key K] [--no-sign] [--json]` CLI. Exit 1 on any regression,
+    exit 0 otherwise (CI-gating-ready).
+  - 25 hardening tests in `tests/test_regression_alert.py`.
+
+- **Inspecting/ cross-wheel composition — `--with-comparing` +
+  `--with-instrumenting` (Move K, 2026-05-16).** Closes gap G from
+  the prior audit — the composer-narrative in `inspecting/__init__.py`
+  is now fully implemented across all four dynamic wheels.
+
+  - `PrimitiveInspector.inspect(..., with_comparing=False,
+    with_instrumenting=False)` plus matching `inspect_all` kwargs.
+  - `_fill_comparing` runs a brief River ADWIN drift probe on the
+    primitive's phi stream; `_fill_instrumenting` wraps the adapter
+    in InstrumentedSubstrate to harvest per-cycle wall-time, CPU,
+    RSS peak. Best-effort: failures captured as `profile.notes`
+    rather than crashing the inspection.
+  - `PrimitiveProfile` gains `comparing_n_drift_events` +
+    `comparing_detector_name` + `comparing_stream_name` +
+    `instrumenting_n_cycles_observed` + `instrumenting_rss_peak_bytes`
+    fields, surfaced in `to_dict / to_markdown`.
+  - `ophamin inspect <repo> <name> --with-comparing
+    --with-instrumenting` + `inspect-all --with-comparing
+    --with-instrumenting` CLI flags.
+  - 13 hardening tests in `tests/test_inspecting_composition.py`.
+
+- **Schema-wide pre-registration on AuditRecord + DriftScan (Move L,
+  2026-05-16).** Closes gap I (full universalization) from the prior
+  audit. AuditRecord bumps to schema `audit/1.1`; DriftScan bumps
+  to schema `2`. Both gain optional `pre_registration` +
+  `pre_registered_metric` + `verdict` fields. Backward-compat:
+  records written under the older schemas load cleanly under the
+  new codec; the optional fields default to None.
+
+  - `AuditRecord.attach_pre_registration(*, claim, observed_value,
+    metric=...)` stamps the fields in-place + bumps the
+    `schema_version`. Caller re-signs after attach.
+  - `DriftScan.attach_pre_registration(*, claim, observed_value=None,
+    metric="n_drift_events")` returns a NEW DriftScan (frozen
+    dataclass) with the fields set + signature invalidated.
+  - `auditing.codec.ingest(..., allowed_schema_versions=(...))`
+    accepts both `audit/1.0` and `audit/1.1` by default. Legacy
+    `require_schema_version` kwarg preserved for exact-match callers.
+  - Defensive coercion: `Threshold.__post_init__` now coerces
+    `value` to `float`; `Verdict.__post_init__` now coerces
+    `observed_value` to `float`. Without this, int-vs-float
+    round-trip drift silently broke signature verification (caught
+    while writing Move L's tests).
+  - 18 hardening tests in `tests/test_universalized_pre_registration.py`.
+
+- **Inner-triad fill — `ophamin report-batch` + `ReportRunner.run_batch`
+  (Move M, 2026-05-16).** Partially closes gap E — the reporting
+  wheel now has a campaign-level rendering surface that walks a
+  proof / audit directory, renders every record into the chosen
+  format (HTML / Markdown / LaTeX), and emits a master `INDEX.md`
+  listing every output with its verdict.
+
+  - `ReportRunner.run_batch(records_dir, out_dir, format) → summary
+    dict` — walks recursively via `iter_proofs`, renders each
+    record, captures decode/render failures into a `skipped`
+    list rather than crashing.
+  - `ophamin report-batch <records-dir> [--format html|markdown|latex]
+    [--out-dir <dir>]` CLI. End-to-end smoke against the shipped 13
+    proofs: 13/13 rendered cleanly into `/tmp/report_batch_smoke/`.
+  - 10 hardening tests in `tests/test_report_batch.py`.
+
+- **Universalized plug-in registration across all 4 Protocols (Move N,
+  2026-05-16).** Closes the symmetric-discovery gap — Pillars
+  (Move G) + Scenarios (Move A) had registries; Corpora and
+  SubstrateProbes did not. All four declared `protocols.py` Protocols
+  now have a registration + discovery surface.
+
+  - `seeing.corpus.CORPUS_FACTORIES` made public; `register_corpus_factory`
+    + `list_corpus_names` exposed. Loud-fail on duplicate; idempotent
+    for same-factory re-registration.
+  - `ophamin.registry` adds `register_corpus / get_corpus_by_name /
+    list_corpora / SUBSTRATE_FACTORIES / register_substrate /
+    get_substrate_class / list_substrate_classes`. Built-in
+    substrates (MockSubstrate + KimeraAdapter) auto-register at
+    import time.
+  - `ophamin corpus list / show <name>` and `ophamin substrate list`
+    CLI subcommands.
+  - 22 hardening tests in `tests/test_registry_universalized.py`,
+    including a guard that asserts all four declared Protocols
+    (Pillar / ScenarioProtocol / DatasetConnector / SubstrateProbe)
+    have a registration surface reachable from `ophamin.registry`.
+
+### Fixed
+
+- **Defensive int → float coercion in `Threshold` + `Verdict`**
+  (Move L collateral fix). Without `__post_init__` coercion, passing
+  `Threshold("m", "<=", 10)` (int) produces a Threshold whose
+  `to_dict` emits `"value": 10` but whose `from_dict` produces
+  `"value": 10.0` — silent canonical-form drift that broke
+  signature verification across save/load round-trips. Now every
+  Threshold/Verdict stores floats by construction.
+
+### Test counts
+
+- Test suite: 1060 → 1148 passed (+88: J +25, K +13, L +18, M +10,
+  N +22), 1 skipped, 0 failed.
+
+### CLI surface
+
+- New: `ophamin watch-proofs`, `ophamin report-batch`,
+  `ophamin corpus list / show`, `ophamin substrate list`,
+  `ophamin inspect --with-comparing --with-instrumenting`.
+- Total: 37 → **42** subcommands.
+
+## [0.3.0] — 2026-05-16
+
+### Added
+
+- **Pillar Protocol satisfiers + central plug-in registry + `ophamin
+  pillar` CLI (Move G, 2026-05-16).** Closes gaps **A** + **B** from
+  `docs/ARCHITECTURE_INTENT_VS_REALITY_2026_05_16.md` — the
+  ``runtime_checkable`` ``Pillar`` Protocol declared in
+  ``ophamin.protocols`` is now satisfied by every shipped pillar
+  adapter, and the registration surface (`register_pillar` +
+  `PILLARS` dict + `get_pillar` + `list_pillars` + loud-failure on
+  duplicate + Protocol-violation checks) makes the four declared
+  plug-in surfaces in `protocols.py` load-bearing instead of
+  decorative.
+
+  - `src/ophamin/measuring/pillars/base.py` — `PillarBase` ABC
+    (shares the `pillar_name / library / library_version /
+    compute()` interface every adapter implements) +
+    `NonUniformComputeError` (NotImplementedError subclass for
+    pillars whose canonical API doesn't fit the uniform
+    `compute(cycle_results, records)` signature) +
+    `_pkg_version(name)` helper (resolves version via
+    `importlib.metadata.version`).
+  - `src/ophamin/measuring/pillars/_adapters.py` — 11 thin adapter
+    classes (one per shipped pillar). Each declares OFAMIN-style
+    `pillar_name` + `library` + auto-resolved `library_version`;
+    `compute()` either does best-effort work or raises
+    `NonUniformComputeError` with a pointer to the module's
+    canonical entry point. Adapters: `SPCPillar` (O.spc, numpy),
+    `SRMPillar` (O.srm, scipy), `RiverDriftPillar` (O.drift, river),
+    `SPRTPillar` (A.sprt, numpy), `MixedEffectsPillar`
+    (M.mixed_effects, statsmodels), `MEAPillar` (M.mea,
+    statsmodels), `CMAPillar` (I.cma, statsmodels),
+    `CrossValidationPillar` (N.cross_validation, scikit-learn),
+    `AnticipatoryPillar` (diagnostics.anticipatory, mapie),
+    `InertiaPillar` (diagnostics.inertia, numpy),
+    `KernelCouplingPillar` (diagnostics.kernel_coupling, numpy).
+  - `src/ophamin/registry.py` — central registry with `PILLARS`
+    dict + `register_pillar(p) → p` (idempotent for same-object
+    re-registration; raises `DuplicatePluginError` on different
+    object under existing name + `PluginProtocolViolationError` on
+    objects that don't satisfy the `Pillar` Protocol); `get_pillar`
+    + `list_pillars` lookup surface; `get_scenario` + `list_scenarios`
+    re-exports of the existing `SCENARIOS` dict so callers have a
+    one-stop discovery import.
+  - `src/ophamin/measuring/pillars/__init__.py` imports `_adapters`
+    to trigger registration side-effect; re-exports `PillarBase`
+    and `NonUniformComputeError`.
+  - `src/ophamin/cli.py` adds `ophamin pillar list / show`
+    subcommands. `list` prints a name + library + version table (or
+    `--json`); `show <name>` prints the metadata block + class +
+    Protocol-check confirmation + summary.
+  - `src/ophamin/protocols.py` Pillar docstring's `.. note::`
+    rewritten to reflect that the Protocol is now satisfied (gap A
+    closed).
+  - 24 hardening tests in `tests/test_registry.py`: registry
+    populated at import time; every adapter satisfies
+    `isinstance(p, Pillar)`; every adapter is a `PillarBase`
+    instance; metadata non-empty; library version resolves from
+    `importlib.metadata`; `list_pillars` sort order; `get_pillar`
+    happy + unknown-name; `register_pillar` rejects
+    non-Protocol objects; idempotent for same-object re-registration;
+    duplicate-name raises `DuplicatePluginError`; test-only pillar
+    registration round-trip; `NonUniformComputeError` raise paths +
+    NotImplementedError subclass relationship; `REGISTERED_PILLARS`
+    tuple matches dict; `get_scenario` / `list_scenarios` mirror
+    `SCENARIOS`; CLI smoke for `pillar list` (human + JSON) +
+    `pillar show` (known + unknown) + missing-action exit-non-zero.
+
+- **`AuditRecord` codec parallel + `ophamin audit-record` CLI
+  (Move H, 2026-05-16).** Closes Move B's open note ("the same shape
+  should apply to AuditRecord") — audit artifacts now have the same
+  load / validate / verify / ingest interface that proof records got
+  in Move B.
+
+  - `src/ophamin/auditing/base.py` — `Finding.from_dict` +
+    `PillarResult.from_dict` (the existing `to_dict` methods now
+    round-trip cleanly).
+  - `src/ophamin/auditing/audit_record.py` — `AuditSummary.from_dict`
+    + `AuditRecord.from_dict` + `AuditRecord.from_json`; the
+    existing `to_dict` / `to_json` / `sign` / `verify_signature` /
+    `audit_id` infrastructure is the round-trip target.
+  - `src/ophamin/auditing/codec.py` (~250 LOC) — five typed errors
+    (`AuditCodecError` base + `AuditDecodeError` /
+    `AuditSignatureError` / `AuditSchemaVersionMismatchError`),
+    frozen `AuditValidationReport` and `AuditListEntry` dataclasses,
+    `dump / load / verify_signature / validate / ingest /
+    iter_audits / list_audits` functions mirroring the proof codec
+    shape. No JSON-Schema validation today (audit records don't ship
+    a schema.json yet); structural validation includes a
+    cross-section consistency check (pillars in record must match
+    pillars in summary) that proof records don't need.
+  - `src/ophamin/cli.py` adds `ophamin audit-record show / verify /
+    validate / ingest / list` subcommands — same shape as
+    `ophamin proof`. The `audit` command remains for *generating*
+    audits; `audit-record` is for inspecting / validating / ingesting
+    them after the fact.
+  - 37 hardening tests in `tests/test_audit_codec.py`: dump round-trip
+    + parent-dir creation; every typed-error raise path; signature
+    correct / wrong / unsigned; validate full report happy +
+    no-key-skips-signature + decode-error-in-problems + frozen +
+    all_ok-false-on-signature-wrong; ingest happy +
+    strict-signature-correct + strict-without-key + strict-wrong-key
+    + wrong-schema-version + allow-any-schema-version +
+    decode-error-propagates; iter_audits sorted; list_audits returns
+    entries / continues-past-broken-file / signature None when no key /
+    empty directory; shipped audits in `audits/` all load cleanly;
+    structural problem: pillars-vs-summary mismatch; CLI smoke for all
+    5 actions + nonexistent-dir; `AuditSummary` round-trip.
+
+- **`AuditRecord.wrap_as_proof` + `DriftScan.wrap_as_proof` helpers
+  (Move I, 2026-05-16).** Lightweight realization of the
+  universalize-pre-registration deficit (gap I) — instead of inflating
+  the AuditRecord / DriftScan schemas with per-record pre_registration
+  fields (which would force a schema-version bump on every consumer),
+  the wrap pattern preserves the original artifact and produces a
+  proof companion when the caller wants CI gating.
+
+  - `AuditRecord.wrap_as_proof(*, claim, observed_value, ...)` —
+    wraps the audit into a signed (or unsigned) EmpiricalProofRecord
+    with the supplied Claim's threshold + the audit's
+    target_content_hash as the data_hash + the audit's pillar count
+    + severity histogram in the evidence detail. Lossless: the
+    audit's forensic detail rides in the proof's evidence section.
+  - `DriftScan.wrap_as_proof(*, claim, observed_value=None, ...)` —
+    same shape; `observed_value` defaults to `n_events` (the most
+    common gate is `n_drift_events <= 0` or `<= N`). Stream hash
+    becomes the proof's data_hash; event indices + detector name +
+    scan_id ride in evidence detail.
+  - Both helpers use lazy imports (no top-level dependency on the
+    proof module from audit / drift). Sign key is optional — caller
+    decides whether to sign before persisting.
+  - 14 hardening tests in `tests/test_wrap_as_proof.py`: AuditRecord
+    happy-path returns EmpiricalProofRecord, threshold-satisfied
+    produces VALIDATED + threshold-violated produces REFUTED, evidence
+    detail carries audit_id + total_findings, signing works + unsigned
+    when key omitted, dataset carries target_content_hash + source
+    path; DriftScan happy-path, default observed=n_events vs explicit
+    observed_value, signing, dataset carries stream_hash + river
+    detector source, evidence carries event_indices + scan_id, pillar
+    field is "O.drift".
+
+### Fixed
+
+- **Stale "only Kimera-coupled file" claim (gap H, 2026-05-16).**
+  README + `kimera_adapter.py` docstring updated to acknowledge that
+  `seeing/discovery/`, `seeing/wiring/`, `seeing/telemetry/` also
+  reach into Kimera shapes — they are seeing-wheel-internal probes,
+  the same conceptual layer as `KimeraAdapter` itself.
+- **`inspecting/` composition status (gap G, 2026-05-16).** Added
+  a `.. note::` to `inspecting/__init__.py` clarifying that the
+  composer-narrative is intent — static introspection is implemented
+  and the `--with-discovery` + `--with-audit` flags are wired, but
+  auto-firing of `comparing.drift` + `instrumenting` against a
+  primitive's runtime path is owner-gated future work.
+
+### Dependencies
+
+- (No new dependencies — Move G's `importlib.metadata` is stdlib;
+  Move H + I use existing dataclasses + json + hmac.)
+
+### Test counts
+
+- Test suite: 985 → 1060 passed (+75: +24 registry + +37
+  audit_codec + +14 wrap_as_proof), 1 skipped, 0 failed.
+
+## [0.2.0] — 2026-05-16
+
+### Added
+
+- **6-phase composite-run orchestrator — `CampaignRecord` +
+  `ophamin run-all` (Move F, 2026-05-16).** Closes Deficit 2 from
+  `docs/ARCHITECTURE_EXTENDED_AUDIT_2026_05_16.md` — the "6 phases"
+  the owner named are now executable as a single coordinated pass.
+
+  - New top-level module `src/ophamin/campaign.py` (~520 LOC).
+    Defines `CANONICAL_PHASE_ORDER = (seeing, measuring, comparing,
+    instrumenting, auditing, reporting)`, frozen `CampaignPhase`
+    dataclass (one per wheel: status ∈ {ok, skipped, failed} +
+    artifact paths + summary + error), `CampaignRecord` aggregate
+    (signed + content-addressed; SHA-256 over the body is the
+    `campaign_id`; HMAC-SHA256 signature), `run_campaign(*,
+    substrate, scenarios=None, enable_phases=None, out_dir, sign_key)`
+    orchestrator that drives the six wheels in canonical order,
+    plus `dump_campaign / load_campaign` for IO.
+  - Six per-phase runners, each producing one `CampaignPhase`:
+    * `seeing` — calls `discover_all(kimera_repo)` when the
+      substrate exposes one; otherwise skipped with reason text.
+    * `measuring` — runs every supplied scenario against the
+      substrate; dumps each `EmpiricalProofRecord` into
+      `<out_dir>/proofs/<tier>/<family>/<filename>.json` using the
+      Move A tier + family metadata.
+    * `comparing` — `summarize_directory(<out_dir>/proofs)` →
+      `<out_dir>/SUMMARY.md` + `SUMMARY.json` (uses Move D's
+      `synthesis.summarize_directory`).
+    * `instrumenting` — reads `substrate.last_profile()` when
+      available (InstrumentedSubstrate wrap); skipped otherwise.
+    * `auditing` — calls `AuditRunner` over the substrate's source
+      tree when available; skipped otherwise.
+    * `reporting` — collates every preceding phase's artifact list
+      into `<out_dir>/REPORT.md`.
+  - New CLI command `ophamin run-all [--repo R] [--target T]
+    [--scenarios A,B,C] [--skip seeing,auditing,...] [--out-dir D]
+    [--quiet]` exposes the orchestrator. Default target is
+    `MockSubstrate` (no Kimera required); `--repo` switches to
+    `KimeraAdapter`. Returns non-zero exit code if any phase
+    failed.
+  - 20 hardening tests in `tests/test_campaign.py`: canonical phase
+    order pinned to exactly 6; `CampaignPhase` frozen + dict
+    round-trip; `CampaignRecord` content-hash ID stability +
+    sign/verify + JSON round-trip; per-phase status counts +
+    all_ok / any_failed predicates; orchestrator end-to-end against
+    MockSubstrate with the always-runnable phases (measuring +
+    comparing + reporting) producing `ok`, the Kimera-repo-requiring
+    phases (seeing + auditing) producing `skipped` with reason text,
+    and the InstrumentedSubstrate-requiring phase (instrumenting)
+    producing `skipped`; per-phase artifacts written (proofs/ +
+    SUMMARY.md + REPORT.md); scenario filtering; phase skipping;
+    default-scenarios selection; explicit target name / commit
+    override; CLI smoke for `run-all` with success / unknown-scenario
+    / unknown-phase / skip-phases paths.
+
+  Verified end-to-end smoke against MockSubstrate: 5 phases run
+  (seeing + auditing + instrumenting cleanly skipped with reason text,
+  measuring + comparing + reporting OK), final signed
+  `CAMPAIGN.json` + `SUMMARY.md` + `REPORT.md` written to
+  `--out-dir`, wall time ~10s for the default-instantiable scenarios
+  subset.
+
+  Test suite: 965 → 985 passed (+20), 1 skipped, 0 failed.
+
+  **Open**: the per-phase runners are minimum-viable. Each could
+  grow: `seeing` could call more discovery modules; `instrumenting`
+  could integrate scalene/viztracer; `reporting` could produce a
+  proper HTML rolled-up report instead of a Markdown manifest.
+  These extensions don't change the orchestrator's shape.
+
+- **`ophamin summarize / diagnose / analyze` — campaign-level synthesis
+  + per-record diagnostic + per-metric trajectory (Move D, 2026-05-16).**
+  Closes the second half of Deficit 3 from
+  `docs/ARCHITECTURE_EXTENDED_AUDIT_2026_05_16.md` — first-class
+  operations on the proof corpus, built on top of Move B's codec.
+
+  - New module `src/ophamin/comparing/synthesis.py` (~340 LOC) with
+    three frozen result dataclasses + three top-level functions:
+    * `CampaignSummary` + `summarize_directory(directory)` —
+      walks the corpus, aggregates by verdict + family + per-substrate-commit,
+      detects `VerdictFlip` cases (same family, two commits, two
+      different verdicts).
+    * `Diagnostic` + `diagnose_proof(path, *, corpus_dir=None)` —
+      loads one record, surfaces closest siblings (same family in
+      the same directory) and same-family-across-commits view.
+    * `MetricTrajectory` + `analyze_metric(metric, directory)` —
+      walks every proof, extracts every PillarEvidence value whose
+      `statistic_name` matches the query, summarises with mean +
+      stdev + min + max (path-sorted for determinism).
+    Each dataclass has a `to_markdown()` renderer for human-facing
+    output; the CLI also exposes `--json` for machine-readable
+    output.
+  - Three new CLI commands:
+    * `ophamin summarize <directory> [--out path] [--json]`
+    * `ophamin diagnose <proof.json> [--corpus-dir D] [--json]`
+    * `ophamin analyze <metric> --across <directory> [--json]`
+  - `src/ophamin/comparing/__init__.py` re-exports the new
+    `synthesis` submodule alongside `drift / drift_detection /
+    orchestration / provenance`.
+  - 32 hardening tests in `tests/test_comparing_synthesis.py`:
+    summarize_directory empty / verdict-counts / family-grouping /
+    per-substrate-commit / verdict-flip detection / no-flip when
+    same-verdict / continues-past-decode-errors / Markdown shape /
+    frozen-dataclass; diagnose_proof happy-path / sibling-detection /
+    explicit-corpus-dir / missing-file raises / Markdown / frozen;
+    analyze_metric matching / empty / single-value stdev=None /
+    multi-value stdev>0 / decode-error skipping / Markdown empty +
+    populated / frozen; CLI smoke (summarize / diagnose / analyze)
+    with both human and JSON output; CLI loud-failure on missing
+    directories or missing files.
+
+  Verified end-to-end against the existing 13 proofs in `proofs/`:
+  - `summarize` produces the by-verdict / by-family / per-commit
+    tables; the per-substrate-commit table is the previously-hidden
+    view of which Kimera commits the corpus was measured against.
+  - `diagnose` for `immune_siege_entity_0a0575db92c0dcf5.json`
+    surfaces 5 sibling proofs in the immune family at a glance.
+  - `analyze gwf_false_positive_rate --across proofs/` reports
+    6 values across the proofs that ran the GWF metric; mean 0.51,
+    range [0, 1].
+
+  Test suite: 933 → 965 passed (+32), 1 skipped, 0 failed.
+
+- **`ophamin scenario` discovery CLI + generic example runner +
+  per-corpus dataset cards (Move E, 2026-05-16).** First-class CLI
+  surface for the scenarios registry (Move A); a generic runner
+  template that covers any default-instantiable scenario by name;
+  six dataset cards documenting the corpora the substrate streams
+  from.
+
+  - `src/ophamin/cli.py` adds `ophamin scenario <action>` umbrella
+    with three actions: `list` (table or `--json`; optional
+    `--tier` filter), `show <name>` (full metadata block including
+    goal + explanation + falsification consequence), `info <name>`
+    (alias for `show`). Renders the metadata Move A added so the
+    operator never has to read scenario files to know what's
+    available.
+  - `examples/run_scenario.py` — generic runner that dispatches into
+    `SCENARIOS[name]` and runs against `MockSubstrate(seed=1)`.
+    Inspects the scenario constructor to refuse loud when required
+    args are absent (e.g. trajectory-requiring empirical-deep
+    scenarios), pointing the operator to `ophamin scenario show`
+    for context.
+  - `examples/README.md` — catalog of per-scenario hand-tailored
+    runners (6), the generic runner, the discovery commands, and
+    the 9 trajectory-requiring scenarios with their direct-Python
+    construction pattern.
+  - `data/cards/` — 6 dataset cards (enron / linux / flores /
+    offensive_security / financial / the_well) + `README.md`
+    index. Each card: source + license + size + per-record schema +
+    label vocabulary + refresh command + which Ophamin scenarios
+    use the corpus.
+  - 9 hardening tests in `tests/test_cli_scenario.py`: list smoke
+    (human + JSON), tier filter, unknown tier, show known + unknown
+    name, info-is-alias-for-show, missing-action exit-non-zero, and
+    a regression guard that asserts EVERY registered scenario
+    renders via `show` (catches accidental coupling between the
+    renderer and any scenario's metadata shape).
+
+  Test suite: 924 → 933 passed (+9), 1 skipped, 0 failed.
+
+- **Artifact-directory organization + master proof INDEX
+  (Move C, 2026-05-16).** Per-tier subdirectory convention for new
+  proofs; per-artifact-dir READMEs covering layout + regeneration
+  commands; `codec.build_index()` + `ProofIndex` aggregate + the new
+  `ophamin proof index <directory>` CLI subcommand for master
+  manifest generation.
+
+  - `src/ophamin/measuring/proof/codec.py` gains `ProofIndex` frozen
+    dataclass + `build_index(directory, *, key=None)` aggregator +
+    `_family_from_filename` heuristic helper. `ProofIndex.to_markdown()`
+    renders the conventional `INDEX.md` manifest with by-verdict +
+    by-family + per-record tables.
+  - `src/ophamin/cli.py` adds `ophamin proof index <directory>
+    [--out <path>]` — print Markdown to stdout (default) or write to
+    a file path. Layered onto the existing `proof` umbrella alongside
+    `show / verify / validate / ingest / list`.
+  - `proofs/` gains per-tier subdirectories matching the `Tier` enum:
+    `scientific/`, `engineering/`, `philosophical/`, `empirical_deep/`,
+    `measurement_machinery/` (with `.gitkeep` markers so the
+    convention is git-visible before any new proof lands).
+  - `proofs/INDEX.md` generated from the existing 13 proofs (13/13
+    schema-valid, 11/13 signature-verify; the 2 mismatches are real
+    findings — older proofs signed with a different key — that the
+    codec now surfaces clearly).
+  - New READMEs documenting layout + regeneration + open follow-ons:
+    `proofs/README.md`, `audits/README.md`, `reports/README.md`,
+    `logs/README.md`, `data/README.md`, `models/README.md`.
+  - **Existing flat-layout proofs are NOT relocated** — non-destructive
+    stance per the framework's no-destructive-actions rule. They
+    remain valid signed proofs at the top level; new proofs land in
+    the per-tier subdirs. `proofs/README.md` documents the transition.
+  - 11 hardening tests in `tests/test_proof_codec.py`:
+    build_index empty/verdict-aggregation/decode-errors/family-grouping;
+    `_family_from_filename` edge case; ProofIndex.to_markdown
+    canonical sections; ProofIndex is frozen; build_index is
+    importable from the package facade; CLI `proof index` to
+    stdout / to file / on nonexistent dir.
+
+  Test suite: 913 → 924 passed (+11), 1 skipped, 0 failed.
+
+- **Proof-record codec module + `ophamin proof` CLI umbrella
+  (Move B, 2026-05-16).** Closes Deficit 3 from
+  `docs/ARCHITECTURE_EXTENDED_AUDIT_2026_05_16.md` — the proof corpus
+  on disk now has a first-class Python + CLI interface (load,
+  schema-validate, structural-validate, signature-verify, ingest,
+  directory-walk). Replaces the prior ad-hoc pattern of
+  `json.loads(Path(p).read_text()) → EmpiricalProofRecord.from_dict(...)`
+  scattered across consumers.
+
+  - `src/ophamin/measuring/proof/codec.py` (~360 LOC). Six typed errors
+    rooted at `ProofCodecError` (Decode / Schema / Validation /
+    Signature / SchemaVersionMismatch). One frozen
+    `ValidationReport` dataclass + one frozen `ProofListEntry`
+    dataclass. Functions: `dump(record, path)`, `load(path)`,
+    `validate_schema(path)`, `verify_signature(path, key)`,
+    `validate(path, *, key=None) → ValidationReport`,
+    `ingest(path, *, key, strict_signature, require_schema_version) →
+    EmpiricalProofRecord` (loud-failure on any layer failure),
+    `iter_proofs(directory)` (sorted-path-deterministic walk),
+    `list_proofs(directory, *, key=None)` (per-file summary; continues
+    past broken files with `error` set in the entry).
+  - `src/ophamin/measuring/proof/__init__.py` re-exports the codec
+    surface alongside the existing record + schema types.
+  - `src/ophamin/cli.py` adds the `proof` umbrella command with five
+    actions: `show / verify / validate / ingest / list`. `show`
+    renders the record as Markdown; `verify` runs HMAC-only;
+    `validate` reports schema + structural + signature layers;
+    `ingest` is the loud-failure boundary for accepting third-party
+    proofs; `list` walks a directory and prints a table (or JSON via
+    `--json`). All take `--key` for the HMAC layer (default: built-in
+    `DEFAULT_SIGN_KEY`). `ingest` accepts `--require-schema-version` /
+    `--allow-any-schema-version` for migration tooling.
+  - `pyproject.toml` declares `jsonschema>=4.0` as a core dependency
+    (previously installed transitively via mlflow; now explicit since
+    `codec.validate_schema` depends on it directly).
+  - `tests/test_proof_codec.py` (44 hardening tests) covers:
+    dump→load round-trip + parent-directory creation; every
+    `ProofCodecError` subclass's raise path (missing file / bad JSON /
+    missing required keys / schema violation / unknown enum value /
+    wrong schema version / strict-signature without key / wrong key /
+    `record.validate` failure); positive paths for all shipped
+    proofs in `proofs/`; iter_proofs determinism + recursion + skip-
+    non-json; list_proofs entry shape + continue-past-broken-file;
+    `ValidationReport` is frozen + `all_ok` logic; CLI smoke tests
+    for `show / verify / validate / ingest / list` via subprocess.
+
+  Verified end-to-end against the existing 13 proofs in `proofs/`:
+  all schema-valid, 11 of 13 signature-verify under DEFAULT_SIGN_KEY
+  (2 older proofs were signed with a different key — a real-world
+  finding the codec now surfaces clearly).
+
+  Test suite: 869 → 913 passed (+44), 1 skipped, 0 failed.
+
+  **Open**: `AuditRecord` (auditing/audit_record.py) has the same
+  shape and could receive the same codec treatment in a follow-on —
+  not in this Move's scope to keep the change focused.
+
+- **Scenario metadata schema — tier / family / goal / explanation /
+  method / falsification_consequence (Move A, 2026-05-16).** Closes
+  Deficit 1 from `docs/ARCHITECTURE_EXTENDED_AUDIT_2026_05_16.md` —
+  every concrete Scenario subclass now declares its own classification
+  + intent text, validated at class-definition time.
+
+  - `src/ophamin/measuring/scenarios/base.py` adds the `Tier` string
+    enum (5 members: SCIENTIFIC / ENGINEERING / PHILOSOPHICAL /
+    EMPIRICAL_DEEP / MEASUREMENT_MACHINERY); `tier: Tier`, `family:
+    str`, `goal: str`, `explanation: str` as required Scenario class
+    attributes; `method: str = ""` and `falsification_consequence: str
+    = ""` as optional. `__init_subclass__` hook extended with metadata
+    validation (raises `ScenarioMetadataMissingError` on any
+    missing / empty / wrong-type field) when `register=True`. `Tier`
+    inherits from `str` so JSON serialisation produces a plain string.
+  - All 19 scenarios backfilled with their tier + family + paragraph
+    goal + explanation + method tag + falsification consequence.
+    Distribution: SCIENTIFIC 7 (immune, rosetta, dissonance, walker,
+    interface, completeness, memory); ENGINEERING 1 (throughput);
+    PHILOSOPHICAL 1 (self_reference); EMPIRICAL_DEEP 9 (phi, causal,
+    mutual_information, 5×prime, quantum); MEASUREMENT_MACHINERY 1
+    (crdt).
+  - `tests/test_scenario_registration.py` gains 11 metadata-validation
+    tests covering: every registered scenario has Tier enum / non-empty
+    family / non-empty goal / non-empty explanation; each required
+    field's missing-guard fires individually; whitespace-only is
+    treated as empty; wrong-tier-type (string instead of Tier) raises;
+    optional fields default to empty; `register=False` skips the
+    metadata guard; Tier enum has exactly 5 documented members; Tier
+    is a str-subclass for JSON.
+  - Touched `tests/test_scenario.py` — `_HarnessProbe` test scenario
+    now uses `register=False` (same opt-out pattern as
+    `_TestScenario` in `test_scenario_field_contract.py`).
+
+  Test suite: 857 → 869 passed (+12), 1 skipped, 0 failed.
+
+  **Open**: the new metadata is not yet surfaced into
+  `EmpiricalProofRecord`'s identity / claim sections — that's the
+  next layer (deferred to Move B per the audit's sequencing).
+
+- **Scenario auto-registration via `__init_subclass__` (2026-05-16).**
+  Per owner directive *"automate scenario registration. Always keep the
+  repo exemplary."* Closes gap **C** from
+  `docs/ARCHITECTURE_INTENT_VS_REALITY_2026_05_16.md` (11 of 19 scenario
+  files were CLI-invisible because their classes weren't in the manually
+  maintained `SCENARIOS` dict).
+
+  - `src/ophamin/measuring/scenarios/base.py` — `Scenario` base class
+    gains `__init_subclass__(cls, *, register=True)` hook. Concrete
+    subclasses with a non-sentinel `name` auto-register in the new
+    module-level `SCENARIOS: dict[str, type[Scenario]]`. Loud-failure
+    guards: `ScenarioNameNotOverriddenError` (subclass kept base
+    sentinel `"scenario"`) and `DuplicateScenarioNameError` (two
+    subclasses declared the same name). Idempotent re-registration of
+    the same class object is the only sanctioned no-op (necessary for
+    `importlib.reload`). `register=False` opt-out for abstract
+    intermediate parents.
+  - `src/ophamin/measuring/scenarios/__init__.py` — replaces manually
+    maintained `SCENARIOS` dict with `pkgutil.iter_modules` auto-walk
+    that imports every scenario module so `__init_subclass__` fires.
+    Loud-failure on import error (re-raise with module name in chain;
+    no silent skip). Explicit re-exports preserved for back-compat
+    with code importing scenario classes directly from the package.
+  - All 11 previously-unregistered scenarios from rounds E-M
+    (bayesian-phi-posterior, causal-discovery, crdt-laws,
+    cross-channel-mi, memory-as-deformation, prime-{cross-instance,
+    direct-lookup, ecosystem, factorization, structure},
+    quantum-basis-correlation) now reachable from CLI surface +
+    discoverable via `SCENARIOS` introspection.
+
+  Test surface: `tests/test_scenario_registration.py` — 11 structural
+  tests pinning (a) registry non-empty after import, (b) every disk
+  Scenario subclass present in registry, (c) name attribute matches
+  registry key, (d) every registered class concrete (no abstract
+  remainders), (e) names + class objects unique, (f) sentinel-name
+  guard raises, (g) duplicate-name guard raises, (h) re-registration
+  of same class is idempotent, (i) `register=False` opts out silently,
+  (j) runtime registry count ≥ disk scan count.
+
+  Touched one test helper: `tests/test_scenario_field_contract.py`'s
+  `_make_scenario_class` now passes `register=False` (test-internal
+  Scenario subclasses are the sanctioned opt-out case — they reuse
+  names across functions and shouldn't enter the production registry).
+
+  Test suite: 846 → 857 passed (+11), 1 skipped, 0 failed.
+
+### Documentation
+
+- **Doc-currency pass + initial-intent-vs-reality architectural audit (2026-05-16).**
+  Per owner directive *"first update the readme and other documents in
+  Ophamin. i'm more concerned on Ophamin logics, structure,
+  infrastructure, architecture... Ophamin is incomplete from initial
+  intent. can check"*.
+
+  Surgical doc updates to bring user-facing documentation in line with
+  the post-Round-M reality:
+
+  - `README.md` — test badge 386 → 842+; "six shipped scenarios"
+    table expanded to 19 across 5 tiers (Scientific / Engineering /
+    Philosophical / Empirical-deep / Measurement-machinery); CLI
+    surface added the six commands shipped since 0.1.0 (`verify`,
+    `discover-fields`, `inventory`, `wiring`, `drift-detect`,
+    `scrape`); optional-extras table grew from 8 to 20 entries
+    matching `pyproject.toml`; repository structure tree refreshed to
+    reflect the new sub-wheels (`seeing/telemetry/`, `seeing/wiring/`,
+    `comparing/drift_detection/`, `comparing/crdt_state.py`,
+    `measuring/*_helpers.py`, `inspecting/` family); Phase-2-telemetry
+    "deferred" note updated to reflect what landed; strategic-doc
+    pointer block added at the end (KIMERA_OBSERVATIONAL_SURFACE +
+    PLUGIN_CATALOG).
+  - `CONTRIBUTING.md` — test counts 551 / 386+ → 842+; install line
+    promoted to `[all,dev]`; scenario step-5 (register in
+    `SCENARIOS` dict) called out as load-bearing for CLI reachability.
+  - `docs/SCENARIO_AUTHORING.md` — stale import paths fixed
+    (`ophamin.scenario.*` → `ophamin.measuring.scenarios.*`); corpus +
+    target lists updated; "four shipped" → "19 shipped"; new scoring
+    shapes catalogued (distribution-floor / Bayesian-posterior /
+    causal-graph / cross-channel-MI / cross-instance-determinism).
+  - `src/ophamin/protocols.py` — Pillar + ScenarioProtocol docstrings
+    annotated with `.. note::` blocks pointing at the unimplementation
+    gaps surfaced in the architectural audit (no class satisfies the
+    Pillar Protocol; 11 of 19 scenarios are file-importable but
+    CLI-invisible).
+
+  New companion document:
+
+  - `docs/ARCHITECTURE_INTENT_VS_REALITY_2026_05_16.md` — structural
+    audit of where Ophamin's declared shape (six wheels in two
+    concentric triads + OFAMIN pillars + four Protocol-backed plug-in
+    surfaces) diverges from its built shape. Twelve concrete gaps in
+    three layers (framework-core / wheel-asymmetry /
+    discipline-uniformity), five remediation shapes presented as
+    alternatives (registry surface / pre-registration universalization
+    / inner-triad fill / closed-loop side / doc-only-first), and
+    honest-unknown list. **Owner-gated which shape to pursue.**
+
+  Substrate code not touched. No version cut. `[Unreleased]` retained.
+
 ### Added
 
 - **Round K (round 11) — cross-instance prime determinism + Pattern-T p_thermo finding.**

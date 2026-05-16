@@ -74,7 +74,7 @@ from ophamin.measuring.proof import (
     Verdict,
     content_hash,
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
 from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
@@ -92,6 +92,31 @@ class BayesianPhiPosteriorScenario(Scenario):
     """Bayesian posterior contraction on Kimera Φ samples."""
 
     name = "bayesian-phi-posterior"
+    tier = Tier.EMPIRICAL_DEEP
+    family = "phi"
+    goal = (
+        "Validate that classical Bayesian-inference machinery (PyMC "
+        "NUTS) recovers correct posterior contraction on real "
+        "Kimera Phi trajectories."
+    )
+    explanation = (
+        "Kimera's IIT-derived Phi values across 200 genesis-axiom "
+        "cycles produced mean 0.621 +/- 0.065 (Family L EV-71). "
+        "The Bayesian-tier scenario tests posterior contraction at "
+        "the theoretical sqrt(N) rate: HDI_width(N=200) / "
+        "HDI_width(N=20) should be <= 0.40 (theoretical 0.316, "
+        "with ~25% slack for finite-sample noise). A failure may "
+        "indicate non-Gaussian data, non-stationary Phi "
+        "trajectory, or mis-calibrated NUTS sampler — the "
+        "per-sample-size posterior summaries distinguish them."
+    )
+    method = "bayesian_posterior_contraction"
+    falsification_consequence = (
+        "Posterior HDI fails to contract at sqrt(N) rate — either "
+        "the data is non-Gaussian, the Phi trajectory is "
+        "non-stationary, or PyMC NUTS is mis-calibrated for this "
+        "regime."
+    )
     corpus_name = "kimera-phi-trajectory"
     target = "phi_values_via_pymc_posterior"
 

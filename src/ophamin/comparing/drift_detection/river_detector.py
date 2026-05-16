@@ -41,7 +41,11 @@ from ophamin.seeing.substrate.base import CycleResult
 
 
 DEFAULT_SIGN_KEY = b"ophamin-drift-default-key"
-DRIFT_SCHEMA_VERSION = 1
+DRIFT_SCHEMA_VERSION = 2
+
+#: schema versions the codec accepts on read. v1 records (pre-Move L)
+#: have no pre_registration / verdict; v2 records may carry them.
+DRIFT_SUPPORTED_SCHEMA_VERSIONS: tuple[int, ...] = (1, 2)
 
 
 def _now_utc_iso() -> str:
@@ -68,9 +72,7 @@ def extract_phi_stream(cycle_results: Iterable[CycleResult]) -> tuple[float, ...
     for cr in cycle_results:
         if not cr.success:
             continue
-        if not isinstance(cr.raw, dict):
-            continue
-        v = None
+        v: float | None = None
         for key in _PHI_KEYS:
             if key in cr.raw:
                 v = cr.raw[key]
@@ -131,7 +133,14 @@ class DriftEvent:
 
 @dataclass(frozen=True)
 class DriftScan:
-    """A signed, content-addressed result of running one detector over one stream."""
+    """A signed, content-addressed result of running one detector over one stream.
+
+    As of schema v2 (Move L, 2026-05-16), a DriftScan MAY carry an
+    optional ``pre_registration`` + ``pre_registered_metric`` +
+    ``verdict`` triple, turning the descriptive scan into a falsifiable
+    artefact for CI gating. Records written under schema v1 (no
+    pre-registration fields) load cleanly under the v2 codec.
+    """
 
     detector_name: str
     detector_config: dict[str, Any]
@@ -144,6 +153,10 @@ class DriftScan:
     ophamin_git_commit: str = ""
     schema_version: int = DRIFT_SCHEMA_VERSION
     signature: str = ""
+    # Move L optional fields — absent in schema v1, optional in v2.
+    pre_registration: Any = None       # ophamin.measuring.proof.PreRegistration | None
+    pre_registered_metric: str = ""
+    verdict: Any = None                # ophamin.measuring.proof.Verdict | None
 
     @property
     def n_events(self) -> int:
@@ -158,7 +171,7 @@ class DriftScan:
         return tuple(e.sample_index for e in self.events)
 
     def _body(self) -> dict[str, Any]:
-        return {
+        body: dict[str, Any] = {
             "schema_version": self.schema_version,
             "ophamin_version": self.ophamin_version,
             "ophamin_git_commit": self.ophamin_git_commit,
@@ -170,6 +183,14 @@ class DriftScan:
             "stream_hash": self.stream_hash,
             "events": [e.to_dict() for e in self.events],
         }
+        # Move L optional fields — included only when attach_pre_registration
+        # has stamped them so v1 records stay bit-identical.
+        if self.pre_registration is not None:
+            body["preregistration"] = self.pre_registration.to_dict()
+            body["pre_registered_metric"] = self.pre_registered_metric
+        if self.verdict is not None:
+            body["verdict"] = self.verdict.to_dict()
+        return body
 
     def _canonical_bytes(self) -> bytes:
         return json.dumps(self._body(), sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -192,6 +213,10 @@ class DriftScan:
             ophamin_git_commit=self.ophamin_git_commit,
             schema_version=self.schema_version,
             signature=sig,
+            # Preserve Move L optional fields when re-creating during sign.
+            pre_registration=self.pre_registration,
+            pre_registered_metric=self.pre_registered_metric,
+            verdict=self.verdict,
         )
 
     def verify(self, key: bytes) -> bool:
@@ -216,6 +241,17 @@ class DriftScan:
         missing = required - set(data)
         if missing:
             raise ValueError(f"DriftScan missing required keys: {sorted(missing)}")
+        # Move L optional fields — v1 records won't have them; v2 may.
+        pre_reg: Any = None
+        verdict: Any = None
+        pre_metric: str = ""
+        if "preregistration" in data:
+            from ophamin.measuring.proof import PreRegistration
+            pre_reg = PreRegistration.from_dict(data["preregistration"])
+            pre_metric = str(data.get("pre_registered_metric", ""))
+        if "verdict" in data:
+            from ophamin.measuring.proof import Verdict
+            verdict = Verdict.from_dict(data["verdict"])
         return cls(
             detector_name=str(data["detector_name"]),
             detector_config=dict(data["detector_config"]),
@@ -236,7 +272,151 @@ class DriftScan:
             ophamin_git_commit=str(data.get("ophamin_git_commit", "")),
             schema_version=int(data.get("schema_version", DRIFT_SCHEMA_VERSION)),
             signature=str(data.get("signature", "")),
+            pre_registration=pre_reg,
+            pre_registered_metric=pre_metric,
+            verdict=verdict,
         )
+
+    def attach_pre_registration(
+        self,
+        *,
+        claim: Any,                # ophamin.measuring.proof.Claim
+        observed_value: float | None = None,
+        metric: str = "n_drift_events",
+        analysis_plan: str = "drift-side pre-registration: gate on a chosen drift statistic",
+    ) -> DriftScan:
+        """Return a new DriftScan with pre-registration + verdict stamped.
+
+        DriftScan is frozen so this returns a new instance (call the
+        returned value's ``sign()`` to re-sign with the updated body).
+
+        ``observed_value`` defaults to ``n_events`` — the most common
+        gate is ``n_drift_events <= N``.
+        """
+        from ophamin.measuring.proof import (
+            PreRegistration,
+            Verdict,
+            content_hash,
+        )
+
+        if observed_value is None:
+            observed_value = float(self.n_events)
+        pre_reg = PreRegistration(
+            config_hash=content_hash({
+                "detector_name": self.detector_name,
+                "metric": metric,
+            }),
+            data_hash=self.stream_hash,
+            analysis_plan=analysis_plan,
+            preregistered_at=self.captured_at,
+        )
+        verdict = Verdict.decide(observed_value, claim.threshold)
+        return DriftScan(
+            detector_name=self.detector_name,
+            detector_config=self.detector_config,
+            stream_name=self.stream_name,
+            n_samples=self.n_samples,
+            stream_hash=self.stream_hash,
+            events=self.events,
+            captured_at=self.captured_at,
+            ophamin_version=self.ophamin_version,
+            ophamin_git_commit=self.ophamin_git_commit,
+            schema_version=DRIFT_SCHEMA_VERSION,
+            signature="",  # invalidated by attach — caller re-signs
+            pre_registration=pre_reg,
+            pre_registered_metric=metric,
+            verdict=verdict,
+        )
+
+    def wrap_as_proof(
+        self,
+        *,
+        claim: Any,                  # ophamin.measuring.proof.Claim (lazy import)
+        observed_value: float | None = None,
+        statistic_name: str = "n_drift_events",
+        analysis_plan: str = "wrap-drift-as-proof: pre-register a threshold over a drift-scan statistic",
+        sign_key: bytes | None = None,
+    ) -> Any:
+        """Wrap this DriftScan into a pre-registered EmpiricalProofRecord.
+
+        Per Move I: drift scans are descriptive by default, but callers
+        wanting CI gating (e.g. "no drift events on this stream") can
+        wrap the scan into a proof with a pre-registered Claim +
+        Threshold. The wrapping preserves the full scan detail
+        (detector + config + events + stream hash) in the proof's
+        evidence section.
+
+        If ``observed_value`` is ``None``, the default is the scan's
+        ``n_events`` (most common gate: ``n_drift_events <= 0`` or
+        ``n_drift_events <= N``).
+        """
+        # Lazy imports — keep the drift module decoupled from proof at
+        # module-load time.
+        from ophamin import __version__ as _ophamin_version
+        from ophamin.measuring.proof import (
+            DatasetRef,
+            EmpiricalProofRecord,
+            PillarEvidence,
+            PreRegistration,
+            Reproduction,
+            Verdict,
+            content_hash,
+        )
+
+        if observed_value is None:
+            observed_value = float(self.n_events)
+
+        prereg = PreRegistration(
+            config_hash=content_hash({
+                "scan_id": self.scan_id,
+                "statistic_name": statistic_name,
+                "detector_name": self.detector_name,
+                "detector_config": self.detector_config,
+            }),
+            data_hash=self.stream_hash,
+            analysis_plan=analysis_plan,
+            preregistered_at=self.captured_at,
+        )
+        dataset = DatasetRef(
+            name=f"drift-stream:{self.stream_name}",
+            content_hash=self.stream_hash,
+            n_records=max(self.n_samples, 1),
+            source=f"river.{self.detector_name}",
+            kind="drift_scan_stream",
+        )
+        evidence = PillarEvidence(
+            pillar="O.drift",
+            statistic_name=statistic_name,
+            statistic_value=observed_value,
+            library="river",
+            library_version=_ophamin_version,
+            detail={
+                "scan_id": self.scan_id,
+                "detector_name": self.detector_name,
+                "n_events": self.n_events,
+                "event_indices": list(self.event_indices),
+            },
+        )
+        verdict = Verdict.decide(observed_value, claim.threshold)
+        record = EmpiricalProofRecord(
+            claim=claim,
+            preregistration=prereg,
+            datasets=[dataset],
+            substrate_name="ophamin.comparing.drift_detection.DriftScan",
+            substrate_git_commit=self.ophamin_git_commit,
+            evidence=[evidence],
+            verdict=verdict,
+            reproduction=Reproduction(
+                command=f"ophamin drift-detect --detector {self.detector_name} "
+                        f"--stream {self.stream_name}"
+            ),
+            ophamin_version=self.ophamin_version or _ophamin_version,
+            ophamin_git_commit=self.ophamin_git_commit,
+            created_at=self.captured_at,
+        )
+        if sign_key is not None:
+            record.sign(sign_key)
+        return record
 
 
 def _hash_stream(values: tuple[float, ...]) -> str:

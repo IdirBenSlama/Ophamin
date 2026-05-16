@@ -32,7 +32,7 @@ catalog is *additive*: new primitives can be registered programmatically by
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import Iterable, Iterator
 
 
 @dataclass(frozen=True)
@@ -224,7 +224,7 @@ class PrimitiveCatalog:
         for entry in self._entries:
             self._by_name.setdefault(entry.canonical_class.lower(), entry)
 
-    def __iter__(self):
+    def __iter__(self) -> "Iterator[PrimitiveEntry]":
         return iter(self._entries)
 
     def __len__(self) -> int:

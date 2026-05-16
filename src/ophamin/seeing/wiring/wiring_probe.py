@@ -452,11 +452,14 @@ def _extract_imported_dotted_names(tree: ast.AST, current_dotted: str) -> set[st
             if node.module is None:
                 # ``from . import X`` — resolve the dotted base, then add
                 # base.X for each name imported.
-                base = current_parts[:-node.level] if node.level <= len(current_parts) else []
-                if base:
-                    out.add(".".join(base))
+                base_parts: list[str] = (
+                    current_parts[:-node.level]
+                    if node.level <= len(current_parts) else []
+                )
+                if base_parts:
+                    out.add(".".join(base_parts))
                     for alias in node.names:
-                        out.add(".".join(base + [alias.name]))
+                        out.add(".".join(base_parts + [alias.name]))
                 continue
             if node.level == 0:
                 base = node.module
