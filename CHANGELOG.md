@@ -9,6 +9,59 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Round H (round 8) — deep F.1.1 factorization probe (p_identity invariance + GCD stamp recovery + substrate_state_stamp provenance).**
+  Per owner directive "proceed". Round G ended with three follow-on
+  candidates explicitly listed; Round H builds the first two as a
+  unified scenario and adds U5 surfaced during U4 implementation.
+
+  - **`PrimeFactorizationScenario`** (`prime-factorization`). Three
+    sub-measurements on a captured prime trajectory:
+
+    1. **U3 — `p_identity` cross-cycle invariance** (HEADLINE
+       verdict): same concept name across N cycles must produce the
+       SAME deterministic SHA-256-derived p_identity. Threshold ≥ 99%.
+    2. **U4 — Full F.1.1 GCD recovery** (characterisation): per
+       CLAUDE.md F.1.1 *"GCD of one cycle's composites recovers that
+       cycle's stamp"* — verify by computing `q[j] = composite[j] /
+       p_identity(walk[j])`, then `stamp = GCD(q[0..n-1])`, then
+       `p_thermo[j] = q[j] / stamp`. Characterise empirical recovery
+       rates + p_thermo distribution.
+    3. **U5 — `substrate_state_stamp` provenance** (characterisation):
+       prime-rate, [100, 49100] range-rate, and equality-rate against
+       GCD-recovered Arachne stamp.
+
+    First end-to-end run on Round G's 200-cycle trajectory:
+
+    - **U3: 251/251 = 100% p_identity invariance — VALIDATED.**
+    - **U4: GCD-recovered stamp is prime in only 25.26% of cycles**
+      (48/190 probed); p_thermo distribution heavily skewed to 1
+      (74% of recovered values), top-10 = `{1: 1375, 2: 173, 3: 96,
+      5: 85, 7: 70, 11: 28, 17: 18, 13: 18, 23: 5, 19: 4}`. Wider
+      range [1, 23] than CLAUDE.md F.1.1's documented lyriform
+      [7, 29].
+    - **U5: 97.5% prime, 97.5% in [100, 49100] range, 0% match
+      GCD-recovered Arachne stamp.** The two "substrate_state_stamp"
+      artefacts are provably distinct.
+
+    11 hardening tests including synthetic perfectly-factorizable
+    trajectory (validates GCD recovery → 100% under controlled
+    conditions).
+
+  - **Architectural finding**: F.1.1 is sound at per-element
+    divisibility (Round G U2 confirmed 1880/1880); cycle-level
+    GCD-uniform-stamp factorization is more nuanced than the headline
+    formula suggests. Multiple assign paths (assign,
+    assign_via_lyriform, assign_from_field, assign_from_image,
+    assign_from_internal_event, assign_via_zeta) emit different
+    composite-formula behaviors; a cycle's prime_chain may mix
+    elements from different paths.
+
+  - **Pattern-T naming overlap surfaced**: there are TWO distinct
+    things called "substrate_state_stamp" in the substrate. Future
+    Ophamin scenarios should specify WHICH one they mean.
+
+  - **Test suite: 781 → 792 passed** (+11) / 1 skipped / 0 failed.
+
 - **Round G (round 7) — prime-tier scenarios focused on substrate's prime apparatus.**
   Per owner directive "focus on Primes aspects". CLAUDE.md §"The
   substrate's architectural center is primes" identifies primes as
