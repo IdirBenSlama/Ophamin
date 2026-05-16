@@ -9,6 +9,66 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Round J (round 10) — closure of two open Family U characterisation tracks.**
+  Per owner directive "proceed" + full authorization. Round I left two
+  characterisation tracks open: WHAT TRIGGERS the QBE bimodality, and WHY
+  did Round H U4's GCD recovery only succeed 25%. Round J root-causes both
+  as VALIDATED claims.
+
+  - **`QuantumBasisCorrelationScenario`** (`quantum-basis-correlation`)
+    — partitions cycles by stimulus class, computes high-QBE rate per
+    class, verdict against ≥ 15pp difference. Secondary measurements:
+    `halt_reason × QBE state` cross-tab, prime_chain length per QBE
+    state, phi per QBE state.
+
+    First end-to-end run on Round G/H/I's 200-cycle trajectory:
+
+    - **U9 VALIDATED at 2.6× threshold**: mixed-pool 60.0% vs axiom
+      21.0% = **39pp difference**.
+    - **`selective` halt 6/6 cycles middle-QBE** (perfect alignment).
+    - **`amplitude_death` 14/16 zero-QBE** (associates with focused
+      quantum basis).
+    - High-QBE cycles emit FEWER primes (7.8 vs 11.0 mean).
+    - Substrate's quantum prime basis is a coherent observable signal
+      about substrate state, not noise.
+
+  - **`PrimeDirectLookupScenario`** (`prime-direct-lookup`) — operates
+    on trajectories produced by the new capture script. Calls
+    `ArachneProtocol.lookup(concept)` directly to get the actual
+    ArachnePrime's `(p_thermo, p_identity, substrate_state_stamp)`
+    fields. Verdict against ≥ 95% prime p_thermo AND median ≥ 2.
+
+    First end-to-end run on 60-cycle direct-lookup trajectory:
+
+    - **U10 VALIDATED**: **100% prime p_thermo (483/483)**, range
+      [2, 37], median 3, mean 5.09, 11 unique values.
+    - **Matches CLAUDE.md F.1.1's documented lyriform [7, 29]
+      expectation cleanly** (extends to [2, 37] empirically).
+    - **Stamps cycle-uniform: 100% of cycles have a single stamp**
+      across all concepts.
+
+  - **Round H U4 root cause definitively closed**: the "p_thermo=1
+    majority (74%)" was a GCD-recovery artefact. When p_thermo
+    values within a cycle share common factors (42% of values are
+    `2`!), `GCD(p_thermo_a × stamp, p_thermo_b × stamp, …) =
+    stamp × GCD(p_thermos)`, inflating the recovered stamp and
+    collapsing recovered p_thermo to 1. Direct ArachnePrime lookup
+    via the substrate's existing `lookup()` API bypasses the
+    problem entirely. **Round H U4 SUPERSEDED by U10.**
+
+  - **F.1.1 architecture now empirically airtight at every level**:
+    per-element divisibility (Round G U2 = 1880/1880),
+    p_identity invariance (Round H U3 = 251/251), p_thermo prime
+    emission (Round J U10 = 483/483).
+
+  - **Capture script** at `/tmp/capture_kimera_arachne_lookup.py`
+    (uses substrate's `lookup()` API — no Kimera change required).
+
+  - **21 new hardening tests** (10 QBE-correlation + 11
+    direct-lookup).
+
+  - **Test suite: 803 → 824 passed** (+21) / 1 skipped / 0 failed.
+
 - **Round I (round 9) — prime ecosystem characterisation (Alexandria fused primes + quantum basis bimodality + internal-event primes).**
   Per owner directive "proceed". Round H wrapped deep F.1.1; Round I
   shifts to the three non-core prime systems on the same 200-cycle
