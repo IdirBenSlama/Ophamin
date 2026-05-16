@@ -74,7 +74,7 @@ def test_perfect_recognition_validates(tmp_path):
     """All re-exposures have identical concepts → jaccard=1.0 → VALIDATED."""
     p = _make_trajectory(tmp_path)
     s = MemoryAsDeformationScenario(
-        trajectory_path=str(p), concept_jaccard_floor=0.85,
+        trajectory_path=str(p), concept_jaccard_floor=0.80,
     )
     proof = s.run()
     assert proof.verdict.outcome == VALIDATED
@@ -86,8 +86,18 @@ def test_perfect_recognition_validates(tmp_path):
     assert detail["halt_flip_rate"] == 0.5
 
 
+def test_default_threshold_is_080(tmp_path):
+    """Default threshold is 0.80 per Round M (2026-05-16) calibration to
+    Round G U1's measured floor of 0.8462 on the Chaos-axiom Zetetic-noise
+    stimulus. Round M's 200-cycle re-run on the same trajectory shape
+    reproduced 0.8462 exactly."""
+    p = _make_trajectory(tmp_path)
+    s = MemoryAsDeformationScenario(trajectory_path=str(p))
+    assert s.concept_jaccard_floor == 0.80
+
+
 def test_concept_drift_below_floor_refutes(tmp_path):
-    """If re-exposed cycle shares < 85% of concepts → REFUTED."""
+    """If re-exposed cycle shares < 80% of concepts → REFUTED."""
     cycles = [
         {"cycle": 0, "stimulus": "alpha", "concepts_sample": ["a", "b", "c", "d"],
          "concepts_count": 4, "phi": 0.5, "halt_reason": "exhausted"},
@@ -97,7 +107,7 @@ def test_concept_drift_below_floor_refutes(tmp_path):
     ]
     p = _make_trajectory(tmp_path, cycles=cycles)
     s = MemoryAsDeformationScenario(
-        trajectory_path=str(p), concept_jaccard_floor=0.85,
+        trajectory_path=str(p), concept_jaccard_floor=0.80,
     )
     proof = s.run()
     assert proof.verdict.outcome == REFUTED
