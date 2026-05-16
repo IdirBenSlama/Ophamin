@@ -9,6 +9,63 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Round I (round 9) — prime ecosystem characterisation (Alexandria fused primes + quantum basis bimodality + internal-event primes).**
+  Per owner directive "proceed". Round H wrapped deep F.1.1; Round I
+  shifts to the three non-core prime systems on the same 200-cycle
+  trajectory.
+
+  - **`PrimeEcosystemScenario`** (`prime-ecosystem`). Three
+    sub-measurements:
+
+    1. **U6 — Alexandria fused-prime stability** (HEADLINE):
+       persistent fused-keys across cycles validates Alexandria's
+       "knowledge fusion via dream cycles" claim. Threshold:
+       ≥ 5 keys persist in ≥ 90% of cycles.
+    2. **U7 — quantum_prime_basis_entropy distribution +
+       bimodality** (characterisation): per-cycle scalar; report
+       mean/median/stdev/quantiles; bimodality flag if stdev/mean > 0.8.
+    3. **U8 — Internal-event prime emission rate** (characterisation):
+       per-cycle iev count distribution; corroborate CLAUDE.md EV-37
+       "4/5 kinds fire universally" finding.
+
+    First end-to-end run on Round G's 200-cycle trajectory:
+
+    - **U6: 12 persistent fused-keys VALIDATED at 240% over threshold**.
+      Top `Fused(persists+identity)` in 97.5% of cycles. 17562 total
+      fused values, **only 48 unique → ~366× prime compression at the
+      fusion layer**.
+    - **U7: BIMODALITY CONFIRMED.** mean 1.40 ± 1.63, median 0.0000;
+      56.5% at 0, 40.5% ≥ 3 nats, only 2.5% middle. stdev/mean = 1.16
+      → bimodal indicator TRUE. First empirical characterization of
+      the substrate's quantum prime basis pattern.
+    - **U8: matches EV-37.** 97.5% of cycles fire ≥ 3 internal-event
+      primes. Distribution: 108 cycles fire 3, 87 fire 4, 5 fire 0.
+      `last_internal_event_prime` unique across 195/195 cycles.
+
+  - **Cross-finding for Round H U4 p_thermo=1 puzzle**: split the
+    trajectory by stimulus class. Both axiom and mixed-pool show
+    identical p_thermo distribution (median 1.0, ~75% mass at 1).
+    The p_thermo=1 majority is **stimulus-class-invariant** — rules
+    out content-class hypothesis. Cause must lie in how the substrate's
+    multiple assign methods compose for the bulk of concepts.
+
+  - **Architectural readings**:
+    - Alexandria's fusion vocabulary is stable and thematic — top
+      `Fused(persists+identity)` matches genesis-axiom 9 ("The prime
+      is the invariant. Position changes, shape mutates, identity
+      persists").
+    - The substrate spends ~half cycles in definite-prime quantum
+      wavefunctions (entropy 0) and ~half in entangled multi-prime
+      superpositions (entropy ≥ 3) — matches PrimeWaveQuantumEngine's
+      `ω_p = exp(2πi/p)` framing in a measurable phenomenon.
+    - The 5-kind internal-event closure trilogy (CLAUDE.md
+      2026-05-06) remains operationally stable at this commit.
+
+  - **11 hardening tests** including injected-bimodal-qbe + persistent
+    threshold validation + EV-37 corroboration test.
+
+  - **Test suite: 792 → 803 passed** (+11) / 1 skipped / 0 failed.
+
 - **Round H (round 8) — deep F.1.1 factorization probe (p_identity invariance + GCD stamp recovery + substrate_state_stamp provenance).**
   Per owner directive "proceed". Round G ended with three follow-on
   candidates explicitly listed; Round H builds the first two as a
