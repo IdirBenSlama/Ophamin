@@ -9,6 +9,56 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Added
 
+- **Round K (round 11) — cross-instance prime determinism + Pattern-T p_thermo finding.**
+  Per owner directive "proceed" + full authorization. Round J wrapped
+  the F.1.1 architecture. Round K tests the STRONGEST possible
+  determinism claim: across separate fresh Takwin processes, does the
+  same canonical concept name produce the same prime fields?
+
+  - **`PrimeCrossInstanceScenario`** (`prime-cross-instance`). Operates
+    on cross-instance trajectories (N fresh Takwin processes, same
+    schedule). Verdict against ≥ 99% cross-instance p_identity
+    invariance. Secondary measurements: p_thermo / stamp / composite
+    invariance rates per concept.
+
+    First end-to-end run on 4-instance trajectory (12 stimuli each):
+
+    - **U11 VALIDATED**: **p_identity 100% invariant (83/83 shared
+      concepts)** across 4 fresh Takwin processes. CLAUDE.md F.1.1
+      "same canonical name → same p_identity across all runs and
+      Takwin instances" empirically airtight.
+    - **substrate_state_stamp 100% invariant** across processes —
+      state-evolution is reproducible.
+    - **Pattern-T finding**: p_thermo only **53% invariant (44/83)**.
+      39 concepts vary across 2-3 distinct small primes (e.g. "cronos"
+      → `{5, 7, 11}`, "thermal" → `{7, 11, 13}`, "thermofield" →
+      `{3, 5, 7}`). Composite invariance also 53% (by `composite =
+      p_thermo × p_identity × stamp` propagation).
+
+    Magnitude is small (adjacent small primes), but architecturally
+    means CLAUDE.md F.1.1's "same concept + same encoder → same prime,
+    always" is qualified: p_identity yes, p_thermo no across fresh
+    processes.
+
+  - **Likely sources of p_thermo non-determinism** (open hypotheses):
+    1. Floating-point ordering in IPR / Born-rule computation
+    2. Hash-based concept ordering in Arachne assign path
+    3. Arachne web state (Kuramoto coupling depends on concept history)
+
+  - **Architectural guidance** for distributed Kimera/Archipel:
+    - Content fingerprinting across nodes → use p_identity (FULLY
+      deterministic)
+    - Cross-node fusion of "same content" primes → match on
+      p_identity, NOT composite
+
+  - **Capture script** at `/tmp/capture_kimera_cross_instance.py`
+    (4 fresh Takwins, ~70s wall total).
+
+  - **10 hardening tests** including p_thermo-variation-doesn't-break-
+    p_identity-verdict + asymmetric-instance + concept-only-in-one.
+
+  - **Test suite: 824 → 834 passed** (+10) / 1 skipped / 0 failed.
+
 - **Round J (round 10) — closure of two open Family U characterisation tracks.**
   Per owner directive "proceed" + full authorization. Round I left two
   characterisation tracks open: WHAT TRIGGERS the QBE bimodality, and WHY
