@@ -41,7 +41,12 @@ FOREIGN_CORPUS_ROOT = Path(
     os.environ.get("OPHAMIN_FOREIGN_CORPUS_ROOT", "/Volumes/Kaido/Foreign_Corpus")
 )
 
-_REGISTRY = {
+#: Public registry of corpus factories — Move N (2026-05-16). Maps each
+#: corpus name to a callable ``factory(data_root: Path) -> Corpus``. Third-
+#: party corpora register via :func:`register_corpus_factory` (declared
+#: below) — the same pattern :func:`ophamin.registry.register_pillar`
+#: uses for the Pillar Protocol.
+CORPUS_FACTORIES: dict[str, "_CorpusFactory"] = {
     "enron": lambda root: EnronCorpus(root / "enron"),
     "linux": lambda root: LinuxKernelCorpus(root / "linux"),
     "cyber": lambda root: OffensiveSecurityCorpus(root),
@@ -52,26 +57,58 @@ _REGISTRY = {
     "the_well": lambda root: TheWellCorpus(FOREIGN_CORPUS_ROOT / "the_well"),
 }
 
+# Backward-compat alias for callers that imported the private name.
+_REGISTRY = CORPUS_FACTORIES
+
+# Type alias for clarity in the registration helper.
+from typing import Callable as _Callable  # noqa: E402
+
+_CorpusFactory = _Callable[[Path], Corpus]
+
+
+def register_corpus_factory(name: str, factory: _CorpusFactory) -> None:
+    """Register a third-party corpus factory under ``name``.
+
+    Loud-failure on duplicate registration — mirrors the Pillar
+    Protocol's :func:`ophamin.registry.register_pillar` shape.
+    Re-registering the same factory (identity) is idempotent.
+    """
+    existing = CORPUS_FACTORIES.get(name)
+    if existing is factory:
+        return  # idempotent
+    if existing is not None:
+        raise ValueError(
+            f"corpus {name!r} is already registered; cannot register a "
+            f"different factory under the same name"
+        )
+    CORPUS_FACTORIES[name] = factory
+
+
+def list_corpus_names() -> tuple[str, ...]:
+    """Return every registered corpus name in sorted order."""
+    return tuple(sorted(CORPUS_FACTORIES))
+
 
 def get_corpus(name: str, data_root: str | Path | None = None) -> Corpus:
     """Construct a corpus connector by name (``enron`` / ``linux`` / ``cyber`` / ``flores``)."""
-    if name not in _REGISTRY:
+    if name not in CORPUS_FACTORIES:
         raise ValueError(
-            f"unknown corpus {name!r}; choose from {sorted(_REGISTRY)}"
+            f"unknown corpus {name!r}; choose from {sorted(CORPUS_FACTORIES)}"
         )
     root = Path(data_root) if data_root is not None else DEFAULT_DATA_ROOT
-    return _REGISTRY[name](root)
+    return CORPUS_FACTORIES[name](root)
 
 
 def available_corpora(data_root: str | Path | None = None) -> dict[str, bool]:
     """Map every registered corpus name to whether its raw data is downloaded."""
-    return {name: get_corpus(name, data_root).is_available() for name in _REGISTRY}
+    return {name: get_corpus(name, data_root).is_available() for name in CORPUS_FACTORIES}
 
 
 __all__ = [
     "Corpus",
     "CorpusRecord",
     "CorpusUnavailableError",
+    "CORPUS_FACTORIES",
     "EnronCorpus",
     "LinuxKernelCorpus",
     "OffensiveSecurityCorpus",
@@ -80,6 +117,8 @@ __all__ = [
     "TheWellCorpus",
     "get_corpus",
     "available_corpora",
+    "list_corpus_names",
+    "register_corpus_factory",
     "DEFAULT_DATA_ROOT",
     "FOREIGN_CORPUS_ROOT",
 ]

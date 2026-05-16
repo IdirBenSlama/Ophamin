@@ -26,6 +26,18 @@ CLI:
 
   ophamin inspect <kimera-repo> <primitive>     single-primitive deep-dive
   ophamin inspect-all <kimera-repo>             survey every catalogued primitive
+
+.. note::
+
+   Gap-G status (2026-05-16, closed by Move K): the composer narrative
+   above is now implemented across all four wheels — static
+   introspection (always), ``--with-discovery`` (Layer A schema
+   mining), ``--with-audit`` (static analysis on the primitive's
+   source file), ``--with-comparing`` (River ADWIN drift detection on
+   the primitive's phi stream), and ``--with-instrumenting``
+   (InstrumentedSubstrate wrapping for per-cycle resource profile).
+   All four dynamic flags are best-effort: failures get captured as
+   ``profile.notes`` rather than crashing the inspection.
 """
 
 from __future__ import annotations

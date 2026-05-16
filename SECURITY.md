@@ -2,14 +2,16 @@
 
 ## Supported versions
 
-Ophamin is currently at **0.1.0** (initial release). The framework is
-proprietary; security patches are committed to `main` and released as
-patch-level tags as needed.
+Ophamin is currently at **0.4.0**. The framework is open-source under
+the **Apache License 2.0** (see [`LICENSE`](LICENSE) + [`NOTICE`](NOTICE)).
+Security patches are committed to `main` and released as patch-level
+tags as needed.
 
 | Version | Supported |
 |---------|-----------|
-| 0.1.x   | ✓ (current) |
-| < 0.1.0 | — (no prior versions exist) |
+| 0.4.x   | ✓ (current) |
+| 0.3.x   | ✓ (one minor back; security-only) |
+| < 0.3.0 | — (encouraged to upgrade) |
 
 ## Reporting a vulnerability
 

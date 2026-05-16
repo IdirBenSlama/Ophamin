@@ -1,0 +1,1522 @@
+{
+  "c7542d4154dc25ca": {
+    "activation": 0.24816234939118886,
+    "velocity": -0.041862112906330594,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.09883231235323874,
+    "phase": 1.285782092301392,
+    "amplitude": 0.1527925401472446,
+    "total_energy": 0.53649334458758
+  },
+  "2ce06a9e7f8c3e6b": {
+    "activation": 0.2141858792962127,
+    "velocity": -0.4699132268313844,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11945889821679259,
+    "phase": 2.696423788326059,
+    "amplitude": 0.1116605994451272,
+    "total_energy": 0.6514504288177447
+  },
+  "090fcf836d196b9d": {
+    "activation": 0.16413571365250254,
+    "velocity": -0.6942836113457443,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11284787267070978,
+    "phase": 1.8183195662446663,
+    "amplitude": 0.0708629845261121,
+    "total_energy": 0.4895149849031679
+  },
+  "cb2ac09362d67eac": {
+    "activation": 0.16940822461614324,
+    "velocity": -0.003268784296494392,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1010974992655215,
+    "phase": 0.7859731257069109,
+    "amplitude": 0.07213835172689631,
+    "total_energy": 0.6043916128742418
+  },
+  "923b4b90ea64343e": {
+    "activation": 0.18081556645126767,
+    "velocity": -0.7827465095869767,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11615338429562225,
+    "phase": 3.811235622098706,
+    "amplitude": 0.08991089249033558,
+    "total_energy": 0.9785836666501855
+  },
+  "b314ae60cb741e69": {
+    "activation": 0.16278386918448384,
+    "velocity": 0.3250867430438223,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10789998269507067,
+    "phase": 1.5602487334387052,
+    "amplitude": 0.0610920769872448,
+    "total_energy": 0.6239714396393788
+  },
+  "5a2a0ed9aa3ab7d8": {
+    "activation": 0.20931444001710225,
+    "velocity": -0.7328567502740109,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11992715968458462,
+    "phase": 3.5380932815401382,
+    "amplitude": 0.11460952914298524,
+    "total_energy": 2.0000000000000004
+  },
+  "f2377e72f2b44883": {
+    "activation": 0.1583296253184302,
+    "velocity": 0.19466766251834336,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10363026561429792,
+    "phase": 0.1288993354340091,
+    "amplitude": 0.06103452397981677,
+    "total_energy": 0.7395370521083623
+  },
+  "aeb9438eba124dc6": {
+    "activation": 0.17281505609006348,
+    "velocity": -0.7211657183341205,
+    "natural_frequency": 23.02585092994046,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1159780756448644,
+    "phase": 1.594768602767655,
+    "amplitude": 0.07588833492691703,
+    "total_energy": 1.116015199888475
+  },
+  "bd0f2196e415f39a": {
+    "activation": 0.16444770377090578,
+    "velocity": -0.5183809069899828,
+    "natural_frequency": 23.978952727983707,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10815602639619025,
+    "phase": 3.5761322714290915,
+    "amplitude": 0.06987085483596601,
+    "total_energy": 1.0421196302520148
+  },
+  "f8ce85591c31f9f9": {
+    "activation": 0.2219768328346412,
+    "velocity": 0.2616407301113788,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1257788475067858,
+    "phase": 1.303565842009655,
+    "amplitude": 0.1041938906529007,
+    "total_energy": 0.5930924206120932
+  },
+  "de848a69262a7100": {
+    "activation": 0.18422328168538582,
+    "velocity": -0.618341749345375,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.14826485132145578,
+    "phase": 2.763612792135523,
+    "amplitude": 0.045517009678858134,
+    "total_energy": 0.3194482010068747
+  },
+  "d78523ad4a6a736c": {
+    "activation": 0.19313296938343208,
+    "velocity": -0.8231674661982287,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11531305896935626,
+    "phase": 2.5935190772299235,
+    "amplitude": 0.11179412392063648,
+    "total_energy": 0.920559953986301
+  },
+  "16136fedfd4de1dd": {
+    "activation": 0.154449813681036,
+    "velocity": -0.9738200002451316,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11402091418629724,
+    "phase": 0.847887923629679,
+    "amplitude": 0.0699669866563736,
+    "total_energy": 0.8350399193708328
+  },
+  "9b16b44d0e0a5cac": {
+    "activation": 0.164719034228073,
+    "velocity": 0.30904600785715247,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1304818932586463,
+    "phase": 0.2992414452629742,
+    "amplitude": 0.01939767228126297,
+    "total_energy": 0.23623930890281816
+  },
+  "b8b356fe6d44d14a": {
+    "activation": 0.20424813217516902,
+    "velocity": -0.4291731253577313,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.18815328997486525,
+    "phase": 3.5526625318929552,
+    "amplitude": 0.012831436412157787,
+    "total_energy": 0.14238819326281155
+  },
+  "53d8ba9090b329f4": {
+    "activation": 0.15959575608326815,
+    "velocity": -0.03540776833227047,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11766044186808386,
+    "phase": 1.6141774982628123,
+    "amplitude": 0.03433676581863377,
+    "total_energy": 0.33393238239029144
+  },
+  "64b218956223eb12": {
+    "activation": 0.20804980119878816,
+    "velocity": -0.321220967698364,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.15621248905707175,
+    "phase": 2.0208643734272203,
+    "amplitude": 0.05793392536256719,
+    "total_energy": 0.6353921526683618
+  },
+  "f49d0d32ca71f15c": {
+    "activation": 0.14754091610564962,
+    "velocity": 0.6254645185747965,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10938663208508144,
+    "phase": 3.5474210321069486,
+    "amplitude": 0.0519073765121624,
+    "total_energy": 0.23883562829508892
+  },
+  "5e1cf42878df58fe": {
+    "activation": 0.11824818960634333,
+    "velocity": -0.8066335044676367,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1122322073308414,
+    "phase": 5.967593451272798,
+    "amplitude": 0.061696528862974775,
+    "total_energy": 0.3378261488447981
+  },
+  "8a46fd6fc3d79d41": {
+    "activation": 0.1585906070025963,
+    "velocity": -0.7348624747140241,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11295232763878912,
+    "phase": 3.8962678243758706,
+    "amplitude": 0.06848780254944102,
+    "total_energy": 0.4704323437616511
+  },
+  "dea7111a8406e27c": {
+    "activation": 0.22874946473673854,
+    "velocity": -0.9224055577634899,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11813559616047763,
+    "phase": 0.8026232001053144,
+    "amplitude": 0.15299458685335227,
+    "total_energy": 2.0
+  },
+  "06f8382071a4109d": {
+    "activation": 0.17020947037166825,
+    "velocity": -0.8595392580883394,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11589828257325972,
+    "phase": 2.8115624457562687,
+    "amplitude": 0.08093650585813399,
+    "total_energy": 0.8309131423123781
+  },
+  "be1ebbf226a71f56": {
+    "activation": 0.1940805096815213,
+    "velocity": -0.5432946805938788,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11893588865065,
+    "phase": 5.104811597569289,
+    "amplitude": 0.09424111328620444,
+    "total_energy": 1.2088988727631969
+  },
+  "bc9656f11620c8ea": {
+    "activation": 0.19582020710393933,
+    "velocity": -0.44670269507121985,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10205666076032194,
+    "phase": 0.6351766416455671,
+    "amplitude": 0.12166968882884913,
+    "total_energy": 2.0000000000000004
+  },
+  "d457d71a9f4665d3": {
+    "activation": 0.16177318319925937,
+    "velocity": -0.476254386141925,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11187214447565469,
+    "phase": 1.9129564813547066,
+    "amplitude": 0.05984688578418455,
+    "total_energy": 0.7187442115222988
+  },
+  "bfb1bd0227290c53": {
+    "activation": 0.14048642109647924,
+    "velocity": -0.876259332548743,
+    "natural_frequency": 23.02585092994046,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11234568006421626,
+    "phase": 2.7142574773330046,
+    "amplitude": 0.04891855007144483,
+    "total_energy": 0.5806271687823958
+  },
+  "3a6eb0790f39ac87": {
+    "activation": 0.18291742386288687,
+    "velocity": -1.1559946612965382,
+    "natural_frequency": 23.978952727983707,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11502688175631612,
+    "phase": 4.180474852468041,
+    "amplitude": 0.108471195118116,
+    "total_energy": 2.0
+  },
+  "c2144d41e618fba8": {
+    "activation": 0.1631223110623857,
+    "velocity": 0.7761619601891703,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.103782078834127,
+    "phase": 1.347320397479922,
+    "amplitude": 0.11334970844462207,
+    "total_energy": 0.38518806403475764
+  },
+  "38a9c1e721584da2": {
+    "activation": 0.1481601572017855,
+    "velocity": 0.75324651676878,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10714812603910717,
+    "phase": 6.09845624011184,
+    "amplitude": 0.07182089090776496,
+    "total_energy": 0.3867719856542167
+  },
+  "38c8c20ab7abc31f": {
+    "activation": 0.2032124349372541,
+    "velocity": 0.2433832319911864,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10575987607883634,
+    "phase": 2.956447521223526,
+    "amplitude": 0.10523362259545,
+    "total_energy": 0.6009767594869494
+  },
+  "df5e69a6000eaee6": {
+    "activation": 0.22828514412823975,
+    "velocity": -0.8742480576977005,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11663909852771556,
+    "phase": 6.135087026159528,
+    "amplitude": 0.1290938870475374,
+    "total_energy": 2.0
+  },
+  "5e89a401b071553b": {
+    "activation": 0.18142042997268193,
+    "velocity": -0.5908338939150116,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11978327862796377,
+    "phase": 4.81977897727177,
+    "amplitude": 0.07843225041697544,
+    "total_energy": 0.7924749919909662
+  },
+  "34da56029403e6f7": {
+    "activation": 0.10605941380230824,
+    "velocity": -0.7311314740430341,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11107054591506249,
+    "phase": 1.606545285256429,
+    "amplitude": 0.025762245641519868,
+    "total_energy": 0.2753935607187899
+  },
+  "b9956fb014c7d608": {
+    "activation": 0.149175844307481,
+    "velocity": 0.5496023482640068,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10671761473187805,
+    "phase": 1.1818502603872292,
+    "amplitude": 0.051246996316179634,
+    "total_energy": 0.5406838273066066
+  },
+  "b991a49b1b0aa2cc": {
+    "activation": 0.15803401875671008,
+    "velocity": -0.36928786180240825,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.09856055526286102,
+    "phase": 3.609533267179085,
+    "amplitude": 0.070348023983318,
+    "total_energy": 0.9167603240451981
+  },
+  "d1d3d85c7ec15bf0": {
+    "activation": 0.15809743099204945,
+    "velocity": -0.3609813903974276,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1053724634129236,
+    "phase": 5.176027717627585,
+    "amplitude": 0.06104542111751044,
+    "total_energy": 0.7397297277948681
+  },
+  "003a7a99f8dc0add": {
+    "activation": 0.15670331023345094,
+    "velocity": -0.18730730951864358,
+    "natural_frequency": 23.978952727983707,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1042730781214308,
+    "phase": 2.960573651698883,
+    "amplitude": 0.05927623452601184,
+    "total_energy": 0.8060980588029019
+  },
+  "d5c31128fda31686": {
+    "activation": 0.1329964331319325,
+    "velocity": -1.1034358896620244,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11904895210758651,
+    "phase": 5.436818787495839,
+    "amplitude": 0.16990801662058813,
+    "total_energy": 0.6161021093625726
+  },
+  "6f8962a83529d3c4": {
+    "activation": 0.18312035392877843,
+    "velocity": 0.5502858126821847,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10339448070560292,
+    "phase": 5.276193205414354,
+    "amplitude": 0.09646009380044125,
+    "total_energy": 0.5369034975921221
+  },
+  "4dd5b6e2bf3bfd4f": {
+    "activation": 0.16088216985543038,
+    "velocity": -0.7339281513360051,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.0987985517027629,
+    "phase": 5.648925088219763,
+    "amplitude": 0.08559710865889023,
+    "total_energy": 0.76936124166099
+  },
+  "f5d48a058c4813a9": {
+    "activation": 0.18556878380066244,
+    "velocity": -0.7479910723672065,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11723624675609622,
+    "phase": 2.910400568170748,
+    "amplitude": 0.09376263175246566,
+    "total_energy": 0.8831707868518242
+  },
+  "18681776a514487b": {
+    "activation": 0.0982470570424363,
+    "velocity": -1.0780274496144167,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11087677552432874,
+    "phase": 3.5564961117257847,
+    "amplitude": 0.06474338124345544,
+    "total_energy": 0.6037117828586749
+  },
+  "05beb8c90db0a08d": {
+    "activation": 0.12801525136786643,
+    "velocity": -1.254225459980296,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1177124137196153,
+    "phase": 5.48121104372479,
+    "amplitude": 0.0723841067696212,
+    "total_energy": 0.7951867577757264
+  },
+  "7d32181580c717e8": {
+    "activation": 0.1717196243931636,
+    "velocity": -0.7797355072386188,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11688944306897286,
+    "phase": 1.3518956048176272,
+    "amplitude": 0.07670658004229863,
+    "total_energy": 0.9632730469128781
+  },
+  "2070f725ff1c765b": {
+    "activation": 0.1460807091234671,
+    "velocity": -0.026059928044091143,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10857051220167072,
+    "phase": 3.0728112461419435,
+    "amplitude": 0.031104935167399397,
+    "total_energy": 0.3401292353339661
+  },
+  "d8b01b2435a39d18": {
+    "activation": 0.11508256376058801,
+    "velocity": -0.7790434578649966,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11212380611868784,
+    "phase": 4.7383743965697445,
+    "amplitude": 0.08795881415163309,
+    "total_energy": 0.3115143887157895
+  },
+  "d99e6a01bb0f2bbf": {
+    "activation": 0.2029151134074363,
+    "velocity": -0.4688116341902642,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11860733194845519,
+    "phase": 5.820473814681266,
+    "amplitude": 0.09628349778837124,
+    "total_energy": 0.5356710427959138
+  },
+  "81f96da9fa9d2545": {
+    "activation": 0.1875784712376165,
+    "velocity": 0.09071287270207969,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10655470509752327,
+    "phase": 0.09150183785686702,
+    "amplitude": 0.08697465854865297,
+    "total_energy": 0.6361316786416195
+  },
+  "36809acb6fbb9c3e": {
+    "activation": 0.14144919305133571,
+    "velocity": 0.6115569952074561,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1061550508573594,
+    "phase": 0.7700215686810182,
+    "amplitude": 0.044179242811643586,
+    "total_energy": 0.38798240772278475
+  },
+  "ce989357171d6ff8": {
+    "activation": 0.13942120416243123,
+    "velocity": 0.4574538901052355,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10837704269890383,
+    "phase": 0.6577015120552719,
+    "amplitude": 0.02835446278596565,
+    "total_energy": 0.29132920302973064
+  },
+  "2c80b4e44d21a71a": {
+    "activation": 0.15771631654962676,
+    "velocity": 0.3323257144896422,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10559683782998891,
+    "phase": 0.30266024430162,
+    "amplitude": 0.0585412407682261,
+    "total_energy": 0.644568341091286
+  },
+  "1834cbb473e22b46": {
+    "activation": 0.15775456937711776,
+    "velocity": -0.17830320997912358,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10357032792782482,
+    "phase": 6.144066598371452,
+    "amplitude": 0.06006884833220283,
+    "total_energy": 0.7225992260883367
+  },
+  "2d06a654fc09714c": {
+    "activation": 0.14713982909423456,
+    "velocity": -0.9784764198297312,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11515213976444513,
+    "phase": 4.283048967467571,
+    "amplitude": 0.09550071564922682,
+    "total_energy": 0.5302352371135519
+  },
+  "bd44320090cbdafb": {
+    "activation": 0.21070353006180323,
+    "velocity": 0.2722119658803461,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1009739209386194,
+    "phase": 3.8095933683800722,
+    "amplitude": 0.09352637799993163,
+    "total_energy": 0.3260783185722301
+  },
+  "3784070fe3e7e3de": {
+    "activation": 0.11371929484822321,
+    "velocity": -0.799851047837952,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11336242936362252,
+    "phase": 5.384935577095793,
+    "amplitude": 0.047337827265285376,
+    "total_energy": 0.3291959231053011
+  },
+  "4084a32b9bba4b4a": {
+    "activation": 0.15777893762798484,
+    "velocity": 0.46578312347340545,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10357893492133524,
+    "phase": 2.2278499720283222,
+    "amplitude": 0.0604218282427591,
+    "total_energy": 0.4836987574879592
+  },
+  "9432190b4ac41501": {
+    "activation": 0.16355066818373534,
+    "velocity": 0.24696205831853196,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10293233838866583,
+    "phase": 2.8913627452625312,
+    "amplitude": 0.06633702911419069,
+    "total_energy": 0.6238309885406347
+  },
+  "78f3f3423b346310": {
+    "activation": 0.19221870082755227,
+    "velocity": -0.5528307663134798,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12027708889789544,
+    "phase": 3.0511631977577016,
+    "amplitude": 0.09075896538158258,
+    "total_energy": 1.135719960801568
+  },
+  "899946d3e1398091": {
+    "activation": 0.15495484536211032,
+    "velocity": 0.21682323406651996,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10259730540989723,
+    "phase": 4.282605679412781,
+    "amplitude": 0.056590095335395975,
+    "total_energy": 0.6154277824881048
+  },
+  "f30f80d0307c1787": {
+    "activation": 0.17583455425699726,
+    "velocity": -0.6753525268723987,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11728835693396653,
+    "phase": 4.1985857245969935,
+    "amplitude": 0.0768028524137815,
+    "total_energy": 1.0543284139885911
+  },
+  "83ffe96a10615970": {
+    "activation": 0.11704738126303443,
+    "velocity": -0.1439558372396425,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13972016364717438,
+    "phase": 4.694029522579077,
+    "amplitude": 0.012707210506718218,
+    "total_energy": 0.06206422804822796
+  },
+  "c1d2c1df9eabd696": {
+    "activation": 0.20462647342718138,
+    "velocity": -0.38110845009767447,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1573047199149737,
+    "phase": 2.8096719264839485,
+    "amplitude": 0.03670095311918337,
+    "total_energy": 0.12943019446803858
+  },
+  "456cf73c569be56c": {
+    "activation": 0.19822988667809985,
+    "velocity": 0.32017122365809847,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12348884500680987,
+    "phase": 4.693726184877779,
+    "amplitude": 0.07173960913248525,
+    "total_energy": 0.3863494743793759
+  },
+  "efe2a5c09e6d49d7": {
+    "activation": 0.16532761716220293,
+    "velocity": 0.21070779990274766,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.120815335381526,
+    "phase": 2.312199907123568,
+    "amplitude": 0.03176901485600829,
+    "total_energy": 0.27842909527301246
+  },
+  "f744584c7c7e68b6": {
+    "activation": 0.1254657598387521,
+    "velocity": -0.4942493277020689,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.14244892885310503,
+    "phase": 5.892235961420968,
+    "amplitude": 0.01643642999293297,
+    "total_energy": 0.1734620205674011
+  },
+  "5c8dc148912ef068": {
+    "activation": 0.11710633416416899,
+    "velocity": 0.4820332172348218,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12854690640645028,
+    "phase": 2.4515622608613676,
+    "amplitude": 0.013628909057966208,
+    "total_energy": 0.14066878917800413
+  },
+  "0978cd572355e363": {
+    "activation": 0.14644191563509135,
+    "velocity": 0.1258447647965566,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.125379025003844,
+    "phase": 5.071580274420024,
+    "amplitude": 0.011098787447257074,
+    "total_energy": 0.10653063011046514
+  },
+  "f41dad6f079bb6b2": {
+    "activation": 0.1405013952108733,
+    "velocity": 0.6966109292238818,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12935552897025415,
+    "phase": 3.5307889326624586,
+    "amplitude": 0.023695739502795875,
+    "total_energy": 0.2813224931960546
+  },
+  "bb851f3a7b091bba": {
+    "activation": 0.19482122763911675,
+    "velocity": -0.6436625817954291,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1148476041286309,
+    "phase": 0.8680804731661027,
+    "amplitude": 0.10689949201864893,
+    "total_energy": 0.3647113245868209
+  },
+  "3c4623849a49a539": {
+    "activation": 0.25619224356497583,
+    "velocity": -0.5216430934394484,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11709223842323065,
+    "phase": 3.1890938271971807,
+    "amplitude": 0.21377256732726027,
+    "total_energy": 1.9999999999999993
+  },
+  "c2c04ed21e6734ab": {
+    "activation": 0.1786169226584808,
+    "velocity": -0.7661014098050891,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11577752324859711,
+    "phase": 3.3669735666333813,
+    "amplitude": 0.08820804493369437,
+    "total_energy": 0.804625002840355
+  },
+  "9327b46b590a1441": {
+    "activation": 0.18433652301862619,
+    "velocity": -0.6364802851179756,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11848482748138026,
+    "phase": 3.9739529531407354,
+    "amplitude": 0.08525370203221645,
+    "total_energy": 0.9000147077419158
+  },
+  "eef8b9fd5d437dd9": {
+    "activation": 0.2167162733710244,
+    "velocity": -0.6139128800660669,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1190803438704632,
+    "phase": 4.538286208944084,
+    "amplitude": 0.10421854019764018,
+    "total_energy": 2.0
+  },
+  "b15c8e6478b825db": {
+    "activation": 0.16812407374972954,
+    "velocity": -0.08231747470129017,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10290752414424834,
+    "phase": 5.136834937192414,
+    "amplitude": 0.07462272532503268,
+    "total_energy": 0.9223653375030635
+  },
+  "27c3d3b047672ba2": {
+    "activation": 0.12991510438965215,
+    "velocity": -0.521549160792163,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10985279645057576,
+    "phase": 3.4308739832535196,
+    "amplitude": 0.0390435222061306,
+    "total_energy": 0.14648019069872997
+  },
+  "384192317a2844b5": {
+    "activation": 0.22108198766299775,
+    "velocity": -0.22364005054648567,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10931745191668683,
+    "phase": 2.1335299398478096,
+    "amplitude": 0.1265938381394851,
+    "total_energy": 0.7802769161251232
+  },
+  "6cb574fa10b6ee20": {
+    "activation": 0.18017167337365675,
+    "velocity": -0.6574302917361421,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11500575683534105,
+    "phase": 1.971484741650946,
+    "amplitude": 0.08657675959501525,
+    "total_energy": 0.7824683927132174
+  },
+  "8f0c5da76a8d480e": {
+    "activation": 0.16408080164684039,
+    "velocity": -0.14634733637086553,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10176535975671701,
+    "phase": 0.7025992089155615,
+    "amplitude": 0.06708736393932413,
+    "total_energy": 0.6334730747688287
+  },
+  "f480ffb2979d1888": {
+    "activation": 0.17188771238315395,
+    "velocity": -0.7394147802347831,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1177838160976086,
+    "phase": 4.0060719379861,
+    "amplitude": 0.07454956004071467,
+    "total_energy": 0.8313308194190818
+  },
+  "09e9ca06e36fbf6c": {
+    "activation": 0.20268372299505208,
+    "velocity": -0.8158090183972224,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11939425206678714,
+    "phase": 4.258415881158513,
+    "amplitude": 0.10158335121705682,
+    "total_energy": 2.0
+  },
+  "6526b48f897f6e08": {
+    "activation": 0.12971366700797615,
+    "velocity": -0.3061303056868736,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.14147830068305234,
+    "phase": 1.8622555098506328,
+    "amplitude": 0.015142794820687078,
+    "total_energy": 0.05535170162415159
+  },
+  "724ef7ead11e3b72": {
+    "activation": 0.1631855990507345,
+    "velocity": -0.6149177996891406,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.15386736383876976,
+    "phase": 5.788744887904525,
+    "amplitude": 0.021883821665676897,
+    "total_energy": 0.18407179315750907
+  },
+  "2e053074fbe046e3": {
+    "activation": 0.11684684154738556,
+    "velocity": 0.1174496645451932,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13801494115680135,
+    "phase": 2.9290952112060786,
+    "amplitude": 0.013312345636952827,
+    "total_energy": 0.0170290369439516
+  },
+  "e333c47e4b5ce74c": {
+    "activation": 0.1535215266383532,
+    "velocity": 0.515225768285489,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1228444318588352,
+    "phase": 1.382650556341317,
+    "amplitude": 0.02584660366746572,
+    "total_energy": 0.2519130656769477
+  },
+  "b086977dd45e2f55": {
+    "activation": 0.15271398296939756,
+    "velocity": 0.5548043028233335,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12577251480328858,
+    "phase": 5.21525005352812,
+    "amplitude": 0.0274281868459151,
+    "total_energy": 0.27245608596443394
+  },
+  "b9343085b2fa0272": {
+    "activation": 0.12569302200106017,
+    "velocity": -0.08665232526826534,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13922039619514934,
+    "phase": 3.6243848273045938,
+    "amplitude": 0.007115962956524369,
+    "total_energy": 0.03834801770788495
+  },
+  "d3087354d69a831f": {
+    "activation": 0.14232491382709683,
+    "velocity": -0.6950066199167545,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1472429728308381,
+    "phase": 5.880244952821188,
+    "amplitude": 0.020143515964397014,
+    "total_energy": 0.2526362862903848
+  },
+  "c064fbca9d9de8dd": {
+    "activation": 0.043976931456626,
+    "velocity": 0.29894192516264106,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13319276689749424,
+    "phase": 4.400596544269667,
+    "amplitude": 0.09491125492501817,
+    "total_energy": 0.5261711848832706
+  },
+  "520cdb563bf80b19": {
+    "activation": 0.20685254899024774,
+    "velocity": -0.6046236520605218,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10071138891400316,
+    "phase": 5.937838682319808,
+    "amplitude": 0.11573110867008163,
+    "total_energy": 2.0
+  },
+  "75c374cb4cf3cb2d": {
+    "activation": 0.11236634282471575,
+    "velocity": 0.3510492583759919,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13618007450381223,
+    "phase": 2.1227471452657807,
+    "amplitude": 0.015457488059093385,
+    "total_energy": 0.15341479769305408
+  },
+  "5167e9677e1fbc50": {
+    "activation": 0.1928955104774995,
+    "velocity": -0.5041393828511598,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.15585502804169185,
+    "phase": 3.621670751301615,
+    "amplitude": 0.03954459281170291,
+    "total_energy": 0.37764011148362675
+  },
+  "4ca303a3bf7ddf7b": {
+    "activation": 0.16358833889470548,
+    "velocity": -0.06399081712318302,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11711431644757014,
+    "phase": 0.9193720512735555,
+    "amplitude": 0.045609451881722066,
+    "total_energy": 0.46985122406572905
+  },
+  "f44e85c4b8ea2add": {
+    "activation": 0.13493452599170364,
+    "velocity": 0.5571115483095438,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12763156112569202,
+    "phase": 6.006492540533378,
+    "amplitude": 0.039324047600231574,
+    "total_energy": 0.14859265548563608
+  },
+  "bbc5e661e106c6dc": {
+    "activation": 0.11317121596160401,
+    "velocity": -0.7320002132329437,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11027918668274739,
+    "phase": 2.5777550703686787,
+    "amplitude": 0.03597520144774169,
+    "total_energy": 0.2746171465616999
+  },
+  "df35ed994e85f6f4": {
+    "activation": 0.15791257146783175,
+    "velocity": 0.7245660031304477,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10434643278671579,
+    "phase": 5.1925248369599135,
+    "amplitude": 0.09583783451904343,
+    "total_energy": 0.3323872500616671
+  },
+  "6ef49cacb4c39f8f": {
+    "activation": 0.15976896064215862,
+    "velocity": -0.8113196857348162,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11629433243135565,
+    "phase": 2.8735579120515538,
+    "amplitude": 0.08163477217187072,
+    "total_energy": 0.4413017824419546
+  },
+  "4b60d190e95e5769": {
+    "activation": 0.19723781897619025,
+    "velocity": -0.7543628749813267,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11636578344027756,
+    "phase": 1.34222754660484,
+    "amplitude": 0.11208466710682319,
+    "total_energy": 0.9243101659588071
+  },
+  "e409bfc6fe798c2e": {
+    "activation": 0.13886297800856717,
+    "velocity": 0.45836707588100495,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10683604323410362,
+    "phase": 6.03564201867935,
+    "amplitude": 0.02255275553207191,
+    "total_energy": 0.23952473203301755
+  },
+  "47e8d6fafa7e2200": {
+    "activation": 0.1616424488453489,
+    "velocity": -0.19641641308829794,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.09915509154303594,
+    "phase": 1.5659927627347847,
+    "amplitude": 0.0683039001444516,
+    "total_energy": 0.6493364776054389
+  },
+  "1198780b3af7203c": {
+    "activation": 0.14102426303125515,
+    "velocity": -0.8002894836774536,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11418430428845638,
+    "phase": 3.0648774720844942,
+    "amplitude": 0.04709766006842082,
+    "total_energy": 0.4519796583099739
+  },
+  "163d817fe8a87f73": {
+    "activation": 0.15030241126822788,
+    "velocity": -0.4944575252913777,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.09814584980026486,
+    "phase": 5.613847967576114,
+    "amplitude": 0.0628324731602193,
+    "total_energy": 0.7121332758649108
+  },
+  "888df6d1572d02bc": {
+    "activation": 0.14534005493498392,
+    "velocity": -0.39764718635562873,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11134637167731207,
+    "phase": 1.0509238419541032,
+    "amplitude": 0.0331192914647831,
+    "total_energy": 0.35886646262959976
+  },
+  "7f754d3dbef2f9c8": {
+    "activation": 0.1927748263687106,
+    "velocity": 0.5391785847460266,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10199312839890602,
+    "phase": 3.7196100028441883,
+    "amplitude": 0.10206908389154999,
+    "total_energy": 0.3501621958653405
+  },
+  "372ea2d8a3fefc0d": {
+    "activation": 0.21723767501691282,
+    "velocity": -0.48558741049555665,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11888076582788457,
+    "phase": 5.453302320640534,
+    "amplitude": 0.11783566646861707,
+    "total_energy": 0.7027634350694827
+  },
+  "d1e49ac43dac0c4c": {
+    "activation": 0.11673861967885382,
+    "velocity": 0.7842620264769429,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10741753505763141,
+    "phase": 1.1725662683569515,
+    "amplitude": 0.04496100751327713,
+    "total_energy": 0.3165478422167482
+  },
+  "973e223542ffe23e": {
+    "activation": 0.15948067398939286,
+    "velocity": -0.2566159771148351,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.09898907749653713,
+    "phase": 2.354576790020193,
+    "amplitude": 0.06597065308625755,
+    "total_energy": 0.6191623227826543
+  },
+  "c17edb791c8398d2": {
+    "activation": 0.1567511792280406,
+    "velocity": -0.17081531366535807,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.09895835666293062,
+    "phase": 5.918165745260973,
+    "amplitude": 0.06284343672349518,
+    "total_energy": 0.6486283100916038
+  },
+  "eb92cc52a766c500": {
+    "activation": 0.1451515208625233,
+    "velocity": 0.4111974094605662,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10843790325196945,
+    "phase": 3.3018933717300993,
+    "amplitude": 0.03603186664659006,
+    "total_energy": 0.3684178850502535
+  },
+  "4994ad9e4f40b39e": {
+    "activation": 0.15737668143600061,
+    "velocity": 0.30107949806195716,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10421160494171383,
+    "phase": 5.736641312159369,
+    "amplitude": 0.060524014169633975,
+    "total_energy": 0.7305491214758264
+  },
+  "dccc5d01dabcd1c0": {
+    "activation": 0.2222618604321302,
+    "velocity": 0.26788561617777495,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10038380905894062,
+    "phase": 5.500268956644323,
+    "amplitude": 0.11621141090250606,
+    "total_energy": 0.39465686498449903
+  },
+  "fb3a7850111f293b": {
+    "activation": 0.19166653752085938,
+    "velocity": -0.6751083534996937,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11685009088152246,
+    "phase": 1.241574817573861,
+    "amplitude": 0.10183039224430698,
+    "total_energy": 0.5754611388748565
+  },
+  "75afc72648a346ab": {
+    "activation": 0.17065250393724424,
+    "velocity": -0.12308448318270623,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10011868764641278,
+    "phase": 5.677376069447216,
+    "amplitude": 0.07649015226668182,
+    "total_energy": 0.6546537323165624
+  },
+  "61ffa9c8c703dd5e": {
+    "activation": 0.21234732840526677,
+    "velocity": -0.39449669220345124,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10308142505332435,
+    "phase": 0.6848581470297762,
+    "amplitude": 0.127677409599722,
+    "total_energy": 2.0
+  },
+  "8e260bd854566e0d": {
+    "activation": 0.15771678821786395,
+    "velocity": -0.36353347793465457,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.09919076022723738,
+    "phase": 1.7298874834280158,
+    "amplitude": 0.06731028818043633,
+    "total_energy": 0.7146710273163901
+  },
+  "3dbe1e53f8e15e31": {
+    "activation": 0.15811248675005743,
+    "velocity": 0.02199708779579138,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10067765268038983,
+    "phase": 3.026239258532219,
+    "amplitude": 0.06289988850965396,
+    "total_energy": 0.7132328399581278
+  },
+  "808a374d01599f57": {
+    "activation": 0.1435528602887352,
+    "velocity": -0.8463175117642078,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1118989383570316,
+    "phase": 3.035452423957638,
+    "amplitude": 0.05167102299919203,
+    "total_energy": 0.5866911841294805
+  },
+  "593810b75e45e06b": {
+    "activation": 0.16931888883242563,
+    "velocity": -0.8518561782872639,
+    "natural_frequency": 23.02585092994046,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1169119532332242,
+    "phase": 4.0662246826866175,
+    "amplitude": 0.07503318877021238,
+    "total_energy": 1.0954873169949249
+  },
+  "ce40f08b150bf9c2": {
+    "activation": 0.1545948094661217,
+    "velocity": 0.0095523799344897,
+    "natural_frequency": 23.978952727983707,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.10254676333390933,
+    "phase": 5.406058766193335,
+    "amplitude": 0.05793183833549239,
+    "total_energy": 0.778916993355397
+  },
+  "ebc9b532930cb427": {
+    "activation": 0.23189243941135704,
+    "velocity": -0.2236858382632034,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13924261333369023,
+    "phase": 1.2459720624055481,
+    "amplitude": 0.04881865369579376,
+    "total_energy": 0.22900898114839507
+  },
+  "443ff9977e2300eb": {
+    "activation": 0.09430697699874573,
+    "velocity": -0.427337520471432,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.15040514724957865,
+    "phase": 5.6843751463255705,
+    "amplitude": 0.04828308647152219,
+    "total_energy": 0.2844112261009995
+  },
+  "ac203c9843b5bd8c": {
+    "activation": 0.08030298166856724,
+    "velocity": -0.09165917604673601,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1446285497281801,
+    "phase": 6.261630562798949,
+    "amplitude": 0.059152089406920086,
+    "total_energy": 0.4017308634731598
+  },
+  "0afa5bb5d5f17879": {
+    "activation": 0.07715386085326166,
+    "velocity": 0.5197835143749024,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12295313047870521,
+    "phase": 6.058884546150785,
+    "amplitude": 0.052654162753745064,
+    "total_energy": 0.4670214158745072
+  },
+  "6f5efb7f3c63156f": {
+    "activation": 0.11790073808565063,
+    "velocity": 0.16387036106891037,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.15812629942032394,
+    "phase": 1.1753387314912769,
+    "amplitude": 0.032485462269363705,
+    "total_energy": 0.3198795001412023
+  },
+  "abd4c41da3525476": {
+    "activation": 0.07935160814922364,
+    "velocity": 0.588991958325957,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12387492915947795,
+    "phase": 0.7974435499488761,
+    "amplitude": 0.05610314295493954,
+    "total_energy": 0.6083091095810625
+  },
+  "ad12f62c45fc1344": {
+    "activation": 0.08452799960072466,
+    "velocity": 0.5448087958439408,
+    "natural_frequency": 23.978952727983707,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12063107766349221,
+    "phase": 3.3273259694984856,
+    "amplitude": 0.043567141861421965,
+    "total_energy": 0.5274159388740813
+  },
+  "219be64da671bd0e": {
+    "activation": 0.1199945432470953,
+    "velocity": 0.5544402623438484,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13156379831606674,
+    "phase": 2.5936934568814967,
+    "amplitude": 0.040984449895937324,
+    "total_energy": 0.16140580056699436
+  },
+  "b2db06dc38aa0314": {
+    "activation": 0.18167609076156155,
+    "velocity": -0.05848242742803712,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11640355831364443,
+    "phase": 3.462619566999378,
+    "amplitude": 0.04020500940906358,
+    "total_energy": 0.2585289180633341
+  },
+  "4137b01e139589b7": {
+    "activation": 0.11652243859587119,
+    "velocity": -0.2245394654496121,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.14004344176091515,
+    "phase": 5.486004817258306,
+    "amplitude": 0.014413141445603385,
+    "total_energy": 0.0798469269896015
+  },
+  "7688bd7c427206cb": {
+    "activation": 0.15848760954611057,
+    "velocity": 0.4149844245833767,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1210798032682143,
+    "phase": 4.391788374831004,
+    "amplitude": 0.02981071862006274,
+    "total_energy": 0.2690580960093585
+  },
+  "0c98d7436fbbd6d3": {
+    "activation": 0.13694521631939316,
+    "velocity": 0.686094708869283,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13216461930734413,
+    "phase": 5.844592479852699,
+    "amplitude": 0.022105165545702698,
+    "total_energy": 0.24706176542168415
+  },
+  "5a22e73abea95c00": {
+    "activation": 0.1584755702696264,
+    "velocity": 0.011851833901045102,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1217166096726443,
+    "phase": 3.8230682158701805,
+    "amplitude": 0.02217146439863033,
+    "total_energy": 0.25584130748671957
+  },
+  "990f250413537091": {
+    "activation": 0.10621102792267267,
+    "velocity": -0.26875931439212275,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13827694044891042,
+    "phase": 6.111085953299289,
+    "amplitude": 0.02181035984210936,
+    "total_energy": 0.26170784047015355
+  },
+  "8ccb033c0e48b27f": {
+    "activation": 0.15689599090472167,
+    "velocity": -0.14445649647467562,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11694863513084727,
+    "phase": 0.5529988609130382,
+    "amplitude": 0.0367453091329285,
+    "total_energy": 0.3955572682539009
+  },
+  "2fa1b1f6ab9bf73e": {
+    "activation": 0.13503559758191697,
+    "velocity": 0.43093224946688036,
+    "natural_frequency": 23.02585092994046,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13703293504988812,
+    "phase": 0.11211984431011768,
+    "amplitude": 0.009131973276348999,
+    "total_energy": 0.08842816987624824
+  },
+  "6f0e3a8c0eb46e88": {
+    "activation": 0.14441139616990945,
+    "velocity": 0.6320228987951253,
+    "natural_frequency": 23.978952727983707,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12545446090192325,
+    "phase": 2.8872137190120766,
+    "amplitude": 0.023411154890658196,
+    "total_energy": 0.294542559248736
+  },
+  "cfa5b483895333db": {
+    "activation": 0.16849889846670227,
+    "velocity": -0.7437521713928225,
+    "natural_frequency": 24.849066497880003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1499424803073279,
+    "phase": 4.184883352553042,
+    "amplitude": 0.03135016106501908,
+    "total_energy": 0.38206269373332014
+  },
+  "0b371d37ed17420f": {
+    "activation": 0.11105869999994686,
+    "velocity": -0.2330410869208051,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13959747066873193,
+    "phase": 5.981239030971247,
+    "amplitude": 0.01704169299869567,
+    "total_energy": 0.07010425453017766
+  },
+  "8fb5ee90f71720bb": {
+    "activation": 0.1728340812356841,
+    "velocity": -0.6430119666720653,
+    "natural_frequency": 13.862943611198906,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.15021454471301615,
+    "phase": 0.9955639076726278,
+    "amplitude": 0.03377129889415949,
+    "total_energy": 0.2657548357493611
+  },
+  "6fcd13c6889ac607": {
+    "activation": 0.20681708225374135,
+    "velocity": 0.07180796134736309,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12124105616556585,
+    "phase": 4.092076284434915,
+    "amplitude": 0.09827905993104857,
+    "total_energy": 0.9505708558377898
+  },
+  "b64f16e3986440ad": {
+    "activation": 0.11967639333562527,
+    "velocity": 0.2802373592885697,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1334433436028644,
+    "phase": 2.9603860568674283,
+    "amplitude": 0.023463231040699008,
+    "total_energy": 0.052900107178808595
+  },
+  "8a826524cc5f096c": {
+    "activation": 0.13806058399968918,
+    "velocity": 0.18496184966766452,
+    "natural_frequency": 17.91759469228055,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.12775484114402208,
+    "phase": 4.168528598517503,
+    "amplitude": 0.007099937593858107,
+    "total_energy": 0.03236670393122221
+  },
+  "8005681709056342": {
+    "activation": 0.11260642396564216,
+    "velocity": 0.585500427811408,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.13366100810678638,
+    "phase": 2.975725596167193,
+    "amplitude": 0.023181268594276556,
+    "total_energy": 0.2610437519769153
+  },
+  "66a05402fdb763c0": {
+    "activation": 0.12693224750386667,
+    "velocity": -0.6109570277188552,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1452084423993824,
+    "phase": 1.0709317342712148,
+    "amplitude": 0.02467623665925991,
+    "total_energy": 0.2789900774584398
+  },
+  "7c82602500857aa6": {
+    "activation": 0.1760938409085947,
+    "velocity": -0.695632107472722,
+    "natural_frequency": 6.931471805599453,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11679118506556671,
+    "phase": 4.798297772087468,
+    "amplitude": 0.09096606670042165,
+    "total_energy": 0.3192699425204406
+  },
+  "ceba0f45d896f1df": {
+    "activation": 0.20608595985976172,
+    "velocity": -0.6002138200954686,
+    "natural_frequency": 10.986122886681098,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11678199381392165,
+    "phase": 6.114903666707549,
+    "amplitude": 0.11309429441057846,
+    "total_energy": 0.6631178822707723
+  },
+  "2ac11a92104c4d7d": {
+    "activation": 0.16019808425229248,
+    "velocity": -0.31094034947498583,
+    "natural_frequency": 16.094379124341003,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11343239836812416,
+    "phase": 2.6195007775700274,
+    "amplitude": 0.041621819947692096,
+    "total_energy": 0.33462069924635346
+  },
+  "0f3409896e99dc5a": {
+    "activation": 0.12793686231352777,
+    "velocity": -0.8155479601081026,
+    "natural_frequency": 19.45910149055313,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11330762263688468,
+    "phase": 1.4428776182905607,
+    "amplitude": 0.0398015264617291,
+    "total_energy": 0.3799559778657041
+  },
+  "dfc0085fd6bb9b99": {
+    "activation": 0.1631518403222263,
+    "velocity": -0.2507523997159476,
+    "natural_frequency": 20.79441541679836,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.09940955143879192,
+    "phase": 4.770592155476007,
+    "amplitude": 0.07408338682460155,
+    "total_energy": 0.9119612276546009
+  },
+  "60be9861750facbf": {
+    "activation": 0.13355761133497732,
+    "velocity": -0.7779226928507939,
+    "natural_frequency": 21.972245773362197,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.1148540842837484,
+    "phase": 5.975378268760056,
+    "amplitude": 0.03567823063300986,
+    "total_energy": 0.38436427432209574
+  },
+  "d6d31104d1be4c4d": {
+    "activation": 0.1354317199702614,
+    "velocity": -0.5194099538267867,
+    "natural_frequency": 23.02585092994046,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11182755258923023,
+    "phase": 1.826969367610589,
+    "amplitude": 0.024202168105105025,
+    "total_energy": 0.2931667998753591
+  },
+  "46438c10cb3fbb26": {
+    "activation": 0.1523309537248693,
+    "velocity": -0.9322373157627486,
+    "natural_frequency": 23.978952727983707,
+    "damping_coefficient": 0.02,
+    "resting_activation": 0.11727896496522303,
+    "phase": 3.40075404493497,
+    "amplitude": 0.05827880469845954,
+    "total_energy": 0.7858722787619188
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "concept_vocab": [
+    "memory",
+    "reasoning",
+    "attention",
+    "language",
+    "consciousness",
+    "emotion",
+    "perception",
+    "learning",
+    "creativity",
+    "empathy",
+    "intuition",
+    "abstraction"
+  ],
+  "rosetta_primes": {
+    "walker": 451368926,
+    "resolves": 1791718342,
+    "contradictions": 356529346,
+    "manifold": 64513406,
+    "settles": 337336514,
+    "ambiguities": 1566952286,
+    "paradoxes": 1098208599,
+    "complexities": 48994202
+  },
+  "rosetta_component_primes": {
+    "walker": [
+      2,
+      12041
+    ],
+    "resolves": [
+      2,
+      47797
+    ],
+    "contradictions": [
+      2,
+      9511
+    ],
+    "manifold": [
+      2,
+      1721
+    ],
+    "settles": [
+      2,
+      8999
+    ],
+    "ambiguities": [
+      2,
+      41801
+    ],
+    "paradoxes": [
+      3,
+      19531
+    ],
+    "complexities": [
+      2,
+      1307
+    ]
+  }
+}

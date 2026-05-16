@@ -1,9 +1,13 @@
 # Contributing to Ophamin
 
 Thanks for taking an interest. This document covers the *what* and *how* of
-contribution. The framework is proprietary (see [LICENSE](LICENSE)) and not
-open for redistribution, but the canonical repository accepts review,
-discussion, and authorized contributions.
+contribution. The framework is open-source under the **Apache License
+2.0** (see [`LICENSE`](LICENSE) + [`NOTICE`](NOTICE)). External
+contributions are welcome through the standard GitHub PR flow; the
+project follows an RFC process for non-trivial design changes (see
+`docs/rfc/` once the process lands; currently architectural
+decisions are captured in the audit + extended-audit documents under
+`docs/`).
 
 ## Ground rules
 
@@ -26,8 +30,8 @@ discussion, and authorized contributions.
 git clone https://github.com/IdirBenSlama/Ophamin.git
 cd Ophamin
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -e ".[dev,viz,audit,profile,telemetry,well,hydra]"
-.venv/bin/python -m pytest -q          # all 551 tests must pass
+.venv/bin/python -m pip install -e ".[all,dev]"   # full optional surface
+.venv/bin/python -m pytest -q          # 842+ tests must pass
 ```
 
 ### Optional: enable the pre-push test gate
@@ -57,11 +61,17 @@ version:
    extraction (gwf_cleared, dissonance_count, …), Wilson 95% CI, inconclusive
    guards, and distribution stats.
 5. Register the class in `ophamin.measuring.scenarios.__init__.py`.
-6. Add unit tests in `tests/test_scenario.py` (use the `_FakeCyberCorpus` /
+   **This step is load-bearing for the `ophamin scenario <name>` CLI
+   path.** Scenarios whose files exist but whose classes aren't added
+   to the `SCENARIOS` dict are reachable from Python but not from the
+   CLI — see `docs/ARCHITECTURE_INTENT_VS_REALITY_2026_05_16.md` for the
+   current registry gap inventory.
+6. Add unit tests in `tests/test_scenario_*.py` (use the `_FakeCyberCorpus` /
    `_FakeFloresCorpus` patterns).
 7. Add an example runner in `examples/run_<scenario>.py`.
 
-New scenarios should land in ~80 LOC.
+New scenarios should land in ~80 LOC (analytic-deep scenarios in
+~300–500 LOC; see `prime_structure.py`, `causal_discovery.py`).
 
 ## Authoring a new audit pillar
 
@@ -82,7 +92,7 @@ New scenarios should land in ~80 LOC.
 
 Before opening a PR:
 
-- [ ] `pytest -q` runs green locally (all 386+ tests pass).
+- [ ] `pytest -q` runs green locally (all 842+ tests pass).
 - [ ] `ruff check src tests` reports no new violations.
 - [ ] If you added a public API, you also added tests for it.
 - [ ] If you added an external dependency, it's reflected in

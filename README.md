@@ -3,9 +3,9 @@
 [![CI](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
 [![Audit](https://github.com/IdirBenSlama/Ophamin/actions/workflows/audit.yml/badge.svg?branch=main)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/audit.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue.svg)](https://github.com/IdirBenSlama/Ophamin/blob/main/pyproject.toml)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/IdirBenSlama/Ophamin/releases)
-[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-386%20passing-brightgreen.svg)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-0.6.0-blue.svg)](https://github.com/IdirBenSlama/Ophamin/releases)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-1148%2B%20passing-brightgreen.svg)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
 
 **An empirical observatory wrapped around a substrate under test.**
 
@@ -79,19 +79,68 @@ Config composition / merge / dotted access is delegated to **OmegaConf**.
 
 ---
 
-## Three experimentation tiers — six shipped scenarios
+## Three experimentation tiers — 19 shipped scenarios
 
-| Tier | Scenario | Corpus | Target | Pre-registered claim | Latest live verdict |
-|---|---|---|---|---|---|
-| **Scientific** | Concentrated Immune Siege | offensive-security | `gwf` (direct) + `entity` | GWF false-positive rate on benign-labelled prompts ≤ 10% | VALIDATED 3.2% (CI 2.0%–5.1%) |
-| **Scientific** | Rosetta Scaling | FLORES-200 sentence-aligned parallel text | `rosetta` | Canonical-agreement across 10 languages ≥ 80% | REFUTED 0.0% (CI 0%–16%) |
-| **Scientific** | Organizational Dissonance | Enron email (~500k records) | `entity` | Dissonance fires on ≥ 90% of GWF-cleared cycles | VALIDATED 97.4% (CI 96.2%–98.3%) |
-| **Scientific** | Logic-Topology Siege | Linux kernel commits (~1.4M) | `entity` | Walker sustained-traversal rate ≥ 60% | REFUTED 39.6% (CI 36.0%–43.4%) |
-| **Engineering** | Throughput Ceiling | (mixed text load) | `entity` (wrapped in `InstrumentedSubstrate`) | p95 per-cycle wall-time ≤ 4.0 s | VALIDATED 2.357s |
-| **Philosophical** | Self-Reference | self-referential corpus + Enron neutral | `entity` (paired) | Cohen's d ≥ 0.30 (self-ref dissonance > neutral) | REFUTED d = -0.359 |
+The original six scenarios (Scientific / Engineering / Philosophical
+tiers) have been joined by an **empirical-deep tier** (Family A–V in
+Kimera's `EMPIRICAL_VALIDATION.md` — substrate-physics scenarios) and a
+**measurement-machinery tier** (validation of the upstream libraries
+Ophamin itself depends on). The discipline is unchanged: every scenario
+captures a pre-registered falsifiable claim before the run and emits a
+signed 9-section Empirical Proof Record.
+
+### Scientific tier — claims about substrate behaviour
+
+| Scenario | Corpus | Target | Pre-registered claim | Latest live verdict |
+|---|---|---|---|---|
+| Concentrated Immune Siege | offensive-security | `gwf` + `entity` | GWF false-positive rate on benign-labelled prompts ≤ 10% | VALIDATED 3.2% (CI 2.0%–5.1%) |
+| Rosetta Scaling | FLORES-200 sentence-aligned parallel text | `rosetta` | Canonical-agreement across 10 languages ≥ 80% | REFUTED 0.0% (CI 0%–16%) |
+| Organizational Dissonance | Enron email (~500k records) | `entity` | Dissonance fires on ≥ 90% of GWF-cleared cycles | VALIDATED 97.4% (CI 96.2%–98.3%) |
+| Logic-Topology Siege | Linux kernel commits (~1.4M) | `entity` | Walker sustained-traversal rate ≥ 60% | REFUTED 39.6% (CI 36.0%–43.4%) |
+| Interface Contract Stability | Kimera substrate self-introspect | (structural) | OrchestratorResult field-contract violations ≤ 2 per probe | first signed proof landed |
+| Substrate Completeness | Kimera repo structural walk | (structural) | Aggregate orphan rate ≤ 20% (canonical-name files in `kimera_swm/`) | VALIDATED 8.05% (Wilson CI [0.0555, 0.1153]) |
+| Memory-As-Deformation | captured Takwin trajectory | `entity` | Concept-set Jaccard floor across re-exposure pairs ≥ 0.80 | VALIDATED 1.0000 (Round M) |
+
+### Engineering tier — claims about substrate cost
+
+| Scenario | Corpus | Target | Pre-registered claim | Latest live verdict |
+|---|---|---|---|---|
+| Throughput Ceiling | mixed text load | `entity` (wrapped in `InstrumentedSubstrate`) | p95 per-cycle wall-time ≤ 4.0 s | VALIDATED 2.357s |
+
+### Philosophical tier — claims about substrate self-model
+
+| Scenario | Corpus | Target | Pre-registered claim | Latest live verdict |
+|---|---|---|---|---|
+| Self-Reference | self-referential + Enron neutral | `entity` (paired) | Cohen's d ≥ 0.30 (self-ref dissonance > neutral) | REFUTED d = −0.359 |
+
+### Empirical-deep tier — substrate-physics scenarios
+
+These scenarios target Kimera's prime apparatus + Φ + cross-channel
+behaviour. They mirror Family A–V claims in Kimera's
+`EMPIRICAL_VALIDATION.md` and run against captured trajectories.
+
+| Scenario | Probes | Pre-registered claim | Latest verdict |
+|---|---|---|---|
+| Bayesian Φ Posterior | Φ trajectory | HDI contraction ratio < theoretical-frequentist bound | VALIDATED (Family T) |
+| Causal Discovery | multi-channel trajectory (Tigramite PCMCI) | ≥ 1 directed link recovered above α level | VALIDATED 32 links (Family F) |
+| Cross-Channel Mutual Information | multi-channel trajectory (pyitlib + ennemi) | ≥ 1 pair above 0.05-nat floor | VALIDATED 8/8 pairs (Family T) |
+| Prime Structure | 200-cycle prime trajectory | concept-Jaccard floor ≥ 0.80, F.1.1 divisibility 100% | VALIDATED both (Family U Round G) |
+| Prime Factorization | 200-cycle prime trajectory | p_identity invariance ≥ 99% | VALIDATED 100% (Family U Round H) |
+| Prime Ecosystem | 200-cycle prime trajectory | Alexandria fused-key persistence ≥ 5 keys at ≥ 90% cycles | VALIDATED 12 keys (Round I) |
+| Prime Direct Lookup | 200-cycle prime trajectory | direct ArachneProtocol lookup p_thermo ≥ 99% prime | VALIDATED 100% (Round J) |
+| Prime Cross-Instance | N fresh Takwin processes | cross-instance p_identity invariance ≥ 99% | VALIDATED 100% (Round K) |
+| Quantum Basis Correlation | trajectory partitioned by stimulus class | content-class effect ≥ 15pp difference | VALIDATED 39pp (Round J) |
+
+### Measurement-machinery tier — validation of upstream libraries
+
+| Scenario | What it validates | Library | Latest verdict |
+|---|---|---|---|
+| CRDT Laws | Yjs CRDT convergence | pycrdt + y-py | VALIDATED 100/100 sequences |
 
 A REFUTED verdict is the framework working — it surfaces a real
-architectural gap, not a failure to measure.
+architectural gap, not a failure to measure. Per-tier verdict trail
+lives in `proofs/` (content-addressed JSON + Markdown twins) and in
+Kimera's `EMPIRICAL_VALIDATION.md` family entries.
 
 Each scenario produces a signed **9-section Empirical Proof Record**:
 identity, claim, pre-registration, data, evidence, verdict, reproduction,
@@ -119,7 +168,7 @@ python3.12 -m venv .venv             # Python 3.10+ required; 3.12 recommended
 # or shorthand:
 .venv/bin/python -m pip install -e ".[all,dev]"
 
-.venv/bin/python -m pytest -q                      # 551 tests, all green
+.venv/bin/python -m pytest -q                      # 842+ tests, all green
 .venv/bin/python examples/run_mock_experiment.py   # end-to-end, no Kimera needed
 ```
 
@@ -151,19 +200,26 @@ there to browse params, metrics and the manifest / provenance artifacts.
 ## CLI surface — what you can run today
 
 ```bash
+# core entry points
 ophamin demo                                  # end-to-end mock experiment, no Kimera needed
 ophamin run <config.yaml>                     # run one experiment from a base config
 ophamin sweep <experiment.yaml>               # parent + children parameter sweep
 ophamin probe-kimera <kimera-repo>            # self-test the Kimera adapter
 ophamin lineage --list                        # list recorded runs
+ophamin verify                                # install self-check + CI fast-fail gate
 
-# seeing/ — Layer A discovery + watcher
+# seeing/ — substrate-discovery surface
 ophamin discover <kimera-repo>                # mine Kimera's field-schema (one-shot)
+ophamin discover-fields <kimera-repo>         # catalogue OrchestratorResult fields
 ophamin discover-diff <a.json> <b.json>       # structural diff between two schema documents
 ophamin watch <kimera-repo>                   # many-small-eyes: continuous re-discover + diff + drift
+ophamin inventory <kimera-repo>               # primitive inventory (Ophamin-side catalog)
+ophamin wiring <kimera-repo> [--all]          # WiringProbe: orphan / WIRE_CANDIDATE / wired classification
+ophamin scrape <kimera-repo>                  # PrometheusScrapeProbe — consume Kimera's /metrics
 
 # comparing/ — Layer C drift detection
 ophamin drift-report                          # cross-commit drift over signed proofs
+ophamin drift-detect --stream <s> --detector <d>   # River-backed streaming drift on Φ / walker-halt
 
 # auditing/ — engineering-debt detection
 ophamin audit <path>                          # orchestrate static-analysis pillars; signed audit record
@@ -190,9 +246,14 @@ ophamin export <record.json> --format sarif|junit-xml|mlflow|cyclonedx
 
 Then set `substrate.kind: kimera` and `substrate.kimera_repo: <path>` in
 a config and run `ophamin sweep` / `ophamin run` exactly as with the
-mock. `KimeraAdapter` is the *only* Kimera-coupled file in the framework
-— everything else operates against the abstract `SubstrateUnderTest`
-protocol.
+mock. `KimeraAdapter` (in `seeing/substrate/`) is the central
+Kimera-coupling point — it adapts the substrate-under-test surface
+without leaking Kimera types into `measuring/` or `comparing/`. A
+small number of discovery / wiring / telemetry helpers in `seeing/`
+(`seeing/discovery/`, `seeing/wiring/`, `seeing/telemetry/`) also
+reach into Kimera shapes — these are *seeing-wheel-internal* probes,
+the same conceptual layer as `KimeraAdapter` itself. The
+`MockSubstrate` makes every wheel runnable + testable on its own.
 
 The four scientific scenarios + the engineering and philosophical scenarios
 all bring their own corpus connectors; running them needs the corpora
@@ -211,7 +272,8 @@ Ophamin/
 ├── requirements.txt                       # runtime deps (mirrors pyproject)
 ├── requirements-dev.txt                   # all optional extras + dev tools
 ├── README.md                              # this file
-├── LICENSE                                # proprietary; all rights reserved
+├── LICENSE                                # Apache-2.0
+├── NOTICE                                 # required-attributions companion to LICENSE
 ├── Makefile                               # install / test / demo / sweep / probe-kimera
 ├── config/                                # base + sweep config files
 │   ├── base_config.yaml
@@ -221,27 +283,39 @@ Ophamin/
 │   └── TIER_2_TELEMETRY_PROPOSAL.md
 ├── src/ophamin/
 │   ├── seeing/                            # Wheel 1 — sense Kimera + the world
-│   │   ├── substrate/                       SubstrateUnderTest, MockSubstrate, KimeraAdapter
+│   │   ├── substrate/                       SubstrateUnderTest, MockSubstrate, KimeraAdapter,
+│   │   │                                    field_catalog
 │   │   ├── corpus/                          Enron, Linux, FLORES, offensive-security, financial, The Well
-│   │   └── discovery/                       Layer A schema mining + watcher
+│   │   ├── discovery/                       Layer A schema mining + watcher + inventory
+│   │   ├── telemetry/                       PrometheusScrapeProbe (consumes Kimera's /metrics)
+│   │   └── wiring/                          WiringProbe — orphan / WIRE_CANDIDATE / wired classifier
 │   ├── measuring/                         # Wheel 2 — pre-registered measurement
 │   │   ├── proof/                           the 9-section Empirical Proof Record
-│   │   ├── scenarios/                       6 scenarios across 3 tiers + authoring helpers
+│   │   ├── scenarios/                       19 scenarios across 5 tiers + authoring helpers
 │   │   ├── metrics/                         three-tier metric model
-│   │   └── pillars/                         O · F · A · M · I · N (statsmodels / scikit-learn / scipy / …)
+│   │   ├── pillars/                         O · F · A · M · I · N (statsmodels / scikit-learn / scipy / …)
+│   │   └── *_helpers.py                     analytic / bayesian / causal / graph / sat_smt / timeseries
 │   ├── comparing/                         # Wheel 3 — cross-commit retrospection
-│   │   ├── drift/                           Layer C drift detection
+│   │   ├── drift/                           Layer C drift detection (delta_report, proof_index)
+│   │   ├── drift_detection/                 River-backed streaming detectors (ADWIN/KSWIN/PageHinkley)
 │   │   ├── provenance/                      W3C PROV-O + MLflow + DVC
-│   │   └── orchestration/                   parent/child experiment runs
-│   ├── instrumenting/                     # Wheel 4 — runtime resource cost (Phase 1)
+│   │   ├── orchestration/                   parent/child experiment runs
+│   │   └── crdt_state.py                    Yjs / y-py CRDT state probing
+│   ├── instrumenting/                     # Wheel 4 — runtime resource cost
+│   │   ├── wrapper.py                       InstrumentedSubstrate
+│   │   ├── periodic_sampler.py              background-thread subprocess sampler
+│   │   └── resource_metrics.py              per-cycle CPU / RSS / threads / GPU
 │   ├── auditing/                          # Wheel 5 — static-analysis orchestrator
 │   │   └── pillars/                         ruff / bandit / mypy / vulture / radon / pip-audit
+│   │                                        + deptry / fawltydeps / interrogate / pylint / refurb / prospector
 │   ├── reporting/                         # Wheel 6 — HTML / Markdown / LaTeX renderers + charts
 │   ├── inspecting/                        # per-primitive profile (composes the wheels)
+│   │                                        catalog + inspector + locator + primitive_profile
 │   ├── interop/                           # SARIF / JUnit XML / MLflow / CycloneDX exporters
 │   ├── protocols.py                       # plug-in protocols (Pillar / DatasetConnector / …)
+│   ├── verify.py                          # install self-check + CI fast-fail gate
 │   └── cli.py                             # the unified `ophamin` command-line
-├── tests/                                 # 386 tests, all green
+├── tests/                                 # 842+ tests, all green
 └── examples/                              # one runner per scenario + mock end-to-end
 ```
 
@@ -261,11 +335,23 @@ Optional extras (`pip install 'ophamin[<extra>]'`; combined in `requirements-dev
 | Extra | Adds | Used by |
 |---|---|---|
 | `viz` | `matplotlib` | `reporting/` charts + `synthesis/` cumulative-meta-analysis plots |
-| `audit` | `ruff`, `bandit`, `mypy`, `vulture`, `radon`, `pip-audit` | `auditing/` orchestrated pillars |
-| `telemetry` | `opentelemetry-api`, `opentelemetry-sdk` | `instrumenting/` Phase 2 (deferred) |
-| `profile` | `py-spy`, `memray` | `instrumenting/` Phase 2 (deferred) |
+| `audit` | `ruff`, `bandit`, `mypy`, `vulture`, `radon`, `pip-audit`, `deptry`, `fawltydeps`, `interrogate`, `pylint`, `refurb`, `prospector` + `cyclonedx-python-lib` | `auditing/` orchestrated pillars (twelve tools) |
+| `telemetry` | `opentelemetry-api`, `opentelemetry-sdk`, `prometheus_client` | `instrumenting/` + `seeing/telemetry/` PrometheusScrapeProbe |
+| `profile` | `py-spy`, `memray` | `instrumenting/` deep profilers (sampling + memory flamegraphs) |
 | `well` | `h5py` | `seeing.corpus.TheWellCorpus` for physics-simulation HDF5 datasets |
 | `hydra` | `hydra-core` | Hydra-driven entry points (OmegaConf is core) |
+| `analytic` | `pingouin`, `POT`, `infomeasure`, `umap-learn` | `measuring/` effect-size + Wasserstein + entropy/MI |
+| `causal` | `dowhy`, `econml`, `causalml`, `tigramite` | `measuring/` causal inference + PCMCI discovery |
+| `tda` | `ripser`, `scikit-tda`, `gudhi` | `seeing/` + `measuring/` topological data analysis |
+| `timeseries` | `darts`, `tsfresh`, `pyod`, `stumpy`, `statsforecast` | drift / forecasting / motif-discord |
+| `bayesian` | `arviz`, `pymc`, `numpyro` | `measuring/` Bayesian PPL (Family T posteriors) |
+| `property_test` | `hypothesis`, `schemathesis`, `coverage` | CRDT-law tests + API contract testing |
+| `acceleration` | `polars`, `duckdb`, `numba` | scenario speed-ups when stream sizes grow |
+| `sat_smt` | `z3-solver`, `cvc5` | `measuring/` formal verification |
+| `graph` | `igraph` | `measuring/` graph algorithms |
+| `crdt` | `pycrdt`, `y-py` | `comparing/crdt_state.py` distributed-state probing (cross-check oracle) |
+| `conformal` | `crepes`, `puncc` | `measuring/` conformal prediction |
+| `infotheory` | `pyitlib`, `ennemi` | `measuring/cross_channel_mutual_information` MI cross-check |
 | `dev` | `pytest` | running the test suite |
 | `all` | every optional extra | full local install |
 
@@ -325,5 +411,23 @@ land in ~80 LOC.
 
 See [`docs/TIER_2_TELEMETRY_PROPOSAL.md`](docs/TIER_2_TELEMETRY_PROPOSAL.md).
 The proposal describes per-cycle OpenTelemetry hooks Kimera could add to
-unlock the `instrumenting/` wheel's Phase 2. Owner-gated per Kimera's
+unlock substrate-internal span-tree attribution. Owner-gated per Kimera's
 Tier-1/2/3 fix policy.
+
+## Strategic context — what Ophamin currently observes, what it doesn't
+
+Two reference documents capture where Ophamin sits today and where the
+v0.2 reframe is pointed:
+
+- [`docs/KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md`](docs/KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md)
+  — measurement-coverage analysis. Names the nine substrate strata
+  Ophamin v0.2 should reach (cognitive / interface / transport /
+  persistence / reconciliation / temporal / security / telemetry /
+  lifecycle) and the four new measuring pillars + three new auditing
+  pillars proposed to support them.
+- [`docs/PLUGIN_CATALOG_2026_05_15.md`](docs/PLUGIN_CATALOG_2026_05_15.md)
+  — Kimera-aspect × Ophamin-wheel matrix mapping ~50 open-source tools
+  to gaps in the framework, with a 12-tool priority shortlist.
+
+Both are reading material before scoping new work. Implementation
+sequence is owner-gated.

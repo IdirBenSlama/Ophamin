@@ -23,8 +23,20 @@ from ophamin.measuring.pillars import (
     robustness,
     synthesis,
 )
+from ophamin.measuring.pillars.base import (
+    NonUniformComputeError,
+    PillarBase,
+)
+
+# Import the adapters module to fire the registration side-effect that
+# populates ophamin.registry.PILLARS with every shipped pillar. The
+# adapters themselves live in `_adapters.py` to keep the per-pillar
+# module surface unchanged.
+from ophamin.measuring.pillars import _adapters  # noqa: F401, E402
 
 __all__ = [
+    "NonUniformComputeError",
+    "PillarBase",
     "adaptive",
     "diagnostics",
     "effects",

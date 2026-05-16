@@ -19,6 +19,7 @@ ENV/
 .benchmarks/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
 .coverage
 .coverage.*
 htmlcov/
@@ -50,6 +51,18 @@ data/processed/
 # holds the full stdout/stderr per run for reproducibility but is gitignored
 # because it can grow large.
 logs/
+pyphi.log
+*.log
+
+# --- Bench storage (pytest-benchmark output) ---
+# Each run produces a JSON file under tests/bench/output or under
+# bench_storage/. They're per-machine, per-build noise; the BASELINE
+# numbers are pinned in docs/BENCHMARKS_AND_COVERAGE.md instead.
+bench_storage/
+tests/bench/output/
+# A buggy bench-storage URI passed as a string sometimes lands as a
+# literal "file:" directory; gitignore that shape too.
+file:
 
 # --- Local environment files ---
 # Never commit secrets. PATs / API keys / OAuth tokens belong in env vars or

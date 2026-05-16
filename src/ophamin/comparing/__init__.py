@@ -10,6 +10,8 @@ The outermost ring of Ophamin: cross-Kimera-commit retrospection. Submodules:
                           docs/PLUGIN_CATALOG_2026_05_15.md.
   - ``provenance``      — W3C PROV-O graph + lineage store (MLflow + DVC)
   - ``orchestration``   — parent / child experiment runs that apply the pillars
+  - ``synthesis``       — campaign-level summarize / diagnose / analyze (Move D)
+  - ``regression_alert`` — before/after verdict-transition detector (Move J)
 
 In the Ophanim image, this is the rim that sees the longest arc — it
 watches what changed across Kimera's evolution, not what Kimera is doing
@@ -18,6 +20,20 @@ right now.
 
 from __future__ import annotations
 
-from ophamin.comparing import drift, drift_detection, orchestration, provenance
+from ophamin.comparing import (
+    drift,
+    drift_detection,
+    orchestration,
+    provenance,
+    regression_alert,
+    synthesis,
+)
 
-__all__ = ["drift", "drift_detection", "orchestration", "provenance"]
+__all__ = [
+    "drift",
+    "drift_detection",
+    "orchestration",
+    "provenance",
+    "regression_alert",
+    "synthesis",
+]

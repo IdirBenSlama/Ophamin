@@ -94,6 +94,19 @@ class Pillar(Protocol):
     The current six pillars (O / F / A / M / I / N) live under
     ``ophamin.measuring.pillars/*``; this protocol describes the contract a
     new pillar must satisfy to be registrable.
+
+    As of Move G (2026-05-16) eleven adapter classes in
+    ``ophamin.measuring.pillars._adapters`` satisfy this Protocol and
+    register themselves with :data:`ophamin.registry.PILLARS` at module
+    import time. Out-of-tree pillars register the same way:
+    construct an instance of a :class:`PillarBase` subclass and call
+    :func:`ophamin.registry.register_pillar`. Per-pillar ``compute``
+    signatures diverge (sequential testing vs control charts vs
+    cross-validation are different shapes); the Protocol is metadata-
+    backed-by-compute — adapters whose pillar doesn't fit the uniform
+    ``compute(cycle_results, records)`` shape raise
+    :class:`ophamin.measuring.pillars.base.NonUniformComputeError`
+    with a pointer to the canonical per-pillar API.
     """
 
     pillar_name: str
@@ -119,13 +132,22 @@ class ScenarioProtocol(Protocol):
     a signed Empirical Proof Record.
 
     The existing ``ophamin.measuring.scenarios.base.Scenario`` abstract class
-    is the canonical implementation. The four shipped scenarios — Immune
-    Siege, Rosetta Scaling, Organizational Dissonance, Logic-Topology Siege
-    — all satisfy this contract.
+    is the canonical implementation. As of 2026-05-16 the framework ships
+    nineteen scenarios across five tiers (Scientific / Engineering /
+    Philosophical / Empirical-deep / Measurement-machinery); see the
+    README scenarios table for the full list.
 
     The pre-registration discipline is preserved across plug-ins: every
     ScenarioProtocol implementation must produce a claim whose threshold is
     *falsifiable* (a value the substrate could fail to meet), before the run.
+
+    .. note::
+
+       Eleven of the nineteen scenarios are not currently registered in
+       ``ophamin.measuring.scenarios.__init__.SCENARIOS``, which means
+       they are reachable from Python imports but not from the
+       ``ophamin scenario <name>`` CLI surface. See
+       ``docs/ARCHITECTURE_INTENT_VS_REALITY_2026_05_16.md`` for the gap.
     """
 
     name: str

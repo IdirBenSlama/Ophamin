@@ -39,15 +39,38 @@ place rather than four.
 ## The minimal scenario
 
 ```python
-from ophamin.proof import Claim, PillarEvidence, Threshold
-from ophamin.scenario import helpers
-from ophamin.scenario.base import Scenario, ScenarioScore
+from ophamin.measuring.proof import Claim, PillarEvidence, Threshold
+from ophamin.measuring.scenarios import helpers
+from ophamin.measuring.scenarios.base import Scenario, ScenarioScore, Tier
 
 
 class MyNewScenario(Scenario):
     name = "my-new-scenario"
-    corpus_name = "<corpus-name>"          # one of: enron, linux, flores, cyber
-    target = "<target-name>"               # one of: entity, rosetta, gwf, walker, …
+
+    # --- required metadata (Move A, 2026-05-16) ---
+    tier = Tier.SCIENTIFIC          # SCIENTIFIC / ENGINEERING / PHILOSOPHICAL
+                                    # / EMPIRICAL_DEEP / MEASUREMENT_MACHINERY
+    family = "<family-tag>"         # e.g. "immune", "prime", "phi"; scenarios in the
+                                    # same family probe the same substrate aspect from
+                                    # different angles
+    goal = (
+        "<one-sentence statement of what question this scenario answers>"
+    )
+    explanation = (
+        "<paragraph: why this scenario is interesting, what substrate "
+        "property a verdict would tell us about, what is at stake>"
+    )
+    # --- optional metadata ---
+    method = "<scoring-shape-tag>"  # e.g. "wilson_ci_proportion",
+                                    # "jaccard_floor", "cohens_d_paired"
+    falsification_consequence = (
+        "<one-line of what a REFUTED verdict would mean concretely>"
+    )
+    # --- end metadata ---
+
+    corpus_name = "<corpus-name>"          # enron, linux, flores, cyber, financial, the-well
+    target = "<target-name>"               # entity, pentecost, ouroboros, rosetta, arachne,
+                                           # walker, gwf, piovra, astrolabe, atlas, spde
 
     def __init__(self, n_cycles: int = 1000, threshold: float = 0.50) -> None:
         self.n_cycles = int(n_cycles)
@@ -116,23 +139,37 @@ class MyNewScenario(Scenario):
         )
 ```
 
-A scenario in this shape lands in ~80 lines. Register it in
-`ophamin/scenario/__init__.py` and write a runner in `examples/`; add tests
-in `tests/test_scenario.py` using the `_SyntheticSubstrate` pattern.
+A simple-proportion scenario in this shape lands in ~80 lines.
+Empirical-deep scenarios (Bayesian / causal / cross-channel-MI /
+prime-structure) are typically 300–500 LOC because they orchestrate
+multiple library backends.
+
+Register the class in `src/ophamin/measuring/scenarios/__init__.py`'s
+`SCENARIOS` dict so it's reachable from the `ophamin scenario <name>`
+CLI surface. Write a runner in `examples/`; add tests in
+`tests/test_scenario_*.py` using the `_SyntheticSubstrate` pattern (one
+test file per scenario is the current convention).
 
 ## When you need more than the simple proportion shape
 
-The four shipped scenarios cover three distinct scoring shapes:
+The 19 shipped scenarios cover several distinct scoring shapes:
 
 | Shape | Example | What's different |
 |---|---|---|
 | Simple proportion (filter + event) | Organizational Dissonance, Logic-Topology Siege | The minimal scenario above is sufficient. |
 | Labelled paired sample | Immune Siege | Computes false-positive AND detection rates on benign vs malicious labels; needs `select_records` for balanced interleave. |
 | Group-by + all-K-agree | Rosetta Scaling | Each "group" is a set of K stimuli; score is the fraction of groups where all K landed on the same canonical. |
+| Distribution-floor (Jaccard / divisibility / coverage) | Memory-As-Deformation, Prime Structure, Substrate Completeness | Score is the minimum or aggregate over many measurements (e.g. concept-Jaccard floor across re-exposure pairs). |
+| Bayesian posterior contraction | Bayesian Φ Posterior | Score is the HDI contraction ratio at N vs theoretical-frequentist bound; depends on `arviz` + `pymc`. |
+| Causal-graph recovery | Causal Discovery | Score is the count of significant directed links recovered by PCMCI; depends on `tigramite`. |
+| Cross-channel mutual information | Cross-Channel MI | Score is a count of pairs above a MI floor; depends on `pyitlib` + `ennemi` (cross-check oracle). |
+| Cross-instance determinism | Prime Cross-Instance | Score is an invariance fraction across N fresh Takwin processes. |
 
-For the more elaborate shapes, look at the existing scenario files for the
-pattern. The helpers library still applies — it just composes with custom
-group / pair logic.
+For the more elaborate shapes, look at the existing scenario files for
+the pattern. The helpers library still applies — it just composes with
+custom group / pair logic. Bayesian / causal / MI scenarios also use the
+matching `bayesian_helpers.py` / `causal_helpers.py` / `analytic_helpers.py`
+modules in `src/ophamin/measuring/`.
 
 ## The pre-registration discipline (load-bearing)
 
@@ -163,9 +200,9 @@ Once Layer C is online, every scenario's secondary descriptive evidence
 becomes a tracked trend across Kimera commits. Two practical implications:
 
 - Add a **distribution PillarEvidence** for the underlying signal even when
-  your primary claim is a single proportion. (This is what the four shipped
-  scenarios do.) Layer C reads the distribution stats, not just the
-  proportion.
+  your primary claim is a single proportion. (This is the convention
+  across the shipped scenarios.) Layer C reads the distribution stats,
+  not just the proportion.
 - Use **stable statistic names** across versions of the same scenario. If a
   scenario renames its statistic, drift detection treats it as a new metric
   (false-negative on real drift).

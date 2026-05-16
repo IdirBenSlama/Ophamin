@@ -25,6 +25,7 @@ audits don't produce noisy "errored" lines; opt in with
 
 from __future__ import annotations
 
+from ophamin.auditing.base import AuditPillar
 from ophamin.auditing.pillars.bandit_pillar import BanditPillar
 from ophamin.auditing.pillars.coverage_pillar import CoveragePillar
 from ophamin.auditing.pillars.deptry_pillar import DeptryPillar
@@ -72,22 +73,22 @@ PROJECT_PILLAR_CLASSES = (
 )
 
 
-def default_pillars() -> list:
+def default_pillars() -> list["AuditPillar"]:
     """Instantiate every file-scope pillar in declaration order."""
     return [cls() for cls in DEFAULT_PILLAR_CLASSES]
 
 
-def project_pillars() -> list:
+def project_pillars() -> list["AuditPillar"]:
     """Instantiate every project-scope pillar."""
     return [cls() for cls in PROJECT_PILLAR_CLASSES]
 
 
-def deep_pillars() -> list:
+def deep_pillars() -> list["AuditPillar"]:
     """Instantiate every deeper opt-in file-scope pillar."""
     return [cls() for cls in DEEP_PILLAR_CLASSES]
 
 
-def all_pillars() -> list:
+def all_pillars() -> list["AuditPillar"]:
     """Instantiate every pillar — file-scope, deep, and project-scope."""
     return default_pillars() + deep_pillars() + project_pillars()
 

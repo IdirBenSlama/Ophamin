@@ -1,0 +1,47 @@
+[run]
+# Branch coverage on by default — line coverage alone hides un-tested
+# control-flow paths (per Phase S2 of the elevation roadmap).
+branch = True
+source = src/ophamin
+# Concurrency: pytest-cov collects from the main interpreter; subprocess
+# CLI smoke tests in tests/ spawn fresh interpreters via `subprocess.run`,
+# which coverage.py doesn't follow by default. We accept that gap: the
+# CLI command bodies are exercised by the in-process tests too (CLI is
+# a thin shell over the library functions which ARE measured).
+parallel = False
+
+[report]
+# Show lines without coverage in the terminal report. Tested files
+# whose every branch is taken get a `100%` row.
+show_missing = True
+# Skip these globs from the report — they're not framework code.
+omit =
+    src/ophamin/__main__.py
+    */__pycache__/*
+    */.pytest_cache/*
+    src/ophamin.egg-info/*
+# Don't count these line patterns as missing coverage even when
+# untouched — they're protective paths the test suite doesn't have
+# to fire.
+exclude_lines =
+    # standard pragma
+    pragma: no cover
+    # __repr__ + __str__ are not load-bearing for behaviour
+    def __repr__
+    def __str__
+    # Defensive re-raise of an exception
+    raise NotImplementedError
+    raise AssertionError
+    # main guards (entry-point wrappers, not testable as code)
+    if __name__ == .__main__.:
+    # type-checking-only imports
+    if TYPE_CHECKING:
+    # protocol method stubs (declared in protocols.py — bodies are `...`)
+    \.\.\.$
+precision = 1
+
+[html]
+directory = .coverage_html
+
+[xml]
+output = .coverage.xml
