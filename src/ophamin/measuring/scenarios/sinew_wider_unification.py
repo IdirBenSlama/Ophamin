@@ -114,7 +114,7 @@ _PHYSICS_CANDIDATES = (
 )
 
 
-def _aggregate_top_level(records: list[dict], field: str) -> np.ndarray:
+def _aggregate_top_level(records: list[dict[str, Any]], field: str) -> np.ndarray:
     """Per-cycle scalar from records[i][field] (top-level)."""
     out: list[float] = []
     for r in records:
@@ -377,14 +377,14 @@ class SinewWiderUnificationScenario(Scenario):
         )
 
         claim = self.build_claim()
-        def _fmt_candidate(c: dict) -> str:
+        def _fmt_candidate(c: dict[str, Any]) -> str:
             br = c.get("best_ratio")
             ratio_str = f"({br:.4f})" if br is not None else "(—)"
             field_short = c["field"].split("/")[-1]
             return f"{field_short}={c['verdict']}{ratio_str}"
 
         candidate_table = ", ".join(_fmt_candidate(c) for c in per_candidate)
-        verdict = Verdict.decide(
+        final_verdict = Verdict.decide(
             observed=observed,
             threshold=claim.threshold,
             reasoning=(
@@ -468,7 +468,7 @@ class SinewWiderUnificationScenario(Scenario):
             substrate_name="kimera-swm",
             substrate_git_commit=self._kimera_commit,
             evidence=evidence,
-            verdict=verdict,
+            verdict=final_verdict,
             reproduction=Reproduction(
                 command=(
                     f"PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario "
