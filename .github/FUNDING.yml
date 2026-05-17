@@ -1,0 +1,18 @@
+# GitHub funding-source configuration.
+#
+# When the owner activates GitHub Sponsors for this repo, this file
+# surfaces a "Sponsor" button on the project page. Until then it has
+# no effect.
+#
+# Per ROADMAP.md "What we are NOT doing": the Sponsor button supports
+# the project's continued development; it never gates features. The
+# full framework is Apache-2.0, forever.
+#
+# To activate: the owner enables Sponsors at
+# https://github.com/sponsors/dashboard and uncomments + sets the
+# `github:` field below.
+
+# github: IdirBenSlama
+# open_collective: ophamin
+# ko_fi: ophamin
+# custom: ["https://idirbenslama.github.io/Ophamin/"]

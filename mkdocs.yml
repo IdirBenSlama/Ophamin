@@ -124,7 +124,11 @@ nav:
   - Project:
       - Changelog: changelog.md
       - Contributing: contributing.md
+      - Code of conduct: code_of_conduct.md
       - Security: security.md
+      - Support: support.md
+      - Governance: governance.md
+      - Roadmap: roadmap.md
       - License: license.md
       - Release procedure: RELEASE_PROCEDURE.md
       - Elevation roadmap: ELEVATION_ROADMAP_2026_05_16.md

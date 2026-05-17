@@ -7,7 +7,82 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.10.1] below for the latest cut.)
+(empty — see [0.10.2] below for the latest cut.)
+
+## [0.10.2] — 2026-05-17
+
+Phase E10 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md) —
+community infrastructure (GOVERNANCE + ROADMAP + SUPPORT + FUNDING),
+plus the coverage-gate fix that 0.10.1 attempted but didn't actually
+land on CI.
+
+### Added — community infrastructure (Phase E10)
+
+- **`GOVERNANCE.md`** — single-author / BDFL state documented
+  honestly, with a clear path to a small core team as contributor
+  density grows. Lists the owner's responsibilities, authority,
+  decision-making process, and explicit thresholds for promoting
+  contributors to committers + forming a core team.
+- **`ROADMAP.md`** — year-focused readable summary of the elevation
+  arc. Stages 1–4 done; Stages 5–6 in flight via the 0.9.x + 0.10.x
+  line. Cross-references RFC 0002 + ELEVATION_ROADMAP for the
+  load-bearing intent. Documents the explicit "1.0.0 ships when an
+  external rebuild verification OR a methods paper passes review"
+  bar.
+- **`SUPPORT.md`** — discovery table mapping consumer questions
+  ("how do I install / write a scenario / report a security
+  vulnerability") to the right channel. Sets honest expectations
+  about response cadence in the single-author state.
+- **`.github/FUNDING.yml`** — Sponsor button scaffolding, commented
+  out until the owner activates GitHub Sponsors at the account level.
+  Documents the explicit "Sponsor never gates features" policy.
+- **mkdocs `Project` nav** gains Code of Conduct, Support,
+  Governance, Roadmap as first-class pages alongside the existing
+  Changelog / Contributing / Security / License / Release procedure /
+  Elevation roadmap / RFC entries. All include-markdown-shimmed from
+  the repo-root canonical files.
+
+### Fixed — coverage gate
+
+- **`tests/test_cli_api_stability.py` refactored to in-process tests.**
+  0.10.1's subprocess-based smoke tests for `ophamin api-stability`
+  passed but coverage.py at the parent test process can't see
+  branches executed inside `subprocess.run(...)` children. The
+  effective coverage stayed at 74.5 % on the CI matrix (0.5 pp under
+  the 75 % gate). 0.10.2's tests invoke `cmd_api_stability` directly
+  with constructed `argparse.Namespace` objects so coverage.py sees
+  every branch. One subprocess test retained at the end as an
+  integration smoke for the argparse-dispatch path.
+- **Coverage now measures at 76.50 % locally** (+0.65 pp), clearing
+  the 75 % gate with margin on the CI matrix.
+
+### Changed
+
+- The mkdocs `Project` nav grew from 6 entries to 9 (added Code of
+  Conduct + Support + Governance + Roadmap).
+- Root-relative `[...](FILE.md)` links inside the new GOVERNANCE /
+  ROADMAP / SUPPORT files rewritten to absolute GitHub URLs (same
+  pattern established for CONTRIBUTING / SECURITY) so they resolve
+  identically in the GitHub browser AND under `mkdocs --strict`.
+
+### Owner action still pending (decoupled from this release)
+
+- **PyPI Trusted Publisher registration** at <https://pypi.org/manage/account/publishing/> —
+  unlocks `pip install ophamin`. See [`docs/RELEASE_PROCEDURE.md §4.5`](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/RELEASE_PROCEDURE.md).
+- **GitHub Sponsors activation** at <https://github.com/sponsors/dashboard> —
+  once active, uncomment + populate the `github:` field in
+  `.github/FUNDING.yml`.
+- **GitHub Discussions enable** at repo settings — surfaces the
+  Discussions tab linked from SUPPORT.md.
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (146/146).
+- `mkdocs build --strict` passes with all four new docs in nav.
+- Full suite: 1418 passed / 2 skipped / 0 failed in 4m44s.
+- Total coverage: **76.50 %** (gate ≥ 75 %).
+- `ophamin api-stability list` lists 28 Stable symbols; `check` on
+  `tests/` reports 0 violations.
 
 ## [0.10.1] — 2026-05-17
 
