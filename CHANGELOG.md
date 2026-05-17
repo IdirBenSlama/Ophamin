@@ -7,7 +7,57 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.9.2] below for the latest cut.)
+(empty — see [0.9.3] below for the latest cut.)
+
+## [0.9.3] — 2026-05-17
+
+**Headline:** Phase E7 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md) —
+SLSA 3 build provenance + sigstore signing + PEP 740 PyPI attestations
+on every release artefact. Three independent cryptographic attestations
+land per artefact, generated from a single sigstore signing event using
+GitHub's OIDC identity (no external secrets, no extra signing keys).
+
+### Added
+
+- **`actions/attest-build-provenance@v2`** in the `build` job of
+  [`release.yml`](https://github.com/IdirBenSlama/Ophamin/blob/main/.github/workflows/release.yml).
+  Generates a SLSA Provenance v1.0 attestation covering every file
+  in `dist/`, sigstore-signed via the workflow's OIDC identity. The
+  attestation lands in:
+    - GitHub's attestation store (visible at
+      <https://github.com/IdirBenSlama/Ophamin/attestations>),
+    - the public Rekor transparency log (sigstore.dev).
+  Required permissions added to the `build` job:
+  `id-token: write`, `attestations: write`.
+- **PEP 740 PyPI attestations** — `pypa/gh-action-pypi-publish` now
+  receives `attestations: true`. The action generates per-artefact
+  PEP 740 attestations from the OIDC claim and uploads them
+  alongside the wheel + sdist when publishing. Downstream consumers
+  can verify install-time provenance via
+  `pip install ophamin --verify-attestations` once the first
+  trusted-publishing release lands on PyPI.
+- **`docs/RELEASE_PROCEDURE.md` §4.6** — verification walkthrough
+  covering all three attestation layers (SLSA via `gh attestation
+  verify`, sigstore via `cosign verify-blob`, PEP 740 via `pip
+  install --verify-attestations`), the failure-mode matrix during
+  the pre-PyPI-setup transition window, and the explicit "no
+  owner-side prerequisites" note for the sigstore/SLSA layer.
+
+### Owner-side prerequisites
+
+**None for SLSA + sigstore + PEP 740 layers** — all three use
+GitHub's OIDC, no external secrets. The PyPI Trusted Publisher setup
+from §4.5 is still pending and gates only the PEP 740 *upload* step;
+the SLSA 3 attestation generates regardless.
+
+### Validated
+
+- `python -m build` emits both `ophamin-0.9.3.tar.gz` + `ophamin-0.9.3-py3-none-any.whl`.
+- `twine check --strict dist/*` PASSES on both artefacts.
+- `mypy --strict src/ophamin` clean (142/142).
+- `mkdocs build --strict` passes with the new §4.6 section.
+- No source-code changes — 0.9.3 is purely release-pipeline
+  hardening + docs. Source coverage + test suite identical to 0.9.2.
 
 ## [0.9.2] — 2026-05-17
 

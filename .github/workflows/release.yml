@@ -1,13 +1,29 @@
 name: release
 
-# Builds sdist + pure-Python wheel and publishes to PyPI via Trusted
-# Publishing (OIDC; no long-lived API tokens).
+# Builds sdist + pure-Python wheel, generates SLSA 3 build provenance,
+# and publishes to PyPI via Trusted Publishing with PEP 740 attestations.
+#
+# Three layers of cryptographic attribution attached to every artefact:
+#
+#   1. SLSA 3 build provenance     — actions/attest-build-provenance@v2
+#      Records the {builder, source, command, materials} tuple that
+#      produced each artefact. Verifiable via `gh attestation verify`
+#      from any GitHub clone of the repo, no extra tooling.
+#
+#   2. Sigstore cosign signature   — included in (1) via the underlying
+#      sigstore transparency log (Rekor). Verifiable via `cosign
+#      verify-blob` independently of GitHub.
+#
+#   3. PEP 740 PyPI attestations   — pypa/gh-action-pypi-publish with
+#      `attestations: true`. PyPI publishes the attestations alongside
+#      the package; `pip install ophamin --verify-attestations` and
+#      downstream tooling can verify provenance at install time.
 #
 # Trigger model:
-#   * `v*` tag push       — auto-release: build + publish to PyPI
-#   * workflow_dispatch    — operator-triggered: build + (optional) publish
+#   * `v*` tag push        — auto-release: build → attest → publish
+#   * workflow_dispatch    — operator-triggered: build only (dry-run=true) or full chain
 #
-# Owner-side prerequisites (one-time):
+# Owner-side prerequisites (one-time, PyPI side):
 #   1. Sign in at https://pypi.org/manage/account/publishing/
 #   2. Add a "pending publisher" for `ophamin`:
 #        Owner:               IdirBenSlama
@@ -17,10 +33,11 @@ name: release
 #   3. Once the first release succeeds the publisher promotes to a
 #      standard trusted publisher (no further action needed).
 #
-# Until step 1+2 are completed by the owner, the publish step will fail
-# with "trusted publisher invalid_grant" — that's expected and gating.
-# The build job will continue to succeed on every tag push so the wheel
-# is verifiable as a workflow artefact even before PyPI is wired.
+# Sigstore + SLSA require zero owner-side setup — they work out of the
+# box with GitHub's OIDC. Until the PyPI pending publisher is registered,
+# the publish step soft-fails (`continue-on-error: true`); the SLSA
+# attestation is generated regardless and visible at
+# https://github.com/IdirBenSlama/Ophamin/attestations.
 
 on:
   push:
@@ -44,8 +61,15 @@ permissions:
 
 jobs:
   build:
-    name: build sdist + wheel
+    name: build sdist + wheel + SLSA provenance
     runs-on: ubuntu-latest
+    # SLSA 3 provenance generation needs OIDC + write to GitHub's
+    # attestation store + read of repo contents. These are scoped to
+    # only this job, not the whole workflow.
+    permissions:
+      contents: read
+      id-token: write       # required by actions/attest-build-provenance
+      attestations: write   # required by actions/attest-build-provenance
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -77,6 +101,21 @@ jobs:
 
       - name: List built artifacts
         run: ls -la dist/
+
+      - name: Generate SLSA 3 build provenance attestation
+        uses: actions/attest-build-provenance@v2
+        # Generates a sigstore-signed SLSA Provenance v1.0 attestation
+        # covering every file in dist/. The attestation lands in
+        # GitHub's attestation store + the public Rekor transparency log.
+        # Verifiable via:
+        #
+        #   gh attestation verify dist/ophamin-X.Y.Z-py3-none-any.whl \
+        #       --owner IdirBenSlama
+        #
+        # See docs/RELEASE_PROCEDURE.md §4.6 for the full verification
+        # walkthrough.
+        with:
+          subject-path: "dist/*"
 
       - name: Upload as workflow artifact
         uses: actions/upload-artifact@v7
@@ -122,8 +161,18 @@ jobs:
         # No `password:` field — Trusted Publishing means PyPI mints a
         # short-lived token from the OIDC claim above. Long-lived tokens
         # in repo secrets are explicitly avoided per RFC 0002 §3.1 Phase E6.
+        #
+        # `attestations: true` — RFC 0002 §3.1 Phase E7. Tells the
+        # action to generate PEP 740 attestations for each artefact and
+        # upload them to PyPI alongside the package. Downstream consumers
+        # can verify install-time provenance via
+        # `pip install ophamin --verify-attestations`. This is
+        # orthogonal to the SLSA 3 attestation the `build` job emitted
+        # — that lives in GitHub's attestation store + Rekor; PEP 740
+        # attestations live in PyPI's index alongside the .whl/.tar.gz.
         with:
           packages-dir: dist/
+          attestations: true
           # `verbose` is useful for diagnosing first-publish issues
           # (most common: pending publisher not yet set up on PyPI side).
           verbose: true
