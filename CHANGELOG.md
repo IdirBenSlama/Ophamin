@@ -7,7 +7,35 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.8.4] below for the latest cut.)
+(empty — see [0.8.5] below for the latest cut.)
+
+## [0.8.5] — 2026-05-17
+
+Repo went public; Pages enabled (`build_type=workflow`); docs site
+is live at <https://idirbenslama.github.io/Ophamin/> (HTTP 200,
+verified). Patch tightens the deploy gate back to hard-fail.
+
+### Changed
+
+- **`.github/workflows/docs.yml`: deploy step back to hard-fail.**
+  0.8.4 had set `continue-on-error: true` on the deploy job because
+  Pages was disabled at the org level (Free-plan private repo could
+  not enable Pages via API). With the repo now public + Pages
+  enabled via `gh api repos/.../pages -X POST --field
+  build_type=workflow`, the deploy succeeds. Reverting the soft-warn
+  so future deploy regressions (quota / artifact-size / token / CDN)
+  surface as loud failures rather than silent skew between repo and
+  served site.
+
+### Validated
+
+- Manual `workflow_dispatch` run of docs.yml (post-Pages-enable):
+  build mkdocs ✅ + deploy to GitHub Pages ✅. Run id
+  [25995027403](https://github.com/IdirBenSlama/Ophamin/actions/runs/25995027403).
+- `curl -sI https://idirbenslama.github.io/Ophamin/` → HTTP 200.
+- Site title + meta-description match the configured mkdocs site.
+- `mypy --strict src/ophamin` clean (138/138).
+- `mkdocs build --strict` passes.
 
 ## [0.8.4] — 2026-05-17
 

@@ -31,7 +31,7 @@ The framework is independent of any particular substrate-under-test;
 system, and ``KimeraAdapter`` plugs in Kimera-SWM via a subprocess boundary.
 """
 
-__version__ = "0.8.4"
+__version__ = "0.8.5"
 
 from ophamin.measuring.metrics.tiers import (
     MetricBundle,

@@ -70,13 +70,12 @@ jobs:
       github.event_name == 'workflow_dispatch'
     needs: build
     runs-on: ubuntu-latest
-    # GitHub Pages is owner-side configuration (Settings → Pages →
-    # Source = "GitHub Actions"). On a Free-plan private repo it's
-    # disabled by default and `deploy-pages` returns 404. Treat the
-    # deploy step as advisory: the build artefact uploaded by the
-    # `build` job is the source of truth; when the owner enables
-    # Pages, future runs will deploy without further code changes.
-    continue-on-error: true
+    # Hard-fail on deploy errors. The repo went public + Pages was
+    # enabled (build_type=workflow) on 2026-05-17 (post-0.8.4); the
+    # site is live at https://idirbenslama.github.io/Ophamin/. Any
+    # future deploy failure (quota, artifact-size limit, token
+    # rotation, etc.) should fail loud so it lands as an owner-
+    # actionable signal rather than silent skew.
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
