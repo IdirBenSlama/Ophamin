@@ -1,0 +1,76 @@
+name: bench
+
+# Performance regression gate (Phase A3 / 0.8.3).
+#
+# Runs the pytest-benchmark suite under tests/bench/ and compares against
+# the pinned baseline in docs/BENCHMARKS_AND_COVERAGE.md. Hardware noise
+# means absolute numbers don't transfer between machines; the gate is on
+# the relative shape (any single bench regressing > 25 % vs the in-repo
+# baseline fails). The 25 % gate is generous because GH-Actions runners
+# have variable load — tighter would false-fail on hot machines.
+#
+# Run cadence:
+#   - on demand (workflow_dispatch)
+#   - on push to main (informational only — doesn't gate ship)
+#   - on PR (advisory comment via the job log)
+#
+# Benches are NOT part of the default test suite — the main CI workflow
+# explicitly --ignore=tests/bench. This separation keeps the test gate
+# fast + deterministic and the bench gate slow + statistical.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: bench-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    name: pytest-benchmark (Python 3.12)
+    runs-on: ubuntu-latest
+    # Advisory only — don't gate ship on hardware-noisy bench numbers.
+    # A real regression should be investigated; CI surfacing it via a
+    # red bench job is the signal, but we don't refuse to merge.
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all,dev,property_test]"
+
+      - name: Run benches
+        env:
+          PYTHONPATH: src
+        run: |
+          # Warm up once (numpy / scipy lazy-imports cost the first bench)
+          # then run with --benchmark-only so the bench fixture is required.
+          pytest tests/bench/ -q --benchmark-only \
+            --benchmark-storage=file:./bench_storage \
+            --benchmark-save=ci_run \
+            --benchmark-warmup=on \
+            --benchmark-min-rounds=10 \
+            --benchmark-disable-gc
+
+      - name: Upload bench results as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: bench-results
+          path: bench_storage/
+          retention-days: 30

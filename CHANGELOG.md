@@ -7,7 +7,75 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.8.2] below for the latest cut.)
+(empty — see [0.8.3] below for the latest cut.)
+
+## [0.8.3] — 2026-05-17
+
+Closes every Stage-3 on-my-side follow-up that 0.8.2 left open.
+
+### Added
+
+- **`requirements-lock.linux-amd64-py312.txt`** — portable lockfile
+  generated from a clean Docker `python:3.12.7-slim-bookworm` image
+  via [`tools/lockfile_emit.Dockerfile`](https://github.com/IdirBenSlama/Ophamin/blob/main/tools/lockfile_emit.Dockerfile).
+  367 pinned versions; matches exactly what GitHub Actions CI
+  resolves against. The author's macOS Python 3.14 lockfile
+  (`requirements-lock.darwin-py314.txt`) remains for forensic
+  reference; new contributors on Linux should use the new file.
+- **macOS CI matrix leg** — `tests` job now runs on
+  `ubuntu-latest` × Python 3.12, `ubuntu-latest` × Python 3.13,
+  AND `macos-latest` × Python 3.12. Catches platform-specific
+  regressions (the kind that surfaced as the Bayesian REFUTED-on-
+  Linux issue earlier this campaign). Windows deferred — subprocess-
+  path code uses POSIX conventions that would need explicit
+  Windows shims (open work).
+- **`.github/workflows/bench.yml`** — performance regression
+  workflow. Runs the pytest-benchmark suite on push to main + PRs,
+  with warmup + 10-round minimum + GC disabled + artefact upload.
+  Advisory only (`continue-on-error: true`) — bench numbers carry
+  hardware noise on shared CI runners, so we surface them as a
+  signal rather than a hard ship-gate. Pinned baselines remain in
+  [`docs/BENCHMARKS_AND_COVERAGE.md`](docs/BENCHMARKS_AND_COVERAGE.md).
+- **18 subprocess-mocked KimeraAdapter tests** in
+  [`tests/test_kimera_adapter_subprocess_mock.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_kimera_adapter_subprocess_mock.py).
+  Cover every branch of `_invoke` (happy path / empty stdout /
+  invalid JSON / non-object JSON / timeout / probe / batch flag /
+  env-merge / timeout default vs explicit), `_to_cycle_result`
+  (success, adapter_error, `cycle_seconds` propagation + regression
+  guard for the 2026-05-15 fix, non-dict `raw` wrapping), and
+  `run_batch` (subprocess-mode delegation + batch-mode happy path).
+  Coverage on `seeing/substrate/kimera_adapter.py` jumps **55.9 % →
+  71.1 %** — past the v0.9.0 ≥ 70 % target *without* a real Kimera
+  repo on disk.
+- **`tools/lockfile_emit.Dockerfile`** — the reproducible-build
+  helper that emits the Linux lockfile. Refresh procedure
+  documented in the lockfile's own header.
+- **`ELEVATION_ROADMAP_2026_05_16.md` §9–§12** — Stage 5 (scientific
+  SOTA: E1 cross-framework validation, E2 FWER correction, E3 open
+  benchmarks, E4 research-grade reproducibility, E5 peer-review
+  publication) and Stage 6 (engineering SOTA: E6 PyPI + conda-forge,
+  E7 SLSA + sigstore, E8 API stability policy, E9 cross-language
+  read APIs, E10 community infrastructure) appended to the roadmap.
+  10 phases total; each with concrete acceptance criteria + estimated
+  effort + comparison-row against scikit-learn / mlflow / pymc.
+- **RFC 0002** — the L5 ratification of Stage 5 + Stage 6 as the next
+  elevation plan. First forward-looking RFC under the new process
+  (RFC 0001 was retrospective). DRAFT status; merges to ACCEPTED on
+  owner sign-off. See
+  [`docs/rfc/0002-sota-elevation-stages-5-and-6.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md).
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (138/138)
+- `mkdocs build --strict` passes with the new RFC + nav entry
+- Full suite: 1241 passed / 1 skipped / 0 failed in 4m49s
+- Total coverage: **77.04 %** (gate ≥ 75 %); `kimera_adapter.py`
+  in-file coverage **79.6 %** in the full-suite run (combined
+  cov from existing + new tests)
+- New subprocess-mock tests in isolation: 18/18 pass
+- Lockfile regeneration: ~1 min on a warm Docker cache
+- CI matrix cross-validation pending the push of this commit
+  (5 workflows × 4 test-matrix legs)
 
 ## [0.8.2] — 2026-05-17
 

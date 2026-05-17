@@ -17,15 +17,22 @@ permissions:
 
 jobs:
   test:
-    name: tests (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    name: tests (${{ matrix.os }} / Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         # Test on the Python versions in pyproject's requires-python band.
         # 3.12 is the canonical target; 3.13 catches the next stable release.
-        # Add 3.10/3.11 back if older-version compatibility becomes a goal.
+        # macOS is included on Python 3.12 only to catch platform-specific
+        # path / wheel / encoding regressions without quadrupling cost.
+        # Windows is deferred — subprocess-path code uses POSIX conventions
+        # that would need explicit Windows shims (open work).
+        os: [ubuntu-latest]
         python-version: ["3.12", "3.13"]
+        include:
+          - os: macos-latest
+            python-version: "3.12"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -66,10 +73,10 @@ jobs:
             --cov-report=xml --cov-report=term:skip-covered
 
       - name: Upload coverage artifact
-        if: matrix.python-version == '3.12'
+        if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v7
         with:
-          name: coverage-xml-py3.12
+          name: coverage-xml-ubuntu-py3.12
           path: coverage.xml
           retention-days: 14
 

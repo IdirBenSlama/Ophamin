@@ -130,3 +130,4 @@ nav:
       - RFCs: rfc/README.md
       - RFC template: rfc/0000-template.md
       - RFC 0001 — Retrospective: rfc/0001-retrospective-pre-0.8.0-architecture.md
+      - RFC 0002 — SOTA elevation (Stages 5+6): rfc/0002-sota-elevation-stages-5-and-6.md

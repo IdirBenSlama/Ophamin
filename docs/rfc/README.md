@@ -64,9 +64,17 @@ The audits and extended-audit documents under [`docs/`](../index.md)
 (`ARCHITECTURE_EXTENDED_AUDIT_*.md`,
 `ARCHITECTURE_INTENT_VS_REALITY_*.md`,
 `ELEVATION_ROADMAP_*.md`) predate this RFC process and stand as the
-canonical record of pre-0.8.0 design decisions. They will be
-retrospectively re-numbered as RFCs `0001` onward in a follow-up;
-new design changes start using RFC numbers ≥ 0002.
+canonical record of pre-0.8.0 design decisions.
+[RFC 0001](0001-retrospective-pre-0.8.0-architecture.md) is the
+retrospective pointer that ratifies them under the L5 process; new
+design changes start using RFC numbers ≥ 0002.
+
+## Accepted RFCs
+
+| RFC | Title | Status | Created |
+|---|---|---|---|
+| [0001](0001-retrospective-pre-0.8.0-architecture.md) | Retrospective pointer to pre-0.8.0 architecture | ACCEPTED | 2026-05-17 |
+| [0002](0002-sota-elevation-stages-5-and-6.md) | State-of-the-art elevation: Stages 5 (scientific) and 6 (engineering) | DRAFT | 2026-05-17 |
 
 ## Reviewer checklist
 

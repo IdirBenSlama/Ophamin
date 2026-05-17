@@ -227,9 +227,13 @@ If we commit to elevation, the cleanest order is:
 | **Stage 2 — reproducible + secure** | S4 (lockfile + container), S5 (supply chain), S6 (property tests) | 4–6 | "any reviewer can rebuild bit-identically; any CVE is alerted within 24h" |
 | **Stage 3 — public legitimacy** | L1 (docs site), L2 (DOI), L3 (public CI), L4 (schema policy) | 4.5–6.5 | "citable + browsable + every PR shows green; consumers can rely on schemas" |
 | **Stage 4 — community + science** | L5 (RFC process), L6 (validation studies) | 5–7 | "third-party contributors can navigate the design space; the framework's claims are independently checkable" |
+| **Stage 5 — state-of-the-art scientific tier** | E1 (cross-framework validation), E2 (statistical rigor), E3 (open data + benchmarks), E4 (research-grade reproducibility), E5 (peer review + publication) | 10–18 | "the framework's claims meet bar for a methods paper; cited externally" |
+| **Stage 6 — state-of-the-art engineering tier** | E6 (multi-platform wheels + PyPI/conda), E7 (signed releases + SLSA provenance), E8 (deprecation + stability policy), E9 (cross-language interop), E10 (community infrastructure) | 8–14 | "Ophamin is on the shelf next to scikit-learn / mlflow / pymc as a citable + installable + maintainable scientific framework" |
 
-**Total: ~20–30 sessions.** Each stage is independently shippable.
-Owner picks the cut-off.
+**Total: ~38–55 sessions** if every phase lands. Each stage is
+independently shippable; the owner picks the cut-off. Stages 5–6
+target **state-of-the-art** legitimacy — see §9 + §10 below for the
+detailed phase breakdowns.
 
 ---
 
@@ -348,3 +352,309 @@ landing every open architectural gap (Moves A–N), cutting v0.4.0,
 and receiving owner-locked constraints (open-source + no rename).
 Ready to execute Stage 1 (S1 mypy strict + S2 coverage + S3
 benchmarks) on owner go-ahead.*
+
+---
+
+## 9. Stage 5 — state-of-the-art scientific tier
+
+Stage 5 raises Ophamin from "internally rigorous + publicly browsable"
+(Stages 1–4) to "citable as a scientific methods framework". Each
+phase has concrete acceptance criteria and a publication-shaped
+deliverable.
+
+**Phase E1 — cross-framework validation studies.**
+
+The framework's measurement-machinery tier is already self-validating
+(Bayesian posterior contracts as √N; CRDT laws cross-checked between
+pycrdt + y-py). Stage-5 extends this to cross-framework validation:
+
+- **GWF-class scenarios cross-checked against Garak + promptfoo** —
+  run the same offensive-security corpus through both and surface the
+  delta as a signed proof. The discipline: pre-register the
+  expected agreement bound BEFORE running.
+- **Pillar-class scenarios cross-checked against R / Stan / PyMC** —
+  the Bayesian-phi-posterior scenario already uses PyMC; add a Stan
+  alternative under `[bayesian_stan]` and assert posterior
+  contraction agrees within tolerance.
+- **CRDT-laws cross-checked against Yjs's own JS test suite** —
+  translate one of Yjs's foundational tests into a Hypothesis
+  strategy; verify Ophamin reaches the same fixed-point.
+
+Acceptance: ≥ 3 cross-framework validation proofs published under
+[`proofs/measurement_machinery/`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/measurement_machinery/);
+each is a VALIDATED record with a documented agreement threshold.
+Estimated effort: 3–5 sessions.
+
+**Phase E2 — formal statistical rigor.**
+
+Pre-registration discipline + Wilson 95 % CIs are already shipped.
+Stage-5 adds the statistical machinery a methods paper would expect:
+
+- **Family-wise error rate (FWER) management across a campaign.** When
+  `ophamin run-all` produces N proofs, the probability of at least one
+  spurious VALIDATED at α=0.05 climbs with N. Implement Holm–Bonferroni
+  or Benjamini–Hochberg correction in the CampaignRecord aggregate;
+  surface both raw and corrected verdicts.
+- **Bayesian updating across a scenario sequence.** When the same
+  scenario runs N times against different commits, the posterior
+  should update — not reset. Add `ophamin compare update-posterior
+  <scenario>` that walks a directory of proofs and emits a posterior
+  trajectory record.
+- **Power analysis** for every scenario at scenario-authoring time.
+  Add `ScenarioScore.minimum_detectable_effect` or similar; warn at
+  `ophamin scenario show` time when the configured N is below the
+  power-80 threshold for the pre-registered claim.
+
+Acceptance: a new pillar `M.fwer` (multiplicity correction) + a new
+`E.power` pillar (effect-size + power calculation). Both pass
+property tests. CampaignRecord schema bumps to `2.0` to include
+corrected verdicts.
+
+Estimated effort: 2–4 sessions.
+
+**Phase E3 — open data + benchmarks.**
+
+A SOTA scientific framework publishes its **benchmark corpus**:
+
+- **Substrate-vs-claim benchmark suite.** Curate 100+ signed proofs
+  across the 19 scenarios + N synthetic-substrate variants; publish
+  as a tagged Zenodo deposit with its own DOI separate from the
+  framework's. The benchmark is then *citable as a dataset* —
+  downstream papers can reference it directly.
+- **Reproducer notebook per scenario** — a Jupyter or marimo
+  notebook that, given the published benchmark, reproduces every
+  scenario's claim end-to-end. Owner-runnable; the notebook is the
+  scientific artefact.
+- **Hardness landscape paper** — a short methods paper showing how
+  scenario verdicts shift as substrate parameters vary (e.g. MockSubstrate
+  noise level → ImmuneSiege false-positive rate trajectory). Submitted
+  to a software-paper venue (JOSS, SoftwareX, JMLR-Open-Source).
+
+Acceptance: one Zenodo benchmark deposit + one methods paper draft +
+reproducer notebooks for ≥ 6 scenarios.
+
+Estimated effort: 3–5 sessions + owner-side paper authoring.
+
+**Phase E4 — research-grade reproducibility.**
+
+Beyond Stages 1–3's reproducible-build foundation:
+
+- **Per-OS lockfiles** for every supported triple: macOS-arm64-py312,
+  linux-amd64-py312, linux-amd64-py313, linux-arm64-py312 (when wheels
+  catch up). Stage-3 shipped two; Stage-5 adds the rest via
+  `uv pip compile --universal` or per-platform Docker emit.
+- **Deterministic-seed propagation audit.** Every scenario should
+  produce a bit-identical `proof_id` for the same `(seed, corpus,
+  substrate_commit, ophamin_commit)` tuple across N machines. Add a
+  `MeasurementMachinery` scenario that asserts this empirically.
+- **In-toto / SLSA Level 3 attestations** for every release artefact.
+  GitHub Actions natively supports SLSA 3 via the `slsa-framework`
+  reusable workflow; wire it.
+- **Container image signing** via cosign (sigstore). The 0.8.x
+  Dockerfile produces an image; cosign-sign it on every release.
+- **Diffoscope-clean builds** — `diffoscope` should report zero
+  meaningful diffs between two independent builds of the same commit.
+
+Acceptance: at least one external reviewer rebuilds a tagged release
+from source + lockfile and verifies the SBOM byte-equal +
+signed-record byte-equal output. Published as a reproducibility
+report.
+
+Estimated effort: 2–4 sessions + owner-side cross-validation.
+
+**Phase E5 — peer review + publication.**
+
+The capstone: a methods paper. Likely venues + paths:
+
+- **JOSS** (Journal of Open Source Software) — fast turnaround,
+  reviewer focus on "is the software well-engineered + documented"
+  rather than novel research. Realistic 1–3 month review cycle.
+- **SoftwareX** — Elsevier, scopes broader than JOSS, asks for some
+  research narrative + reproducibility evidence.
+- **JMLR-Open-Source-Software** — narrowest scope (ML/stats software);
+  prestige bump.
+
+Acceptance: paper draft + JOSS-style review issue opened at the
+chosen venue. The framework's claims become **independently
+checkable** by reviewer-time peer review.
+
+Estimated effort: 3–6 sessions of authoring + revision rounds.
+
+**Stage 5 cumulative effort: 13–24 sessions.**
+
+---
+
+## 10. Stage 6 — state-of-the-art engineering tier
+
+Stage 6 raises Ophamin from "Apache-2.0 source on GitHub" to "on the
+shelf next to scikit-learn / mlflow / pymc — installable, signed,
+multi-platform, with formal stability guarantees".
+
+**Phase E6 — PyPI + conda-forge + multi-platform wheels.**
+
+Today the framework is GitHub-only; `pip install ophamin` doesn't
+work. Stage-6 phase one:
+
+- **PyPI publication** via Trusted Publishing. Add the OIDC config to
+  `.github/workflows/release.yml`. Every `v*` tag triggers a sdist +
+  pure-Python wheel build + upload. No long-lived PyPI tokens — the
+  OIDC trust is the release credential.
+- **conda-forge feedstock** — separate repo `conda-forge/ophamin-feedstock`,
+  the recipe meta.yaml derives from pyproject's extras. Conda users
+  install via `conda install -c conda-forge ophamin`.
+- **Multi-platform wheel matrix** — for the future-when-Ophamin-grows-
+  C-extensions case (it's pure-Python today, so a single wheel
+  suffices); the scaffolding is `cibuildwheel`. Adds a workflow stub
+  even though it's a no-op for the current code so future C extensions
+  ship pre-built.
+
+Acceptance: `pip install ophamin` works against PyPI; conda-forge
+recipe lands; both auto-update on every release.
+
+Estimated effort: 1–2 sessions.
+
+**Phase E7 — signed releases + SLSA provenance.**
+
+Beyond Stage-5's research-reproducibility framing, the engineering
+SOTA requires:
+
+- **Sigstore release signing** — every PyPI artefact + container image
+  cosign-signed; signatures published to a transparency log.
+- **SLSA Level 3 build provenance** — auto-generated by the release
+  workflow; attached to every release as an in-toto attestation.
+- **Source provenance** — the GitHub commit signature chain back to
+  the owner's GPG / SSH key. Verifiable via `gh attestation verify`.
+
+Acceptance: `cosign verify` succeeds against every release artefact;
+`gh attestation verify` confirms the build provenance.
+
+Estimated effort: 1 session + GitHub owner-side cosign setup.
+
+**Phase E8 — deprecation + stability policy.**
+
+Today the framework lives under 0.x; backward compatibility is
+*encouraged* but not *contractually guaranteed* beyond the schema
+policy in SCHEMAS.md. State-of-the-art engineering demands an
+explicit stability contract:
+
+- **API stability tiers** — every public symbol carries an explicit
+  tier in its docstring: `Stable`, `Provisional`, `Internal`,
+  `Deprecated (until <date>)`. The audit pillar `mypy` enforces this
+  via a `@stable` / `@provisional` / `@internal` decorator stack
+  (also exposed via mkdocstrings).
+- **Deprecation policy** — at least one full minor release of warning
+  + the documented migration path before removal in a major bump.
+  Mirrors the SCHEMAS.md policy at the Python level.
+- **Stability test suite** — for every `Stable` symbol, a regression
+  test pins its signature + behavior. Adding parameters is OK;
+  removing or renaming fails the test.
+- **`ophamin api-stability check`** CLI — surfaces deprecation
+  warnings reachable from a user's code (point at a directory or a
+  proof record's `reproduction.command`).
+
+Acceptance: every public symbol annotated; the stability test suite
+catches accidental renames at PR time.
+
+Estimated effort: 2–3 sessions.
+
+**Phase E9 — cross-language interop.**
+
+Today Ophamin is Python-only. SOTA scientific frameworks have at
+minimum a Read API in adjacent languages. Concrete shape:
+
+- **Rust signed-record codec** (read-only) — a `cargo` crate
+  `ophamin-proof` that parses `EmpiricalProofRecord` JSON, verifies
+  the signature, and exposes the data structurally. Validates the
+  schema is platform-agnostic; opens the door to Rust scenarios.
+- **JS / TypeScript signed-record codec** — same pattern, for the
+  browser-side replay-a-proof story.
+- **Schema stability via cross-language tests** — the Rust + JS
+  codecs run against a fixture of 100 signed proofs from Python;
+  byte-equal signature verification across all three.
+
+Acceptance: a `crates/ophamin-proof/` + `packages/ophamin-proof-js/`
+subdir; both ship their own CI; cross-language reproducibility test
+passes.
+
+Estimated effort: 3–5 sessions.
+
+**Phase E10 — community infrastructure.**
+
+The last piece of the "alongside scikit-learn / mlflow / pymc" gap:
+
+- **GitHub Discussions** enabled — paired with the existing Issues
+  templates.
+- **Code of Conduct** activated and visible.
+- **Sponsor button** — GitHub Sponsors / Open Collective. Not for
+  fundraising; for *signalling that the project accepts contributions
+  at the community-economics layer*.
+- **Project governance doc** — `GOVERNANCE.md` explaining the
+  owner-as-BDFL state today + the path to a small core team if /
+  when contributors arrive.
+- **Annual roadmap doc** — `ROADMAP.md` derived from this elevation
+  roadmap, but refreshed each year. Shows external readers where the
+  project is heading.
+- **Quarterly state-of-Ophamin post** — owner-territory; one
+  short post per quarter showing what changed, what shipped, what's
+  next. Doubles as a check-in artifact.
+
+Acceptance: every infrastructure piece visible from
+`https://github.com/IdirBenSlama/Ophamin`.
+
+Estimated effort: 1–2 sessions + ongoing owner cadence.
+
+**Stage 6 cumulative effort: 8–14 sessions.**
+
+---
+
+## 11. Definition of "state-of-the-art" — what we measure against
+
+The framing of Stages 5 + 6 is "be on the shelf next to
+scikit-learn / mlflow / pymc". Concrete criteria:
+
+| Criterion | scikit-learn | mlflow | pymc | **Ophamin target after Stages 5+6** |
+|---|---|---|---|---|
+| PyPI installable | ✅ | ✅ | ✅ | ✅ Phase E6 |
+| Conda-forge available | ✅ | ✅ | ✅ | ✅ Phase E6 |
+| Multi-platform CI matrix | Linux + macOS + Windows | Linux + macOS | Linux + macOS + Windows | Linux + macOS (Phase A2); Windows via E6 follow-up |
+| mypy --strict clean | partial | partial | partial | ✅ (Phase S1) |
+| Property-test coverage | partial | partial | ✅ | ✅ (Phase S6) |
+| Methods paper published | n/a (textbook) | yes (Databricks blog series + workshop) | yes (JOSS) | Phase E5 |
+| DOI per release | no | no | ✅ Zenodo | Phase L2 (owner-side activation) |
+| Schema versioning policy | informal | yes (mlflow_model) | informal | ✅ (Phase L4) |
+| SLSA-signed releases | partial | yes | partial | Phase E7 |
+| Cross-language read API | C / R bindings | yes (JS / R / Java) | partial (R) | Phase E9 |
+| Public RFC process | yes | yes | yes | ✅ (Phase L5) |
+| Governance doc | ✅ | ✅ | ✅ | Phase E10 |
+| External contributors | thousands | hundreds | dozens | owner-territory |
+| Citations | tens of thousands | thousands | thousands | owner-territory |
+
+What we **can** deliver via framework-internal work: every row up to
+"External contributors". What we **can't** deliver via code alone:
+the last two rows are owner-driven (paper writing, community
+building, conference talks). State-of-the-art means *delivering
+everything that's framework-internal* + *having the infrastructure
+ready* for the external-driven parts.
+
+---
+
+## 12. The next single highest-leverage move (after Stages 1–4)
+
+If only ONE Stage-5 phase landed first, **Phase E2 (formal
+statistical rigor — FWER correction across a campaign)** is the
+highest leverage. Three reasons:
+
+1. It's framework-internal — no owner-side dependency.
+2. It surfaces a real defect in the current methodology: today, a
+   `ophamin run-all` that produces 19 scenario verdicts has an
+   ~62 % chance of at least one spurious VALIDATED at α=0.05 from
+   pure multiple-testing. The fix is documented + implemented in a
+   single round; the win is publishable as part of the methods
+   paper.
+3. It's the bridge between "rigorous internally" and "citable
+   externally" — without it, a methods reviewer asks the
+   multiple-testing question immediately.
+
+Second-highest: Phase E1 (cross-framework validation). It surfaces
+exactly the dependencies that make Ophamin not-yet-SOTA today: the
+framework's claims about Kimera are testable only against itself.
