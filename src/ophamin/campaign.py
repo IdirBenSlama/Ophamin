@@ -41,13 +41,27 @@ from pathlib import Path
 from typing import Any
 
 from ophamin import __version__
+from ophamin.comparing.fwer import (
+    CorrectionFamily,
+    CorrectionInput,
+    apply_correction,
+)
 from ophamin.measuring.proof import dump as proof_dump
+from ophamin.measuring.proof.codec import iter_proofs
 from ophamin.measuring.scenarios import SCENARIOS, Scenario
 from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY
 from ophamin.seeing.substrate.base import SubstrateUnderTest
 
 
-CAMPAIGN_SCHEMA_VERSION = "1.0"
+#: the wire-format schema version a fresh writer emits.
+#:
+#: Bumped 1.0 → 2.0 (2026-05-17, RFC 0002 Phase E2) to add FWER /
+#: BH correction fields. The bump is **strictly additive**; 1.0 records
+#: remain readable + signature-verifiable, see :func:`CampaignRecord._body`.
+CAMPAIGN_SCHEMA_VERSION = "2.0"
+
+#: every schema version a reader will accept.
+SUPPORTED_CAMPAIGN_SCHEMA_VERSIONS: frozenset[str] = frozenset({"1.0", "2.0"})
 
 #: the canonical six phases in execution order.
 CANONICAL_PHASE_ORDER: tuple[str, ...] = (
@@ -122,7 +136,23 @@ class CampaignPhase:
 
 @dataclass
 class CampaignRecord:
-    """Signed, content-addressed aggregate of one full-pass run."""
+    """Signed, content-addressed aggregate of one full-pass run.
+
+    Schema 2.0 (current) adds two strictly-additive fields:
+
+    * ``corrected_verdicts`` — ``{claim_id → corrected_verdict}`` after
+      multiplicity correction (FWER or FDR). Empty dict when no
+      correction was applied or when no records carried a p_value.
+    * ``multiplicity_correction_method`` — ``"holm"`` / ``"bh"`` /
+      ``"none"``. The method the writer used when populating
+      ``corrected_verdicts``.
+
+    Schema 1.0 records remain readable: missing additive fields default
+    to empty dict / ``"none"`` respectively. Signature verification is
+    version-aware — :meth:`_body` includes the additive fields only
+    when ``schema_version != "1.0"``, so a 1.0 signature still
+    re-canonicalises bit-equal to the original wire form.
+    """
 
     target_name: str
     target_git_commit: str
@@ -133,11 +163,17 @@ class CampaignRecord:
     ophamin_git_commit: str = ""
     schema_version: str = CAMPAIGN_SCHEMA_VERSION
     signature: str = ""
+    #: ``{claim_id → corrected_verdict}`` after the multiplicity correction
+    #: pass (Phase E2). New in schema 2.0; ignored on schema 1.0.
+    corrected_verdicts: dict[str, str] = field(default_factory=dict)
+    #: one of ``"holm"`` / ``"bh"`` / ``"none"`` (or other future methods).
+    #: New in schema 2.0; defaults to ``"none"``.
+    multiplicity_correction_method: str = "none"
 
     # -- body / id / signing -------------------------------------------------
 
     def _body(self) -> dict[str, Any]:
-        return {
+        body: dict[str, Any] = {
             "schema_version": self.schema_version,
             "target_name": self.target_name,
             "target_git_commit": self.target_git_commit,
@@ -147,6 +183,14 @@ class CampaignRecord:
             "ophamin_git_commit": self.ophamin_git_commit,
             "phases": [p.to_dict() for p in self.phases],
         }
+        # Schema-2.0 additive fields. A 1.0 record signed under the
+        # original codec does NOT include these in its canonical form;
+        # excluding them here keeps `verify_signature` bit-equal to the
+        # original. New records always emit at 2.0 and include the fields.
+        if self.schema_version != "1.0":
+            body["corrected_verdicts"] = dict(self.corrected_verdicts)
+            body["multiplicity_correction_method"] = self.multiplicity_correction_method
+        return body
 
     @property
     def campaign_id(self) -> str:
@@ -193,6 +237,20 @@ class CampaignRecord:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "CampaignRecord":
+        schema_version = str(data.get("schema_version", CAMPAIGN_SCHEMA_VERSION))
+        if schema_version not in SUPPORTED_CAMPAIGN_SCHEMA_VERSIONS:
+            raise ValueError(
+                f"unsupported CampaignRecord schema_version {schema_version!r}; "
+                f"supported = {sorted(SUPPORTED_CAMPAIGN_SCHEMA_VERSIONS)}"
+            )
+        # Schema-2.0 additive fields: default to empty / "none" so 1.0
+        # records load cleanly. dict values are coerced to str (defensive
+        # — same posture as Threshold/Verdict float coercion).
+        raw_corrected = data.get("corrected_verdicts") or {}
+        corrected_verdicts: dict[str, str] = {
+            str(k): str(v) for k, v in raw_corrected.items()
+        }
+        multiplicity_method = str(data.get("multiplicity_correction_method", "none"))
         record = cls(
             target_name=str(data["target_name"]),
             target_git_commit=str(data.get("target_git_commit", "")),
@@ -201,7 +259,9 @@ class CampaignRecord:
             completed_at=str(data.get("completed_at", "")),
             ophamin_version=str(data.get("ophamin_version", __version__)),
             ophamin_git_commit=str(data.get("ophamin_git_commit", "")),
-            schema_version=str(data.get("schema_version", CAMPAIGN_SCHEMA_VERSION)),
+            schema_version=schema_version,
+            corrected_verdicts=corrected_verdicts,
+            multiplicity_correction_method=multiplicity_method,
         )
         record.signature = str(data.get("signature", ""))
         return record
@@ -255,6 +315,8 @@ def run_campaign(
     enable_phases: set[str] | None = None,
     out_dir: str | Path = "campaigns/latest",
     sign_key: bytes = DEFAULT_SIGN_KEY,
+    fwer_method: str = "holm",
+    fwer_alpha: float = 0.05,
 ) -> CampaignRecord:
     """Run the six wheels in canonical order; emit a signed CampaignRecord.
 
@@ -271,10 +333,20 @@ def run_campaign(
         enable_phases: set of phase names to run. Default: all six.
         out_dir: directory under which per-phase artifacts are written.
         sign_key: HMAC-SHA256 key for signing the final record.
+        fwer_method: multiplicity-correction method to apply during the
+            comparing phase. One of :data:`ophamin.comparing.fwer.SUPPORTED_METHODS`
+            (``"holm"`` / ``"bh"`` / ``"none"``). The default is
+            ``"holm"`` — strict FWER control via Holm-Bonferroni. New
+            in schema 2.0 (RFC 0002 Phase E2).
+        fwer_alpha: family-wise / FDR threshold used when applying the
+            correction. Default 0.05.
 
     Returns:
         A signed :class:`CampaignRecord` with one
-        :class:`CampaignPhase` per executed phase.
+        :class:`CampaignPhase` per executed phase, plus, when the
+        ``comparing`` phase ran, the schema-2.0
+        ``corrected_verdicts`` mapping + ``multiplicity_correction_method``
+        populated from the FWER pass.
 
     The orchestrator NEVER raises on a per-phase failure — it captures
     the error string into the phase's ``error`` field and continues
@@ -316,14 +388,27 @@ def run_campaign(
                 )
             )
             continue
-        record.phases.append(
-            runner(
-                substrate=substrate,
-                scenarios=scenarios,
-                out_dir=out_path,
-                sign_key=sign_key,
-            )
+        kwargs: dict[str, Any] = dict(
+            substrate=substrate,
+            scenarios=scenarios,
+            out_dir=out_path,
+            sign_key=sign_key,
         )
+        if wheel == "comparing":
+            kwargs["fwer_method"] = fwer_method
+            kwargs["fwer_alpha"] = fwer_alpha
+        record.phases.append(runner(**kwargs))
+
+    # FWER correction: populate corrected_verdicts on the record itself
+    # (schema-2.0 additive). Only when the comparing phase ran AND the
+    # proofs directory exists; otherwise the empty defaults remain.
+    proofs_dir = out_path / "proofs"
+    if "comparing" in enable_phases and proofs_dir.is_dir():
+        family = correction_family_from_directory(
+            proofs_dir, method=fwer_method, alpha=fwer_alpha
+        )
+        record.corrected_verdicts = family.verdicts()
+        record.multiplicity_correction_method = family.method
 
     record.completed_at = _now()
     record.sign(sign_key)
@@ -444,7 +529,70 @@ def _phase_measuring(*, substrate: SubstrateUnderTest, scenarios: list[type[Scen
     )
 
 
-def _phase_comparing(*, substrate: SubstrateUnderTest, scenarios: list[type[Scenario]], out_dir: Path, sign_key: bytes) -> CampaignPhase:  # noqa: ARG001
+def correction_family_from_directory(
+    proofs_dir: str | Path,
+    *,
+    method: str = "holm",
+    alpha: float = 0.05,
+) -> CorrectionFamily:
+    """Walk ``proofs_dir`` recursively + apply multiplicity correction.
+
+    For each loadable proof record, projects to one
+    :class:`~ophamin.comparing.fwer.CorrectionInput`:
+
+    * ``claim_id`` = the record's ``proof_id`` (content-addressed,
+      stable across re-emission of the same evidence).
+    * ``raw_verdict`` = ``record.verdict.outcome``.
+    * ``p_value`` = the **minimum** non-``None`` p-value across all
+      :class:`~ophamin.measuring.proof.record.PillarEvidence` rows in
+      the record. ``None`` if no pillar carries a p-value (the record
+      then passes through unchanged but still counts toward family size).
+
+    The minimum-across-pillars projection is Bonferroni-within-record
+    — a conservative choice that does not over-state significance
+    when a single record reports multiple p-values. Records that fail
+    to load are silently skipped (the codec already loud-fails on
+    structural issues elsewhere); deduplication by ``proof_id`` makes
+    the function idempotent under accidental duplicate writes.
+
+    Args:
+        proofs_dir: directory containing signed proof records.
+        method: one of ``"holm"`` / ``"bh"`` / ``"none"``.
+        alpha: family-wise / FDR threshold.
+
+    Returns:
+        A :class:`~ophamin.comparing.fwer.CorrectionFamily`.
+    """
+    from ophamin.measuring.proof.codec import ProofDecodeError, load
+
+    root = Path(proofs_dir)
+    inputs: list[CorrectionInput] = []
+    seen_ids: set[str] = set()
+    for proof_path in iter_proofs(root):
+        try:
+            record = load(proof_path)
+        except ProofDecodeError:
+            continue
+        if record.proof_id in seen_ids:
+            continue
+        seen_ids.add(record.proof_id)
+        min_p_value: float | None = None
+        for evidence in record.evidence:
+            if evidence.p_value is None:
+                continue
+            if min_p_value is None or float(evidence.p_value) < min_p_value:
+                min_p_value = float(evidence.p_value)
+        inputs.append(
+            CorrectionInput(
+                claim_id=record.proof_id,
+                raw_verdict=record.verdict.outcome,
+                p_value=min_p_value,
+            )
+        )
+    return apply_correction(inputs, method=method, alpha=alpha)
+
+
+def _phase_comparing(*, substrate: SubstrateUnderTest, scenarios: list[type[Scenario]], out_dir: Path, sign_key: bytes, fwer_method: str = "holm", fwer_alpha: float = 0.05) -> CampaignPhase:  # noqa: ARG001
     started = _now()
     proofs_dir = out_dir / "proofs"
     if not proofs_dir.is_dir():
@@ -458,6 +606,12 @@ def _phase_comparing(*, substrate: SubstrateUnderTest, scenarios: list[type[Scen
     try:
         from ophamin.comparing.synthesis import summarize_directory
         summary = summarize_directory(proofs_dir)
+        # FWER / FDR correction across the campaign's proofs. Always run
+        # so the artifact is produced; method="none" if the operator
+        # explicitly disabled correction at the run-all CLI level.
+        family = correction_family_from_directory(
+            proofs_dir, method=fwer_method, alpha=fwer_alpha
+        )
         summary_path = out_dir / "SUMMARY.md"
         summary_path.write_text(summary.to_markdown(), encoding="utf-8")
         json_path = out_dir / "SUMMARY.json"
@@ -468,6 +622,13 @@ def _phase_comparing(*, substrate: SubstrateUnderTest, scenarios: list[type[Scen
                     "by_verdict": summary.by_verdict,
                     "by_family": summary.by_family,
                     "verdict_flips": len(summary.verdict_flips),
+                    "fwer": {
+                        "method": family.method,
+                        "alpha": family.alpha,
+                        "family_size": family.family_size,
+                        "n_with_p_value": family.n_with_p_value,
+                        "n_rejections": family.n_rejections,
+                    },
                 },
                 indent=2,
             ),
@@ -482,6 +643,9 @@ def _phase_comparing(*, substrate: SubstrateUnderTest, scenarios: list[type[Scen
             summary={
                 "n_proofs": summary.total,
                 "n_verdict_flips": len(summary.verdict_flips),
+                "fwer_method": family.method,
+                "fwer_n_rejections": family.n_rejections,
+                "fwer_family_size": family.family_size,
             },
         )
     except Exception as exc:
@@ -639,8 +803,10 @@ def load_campaign(path: str | Path) -> CampaignRecord:
 __all__ = [
     "CAMPAIGN_SCHEMA_VERSION",
     "CANONICAL_PHASE_ORDER",
+    "SUPPORTED_CAMPAIGN_SCHEMA_VERSIONS",
     "CampaignPhase",
     "CampaignRecord",
+    "correction_family_from_directory",
     "dump_campaign",
     "load_campaign",
     "run_campaign",

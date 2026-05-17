@@ -7,7 +7,111 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.8.5] below for the latest cut.)
+(empty — see [0.9.0] below for the latest cut.)
+
+## [0.9.0] — 2026-05-17
+
+**Headline:** Phase E2 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md) —
+state-of-the-art scientific tier closure on the multiple-testing front.
+
+This is the first **minor-version bump** since 0.7 + the **first signed
+schema bump** in Ophamin's history (`CampaignRecord/1.0` → `2.0`).
+The implementation pattern is documented in
+[`SCHEMAS.md` §"Case study — CampaignRecord/1.0 → 2.0"](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md)
+as the reference template for every future signed-schema bump.
+
+### Why this matters
+
+Pre-0.9.0, an `ophamin run-all` producing N=19 scenario verdicts at
+independent α=0.05 had a family-wise type-I-error probability of
+~62 %. A methods reviewer flags this on first read. 0.9.0 closes the
+gap with two industry-standard corrections wired natively into the
+campaign aggregate.
+
+### Added
+
+- **`src/ophamin/comparing/fwer.py`** — pure-functional Holm-Bonferroni
+  + Benjamini-Hochberg corrections. Stdlib-only (no statsmodels
+  dependency); deterministic; ≤ 1 ms for N=1000 inputs.
+    - Holm-Bonferroni (Holm 1979, DOI [10.2307/4615733](https://doi.org/10.2307/4615733)) —
+      strictly controls family-wise error rate (FWER).
+    - Benjamini-Hochberg (B&H 1995,
+      DOI [10.1111/j.2517-6161.1995.tb02031.x](https://doi.org/10.1111/j.2517-6161.1995.tb02031.x))
+      — controls false-discovery rate (FDR); less conservative.
+    - `apply_correction(method="holm" | "bh" | "none")` dispatcher.
+    - `CorrectionInput` / `CorrectionResult` / `CorrectionFamily`
+      dataclasses with full type annotations and input validation
+      at construction time.
+- **`CampaignRecord/2.0`** — strictly-additive schema bump.
+    - New field `corrected_verdicts: dict[str, str]` —
+      `claim_id → corrected_verdict` after the FWER pass.
+    - New field `multiplicity_correction_method: str` —
+      `"holm"` / `"bh"` / `"none"`.
+    - `SUPPORTED_CAMPAIGN_SCHEMA_VERSIONS = {"1.0", "2.0"}` — 1.0
+      records remain readable + signature-verifiable; the
+      version-aware `_body()` excludes the additive fields when
+      `schema_version == "1.0"`, so legacy signatures still verify
+      bit-equal under the 2.0-aware reader.
+    - Loud rejection of unknown `schema_version` values at load
+      time (`ValueError`).
+- **`ophamin run-all --fwer-method {holm,bh,none} --fwer-alpha FLOAT`**
+  — campaign-level correction wired into the comparing phase. Default
+  `--fwer-method holm` (strict FWER), `--fwer-alpha 0.05`.
+- **`ophamin correct <directory> --method {holm,bh,none} --alpha
+  FLOAT [--json|--out PATH]`** — standalone ad-hoc correction over an
+  existing proofs directory; emits a per-record table + summary.
+- **[`migrations/campaign_1_to_2.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/migrations/campaign_1_to_2.py)** —
+  optional one-pass rewrite for operators who want their historical
+  1.0 corpus in the new wire form. Refuses to operate without an
+  explicit `--sign-key-hex`; original 1.0 files are preserved unless
+  `--in-place` is passed.
+- **[`migrations/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/migrations/README.md)** —
+  migration policy + the campaign_1_to_2 worked example.
+
+### Tests (load-bearing pinning)
+
+- **43 new tests** in [`tests/test_fwer.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_fwer.py):
+  Hypothesis property tests for both methods (200 examples each on
+  unit-interval, monotonicity, Holm-superset-of-BH rejection set,
+  input-order preservation, demotion-only-targets-VALIDATED,
+  idempotence), classic known-answer tests (Holm 1979 textbook +
+  BH boundary case), passthrough behaviour for None p-values,
+  dispatcher validation.
+- **11 new tests** in [`tests/test_campaign_schema_v2.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_campaign_schema_v2.py):
+  schema-version constants, fresh-record defaults, 2.0 round-trip,
+  signature binds `corrected_verdicts`, signature binds method,
+  legacy 1.0 loads + verifies under 2.0 reader, 1.0 round-trip
+  preserves the 1.0 version (no silent promotion), unknown version
+  rejected loud, version-aware canonical-body behaviour.
+
+### Changed
+
+- **`src/ophamin/campaign.py`**: `CAMPAIGN_SCHEMA_VERSION` bumped to
+  `"2.0"`; `run_campaign()` gains `fwer_method` + `fwer_alpha` kwargs
+  and populates the new fields after all phases run.
+- **`SCHEMAS.md`**: `CampaignRecord` entry updated to v2.0; major-bump
+  policy expanded with the case-study section pointing at the
+  load-bearing implementation tricks.
+
+### Schema migrations
+
+- `CampaignRecord/1.0 → 2.0` — additive; readers handle 1.0 natively;
+  optional rewrite via the migration script above. **Signatures must
+  be re-issued under the migration** because adding fields to the
+  canonical body changes the bytes the HMAC binds.
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (139/139 source files; parallel-
+  session WIP files excluded).
+- `mkdocs build --strict` passes; the previously-noted
+  `migrations/` placeholder INFO is now resolved (the directory
+  exists + the link points at the GitHub tree URL).
+- 74/74 campaign-related tests pass (20 existing + 43 fwer + 11
+  schema-v2).
+- End-to-end smoke: `MockSubstrate` `run_campaign` emits
+  `schema_version=2.0` with `corrected_verdicts` populated and the
+  signature verifies after `dump_campaign` + `load_campaign`.
 
 ## [0.8.5] — 2026-05-17
 

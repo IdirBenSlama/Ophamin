@@ -1405,6 +1405,8 @@ def cmd_run_all(args: argparse.Namespace) -> int:
         scenarios=scenarios,
         enable_phases=enable_phases,
         out_dir=out_dir,
+        fwer_method=getattr(args, "fwer_method", "holm"),
+        fwer_alpha=getattr(args, "fwer_alpha", 0.05),
     )
 
     campaign_path = out_dir / "CAMPAIGN.json"
@@ -1460,6 +1462,92 @@ def cmd_summarize(args: argparse.Namespace) -> int:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(text, encoding="utf-8")
         print(f"OK: wrote {out} ({summary.total} entries)")
+    else:
+        print(text)
+    return 0
+
+
+def cmd_correct(args: argparse.Namespace) -> int:
+    """Walk a proof directory; apply multiplicity correction.
+
+    Reads every signed proof under ``args.directory``, projects each to
+    its (claim_id, raw_verdict, min-p-value-across-pillars), and runs
+    the chosen correction (Holm-Bonferroni for FWER, Benjamini-Hochberg
+    for FDR, or no correction). Emits a per-record table + summary.
+
+    Exit codes:
+      0 — happy path (correction completed; some demotions are allowed)
+      2 — input directory missing or invalid
+    """
+    from ophamin.campaign import correction_family_from_directory
+
+    directory = Path(args.directory)
+    if not directory.is_dir():
+        sys.stderr.write(
+            f"ophamin correct: {directory} is not a directory\n"
+        )
+        return 2
+    family = correction_family_from_directory(
+        directory, method=args.method, alpha=args.alpha
+    )
+    if args.json:
+        payload = {
+            "directory": str(directory),
+            "method": family.method,
+            "alpha": family.alpha,
+            "family_size": family.family_size,
+            "n_with_p_value": family.n_with_p_value,
+            "n_rejections": family.n_rejections,
+            "verdicts": family.verdicts(),
+            "per_record": [
+                {
+                    "claim_id": r.claim_id,
+                    "raw_verdict": r.raw_verdict,
+                    "corrected_verdict": r.corrected_verdict,
+                    "raw_p_value": r.raw_p_value,
+                    "corrected_p_value": r.corrected_p_value,
+                    "significant_after_correction": r.significant_after_correction,
+                }
+                for r in family.results
+            ],
+        }
+        text = json.dumps(payload, indent=2)
+    else:
+        lines: list[str] = []
+        lines.append(f"# Multiplicity correction — `{directory}`")
+        lines.append("")
+        lines.append(
+            f"**Method:** `{family.method}` · **α:** {family.alpha} · "
+            f"**Family size:** {family.family_size} · "
+            f"**With p-value:** {family.n_with_p_value} · "
+            f"**Rejections (significant after correction):** {family.n_rejections}"
+        )
+        lines.append("")
+        lines.append("| Claim ID | Raw verdict | Corrected verdict | Raw p | Adj. p | Significant |")
+        lines.append("|---|---|---|---|---|---|")
+        for r in family.results:
+            raw_p = f"{r.raw_p_value:.4g}" if r.raw_p_value is not None else "—"
+            adj_p = (
+                f"{r.corrected_p_value:.4g}"
+                if r.corrected_p_value is not None
+                else "—"
+            )
+            sig = "✓" if r.significant_after_correction else "✗"
+            short_id = r.claim_id[:12] if len(r.claim_id) > 16 else r.claim_id
+            lines.append(
+                f"| `{short_id}` | {r.raw_verdict} | {r.corrected_verdict} | "
+                f"{raw_p} | {adj_p} | {sig} |"
+            )
+        lines.append("")
+        text = "\n".join(lines)
+    if args.out:
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text, encoding="utf-8")
+        print(
+            f"OK: wrote {out} ({family.family_size} entries, "
+            f"{family.n_rejections} rejections after correction)"
+        )
     else:
         print(text)
     return 0
@@ -2537,6 +2625,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="suppress the per-phase Markdown summary on stdout (still "
              "writes CAMPAIGN.json + REPORT.md to --out-dir)",
     )
+    p_runall.add_argument(
+        "--fwer-method",
+        default="holm",
+        choices=["holm", "bh", "none"],
+        help="multiplicity-correction method applied during the comparing "
+             "phase (default: holm = strict family-wise error rate control). "
+             "Set to 'none' to disable (raw verdicts only). New in 0.9.0.",
+    )
+    p_runall.add_argument(
+        "--fwer-alpha",
+        type=float,
+        default=0.05,
+        help="family-wise / FDR threshold (default: 0.05)",
+    )
     p_runall.set_defaults(func=cmd_run_all)
 
     # ophamin summarize — campaign-level synthesis over a proof corpus
@@ -2556,6 +2658,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit JSON instead of the human-readable Markdown",
     )
     p_sum.set_defaults(func=cmd_summarize)
+
+    # ophamin correct — ad-hoc multiplicity correction over a proofs dir
+    p_correct = sub.add_parser(
+        "correct",
+        help="apply multiplicity correction (Holm / BH) to every signed "
+             "proof under a directory; emit a corrected-verdicts report",
+    )
+    p_correct.add_argument("directory", help="directory to walk recursively")
+    p_correct.add_argument(
+        "--method",
+        default="holm",
+        choices=["holm", "bh", "none"],
+        help="correction method (default: holm)",
+    )
+    p_correct.add_argument(
+        "--alpha",
+        type=float,
+        default=0.05,
+        help="family-wise / FDR threshold (default: 0.05)",
+    )
+    p_correct.add_argument(
+        "--json",
+        action="store_true",
+        help="emit JSON instead of Markdown",
+    )
+    p_correct.add_argument(
+        "--out",
+        default="",
+        help="optional output path (default: print to stdout)",
+    )
+    p_correct.set_defaults(func=cmd_correct)
 
     # ophamin diagnose — per-record diagnostic
     p_diag = sub.add_parser(

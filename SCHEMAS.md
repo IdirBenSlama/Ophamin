@@ -8,7 +8,7 @@
 A signed record (`*.json`) produced under one ophamin version MUST be
 readable under every subsequent minor version of ophamin without manual
 intervention. Major-version bumps may break that promise, but only with
-a published migration script under [`migrations/`](migrations/) and a
+a published migration script under [`migrations/`](https://github.com/IdirBenSlama/Ophamin/tree/main/migrations) and a
 deprecation window of at least one minor release.
 
 This is the **semver promise on the wire** — Python-level API changes are
@@ -51,7 +51,7 @@ pre-registration and verdict (Move L gating).
 | Deprecated fields | none |
 | Codec round-trip | Property-tested via [`tests/test_audit_record_property.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_audit_record_property.py) (Hypothesis, 16 invariants — surfaced + fixed the `PillarResult.extra` round-trip bug in 0.7.0) |
 
-### CampaignRecord — `1.0`
+### CampaignRecord — `2.0` (current)
 
 The 6-phase composite-run aggregate produced by `ophamin run-all`.
 
@@ -59,13 +59,15 @@ The 6-phase composite-run aggregate produced by `ophamin run-all`.
 |---|---|
 | Codec module | [`src/ophamin/campaign.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/campaign.py) (`dump_campaign` / `load_campaign`) |
 | Dataclass | `CampaignRecord` (same file) |
-| Constant | `CAMPAIGN_SCHEMA_VERSION = "1.0"` |
+| Constants | `CAMPAIGN_SCHEMA_VERSION = "2.0"` (writer); `SUPPORTED_CAMPAIGN_SCHEMA_VERSIONS = {"1.0", "2.0"}` (reader) |
 | Validate via | `ophamin schema validate <path.json>` |
-| Backward-compat read | Reader accepts unknown fields; missing `schema_version` defaults to current. |
+| Backward-compat read | **v1.0 records readable + signature-verifiable under v2.0.** The `_body()` canonical form is version-aware — it excludes the v2.0 additive fields when `schema_version == "1.0"`, so legacy signatures still re-verify bit-equal. Unknown `schema_version` values are rejected loud (`ValueError`) per `load_campaign`. |
 | Stable fields | `campaign_id`, `schema_version`, `target_name`, `target_git_commit`, `started_at`, `completed_at`, `phases`, `ophamin_version`, `ophamin_git_commit`, `signature` |
+| New in v2.0 (RFC 0002 Phase E2) | `corrected_verdicts: dict[str, str]` (claim_id → FWER-corrected verdict), `multiplicity_correction_method: str` (one of `"holm"` / `"bh"` / `"none"`) |
 | Phase-shape | Each phase declared in `CANONICAL_PHASE_ORDER`; status ∈ `{"ok", "skipped", "failed"}` |
 | Deprecated fields | none |
-| Codec round-trip | Tested in [`tests/test_campaign.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_campaign.py) (20 tests) |
+| Migration | v1.0 → v2.0 is strictly additive; readers handle v1.0 natively. Optional rewrite via [`migrations/campaign_1_to_2.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/migrations/campaign_1_to_2.py). |
+| Codec round-trip | Tested in [`tests/test_campaign.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_campaign.py) + [`tests/test_campaign_schema_v2.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_campaign_schema_v2.py) (11 tests pinning v1↔v2 round-trip + signature) |
 
 ### RegressionAlertRecord — `regression-alert/1.0`
 
@@ -140,11 +142,37 @@ A major bump MAY:
 - remove deprecated fields (must have been deprecated ≥ 1 minor version)
 - rename fields
 - restructure nested records
+- add new top-level fields that change verdict semantics (e.g. FWER
+  correction in `CampaignRecord/2.0` — purely additive on wire, but
+  the meaning of the aggregate verdict changes when `corrected_verdicts`
+  is populated)
 
 A major bump MUST ship:
-- a migration script under `migrations/` named `<schema>_v<from>_to_v<to>.py`
+- a migration script under `migrations/` named `<schema>_<from>_to_<to>.py`
 - documentation in the CHANGELOG entry under "Schema migrations"
-- a CLI command path: `ophamin schema migrate <path.json> --to <version>`
+- backward-compat-on-read: the new reader MUST handle records emitted
+  at every prior version still in `SUPPORTED_*_SCHEMA_VERSIONS`
+
+#### Case study — `CampaignRecord/1.0 → 2.0` (RFC 0002, Phase E2)
+
+The first major bump of a signed-record schema in Ophamin's history.
+Reference implementation pattern for future additive bumps:
+
+1. Add two strictly-additive fields to the dataclass with defaults.
+2. Make `_body()` **version-aware**: include the new fields iff
+   `schema_version != "1.0"`. This is the load-bearing trick that keeps
+   1.0 signatures verifiable under a 2.0-aware reader.
+3. Update `from_dict` to default the new fields when absent (so 1.0
+   wire records load cleanly without manual migration).
+4. Add `SUPPORTED_*_SCHEMA_VERSIONS = frozenset({"1.0", "2.0"})` and
+   loud-reject unknown versions in `from_dict`.
+5. Ship the migration script ([`migrations/campaign_1_to_2.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/migrations/campaign_1_to_2.py)) — optional
+   from the user's perspective (readers handle 1.0 natively), but
+   provided for operators who want to rewrite their historical corpus
+   into the 2.0 wire form.
+
+Tests pin every invariant: see
+[`tests/test_campaign_schema_v2.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_campaign_schema_v2.py).
 
 ### Deprecation cycle
 
