@@ -7,7 +7,46 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.8.3] below for the latest cut.)
+(empty — see [0.8.4] below for the latest cut.)
+
+## [0.8.4] — 2026-05-17
+
+Post-0.8.3 follow-up patch — surfaces the GitHub-Pages-not-enabled
+state honestly without gating CI on owner-side configuration, and
+refreshes the coverage doc to reflect Phase A4's actual numbers.
+
+### Fixed
+
+- **`.github/workflows/docs.yml`: deploy step is now advisory.**
+  GitHub Pages is owner-side configuration (Settings → Pages →
+  Source = "GitHub Actions"). On a Free-plan private repo, Pages
+  cannot be enabled via API — the `actions/deploy-pages@v4` call
+  returns 404, failing the workflow even though the `build` job
+  succeeded. Setting `continue-on-error: true` on the deploy job
+  treats the deploy as a soft warning until the owner enables
+  Pages (one-time settings change). The build artefact uploaded
+  by the `build` job is the source of truth meanwhile; mkdocs
+  `--strict` still gates link-rot and missing-nav cleanly.
+- **`docs/BENCHMARKS_AND_COVERAGE.md`: coverage numbers refreshed
+  to reflect Phase A4.** `seeing/substrate/kimera_adapter.py` row
+  moved from "Below target — action items" to a new "Closed in
+  0.8.3 (Phase A4)" subsection — past the v0.9.0 ≥ 70 % target
+  *without* a real Kimera repo. The whole-framework row now shows
+  both the CI floor (75 %) and the local measurement (77 %) so the
+  cross-platform-difference framing from 0.8.1 stays visible.
+- **CI gate documentation aligned.** The pre-push gate doc said 77
+  but both pre-push (`.githooks/pre-push`) and GitHub Actions
+  (`.github/workflows/ci.yml`) gate at 75 since 0.8.1's honest
+  cross-platform recalibration. The doc now says 75 with the
+  ratchet path to 80/85 explicit.
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (138/138)
+- `mkdocs build --strict` passes
+- 0.8.3 CI confirmed pre-existing Pages failure: docs build ✅,
+  docs deploy ❌, Audit ✅. 0.8.4 makes the deploy advisory so the
+  docs workflow goes green overall.
 
 ## [0.8.3] — 2026-05-17
 

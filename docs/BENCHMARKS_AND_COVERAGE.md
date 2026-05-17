@@ -41,7 +41,7 @@ floor to absorb noise).
 
 | Slice | Current (CI) | Target (v0.9.0) | Stretch |
 |---|---|---|---|
-| Whole framework | 75.4 % | **≥ 80 %** | ≥ 85 % |
+| Whole framework | 75 % CI / 77 % local | **≥ 80 %** | ≥ 85 % |
 | `measuring/` (scenarios + pillars + proof + codec) | ~92 % | ≥ 95 % | 100 % |
 | `comparing/` (synthesis + regression-alert + drift) | ~90 % | ≥ 95 % | 100 % |
 | `auditing/` | ~85 % | ≥ 92 % | ≥ 95 % |
@@ -51,7 +51,7 @@ floor to absorb noise).
 | `campaign.py` (Move F) | high | ≥ 95 % | 100 % |
 | `seeing/discovery/` | ~90 % | ≥ 92 % | ≥ 95 % |
 | `seeing/wiring/` | 89 % | ≥ 92 % | ≥ 95 % |
-| `seeing/substrate/kimera_adapter.py` | 57 % | ≥ 70 % | ≥ 80 % |
+| `seeing/substrate/kimera_adapter.py` | **71 %** (post-0.8.3) | ≥ 70 % ✅ | ≥ 80 % |
 | `seeing/corpus/connectors.py` | 54 % | ≥ 65 % | ≥ 75 % |
 | `verify.py` | 86 % | ≥ 90 % | ≥ 95 % |
 
@@ -73,28 +73,41 @@ floor to absorb noise).
 | `seeing/telemetry/prometheus_probe.py` | 91.8 % | Network-bound paths use the local-test fallback |
 | `seeing/substrate/field_catalog.py` | 90.3 % | Drift-detection paths in field-shape inferrer |
 
-**Below target — action items for v0.6.0:**
+**Below target — action items for the v0.9.0 ratchet:**
 
 | File | Coverage | Gap | Plan |
 |---|---|---|---|
 | `seeing/corpus/connectors.py` | 54.2 % | Real-corpus access paths gated on downloads | Add mock-filesystem unit tests for parser branches; skip on missing data via `pytest.skip` |
-| `seeing/substrate/kimera_adapter.py` | 55.9 % | Subprocess + batch + probe paths require a real Kimera repo on disk. **Integration-test territory.** Phase S2 (0.7.0) added 14 constructor-validation tests pinning every loud-failure branch; the remaining gap is `_invoke` + `_spawn_subprocess` + `run_batch`, which only run meaningfully against an actual Kimera tree. Owner-side integration runs are the canonical evidence for those paths. | Either mock-`subprocess.run` to cover dispatch / parse / decode-error branches, or accept the gap and document the integration boundary. Current call: accept. |
 | `seeing/discovery/watcher.py` | 50.4 % | Continuous-loop / mining path (lines 141-171) constructs a KimeraAdapter inline and calls a SchemaMiner; needs a real Kimera repo. **Same integration-test territory as kimera_adapter.** Phase S2 added 7 tests for the static helpers, run_forever loop with monkeypatched sleep, and kimera_head_commit failure paths. | Accept the gap; mining-path coverage comes from owner-side runs against the live Kimera tree. |
 | `measuring/timeseries_helpers.py` | 50.7 % | Optional helper paths used only by 2 scenarios | Either dedicated property-test coverage or move to a `helpers/optional/` subpackage with a skip-when-unused convention |
 | `measuring/scenarios/throughput_ceiling.py` | 71.9 % | InstrumentedSubstrate wrapping paths | Mock-substrate test that walks the wrapping ladder |
 
-### CI gate (local pre-push, until repo goes public)
+**Closed in 0.8.3 (Phase A4):**
 
-`.githooks/pre-push` runs:
+| File | Was | Now | Closure |
+|---|---|---|---|
+| `seeing/substrate/kimera_adapter.py` | 55.9 % | **71.1 %** | Added [`tests/test_kimera_adapter_subprocess_mock.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_kimera_adapter_subprocess_mock.py) — 18 subprocess-mocked tests covering `_invoke` (every parse / decode / timeout branch), `_to_cycle_result` (success / adapter_error / cycle_seconds propagation / non-dict raw), and `run_batch` (subprocess-mode delegation + batch-mode happy path). Past the v0.9.0 ≥ 70 % target *without* a real Kimera repo. The full-suite measurement that combines the new tests with existing happy-path coverage measures the file at ~80 % in-file. |
+
+### CI gate
+
+Both pre-push (`.githooks/pre-push`) and GitHub Actions CI gate at
+**≥ 75 %** as of 0.8.1. The gate was lowered from 77 → 75 with full
+rationale in [`CHANGELOG.md` § 0.8.1](https://github.com/IdirBenSlama/Ophamin/blob/main/CHANGELOG.md):
+clean Ubuntu CI measures the framework at 75.4 % (the honest cross-
+platform floor) while the author's macOS dev box reaches 77.7 %
+because of NPEET / pacmap / other optional deps installed from
+earlier sessions that add reachable code paths. **CI is the
+authoritative cross-platform measurement.** Pre-push gate and CI
+gate are aligned at the same threshold so a clean local pre-push
+implies CI will pass.
 
 ```bash
 .venv/bin/python -m pytest -q --cov=src/ophamin --cov-branch \
-    --cov-fail-under=77
+    --cov-fail-under=75
 ```
 
-The threshold sits 0.7 % below the current baseline (77.7 → 77.0) to
-absorb measurement noise without ratcheting prematurely. Raise the
-gate to 85 when v0.6.0 lands.
+Ratchet plan: raise the gate to 80 (target) and then 85 (stretch) as
+the action-item table above closes.
 
 ---
 
