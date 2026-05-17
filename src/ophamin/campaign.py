@@ -41,6 +41,7 @@ from pathlib import Path
 from typing import Any
 
 from ophamin import __version__
+from ophamin._stability import Stable
 from ophamin.comparing.fwer import (
     CorrectionFamily,
     CorrectionInput,
@@ -85,6 +86,7 @@ def _now() -> str:
 # --- data model -------------------------------------------------------------
 
 
+@Stable(since="0.7.0")
 @dataclass(frozen=True)
 class CampaignPhase:
     """One wheel's contribution to a composite run.
@@ -134,6 +136,7 @@ class CampaignPhase:
         )
 
 
+@Stable(since="0.7.0", notes="Schema 2.0 added FWER fields strictly-additively at 0.9.0; 1.0 still reads.")
 @dataclass
 class CampaignRecord:
     """Signed, content-addressed aggregate of one full-pass run.
@@ -306,6 +309,7 @@ class CampaignRecord:
 # --- orchestrator -----------------------------------------------------------
 
 
+@Stable(since="0.7.0", notes="The composite-run entry point; fwer_method/fwer_alpha added at 0.9.0.")
 def run_campaign(
     *,
     substrate: SubstrateUnderTest,
@@ -529,6 +533,7 @@ def _phase_measuring(*, substrate: SubstrateUnderTest, scenarios: list[type[Scen
     )
 
 
+@Stable(since="0.9.0", notes="Multiplicity correction over a campaign's proofs (RFC-0002 Phase E2).")
 def correction_family_from_directory(
     proofs_dir: str | Path,
     *,
@@ -787,6 +792,7 @@ _PHASE_RUNNERS = {
 # --- file IO ----------------------------------------------------------------
 
 
+@Stable(since="0.7.0")
 def dump_campaign(record: CampaignRecord, path: str | Path) -> Path:
     """Write a CampaignRecord to disk as canonical JSON. Returns the path."""
     p = Path(path)
@@ -795,6 +801,7 @@ def dump_campaign(record: CampaignRecord, path: str | Path) -> Path:
     return p
 
 
+@Stable(since="0.7.0", notes="Accepts both v1.0 and v2.0 wire formats; loud-rejects unknown.")
 def load_campaign(path: str | Path) -> CampaignRecord:
     """Load a CampaignRecord from disk."""
     return CampaignRecord.from_dict(json.loads(Path(path).read_text(encoding="utf-8")))

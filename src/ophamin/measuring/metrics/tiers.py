@@ -18,7 +18,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+from ophamin._stability import Stable
 
+
+@Stable(since="0.5.0")
 @dataclass
 class Tier1Metrics:
     """High-frequency system telemetry — health and latency."""
@@ -43,6 +46,7 @@ class Tier1Metrics:
         }
 
 
+@Stable(since="0.5.0")
 @dataclass
 class Tier2Metrics:
     """Causal and statistical observability — governs experiment validity.
@@ -75,6 +79,7 @@ class Tier2Metrics:
         return d
 
 
+@Stable(since="0.5.0")
 @dataclass
 class Tier3Metrics:
     """Domain-specific cognitive metrics — the substrate's structural output.
@@ -105,6 +110,7 @@ class Tier3Metrics:
         return d
 
 
+@Stable(since="0.5.0", notes="The cross-tier measurement bundle consumed by pillars.")
 @dataclass
 class MetricBundle:
     """One cycle's measurement across all three tiers."""

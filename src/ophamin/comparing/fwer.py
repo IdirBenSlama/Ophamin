@@ -43,10 +43,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Sequence
 
+from ophamin._stability import Stable
+
 
 # --- typed inputs / outputs -------------------------------------------------
 
 
+@Stable(since="0.9.0")
 @dataclass(frozen=True)
 class CorrectionInput:
     """One claim's raw verdict + its representative p-value.
@@ -87,6 +90,7 @@ class CorrectionInput:
                 )
 
 
+@Stable(since="0.9.0")
 @dataclass(frozen=True)
 class CorrectionResult:
     """One claim's corrected verdict + bookkeeping.
@@ -121,6 +125,7 @@ class CorrectionResult:
     significant_after_correction: bool
 
 
+@Stable(since="0.9.0")
 @dataclass(frozen=True)
 class CorrectionFamily:
     """Aggregate view of one correction pass.
@@ -216,6 +221,7 @@ def _emit_passthrough(
     )
 
 
+@Stable(since="0.9.0")
 def holm_bonferroni(
     inputs: Sequence[CorrectionInput],
     *,
@@ -307,6 +313,7 @@ def holm_bonferroni(
     )
 
 
+@Stable(since="0.9.0")
 def benjamini_hochberg(
     inputs: Sequence[CorrectionInput],
     *,
@@ -397,6 +404,7 @@ def benjamini_hochberg(
     )
 
 
+@Stable(since="0.9.0")
 def no_correction(
     inputs: Sequence[CorrectionInput],
     *,
@@ -464,6 +472,7 @@ def no_correction(
 # --- dispatcher -------------------------------------------------------------
 
 
+@Stable(since="0.9.0", notes="Dispatcher; chooses Holm / BH / no-op by method string.")
 def apply_correction(
     inputs: Sequence[CorrectionInput],
     *,

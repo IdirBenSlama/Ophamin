@@ -17,9 +17,11 @@ import abc
 from dataclasses import dataclass, field
 from typing import Any
 
+from ophamin._stability import Stable
 from ophamin.measuring.metrics.tiers import MetricBundle, Tier1Metrics, Tier2Metrics, Tier3Metrics
 
 
+@Stable(since="0.5.0", notes="The substrate-adapter return shape; load-bearing for every adapter.")
 @dataclass
 class CycleResult:
     """The outcome of one substrate cycle.
@@ -82,6 +84,7 @@ class CycleResult:
         )
 
 
+@Stable(since="0.5.0", notes="The plug-in protocol every substrate adapter must implement.")
 class SubstrateUnderTest(abc.ABC):
     """Abstract system under test. Implement this to plug a system into Ophamin."""
 

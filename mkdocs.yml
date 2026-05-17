@@ -120,6 +120,7 @@ nav:
       - Risk-accepted CVEs: RISK_ACCEPTED_CVES.md
       - Free-tier limits: free_tier_limits.md
       - Tier-2 telemetry proposal: TIER_2_TELEMETRY_PROPOSAL.md
+      - API stability policy: STABILITY.md
   - Project:
       - Changelog: changelog.md
       - Contributing: contributing.md

@@ -34,6 +34,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable
 
+from ophamin._stability import Stable
+
 SCHEMA_VERSION = "1.0"
 
 # verdict outcomes
@@ -84,6 +86,7 @@ def build_environment_lock() -> dict[str, str]:
 # Section 2 — the falsifiable claim (the five-tuple)
 # --------------------------------------------------------------------------
 
+@Stable(since="0.5.0", notes="The five-tuple's pass/fail boundary; canonical-form-stable since 0.5.0 (Move L float coercion).")
 @dataclass
 class Threshold:
     """A falsifiable pass/fail boundary — there is no claim without one."""
@@ -133,6 +136,7 @@ class Threshold:
         )
 
 
+@Stable(since="0.5.0")
 @dataclass
 class Claim:
     """Section 2 — the falsifiable claim, as a five-tuple."""
@@ -167,6 +171,7 @@ class Claim:
 # Section 3 — pre-registration (the anti-p-hacking lock)
 # --------------------------------------------------------------------------
 
+@Stable(since="0.5.0")
 @dataclass
 class PreRegistration:
     """Section 3 — claim + plan hashed BEFORE the run.
@@ -249,6 +254,7 @@ _CROSS_CHECK_VALUES: frozenset[str] = frozenset(
 )
 
 
+@Stable(since="0.5.0", notes="cross_check enum-validated since 0.9.5.")
 @dataclass
 class PillarEvidence:
     """Section 5 — one pillar's measured evidence, attributed to its library.
@@ -324,6 +330,7 @@ class PillarEvidence:
 # Section 6 — the verdict
 # --------------------------------------------------------------------------
 
+@Stable(since="0.5.0")
 @dataclass
 class Verdict:
     """Section 6 — VALIDATED / REFUTED / INCONCLUSIVE against the threshold."""
@@ -416,6 +423,7 @@ class Reproduction:
 # The record
 # --------------------------------------------------------------------------
 
+@Stable(since="0.5.0", notes="The canonical Ophamin proof artefact; schema_version=1.0 stable.")
 @dataclass
 class EmpiricalProofRecord:
     """The official Ophamin result artifact — nine sections, content-addressed, signed."""

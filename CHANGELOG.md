@@ -7,7 +7,95 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.9.7] below for the latest cut.)
+(empty — see [0.10.0] below for the latest cut.)
+
+## [0.10.0] — 2026-05-17
+
+**Headline:** Phase E8 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md) —
+the runtime stability contract. Every public Ophamin symbol now
+carries an explicit stability tier (Stable / Provisional / Internal /
+Deprecated); the contract is pinned at PR time by a regression suite
+and auditable from any user codebase via the new `ophamin
+api-stability` CLI command.
+
+This is the second **minor-version bump** in the 0.x line. The bump
+matches the RFC 0002 §3.1 case study at the runtime layer: 0.9.0
+landed the wire-format stability contract (`CampaignRecord/1.0 →
+2.0`); 0.10.0 lands the Python-API stability contract. With both
+contracts in place, 1.0.0 is one deliberate decision away.
+
+### Added
+
+- **`src/ophamin/_stability.py`** — four decorators + the
+  introspection helpers tools use. Decorators set a single attribute
+  (`__ophamin_stability__`) so they compose with `@dataclass` and
+  carry zero runtime overhead beyond one attribute assignment.
+    - `@Stable(since="...", notes="...")` — semver-backed public API.
+    - `@Provisional(since="...", notes="...")` — public, subject to change.
+    - `@Internal(notes="...")` — not part of the public API.
+    - `@Deprecated(removal_version=..., replacement=..., notes=...)`
+      — emits a `DeprecationWarning` exactly once per process; wraps
+      callables (and class `__init__`s) so the warning fires at call
+      site with the migration breadcrumb.
+- **Stability annotations on every load-bearing public symbol** —
+  28 symbols across `ophamin.__init__`, `ophamin.campaign`,
+  `ophamin.comparing.fwer`, `ophamin.seeing.substrate.base`,
+  `ophamin.measuring.proof.record`, `ophamin.measuring.metrics.tiers`.
+  All tagged `@Stable` with `since` versions reflecting the actual
+  introduction release (`0.5.0` for the framework foundations,
+  `0.7.0` for the campaign aggregate, `0.9.0` for FWER).
+- **`tests/test_api_stability_contract.py`** — 65 pinning tests
+  across three layers:
+    1. **Tier coverage**: every load-bearing public symbol MUST
+       carry a `StabilityInfo`, AND its tier must be Stable or
+       Provisional (never Internal). Fails loud at PR time if a
+       public symbol drifts un-tagged.
+    2. **Signature pinning**: every `@Stable` callable's parameters
+       are pinned by `(name, kind, has_default)` triples. Adding
+       optional parameters with defaults passes; renames / removals /
+       kind changes fail. Regeneration workflow documented in-file
+       via `OPHAMIN_REGENERATE_API_PINS=1`.
+    3. **`StabilityInfo` invariants**: enum-validated at construction;
+       `removal_version` + `replacement` only meaningful for
+       Deprecated tier.
+- **`ophamin api-stability list [--json]`** — print every annotated
+  symbol grouped by tier, with `since` + (for Deprecated) the
+  `removal_version` and `replacement` breadcrumbs. The 0.10.0
+  release surfaces 28 Stable symbols.
+- **`ophamin api-stability check <directory> [--json]`** — walk
+  Python files under `<directory>` and report imports of any
+  Ophamin symbol tagged `@Deprecated` or `@Internal`. Exit 0 =
+  clean; exit 1 = at least one violation. Suitable for downstream
+  CI gates.
+- **`docs/STABILITY.md`** — consumer-facing policy doc. Cross-
+  references the runtime contract to the wire-format contract in
+  `SCHEMAS.md`; documents the auditing workflow + the per-tier
+  semantics of "allowed changes at minor vs major".
+
+### Why a minor bump now (not 1.0)
+
+The two prerequisites for 1.0 per RFC 0002 §3.2 Phase E8 are:
+
+1. Explicit Python-API stability contract — **landed in 0.10.0**.
+2. Wire-format stability contract — **landed in 0.9.0**.
+
+What separates 0.10.0 from 1.0.0 today: the framework still needs
+external review of the stability contract under real upgrade
+pressure (RFC 0002 E4 — a third party rebuilds a tagged release
+from source + lockfile and verifies byte-equal output) AND the
+methods paper from E5. 1.0.0 means the contract has been tested by
+at least one full deprecation cycle in the wild; 0.10.0 is the
+contract being shipped + claimable for the first time.
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (145/145).
+- `mkdocs build --strict` passes with the new STABILITY.md.
+- 65/65 stability-contract tests pass + 1 regenerator skipped.
+- 208/208 PillarEvidence-guard + FWER + campaign-v2 + proof-codec
+  tests pass (no regressions in any consumer of the touched files).
+- `ophamin api-stability list` lists 28 Stable symbols; `check` on
+  the framework's own `tests/` reports 0 violations.
 
 ## [0.9.7] — 2026-05-17
 

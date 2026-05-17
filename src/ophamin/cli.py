@@ -1615,6 +1615,188 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_api_stability(args: argparse.Namespace) -> int:
+    """Audit the framework's public symbols against the stability policy.
+
+    Two modes:
+
+      ``ophamin api-stability list``
+          Print every annotated symbol grouped by tier.
+
+      ``ophamin api-stability check <directory>``
+          Walk every Python file under ``<directory>`` and report any
+          imports of ophamin symbols tagged ``@Deprecated`` or
+          ``@Internal``. Exit code 0 = clean; 1 = at least one
+          violation (suitable for CI gates).
+    """
+    import importlib
+    import pkgutil
+
+    from ophamin._stability import (
+        StabilityInfo,
+        get_stability,
+        is_deprecated,
+        is_internal,
+    )
+
+    def _walk_ophamin_symbols() -> dict[str, list[tuple[str, StabilityInfo]]]:
+        """Group every annotated ophamin symbol by tier."""
+        import ophamin as _ophamin
+
+        groups: dict[str, list[tuple[str, StabilityInfo]]] = {
+            "Stable": [],
+            "Provisional": [],
+            "Internal": [],
+            "Deprecated": [],
+        }
+        seen: set[int] = set()
+
+        def _scan(mod_name: str) -> None:
+            try:
+                mod = importlib.import_module(mod_name)
+            except Exception:  # noqa: BLE001 — broken submodule; skip
+                return
+            for attr in dir(mod):
+                if attr.startswith("__") and attr.endswith("__"):
+                    continue
+                obj = getattr(mod, attr, None)
+                if obj is None or id(obj) in seen:
+                    continue
+                info = get_stability(obj)
+                if info is None:
+                    continue
+                # Filter to objects actually defined in ophamin (not
+                # re-exports of third-party objects).
+                obj_mod = getattr(obj, "__module__", "")
+                if not obj_mod.startswith("ophamin"):
+                    continue
+                seen.add(id(obj))
+                groups.setdefault(info.tier, []).append(
+                    (f"{obj_mod}.{attr}", info)
+                )
+
+        # Walk every submodule under ophamin/
+        prefix = _ophamin.__name__ + "."
+        for _finder, mod_name, _is_pkg in pkgutil.walk_packages(
+            _ophamin.__path__, prefix
+        ):
+            _scan(mod_name)
+        return groups
+
+    if args.subcommand == "list":
+        groups = _walk_ophamin_symbols()
+        if args.json:
+            payload: dict[str, list[dict[str, str]]] = {
+                tier: [
+                    {
+                        "name": name,
+                        "since": info.since,
+                        "removal_version": info.removal_version,
+                        "replacement": info.replacement,
+                        "notes": info.notes,
+                    }
+                    for name, info in sorted(entries)
+                ]
+                for tier, entries in groups.items()
+            }
+            print(json.dumps(payload, indent=2))
+        else:
+            for tier in ("Stable", "Provisional", "Deprecated", "Internal"):
+                entries = sorted(groups.get(tier, []))
+                if not entries:
+                    continue
+                print(f"\n## {tier} ({len(entries)} symbol(s))\n")
+                for name, info in entries:
+                    suffix = ""
+                    if info.since:
+                        suffix += f" since {info.since}"
+                    if info.removal_version:
+                        suffix += f"; removal at {info.removal_version}"
+                    if info.replacement:
+                        suffix += f"; use {info.replacement}"
+                    print(f"  {name}{suffix}")
+        return 0
+
+    if args.subcommand == "check":
+        target_dir = Path(args.directory)
+        if not target_dir.is_dir():
+            sys.stderr.write(
+                f"ophamin api-stability check: {target_dir} is not a directory\n"
+            )
+            return 2
+        import ast
+
+        violations: list[tuple[Path, int, str, str]] = []
+        # Build the deprecated + internal symbol set up front.
+        groups = _walk_ophamin_symbols()
+        deprecated_names: dict[str, StabilityInfo] = {
+            name: info
+            for name, info in groups.get("Deprecated", [])
+        }
+        internal_names: dict[str, StabilityInfo] = {
+            name: info
+            for name, info in groups.get("Internal", [])
+        }
+
+        def _check_imports(py_path: Path) -> None:
+            try:
+                source = py_path.read_text(encoding="utf-8")
+                tree = ast.parse(source, filename=str(py_path))
+            except (OSError, SyntaxError):
+                return
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom):
+                    mod = node.module or ""
+                    if not mod.startswith("ophamin"):
+                        continue
+                    for alias in node.names:
+                        full = f"{mod}.{alias.name}"
+                        if full in deprecated_names:
+                            info = deprecated_names[full]
+                            violations.append(
+                                (py_path, node.lineno, "Deprecated", full
+                                 + f" (removal: {info.removal_version}"
+                                 + (f", use: {info.replacement}" if info.replacement else "")
+                                 + ")")
+                            )
+                        elif full in internal_names:
+                            violations.append(
+                                (py_path, node.lineno, "Internal", full)
+                            )
+
+        for py_path in sorted(target_dir.rglob("*.py")):
+            _check_imports(py_path)
+
+        if args.json:
+            payload2: list[dict[str, str | int]] = [
+                {
+                    "path": str(p),
+                    "line": ln,
+                    "tier": tier,
+                    "symbol": detail,
+                }
+                for (p, ln, tier, detail) in violations
+            ]
+            print(json.dumps(payload2, indent=2))
+        else:
+            if not violations:
+                print(f"OK: 0 deprecated / internal Ophamin imports under {target_dir}")
+            else:
+                for p, ln, tier, detail in violations:
+                    print(f"{p}:{ln}: [{tier}] {detail}")
+                print(
+                    f"\n{len(violations)} violation(s) found.",
+                    file=sys.stderr,
+                )
+        return 0 if not violations else 1
+
+    sys.stderr.write(
+        f"ophamin api-stability: unknown subcommand {args.subcommand!r}\n"
+        f"  expected: list | check\n"
+    )
+    return 64
+
+
 def cmd_schema(args: argparse.Namespace) -> int:
     """Umbrella for `ophamin schema <action>` subcommands (Phase L4).
 
@@ -2726,6 +2908,39 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit JSON instead of the human-readable Markdown",
     )
     p_anl.set_defaults(func=cmd_analyze)
+
+    # ophamin api-stability — Phase E8 stability-tier listing + audit
+    p_api = sub.add_parser(
+        "api-stability",
+        help="list every annotated public symbol by tier, or check a user "
+             "codebase for imports of @Deprecated / @Internal Ophamin symbols",
+    )
+    api_sub = p_api.add_subparsers(dest="subcommand", required=True)
+
+    p_api_list = api_sub.add_parser(
+        "list",
+        help="print every annotated symbol grouped by stability tier",
+    )
+    p_api_list.add_argument(
+        "--json", action="store_true",
+        help="emit JSON instead of the human-readable Markdown",
+    )
+    p_api_list.set_defaults(func=cmd_api_stability)
+
+    p_api_check = api_sub.add_parser(
+        "check",
+        help="audit a directory of Python files for imports of "
+             "@Deprecated / @Internal Ophamin symbols; exit 1 if any found",
+    )
+    p_api_check.add_argument(
+        "directory",
+        help="root directory of the user codebase to audit",
+    )
+    p_api_check.add_argument(
+        "--json", action="store_true",
+        help="emit JSON instead of human-readable rows",
+    )
+    p_api_check.set_defaults(func=cmd_api_stability)
 
     # ophamin report-batch — campaign-level rendering across a directory
     p_rb = sub.add_parser(
