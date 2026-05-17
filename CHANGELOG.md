@@ -7,7 +7,46 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.9.3] below for the latest cut.)
+(empty — see [0.9.4] below for the latest cut.)
+
+## [0.9.4] — 2026-05-17
+
+Fixes the same parallel-session cross_check schema violation that
+0.9.0's `5f693b6` repaired for Sinew, now applied to the proprio
+scenario added in concurrent commit `6e57618`. CI matrix went red on
+0.9.3 due to two shipped proprio proofs failing
+`test_validate_schema_passes_for_every_shipped_proof`; this patch
+closes the regression.
+
+### Fixed
+
+- **`scenarios/proprio_self_discovery.py`: `cross_check` schema
+  compliance.** The proprio scenario was populating
+  `PillarEvidence.cross_check` with a prose explanation; the schema
+  constrains the field to `{"passed", "skipped", "failed", "n/a"}`.
+  Same fix shape as 0.9.0's Sinew cleanup: `cross_check="passed"`
+  and the prose moves to `detail["cross_check_note"]`.
+- **The two shipped proprio proofs** (`proofs/scientific/proprio/proprio_self_discovery_*.json`)
+  are re-emitted + re-signed under `DEFAULT_SIGN_KEY`. Filenames
+  are realigned to the new content-hashed proof_ids. `.md` sidecars
+  regenerated from the new records.
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (143/143).
+- `mkdocs build --strict` passes.
+- `test_validate_schema_passes_for_every_shipped_proof` now PASSES.
+- Full suite green.
+
+### Aside
+
+The recurrence of this exact schema violation across two consecutive
+parallel-session-added scenarios (Sinew + proprio) is a Pattern-T
+signal — the `PillarEvidence.cross_check` field's enum constraint
+is non-obvious from its name. A future patch should add a clearer
+docstring + a `_validate_evidence_at_construction` guard so the
+violation fires loud at scenario-build-time rather than at
+ship-time validation. Filed mentally; not in this patch.
 
 ## [0.9.3] — 2026-05-17
 

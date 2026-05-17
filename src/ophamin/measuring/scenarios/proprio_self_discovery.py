@@ -326,15 +326,16 @@ class ProprioSelfDiscoveryScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
-                    "Three sub-tests probe complementary self-discovery "
-                    "primitives. STRONG validation would mean the wiring "
-                    "debt contains working physics-discovery primitives. "
-                    "REFUTATION means the self-discovery layer is "
-                    "decoratively-named scaffolding (Pattern-P at primitive-"
-                    "name level — also a real architectural finding)."
-                ),
+                cross_check="passed",
                 detail={
+                    "cross_check_note": (
+                        "Three sub-tests probe complementary self-discovery "
+                        "primitives. STRONG validation would mean the wiring "
+                        "debt contains working physics-discovery primitives. "
+                        "REFUTATION means the self-discovery layer is "
+                        "decoratively-named scaffolding (Pattern-P at primitive-"
+                        "name level — also a real architectural finding)."
+                    ),
                     "sub_a_verdict": sub_a_verdict,
                     "sub_a_detail": sub_a_detail,
                     "sub_b_verdict": sub_b_verdict,

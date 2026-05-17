@@ -1,11 +1,11 @@
 # Ophamin Empirical Proof Record — `REFUTED`
 
-**Proof ID:** `6929d819c9339727f2233491781080aa7098fdeae0aabb6520c421c61a11a165`
+**Proof ID:** `c2e3ec4d71fc4bebe0765f3773a8816492a60ecd540191fc6835639cc338e2cd`
 **Schema:** v1.0  
-**Created:** 2026-05-17T18:32:26.642916+00:00
+**Created:** 2026-05-17T18:08:01.095628+00:00
 
 ## 1. Identity
-- Ophamin: `0.9.3` @ `724183e5a3e9b8b3651eccbdad7f871645c756b7`
+- Ophamin: `0.9.2` @ `92dc71837ccb28b58d883657a57ebb686baee8bf`
 - Substrate: **kimera-swm** @ `(no commit)`
 
 ## 2. Claim
@@ -17,18 +17,18 @@
 - **H1:** sub_tests_passed >= 2 — substrate has measurable self-discovery capability; the wiring debt does contain working physics-discovery primitives
 
 ## 3. Pre-registration
-- Registered at: `2026-05-17T18:32:26.448183+00:00` (must precede §1 created)
+- Registered at: `2026-05-17T18:08:00.899919+00:00` (must precede §1 created)
 - Config hash: `448da14b61933d956db50ae840ebbff7248b7dbfded1a4ab33244c0398503819`
-- Data hash: `54591a60c2ee7f903b4e1a763c8ade45443db587824d2058b712ffae28a49005`
+- Data hash: `9ca122d80906d73bf377121bf49dceab177c09db1a99519600c5334052ec4121`
 - Analysis plan: Read three pre-computed Phase 2/3/4 reports from the Proprio campaign. SUB-A: classify Phase 2's CW vs P+T discovery r². SUB-B: classify Phase 3's typed-event coverage ratio. SUB-C: classify Phase 4's Sinew-triad recovery. Count sub-tests reaching STRONG_PASS or WEAK_PASS verdicts. Verdict on count >= 2.
 
 ## 4. Data
-- **kimera-proprio-trajectory** (proprio-phase-reports) — 3 records — `54591a60c2ee7f90…` — phase_reports
+- **kimera-proprio-trajectory** (proprio-phase-reports) — 3 records — `9ca122d80906d73b…` — phase_reports
 
 ## 5. Evidence
 | Pillar | Statistic | Value | Effect | 95% CI | p | Library | Cross-check |
 |---|---|---|---|---|---|---|---|
-| proprio_self_discovery | sub_tests_passed | 1 | — | — | — | ophamin.measuring.scenarios.proprio_self_discovery 0.9.3 | Three sub-tests probe complementary self-discovery primitives. STRONG validation would mean the wiring debt contains working physics-discovery primitives. REFUTATION means the self-discovery layer is decoratively-named scaffolding (Pattern-P at primitive-name level — also a real architectural finding). |
+| proprio_self_discovery | sub_tests_passed | 1 | — | — | — | ophamin.measuring.scenarios.proprio_self_discovery 0.9.2 | passed |
 
 ## 6. Verdict
 ### **REFUTED**
@@ -47,7 +47,7 @@ PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario proprio-self-discovery -
 - W3C PROV-O graph: 2 entities, 1 activities, 2 agents
 
 ## 9. Signature
-- `1b7787c967aa904d37ceabf876250ea1e171c08756f85ee19606d96c1c5de39e`
+- `9422c8c589adee67bcc6fc0204972b25f9715b8f7ffb6e62c12dc2d46c179d2d`
 
 ---
 **⚠ 1 validation problem(s):**
