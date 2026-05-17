@@ -126,7 +126,7 @@ def _normalize(arr: np.ndarray) -> np.ndarray:
     return arr / s if s > 1e-12 else arr
 
 
-def _aggregate_avg(records: list[dict], section: str, fields: tuple[str, ...]) -> np.ndarray:
+def _aggregate_avg(records: list[dict[str, Any]], section: str, fields: tuple[str, ...]) -> np.ndarray:
     """Average over named fields per cycle; NaN if crashed."""
     out: list[float] = []
     for r in records:
@@ -142,7 +142,7 @@ def _aggregate_avg(records: list[dict], section: str, fields: tuple[str, ...]) -
     return np.array(out, dtype=float)
 
 
-def _aggregate_field(records: list[dict], section: str, field: str) -> np.ndarray:
+def _aggregate_field(records: list[dict[str, Any]], section: str, field: str) -> np.ndarray:
     """Per-cycle scalar from records[i][section][field]."""
     out: list[float] = []
     for r in records:
@@ -154,7 +154,7 @@ def _aggregate_field(records: list[dict], section: str, field: str) -> np.ndarra
     return np.array(out, dtype=float)
 
 
-def _detect_events(records: list[dict]) -> dict[str, list[int]]:
+def _detect_events(records: list[dict[str, Any]]) -> dict[str, list[int]]:
     """Detect event-cycle indices per class: walker_m4, ouroboros, scar."""
     walker_m4: list[int] = []
     ouroboros: list[int] = []
