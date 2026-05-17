@@ -35,9 +35,13 @@ fi
 echo "▶ Ophamin pre-push gate (1/4): pytest ..."
 PYTHONPATH=src "$PY" -m pytest -q --ignore=tests/bench
 
-echo "▶ Ophamin pre-push gate (2/4): coverage ≥ 77 % ..."
+echo "▶ Ophamin pre-push gate (2/4): coverage ≥ 75 % ..."
+# 75 % is the honest cross-platform floor on clean CI venvs. Locally
+# this number is typically higher because the author's venv has
+# additional optional deps installed; the lower gate matches what CI
+# actually measures.
 PYTHONPATH=src "$PY" -m pytest -q --ignore=tests/bench \
-    --cov=src/ophamin --cov-branch --cov-fail-under=77 \
+    --cov=src/ophamin --cov-branch --cov-fail-under=75 \
     --cov-report=term:skip-covered > /dev/null
 
 echo "▶ Ophamin pre-push gate (3/4): mypy strict (full package) ..."

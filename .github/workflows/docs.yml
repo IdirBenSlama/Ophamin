@@ -1,0 +1,76 @@
+name: docs
+
+# Build + deploy the mkdocs site to GitHub Pages on every push to main.
+# Pull requests build but do NOT deploy (preview only).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Manual trigger for forced rebuilds.
+  workflow_dispatch:
+
+# Mandatory permissions for the deploy step. The build job is fine
+# with read-only.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one deploy at a time per branch, but don't cancel in-flight
+# deploys — losing the previous deploy mid-flight can leave the site in
+# a torn state.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build mkdocs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # mkdocs git-revision-date plugin needs full history
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install docs deps
+        run: |
+          python -m pip install --upgrade pip
+          # Install ophamin + docs extra so mkdocstrings can introspect.
+          pip install -e ".[docs]"
+
+      - name: Build site
+        # NOTE: ``--strict`` is intentionally omitted for the first cut
+        # of Phase L1. Many doc pages include-markdown root-level files
+        # (CHANGELOG, SCHEMAS, CONTRIBUTING) which then contain relative
+        # paths like ``../src/...`` — those paths resolve in the GitHub
+        # repo browser but not under mkdocs. Cleanup is tracked as an
+        # L1 follow-up; mkdocs in non-strict mode warns on console but
+        # renders the site correctly.
+        run: mkdocs build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: deploy to GitHub Pages
+    # Don't deploy from PRs — preview-only.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

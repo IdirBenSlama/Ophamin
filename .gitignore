@@ -64,6 +64,11 @@ tests/bench/output/
 # literal "file:" directory; gitignore that shape too.
 file:
 
+# --- mkdocs build output (Phase L1) ---
+# mkdocs writes the generated static site to `site/` by default.
+# CI builds + deploys; we never commit the rendered HTML.
+site/
+
 # --- Local environment files ---
 # Never commit secrets. PATs / API keys / OAuth tokens belong in env vars or
 # secret managers, never in this tree.

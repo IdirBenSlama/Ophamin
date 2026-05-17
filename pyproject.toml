@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ophamin"
-version = "0.8.0"
+version = "0.8.1"
 description = "Ophamin: an empirical framework for scaling and verifying iterative experimentation on a substrate under test (built for Kimera-SWM, independent of it)."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -43,6 +43,13 @@ dependencies = [
 [project.optional-dependencies]
 viz = ["matplotlib>=3.6"]          # CumulativeMetaAnalysis.plot + reporting wheel charts
 hydra = ["hydra-core>=1.3"]        # Hydra-driven entry points (OmegaConf is core)
+docs = [                           # Phase L1 — public documentation site
+    "mkdocs>=1.6",                 # the doc builder
+    "mkdocs-material>=9.5",        # the canonical theme + nav widgets
+    "mkdocstrings[python]>=0.26",  # auto-generated API reference from docstrings
+    "mkdocs-include-markdown-plugin>=7.0",  # `{% include-markdown %}` for root files
+    "pymdown-extensions>=10.0",    # tabs, code-block syntax, etc.
+]
 well = ["h5py>=3.0"]               # TheWellCorpus — physics-simulation HDF5 datasets
 telemetry = [                      # instrumenting wheel — optional richer telemetry
     "opentelemetry-api>=1.20",

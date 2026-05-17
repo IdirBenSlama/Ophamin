@@ -1,0 +1,130 @@
+site_name: Ophamin
+site_description: >-
+  An empirical observatory wrapped around a substrate under test —
+  six wheels, signed proofs, falsifiable claims.
+site_author: Idir Ben Slama
+site_url: https://idirbenslama.github.io/Ophamin/
+repo_name: IdirBenSlama/Ophamin
+repo_url: https://github.com/IdirBenSlama/Ophamin
+edit_uri: edit/main/docs/
+copyright: Copyright © 2026 Idir Ben Slama — Apache License 2.0
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+
+plugins:
+  - search
+  - include-markdown
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_root_heading: true
+            show_source: false
+            members_order: source
+            heading_level: 2
+            show_signature_annotations: true
+            separate_signature: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/IdirBenSlama/Ophamin
+  generator: false
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting-started/install.md
+      - Your first scenario: getting-started/first-scenario.md
+      - Reading a signed proof: getting-started/reading-a-proof.md
+  - Tutorials:
+      - Write a new scenario: tutorials/write-a-scenario.md
+      - Wrap a third-party pillar: tutorials/wrap-a-pillar.md
+      - Run a full campaign: tutorials/run-a-campaign.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Extended audit (2026-05-16): ARCHITECTURE_EXTENDED_AUDIT_2026_05_16.md
+      - Intent vs reality (2026-05-16): ARCHITECTURE_INTENT_VS_REALITY_2026_05_16.md
+      - Scenario authoring: SCENARIO_AUTHORING.md
+      - Plugin catalog: PLUGIN_CATALOG_2026_05_15.md
+      - Kimera observational surface: KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md
+  - Reference:
+      - Schemas (signed records): reference/schemas.md
+      - Public API: reference/api.md
+      - Benchmarks + coverage: BENCHMARKS_AND_COVERAGE.md
+      - Mypy strict baseline: MYPY_STRICT_BASELINE.md
+      - Risk-accepted CVEs: RISK_ACCEPTED_CVES.md
+      - Free-tier limits: free_tier_limits.md
+  - Project:
+      - Changelog: changelog.md
+      - Contributing: contributing.md
+      - Security: security.md
+      - License: license.md
+      - Release procedure: RELEASE_PROCEDURE.md
+      - Elevation roadmap: ELEVATION_ROADMAP_2026_05_16.md
+      - RFCs: rfc/README.md
+      - RFC template: rfc/0000-template.md

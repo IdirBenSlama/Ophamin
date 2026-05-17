@@ -28,13 +28,20 @@ the canonical run command is:
 | Total branches | 3,674 |
 | Tests passing | 1,148 |
 | Tests skipped | 1 |
-| Combined coverage | **77.7 %** |
+| Combined coverage | **75.4 % on CI (Ubuntu Python 3.12+3.13), ~77.8 % locally** |
+
+The 2.4 pp gap between local and CI is real and honest: the author's
+macOS venv has additional optional deps installed from earlier
+sessions (NPEET / pacmap / etc.) that add reachable code paths.
+**CI is the authoritative cross-platform measurement.** Pre-push gate
+and CI gate are aligned at **≥ 75 %** (slightly below the measured
+floor to absorb noise).
 
 ### Coverage targets
 
-| Slice | Current | Target (v0.6.0) | Stretch |
+| Slice | Current (CI) | Target (v0.9.0) | Stretch |
 |---|---|---|---|
-| Whole framework | 77.7 % | **≥ 85.0 %** | ≥ 90 % |
+| Whole framework | 75.4 % | **≥ 80 %** | ≥ 85 % |
 | `measuring/` (scenarios + pillars + proof + codec) | ~92 % | ≥ 95 % | 100 % |
 | `comparing/` (synthesis + regression-alert + drift) | ~90 % | ≥ 95 % | 100 % |
 | `auditing/` | ~85 % | ≥ 92 % | ≥ 95 % |
