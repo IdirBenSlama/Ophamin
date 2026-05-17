@@ -7,7 +7,73 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.11.1] below for the latest cut.)
+(empty — see [0.11.2] below for the latest cut.)
+
+## [0.11.2] — 2026-05-17
+
+**Headline:** Phase E4 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md)
+fully closed on the framework-internal side. The build itself
+is now empirically reproducibility-pinned.
+
+### Added
+
+- **`tests/test_build_reproducibility.py`** — three pinning tests
+  that run `python -m build` twice with `SOURCE_DATE_EPOCH=1715846400`
+  (a fixed UTC timestamp) and assert:
+    1. **Wheel byte-equivalence** — two independent builds produce
+       SHA-256-identical wheels. (Wheels are zips; Python's
+       zip writer + setuptools both honour `SOURCE_DATE_EPOCH`
+       cleanly.)
+    2. **Sdist content-equivalence** — when extracted, every member
+       file hashes identically across both builds. The framework's
+       reproducibility property holds at the *content* level for
+       sdists even if the gzip wrapper drifts.
+    3. **Sdist gzip-header drift documented** — informational test
+       that surfaces whether the gzip wrapper itself is
+       byte-deterministic on the current Python/setuptools
+       combination. As of 0.11.2 on macOS Python 3.14 + setuptools
+       82.x, the wrapper drifts; the underlying content does not.
+       When upstream tightens this, the test prompts the maintainer
+       to convert it to a hard byte-equality check.
+- The test fixture builds twice (module-scoped) so the three
+  assertions run on the same artefact pair in ≤ 7 s wall time.
+- Skips itself cleanly if `python -m build` isn't installed
+  (it's in the `[release]` extra, present on CI).
+
+### Empirical findings
+
+Pinned 2026-05-17 against `0.11.2` on the author's host:
+
+| Artefact | Reproducibility |
+|---|---|
+| `.whl` | Byte-identical (SHA-256 match) ✅ |
+| `.tar.gz` (sdist) contents | Byte-identical (per-member SHA-256 match) ✅ |
+| `.tar.gz` (sdist) wrapper | Gzip header carries wall-clock mtime; ~20-byte drift between back-to-back invocations. **Known upstream limitation; not a framework defect.** |
+
+### What this closes vs leaves open
+
+**Closed (E4 framework-internal):**
+- ✅ Deterministic-seed propagation audit (0.11.0)
+- ✅ Framework-wide audit gate across every seed-taking scenario (0.11.1)
+- ✅ SOURCE_DATE_EPOCH-pinned local build reproducibility (this patch)
+- ✅ SLSA 3 build provenance + sigstore + PEP 740 attestations (shipped at 0.9.3 via E7)
+
+**Still open (E4 owner-driven):**
+- Per-OS lockfiles for missing triples (macOS-arm64-py312, linux-arm64-py312);
+  blocked on either uv-universal compile or Docker buildx per-platform emit
+- Container image signing via cosign (no Dockerfile shipping yet)
+- Diffoscope-clean builds **cross-machine** — requires an external
+  reviewer to rebuild a tagged release and verify byte-equal output.
+  (RFC 0002 §3.1 E4 acceptance criterion.)
+
+### Validated
+
+- `mypy --strict src/ophamin tests/test_build_reproducibility.py` clean (147/147).
+- `mkdocs build --strict` passes.
+- 3/3 build-reproducibility tests pass in 6.29 s wall time.
+- The framework's own `python -m build` is now empirically pinned
+  reproducible at the level RFC 0002 Phase E4 specifies for
+  framework-internal validation.
 
 ## [0.11.1] — 2026-05-17
 
