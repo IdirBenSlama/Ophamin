@@ -1,0 +1,76 @@
+{
+  "results": [
+    {
+      "scenario": "sinew-conservation",
+      "sec_verdict": "VALIDATED",
+      "sec_observed": 0.08734077535187149,
+      "sec_proof": "5968f6bf64d26f00d95b873d348c990866db3ce02929c0098828bb44e71a9b89",
+      "lit_verdict": "VALIDATED",
+      "lit_observed": 0.08727709587567778,
+      "lit_proof": "ad38b025d0b0a5a5d86fb40ffcbf45abfdf38fb6b7d843c39e98f1dee9ff276f",
+      "delta": -6.367947619370651e-05,
+      "universality": "UNIVERSAL"
+    },
+    {
+      "scenario": "sinew-modulation-disruption",
+      "sec_verdict": "VALIDATED",
+      "sec_observed": 0.09826126357599888,
+      "sec_proof": "f2607f9f78c8dfe9512dd23ba8bd8da5390baf2e9ea5a477750669acf18f7d1c",
+      "lit_verdict": "VALIDATED",
+      "lit_observed": 0.07630155249669499,
+      "lit_proof": "4b824c5f2bb8f7b55e2b19cdd4450a9e2e4e8c9270bccf269aa43d8a32134dcd",
+      "delta": -0.02195971107930389,
+      "universality": "UNIVERSAL"
+    },
+    {
+      "scenario": "sinew-wider-unification",
+      "sec_verdict": "VALIDATED",
+      "sec_observed": 8,
+      "sec_proof": "20405e28d271fa75fef3ef81c5c99670cab241b82dce3eab71c98ca8774c2dd2",
+      "lit_verdict": "VALIDATED",
+      "lit_observed": 10,
+      "lit_proof": "20967025655105a56981848617eaf60c0e74862e7c1f93e7e88fa3fe67c2f165",
+      "delta": 2.0,
+      "universality": "ROBUST (same verdict, shifted count)"
+    }
+  ],
+  "phase5_per_candidate_agreement_count": 8,
+  "phase5_per_candidate_agreement_fields": [
+    "energy/riemann_zeta_entropy",
+    "energy/riemann_zeta_free_energy",
+    "energy/crystal_binding_energy",
+    "energy/quantum_interference_entropy",
+    "energy/rosetta_composition_entropy",
+    "energy/voronoi_neighbourhood_entropy",
+    "energy/turing_pattern_entropy",
+    "prime_log_energy"
+  ],
+  "phase5_sec_per_candidate": {
+    "energy/quantum_energy": "BREAKS",
+    "energy/spde_ground_energy": "COMPATIBLE",
+    "energy/entanglement_entropy": "BREAKS",
+    "energy/riemann_zeta_entropy": "EXTENDS",
+    "energy/riemann_zeta_free_energy": "EXTENDS",
+    "energy/crystal_binding_energy": "COMPATIBLE",
+    "energy/quantum_interference_entropy": "EXTENDS",
+    "energy/quantum_prime_basis_entropy": "BREAKS",
+    "energy/rosetta_composition_entropy": "EXTENDS",
+    "energy/voronoi_neighbourhood_entropy": "COMPATIBLE",
+    "energy/turing_pattern_entropy": "COMPATIBLE",
+    "prime_log_energy": "BREAKS"
+  },
+  "phase5_lit_per_candidate": {
+    "energy/quantum_energy": "COMPATIBLE",
+    "energy/spde_ground_energy": "BREAKS",
+    "energy/entanglement_entropy": "COMPATIBLE",
+    "energy/riemann_zeta_entropy": "EXTENDS",
+    "energy/riemann_zeta_free_energy": "EXTENDS",
+    "energy/crystal_binding_energy": "COMPATIBLE",
+    "energy/quantum_interference_entropy": "EXTENDS",
+    "energy/quantum_prime_basis_entropy": "COMPATIBLE",
+    "energy/rosetta_composition_entropy": "EXTENDS",
+    "energy/voronoi_neighbourhood_entropy": "COMPATIBLE",
+    "energy/turing_pattern_entropy": "COMPATIBLE",
+    "prime_log_energy": "BREAKS"
+  }
+}
