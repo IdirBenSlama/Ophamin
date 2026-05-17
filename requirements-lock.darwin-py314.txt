@@ -1,20 +1,28 @@
-# Ophamin — pinned lockfile (Phase S4, 2026-05-16)
+# Ophamin — local-environment lockfile (Phase S4, 2026-05-16; renamed 0.7.1)
 #
-# This file pins EVERY transitive dependency in the framework's working venv
-# at the exact version that produces the green 1148-test + mypy --strict
-# clean + 77 %+ coverage baseline.
+# Scope: this file pins every transitive dependency as installed in the
+# author's working venv. Platform: **macOS arm64 + Python 3.14**. It is
+# NOT portable across platforms or Python versions:
 #
-# Use this for reproducible installs:
+#   - Some pinned versions only ship macOS wheels (e.g. ``gudhi==3.12.0``
+#     has no linux/arm64 Python 3.12 wheel — Docker builds fail on it).
+#   - Some upstream pre-built wheels carry ABI tags that exclude Linux.
 #
-#   pip install -r requirements-lock.txt
-#   pip install -e . --no-deps
+# The Dockerfile + CI therefore do NOT consume this lockfile. They resolve
+# fresh against ``pyproject.toml`` on Python 3.12 inside Linux containers.
+# This lockfile exists for the author's local dev environment and for
+# *forensic* reference — given a regression, ``pip freeze`` against the
+# current venv is the snapshot you compare against.
 #
-# To refresh the lockfile (after a coordinated bump):
+# To refresh after a coordinated bump:
 #
-#   .venv/bin/pip freeze --exclude-editable > requirements-lock.txt
+#   .venv/bin/pip freeze --exclude-editable > requirements-lock.darwin-py314.txt
 #
 # Then re-run the full test suite + mypy --strict + coverage gate before
 # committing the new pins.
+#
+# A *portable* lockfile (multi-platform via ``uv pip compile`` or similar)
+# is open work; see ``docs/ELEVATION_ROADMAP_2026_05_16.md``.
 
 adagio==0.2.6
 aiohappyeyeballs==2.6.1

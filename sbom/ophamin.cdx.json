@@ -1,23 +1,23 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:d8859349-f188-464a-a048-de36c57be45b",
+  "serialNumber": "urn:uuid:0884282c-4753-453c-a442-09eb4d83d531",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-05-16T20:11:49.726406+00:00",
+    "timestamp": "2026-05-17T01:26:42.611160+00:00",
     "tools": [
       {
         "vendor": "ophamin",
         "name": "ophamin",
-        "version": "0.1.0"
+        "version": "0.7.0"
       }
     ],
     "component": {
       "type": "application",
-      "bom-ref": "pkg:pypi/ophamin@0.6.0",
+      "bom-ref": "pkg:pypi/ophamin@0.7.0",
       "name": "ophamin",
-      "version": "0.6.0",
-      "purl": "pkg:pypi/ophamin@0.6.0"
+      "version": "0.7.0",
+      "purl": "pkg:pypi/ophamin@0.7.0"
     },
     "properties": [
       {
@@ -2745,10 +2745,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/ophamin@0.4.0",
+      "bom-ref": "pkg:pypi/ophamin@0.7.0",
       "name": "ophamin",
-      "version": "0.4.0",
-      "purl": "pkg:pypi/ophamin@0.4.0",
+      "version": "0.7.0",
+      "purl": "pkg:pypi/ophamin@0.7.0",
       "description": "Ophamin: an empirical framework for scaling and verifying iterative experimentation on a substrate under test (built for Kimera-SWM, independent of it).",
       "licenses": [
         {
@@ -2760,10 +2760,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/ophamin@0.4.0",
+      "bom-ref": "pkg:pypi/ophamin@0.7.0",
       "name": "ophamin",
-      "version": "0.4.0",
-      "purl": "pkg:pypi/ophamin@0.4.0",
+      "version": "0.7.0",
+      "purl": "pkg:pypi/ophamin@0.7.0",
       "description": "Ophamin: an empirical framework for scaling and verifying iterative experimentation on a substrate under test (built for Kimera-SWM, independent of it).",
       "licenses": [
         {

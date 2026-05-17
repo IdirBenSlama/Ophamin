@@ -1,6 +1,6 @@
 # ophamin SBOM — CycloneDX 1.5
-# bomFormat=CycloneDX  serialNumber=urn:uuid:d8859349-f188-464a-a048-de36c57be45b
-# generated_at=2026-05-16T20:11:49.726406+00:00
+# bomFormat=CycloneDX  serialNumber=urn:uuid:0884282c-4753-453c-a442-09eb4d83d531
+# generated_at=2026-05-17T01:26:42.611160+00:00
 
 adagio                                   0.2.6                pkg:pypi/adagio@0.2.6
 aiohappyeyeballs                         2.6.1                pkg:pypi/aiohappyeyeballs@2.6.1
@@ -200,8 +200,8 @@ opentelemetry-proto                      1.37.0               pkg:pypi/opentelem
 opentelemetry-sdk                        1.37.0               pkg:pypi/opentelemetry-sdk@1.37.0
 opentelemetry-semantic-conventions       0.58b0               pkg:pypi/opentelemetry-semantic-conventions@0.58b0
 opentelemetry-util-http                  0.58b0               pkg:pypi/opentelemetry-util-http@0.58b0
-ophamin                                  0.4.0                pkg:pypi/ophamin@0.4.0
-ophamin                                  0.4.0                pkg:pypi/ophamin@0.4.0
+ophamin                                  0.7.0                pkg:pypi/ophamin@0.7.0
+ophamin                                  0.7.0                pkg:pypi/ophamin@0.7.0
 opt_einsum                               3.4.0                pkg:pypi/opt-einsum@3.4.0
 orjson                                   3.11.9               pkg:pypi/orjson@3.11.9
 packageurl-python                        0.17.6               pkg:pypi/packageurl-python@0.17.6

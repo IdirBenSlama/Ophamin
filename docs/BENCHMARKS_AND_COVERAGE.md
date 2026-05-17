@@ -71,8 +71,8 @@ the canonical run command is:
 | File | Coverage | Gap | Plan |
 |---|---|---|---|
 | `seeing/corpus/connectors.py` | 54.2 % | Real-corpus access paths gated on downloads | Add mock-filesystem unit tests for parser branches; skip on missing data via `pytest.skip` |
-| `seeing/substrate/kimera_adapter.py` | 57.3 % | Subprocess + batch + probe paths need real Kimera | Add subprocess-mocked tests for the parser / dispatcher branches; the actual Kimera-call paths stay covered by Kimera-side integration tests |
-| `seeing/discovery/watcher.py` | 50.4 % | Continuous-loop / signal-handler paths | Add unit tests for the inner-step branches (one tick at a time, no infinite loop) |
+| `seeing/substrate/kimera_adapter.py` | 55.9 % | Subprocess + batch + probe paths require a real Kimera repo on disk. **Integration-test territory.** Phase S2 (0.7.0) added 14 constructor-validation tests pinning every loud-failure branch; the remaining gap is `_invoke` + `_spawn_subprocess` + `run_batch`, which only run meaningfully against an actual Kimera tree. Owner-side integration runs are the canonical evidence for those paths. | Either mock-`subprocess.run` to cover dispatch / parse / decode-error branches, or accept the gap and document the integration boundary. Current call: accept. |
+| `seeing/discovery/watcher.py` | 50.4 % | Continuous-loop / mining path (lines 141-171) constructs a KimeraAdapter inline and calls a SchemaMiner; needs a real Kimera repo. **Same integration-test territory as kimera_adapter.** Phase S2 added 7 tests for the static helpers, run_forever loop with monkeypatched sleep, and kimera_head_commit failure paths. | Accept the gap; mining-path coverage comes from owner-side runs against the live Kimera tree. |
 | `measuring/timeseries_helpers.py` | 50.7 % | Optional helper paths used only by 2 scenarios | Either dedicated property-test coverage or move to a `helpers/optional/` subpackage with a skip-when-unused convention |
 | `measuring/scenarios/throughput_ceiling.py` | 71.9 % | InstrumentedSubstrate wrapping paths | Mock-substrate test that walks the wrapping ladder |
 

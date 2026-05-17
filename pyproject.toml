@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ophamin"
-version = "0.7.0"
+version = "0.7.1"
 description = "Ophamin: an empirical framework for scaling and verifying iterative experimentation on a substrate under test (built for Kimera-SWM, independent of it)."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -83,7 +83,11 @@ causal = [                         # measuring/ wheel — causal inference
 tda = [                            # seeing/ + measuring/ — topological data analysis
     "ripser>=0.6",                 # fast persistent homology
     "scikit-tda>=1.0",             # umbrella (kepler-mapper, persim, etc.)
-    "gudhi>=3.10",                 # broadest simplicial-complex coverage
+    # gudhi was previously declared here for "broadest simplicial-complex
+    # coverage" but (a) no code in src/ or tests/ imports it and (b) gudhi
+    # 3.x ships no linux/arm64 Python 3.12 wheel, breaking arm64 Docker
+    # builds. Install explicitly via ``pip install gudhi`` on a supported
+    # platform if a gudhi-backed scenario becomes load-bearing.
 ]
 timeseries = [                     # comparing/drift_detection/ + measuring/
     "darts>=0.30",                 # forecasting + anomaly
@@ -122,7 +126,12 @@ crdt = [                           # comparing/ — distributed-state probing
 ]
 conformal = [                      # measuring/ — conformal prediction
     "crepes>=0.8",                 # NumPy conformal regressors + classifiers
-    "puncc>=0.9",                  # conformal classification + detection (deel-puncc)
+    # Note: ``puncc`` was previously declared as a cross-check oracle here,
+    # but (a) nothing in src/ or tests/ actually imports it, and (b) puncc
+    # 0.9.1 pins ``scikit-learn~=1.3.0`` which conflicts with causalml's
+    # ``scikit-learn>=1.6.0`` constraint, breaking CI on fresh installs.
+    # If a puncc-based oracle becomes load-bearing, re-add under a separate
+    # extra (e.g. ``conformal_oracle``) so it doesn't poison ``[all]``.
 ]
 infotheory = [                     # measuring/ — information theory
     "pyitlib>=0.2",                # MI + entropy
@@ -160,7 +169,7 @@ all = [                            # convenience: everything optional, for full 
     "tigramite>=5.2",
     "ripser>=0.6",
     "scikit-tda>=1.0",
-    "gudhi>=3.10",
+    # gudhi intentionally omitted — see [tda] for the reasoning
     "darts>=0.30",
     "tsfresh>=0.20",
     "pyod>=2.0",
@@ -181,7 +190,7 @@ all = [                            # convenience: everything optional, for full 
     "pycrdt>=0.10",
     "y-py>=0.6",
     "crepes>=0.8",
-    "puncc>=0.9",
+    # puncc intentionally omitted — see [conformal] for the reasoning
     "pyitlib>=0.2",
     "ennemi>=1.4",
 ]

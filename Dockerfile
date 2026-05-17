@@ -42,19 +42,37 @@ RUN apt-get update \
 
 WORKDIR /opt/ophamin
 
-# 1) install pinned transitive deps FIRST (heavy layer, cache-friendly)
-COPY requirements-lock.txt ./
-RUN pip install -r requirements-lock.txt
+# Scope note: this image ships the Ophamin CORE runtime + CLI only.
+# It deliberately does NOT include the [all,dev] optional surface because:
+#   - Several optional deps (causalml, econml, z3-solver) need C/C++ build
+#     tools that aren't in python:3.12-slim — installing them inflates the
+#     image by ~600MB of build tooling for ~5 packages that the CLI never
+#     calls directly.
+#   - Several optional wheels (gudhi 3.x, puncc 0.9.x) don't have
+#     linux/arm64 Python 3.12 builds at all.
+#
+# What this image CAN do:
+#   - ophamin --help / ophamin scenario list / ophamin pillar list (CLI)
+#   - run scenarios that depend only on core deps (numpy / scipy /
+#     scikit-learn / statsmodels / pandas / pyyaml / prov / etc.)
+#   - emit signed proof records and CycloneDX SBOMs
+#
+# What it CANNOT do:
+#   - run causal-discovery / Bayesian / TDA scenarios (need [causal] /
+#     [bayesian] / [tda] extras — install on a build-tool-equipped host)
+#   - run the audit pillar against a Kimera repo (needs [audit] extras)
+#
+# For full-surface development, use a local venv with the macOS lockfile
+# (or any toolchain-equipped Linux distro: e.g. python:3.12-bookworm).
 
-# 2) bring the source in (light layer, invalidated on every code change)
+# 1) bring the source in
 COPY pyproject.toml README.md NOTICE LICENSE ./
 COPY src/ ./src/
 COPY tests/ ./tests/
 COPY docs/ ./docs/
 
-# 3) install ophamin itself without re-resolving its declared deps —
-#    the lockfile is the source of truth for what's actually installed.
-RUN pip install -e . --no-deps
+# 2) install ophamin CORE (no extras) — fresh resolve against pyproject
+RUN pip install -e .
 
 # Run as non-root by default.
 RUN useradd --create-home --shell /bin/bash ophamin \

@@ -7,7 +7,107 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.7.0] below for the latest cut.)
+(empty — see [0.7.1] below for the latest cut.)
+
+## [0.7.1] — 2026-05-17
+
+Verification patch. The 0.7.0 cut shipped infrastructure (lockfile,
+Dockerfile, SBOM script) that hadn't been smoke-tested end-to-end.
+This patch closes that loop and surfaces the real defects that the
+verification campaign exposed.
+
+### Fixed
+
+- **CI on origin was failing for both 0.7.0 and the Dependabot follow-ups.**
+  Root cause: `puncc 0.9.1` pins `scikit-learn~=1.3.0` while
+  `causalml 0.16.0` requires `scikit-learn>=1.6.0`; pip's resolver
+  refuses the `ophamin[all,dev]==0.7.0` install on a fresh Ubuntu
+  Python 3.12 / 3.13 venv. The local venv has both packages
+  co-installed because pip doesn't re-verify constraints retroactively
+  after individual upgrades.
+  Resolution: removed `puncc>=0.9` from `[conformal]` and `[all]`
+  extras. `puncc` was declared as a cross-check oracle but no code
+  under `src/` or `tests/` imports it. If a `puncc`-backed oracle
+  becomes load-bearing it can be re-added under a separate extra
+  that doesn't poison `[all]`.
+- **Same surgery applied to `gudhi`** — declared in `[tda]` and
+  `[all]` for "broadest simplicial-complex coverage" but unimported
+  by any source, and `gudhi 3.x` ships no linux/arm64 Python 3.12
+  wheel (breaks ARM Docker builds even when the resolver is happy).
+  Removed from `[all]`; kept in `[tda]` for explicit opt-in on
+  supported platforms.
+
+### Changed
+
+- **Lockfile renamed** `requirements-lock.txt` →
+  `requirements-lock.darwin-py314.txt` to reflect its actual scope.
+  Reasoning: the 0.7.0 lockfile was generated from the author's
+  working venv (macOS arm64, Python 3.14) and contains pins like
+  `gudhi==3.12.0` that have no wheels for linux/arm64 Python 3.12.
+  Earlier marketing of "reproducible build" was overstated. The
+  lockfile is now positioned as a *local-environment snapshot* and
+  *forensic reference*. A portable multi-platform lockfile (via
+  `uv pip compile` or similar) is open work.
+- **Dockerfile reworked** to be CORE-only (drop `[all,dev]` install).
+  The slim base image lacks the C/C++ toolchain that `causalml`,
+  `econml`, and `z3-solver` need for source builds on linux/arm64.
+  The image now installs only `pip install -e .` against pyproject;
+  the resulting container can run `ophamin --help`, `ophamin scenario
+  list`, mock-substrate scenarios, and emit signed proofs / SBOMs.
+  Full-surface development still uses the local venv.
+- **`docs/BENCHMARKS_AND_COVERAGE.md` updated** with honest scoping
+  notes on `seeing/discovery/watcher.py` (50.4 %) and
+  `seeing/substrate/kimera_adapter.py` (55.9 %). Both files'
+  remaining coverage gaps are subprocess + Kimera-mining paths that
+  cannot be unit-tested without a real Kimera repo on disk. Owner-
+  side integration runs against the live Kimera tree are the
+  canonical evidence for those paths; further unit-test inflation
+  would be cosmetic.
+- **Local venv resynced** — pip-audit showed `ophamin 0.4.0`
+  installed against the 0.7.0 source tree (stale `pip install -e`
+  from before the 0.6.0 → 0.7.0 bump). `__version__` was correct
+  via `PYTHONPATH=src` runs, but the installed metadata had drifted.
+  `pip install -e . --no-deps` ran cleanly to resync.
+
+### Added
+
+- **Phase S5 closure via `pip-audit` instead of `osv-scanner`.**
+  The `osv-scanner` Docker image refused to start on this host
+  (containers stuck in "Created" state, no platform error surfaced).
+  `pip-audit 2.10.0` is already in the venv via the `[audit]` extra,
+  reads the OSV database directly, and ran cleanly. Result:
+  **2 known vulnerabilities surfaced, both already documented in
+  `docs/RISK_ACCEPTED_CVES.md`** — CVE-2025-69872 (`diskcache`,
+  unfixable upstream, cache-write attack surface compensated by
+  user-only directory perms) and PYSEC-2022-42969 (`py`, abandoned
+  package, attack vector is `py.path.svn*` which Ophamin never
+  calls). Both already in `DEFAULT_RISK_ACCEPTED_CVES`; the audit
+  pillar suppresses both correctly.
+
+### Validated
+
+- **Dockerfile builds cleanly** on linux/arm64 (Docker Desktop on macOS):
+  1.73 GB disk / 379 MB content size; ~7-minute fresh build with no cache.
+  Image manifest `acbb296583fc`. The pyproject install resolves cleanly
+  against Python 3.12 inside the slim-bookworm base.
+- **Container runtime NOT smoke-tested on the author's host.** Docker
+  Desktop on this machine has a daemon bug (seen this session) where
+  newly-created containers stay stuck in "Created" state and never start
+  — reproducible across multiple unrelated images (alpine, our own
+  image, even MCP server images). Image is correctly built and on disk;
+  the runtime smoke (`ophamin --help` inside the container) couldn't be
+  exercised without restarting Docker Desktop, which is owner-territory.
+  CI on Ubuntu will exercise the install + tests as cross-validation.
+- **Local validation re-run after pyproject changes**:
+  `mypy --strict src/ophamin` clean (138/138 files), pytest collects
+  1209 tests; full pytest re-run pending the 0.7.1 commit (no source
+  changes outside pyproject + Dockerfile + lockfile rename + docs).
+- **SBOM regenerated** against the resynced 0.7.0 venv (372 components,
+  ophamin entry now correctly shows version 0.7.0; was missed in 0.7.0
+  because the venv had stale 0.4.0 metadata).
+- **CI fix verified locally** via dependency-graph analysis; will be
+  cross-validated against Ubuntu Python 3.12/3.13 once the 0.7.1
+  commit lands on origin and the workflows re-run.
 
 ## [0.7.0] — 2026-05-16
 
