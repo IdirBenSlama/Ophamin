@@ -190,7 +190,7 @@ class ProprioSelfDiscoveryScenario(Scenario):
             ),
         )
 
-    def _classify_sub_a(self, phase_2: dict) -> tuple[str, dict]:
+    def _classify_sub_a(self, phase_2: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         """SUB-A: does Phase 2 surface non-trivial CW vs P+T relationship?"""
         # Try normalized variant first if available
         norm_path = self.phase_2_path.parent.parent / "proprio_phase_2_normalized" / "phase_2_1_report.json"
@@ -221,7 +221,7 @@ class ProprioSelfDiscoveryScenario(Scenario):
             "source": "phase_2_raw",
         }
 
-    def _classify_sub_b(self, phase_3: dict) -> tuple[str, dict]:
+    def _classify_sub_b(self, phase_3: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         """SUB-B: does pressure_state vocabulary classify ≥80% of Sinew events?"""
         n_classified = phase_3.get("n_classified", {})
         n_total = phase_3.get("n_total", {})
@@ -241,7 +241,7 @@ class ProprioSelfDiscoveryScenario(Scenario):
             "scar_absorption_pct": phase_3.get("scar_absorption_pct"),
         }
 
-    def _classify_sub_c(self, phase_4: dict) -> tuple[str, dict]:
+    def _classify_sub_c(self, phase_4: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         """SUB-C: does semantic_physics_validator surface a Sinew-relevant triad?"""
         sinew_verdict = phase_4.get("sinew_verdict", "FAIL")
         # Map the validator verdicts to scenario verdicts
