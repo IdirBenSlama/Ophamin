@@ -7,7 +7,50 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.11.0] below for the latest cut.)
+(empty — see [0.11.1] below for the latest cut.)
+
+## [0.11.1] — 2026-05-17
+
+**Headline:** Framework-wide reproducibility audit — the
+`DeterministicSeedAuditScenario` shipped in 0.11.0 now runs against
+**every audit-eligible scenario in the registry** as a CI gate.
+A new scenario that doesn't honour its seed gets caught at PR time
+rather than at downstream-replay time.
+
+### Added
+
+- **`tests/test_framework_wide_reproducibility.py`** — parametrized
+  test that discovers every scenario in `SCENARIOS` whose `__init__`
+  accepts a `seed` parameter, then runs
+  `DeterministicSeedAuditScenario` against each one. As of 0.11.1
+  the audit-eligible set is:
+    - `crdt-laws` (Yjs cross-backend convergence)
+    - `rosetta-scaling` (Rosetta promise empirical validation)
+    - `bayesian-phi-posterior` (PyMC posterior contraction)
+  All three pass the contract: two independent invocations with the
+  same `seed + kwargs` produce bit-identical reproducibility-form
+  hashes (in ≤ 5 s total wall time).
+- **`_AUDIT_KWARGS`** dict in the test pins CI-friendly kwargs per
+  scenario; new audit-eligible scenarios fall back to
+  `{"seed": 20260517}` automatically.
+- **Drift detector** (`test_audit_eligible_set_matches_pinned_list`)
+  catches stale or missing entries in `_AUDIT_KWARGS` at PR time.
+
+### Significance
+
+The reproducibility contract is no longer just a property of
+`crdt-laws` — it's an **empirical gate on every scenario in the
+framework that's structurally testable**. RFC-0002 Phase E4 names
+this as the load-bearing reproducibility claim; 0.11.0 shipped the
+audit primitive, 0.11.1 deploys it against the whole registry.
+
+### Validated
+
+- `mypy --strict src/ophamin tests/test_framework_wide_reproducibility.py` clean (147/147).
+- 5/5 framework-wide audit tests pass in 4.93 s wall time
+  (3 parametrized + 1 sanity + 1 drift-detector).
+- All three audit-eligible scenarios produce VALIDATED proofs with
+  matching reproducibility hashes + agreeing verdicts.
 
 ## [0.11.0] — 2026-05-17
 
