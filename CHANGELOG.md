@@ -7,7 +7,58 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.9.4] below for the latest cut.)
+(empty — see [0.9.5] below for the latest cut.)
+
+## [0.9.5] — 2026-05-17
+
+Durable fix for the defect class that 0.9.0 + 0.9.4 both repaired
+after-the-fact: prose in `PillarEvidence.cross_check`. Adds a
+construction-time guard so future violations fire **loud at
+scenario-build-time** instead of slipping through to ship-time
+schema validation.
+
+### Added
+
+- **`PillarEvidence.__post_init__` enum guard** on the
+  `cross_check` field. The allowed values now live as a module-
+  level `_CROSS_CHECK_VALUES` frozenset (`{"passed", "skipped",
+  "failed", "n/a"}`). Constructing with anything else raises
+  `ValueError` immediately, with the offending value (truncated
+  if long) + a hint pointing the author at the `detail` field
+  for long-form context. `PillarEvidence.from_dict` re-runs the
+  guard so bad data on disk also fires loud at load time.
+- **`tests/test_pillar_evidence_cross_check_guard.py`** — 14
+  pinning tests: every enum value accepted, prose / typos /
+  case-mismatches rejected, codec round-trip behaviour, plus a
+  regression-guard test that feeds the exact prose values from
+  the 0.9.0 + 0.9.4 cleanup commits back into the constructor
+  and asserts they're now rejected up front.
+
+### Changed
+
+- **`PillarEvidence` docstring** mentions the enum constraint
+  + the "long-form context goes in `detail`" rule explicitly,
+  so authors discover the invariant from `help()` output.
+- **`cross_check` field comment** now lists all four allowed
+  values (was: `"passed" | "skipped" | "n/a"`, missing "failed").
+
+### Why this matters
+
+The recurrence pattern is real: 0.9.0 and 0.9.4 fixed THE SAME
+defect class against two different scenarios added by a
+concurrent session. Each fix touched the offending scenario +
+regenerated + re-signed proof artefacts. The construction-time
+guard makes the cost of the next occurrence ~0 — `ValueError`
+fires the moment the scenario author hits Cmd-S in their editor
++ re-runs their test, before any proof artefact is built.
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (143/143).
+- `mkdocs build --strict` passes.
+- New guard suite: 14/14 pass.
+- Existing PillarEvidence consumer suites (proof codec + campaign
+  + comparing synthesis + drift co-evolution): 123/123 pass.
 
 ## [0.9.4] — 2026-05-17
 

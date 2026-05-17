@@ -239,9 +239,25 @@ class DatasetRef:
 # Section 5 — evidence, attributed per pillar to its library
 # --------------------------------------------------------------------------
 
+#: Allowed values for :attr:`PillarEvidence.cross_check`. Constraining
+#: this to an enum (rather than free text) lets schema validation flag
+#: drift the moment a record is built — see 0.9.0/0.9.4 CHANGELOG
+#: entries for the recurring "prose in cross_check" defect class that
+#: the 0.9.5 construction-time guard below now catches at build time.
+_CROSS_CHECK_VALUES: frozenset[str] = frozenset(
+    {"passed", "skipped", "failed", "n/a"}
+)
+
+
 @dataclass
 class PillarEvidence:
-    """Section 5 — one pillar's measured evidence, attributed to its library."""
+    """Section 5 — one pillar's measured evidence, attributed to its library.
+
+    The ``cross_check`` field is constrained to
+    :data:`_CROSS_CHECK_VALUES` — passing prose into it fires a loud
+    ``ValueError`` at construction time. Long-form context belongs in
+    ``detail`` (free-form dict) instead.
+    """
 
     pillar: str               # e.g. "I.cma", "diag.anticipatory"
     statistic_name: str
@@ -252,8 +268,23 @@ class PillarEvidence:
     ci_low: float | None = None
     ci_high: float | None = None
     p_value: float | None = None
-    cross_check: str = "n/a"  # "passed" | "skipped" | "n/a"
+    cross_check: str = "n/a"  # "passed" | "skipped" | "failed" | "n/a"
     detail: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.cross_check not in _CROSS_CHECK_VALUES:
+            # Surface the loud-fail at scenario-build time rather than at
+            # ship-time schema validation. The trimmed prefix in the error
+            # message helps an author spot when they've passed free text by
+            # mistake (recurring 0.9.0 + 0.9.4 defect class).
+            sample = self.cross_check
+            if len(sample) > 60:
+                sample = sample[:57] + "..."
+            raise ValueError(
+                f"PillarEvidence.cross_check must be one of "
+                f"{sorted(_CROSS_CHECK_VALUES)}; got {sample!r}. "
+                f"Long-form context belongs in `detail` instead."
+            )
 
     def to_dict(self) -> dict[str, Any]:
         return {
