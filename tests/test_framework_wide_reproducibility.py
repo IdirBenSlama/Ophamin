@@ -40,6 +40,7 @@ from ophamin.measuring.scenarios import SCENARIOS
 from ophamin.measuring.scenarios.deterministic_seed_audit import (
     DeterministicSeedAuditScenario,
 )
+from ophamin.seeing.corpus.base import CorpusUnavailableError
 from ophamin.seeing.substrate.mock import MockSubstrate
 
 
@@ -102,7 +103,19 @@ def test_every_seed_taking_scenario_satisfies_reproducibility_contract(
         target_scenario_name=name,
         target_scenario_kwargs=kwargs,
     )
-    proof = audit.run(substrate=MockSubstrate(seed=1))
+    try:
+        proof = audit.run(substrate=MockSubstrate(seed=1))
+    except CorpusUnavailableError as exc:
+        # The target scenario's required corpus isn't on this runner
+        # (typical for CI where third-party-licensed corpora like
+        # FLORES-200 can't be redistributed). The reproducibility
+        # contract still applies to this scenario — the test is just
+        # not measurable in this environment.
+        pytest.skip(
+            f"Scenario {name!r} requires corpus that's not available "
+            f"here: {exc}. Run with the corpus downloaded to verify "
+            f"the reproducibility contract for this scenario."
+        )
     assert proof.verdict.outcome == "VALIDATED", (
         f"Scenario {name!r} fails the reproducibility contract — two "
         f"independent runs with seed={kwargs.get('seed')} produced "

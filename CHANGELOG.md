@@ -7,7 +7,59 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.11.3] below for the latest cut.)
+(empty — see [0.11.4] below for the latest cut.)
+
+## [0.11.4] — 2026-05-17
+
+Coverage-gate-style fix: 0.11.1's framework-wide reproducibility
+test was actually broken on CI but the failure was masked by
+concurrency-cancellation cascades.
+
+### Background
+
+0.11.1 added `tests/test_framework_wide_reproducibility.py` which
+audits every seed-taking scenario in the registry. The audit set
+includes `rosetta-scaling`, which loads the FLORES-200 corpus.
+**FLORES-200 isn't redistributable** — it's not in CI runners' data
+trees. The audit therefore raised `CorpusUnavailableError` when
+running against `rosetta-scaling`.
+
+0.11.1 and 0.11.2's CI matrix runs both got CANCELLED by the next
+release push before the failure could surface (the
+`concurrency: cancel-in-progress: true` on the CI workflow does
+this by design to save billing minutes — same pattern as the
+0.8.3→0.8.4 cascade earlier this session). 0.11.3 ran to
+completion and the failure became visible.
+
+### Fixed
+
+- **`tests/test_framework_wide_reproducibility.py` now catches
+  `CorpusUnavailableError` and `pytest.skip()`s the affected
+  scenario** with a clear message pointing the operator at the
+  required corpus. The reproducibility contract still applies to
+  every audit-eligible scenario; the test just can't verify the
+  contract for scenarios whose corpus isn't available on the
+  current runner.
+- The crdt-laws + bayesian-phi-posterior audits continue running
+  unconditionally (no corpus required); rosetta-scaling now skips
+  gracefully when FLORES-200 is missing.
+
+### Lesson
+
+Concurrency cancellation can mask test failures across consecutive
+releases. The previous session's pattern (0.8.3→0.8.4 cascades)
+landed without harm because the cancelled jobs were eventually
+re-run by the next push. This session's cascades from 0.11.1→0.11.2
+→0.11.3 hid a real test failure until 0.11.3's CI matrix completed.
+A future session should consider letting CI complete fully before
+queuing the next push when test correctness is in question.
+
+### Validated
+
+- `mypy --strict src/ophamin tests/test_framework_wide_reproducibility.py` clean.
+- 5/5 framework-wide audit tests pass locally (where FLORES-200 IS
+  available); on CI the rosetta-scaling test will skip gracefully
+  instead of failing.
 
 ## [0.11.3] — 2026-05-17
 

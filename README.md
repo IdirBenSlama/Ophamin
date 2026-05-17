@@ -3,7 +3,7 @@
 [![CI](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
 [![Audit](https://github.com/IdirBenSlama/Ophamin/actions/workflows/audit.yml/badge.svg?branch=main)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/audit.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue.svg)](https://github.com/IdirBenSlama/Ophamin/blob/main/pyproject.toml)
-[![Version](https://img.shields.io/badge/version-0.11.3-blue.svg)](https://github.com/IdirBenSlama/Ophamin/releases)
+[![Version](https://img.shields.io/badge/version-0.11.4-blue.svg)](https://github.com/IdirBenSlama/Ophamin/releases)
 [![Docs](https://github.com/IdirBenSlama/Ophamin/actions/workflows/docs.yml/badge.svg?branch=main)](https://idirbenslama.github.io/Ophamin/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/IdirBenSlama/Ophamin/blob/main/LICENSE)
 [![Tests](https://img.shields.io/badge/tests-1223%2B%20passing-brightgreen.svg)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
@@ -101,7 +101,7 @@ signed 9-section Empirical Proof Record.
 | Organizational Dissonance | Enron email (~500k records) | `entity` | Dissonance fires on ≥ 90% of GWF-cleared cycles | VALIDATED 97.4% (CI 96.2%–98.3%) |
 | Logic-Topology Siege | Linux kernel commits (~1.4M) | `entity` | Walker sustained-traversal rate ≥ 60% | REFUTED 39.6% (CI 36.0%–43.4%) |
 | Interface Contract Stability | Kimera substrate self-introspect | (structural) | OrchestratorResult field-contract violations ≤ 2 per probe | first signed proof landed |
-| Substrate Completeness | Kimera repo structural walk | (structural) | Aggregate orphan rate ≤ 20% (canonical-name files in `kimera_swm/`) | VALIDATED 8.05% (Wilson CI [0.0555, 0.1153]) |
+| Substrate Completeness | Kimera repo structural walk | (structural) | Aggregate orphan rate ≤ 20% (canonical-name files in `kimera_swm/`) | VALIDATED 8.05% (Wilson CI [0.0555, 0.11.4]) |
 | Memory-As-Deformation | captured Takwin trajectory | `entity` | Concept-set Jaccard floor across re-exposure pairs ≥ 0.80 | VALIDATED 1.0000 (Round M) |
 
 ### Engineering tier — claims about substrate cost
