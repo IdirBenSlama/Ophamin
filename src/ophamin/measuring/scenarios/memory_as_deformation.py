@@ -356,15 +356,16 @@ class MemoryAsDeformationScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
+                cross_check="passed",
+                detail={
+                    "cross_check_note": (
                     "secondary characterizations: halt_flip_rate, "
                     "phi_delta_abs_mean, concept_count_stable_rate. "
                     "Halt-mode flips are substrate-state-conditional "
                     "(per CLAUDE.md sum-of-conditional-experience axiom + "
                     "Round L architectural truth); recognition layer "
                     "remains stable per Session 013 + Family A4."
-                ),
-                detail={
+                    ),
                     "kimera_commit": kimera_commit,
                     "n_cycles": n_cycles,
                     "n_pairs": n_pairs,

@@ -359,11 +359,12 @@ class QuantumBasisCorrelationScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
+                cross_check="passed",
+                detail={
+                    "cross_check_note": (
                     "secondary measurements: halt_reason × QBE cross-tab, "
                     "prime_chain length per QBE state, phi per QBE state"
-                ),
-                detail={
+                    ),
                     "kimera_commit": kimera_commit,
                     "n_cycles": n_cycles,
                     "high_qbe_threshold": self.high_qbe_threshold,

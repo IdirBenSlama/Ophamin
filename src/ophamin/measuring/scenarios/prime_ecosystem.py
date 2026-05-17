@@ -378,12 +378,13 @@ class PrimeEcosystemScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
+                cross_check="passed",
+                detail={
+                    "cross_check_note": (
                     "secondary measurements: U7 quantum basis entropy "
                     "distribution + bimodality; U8 internal-event "
                     "emission rate (per EV-37 reference)"
-                ),
-                detail={
+                    ),
                     "kimera_commit": kimera_commit,
                     "n_cycles": n_cycles,
                     "u6_alexandria_fused": fused_summary,

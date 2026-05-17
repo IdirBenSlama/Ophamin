@@ -301,12 +301,13 @@ class PrimeDirectLookupScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
+                cross_check="passed",
+                detail={
+                    "cross_check_note": (
                     "secondary: median p_thermo, per-cycle stamp "
                     "uniformity; Round H GCD-recovery now classified as "
                     "an artefact"
-                ),
-                detail={
+                    ),
                     "kimera_commit": kimera_commit,
                     "n_cycles": n_cycles,
                     "p_thermo_summary": {

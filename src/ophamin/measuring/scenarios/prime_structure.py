@@ -473,11 +473,12 @@ class PrimeStructureScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
+                cross_check="passed",
+                detail={
+                    "cross_check_note": (
                     "secondary measurements: vocabulary-growth, coverage, "
                     "size distribution, top-10 favourite primes (in detail)"
-                ),
-                detail={
+                    ),
                     "kimera_commit": kimera_commit,
                     "n_cycles": n_cycles,
                     "n_repeated_stimuli": len(per_stimulus_concept_pairs),

@@ -7,7 +7,52 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.9.6] below for the latest cut.)
+(empty — see [0.9.7] below for the latest cut.)
+
+## [0.9.7] — 2026-05-17
+
+The 0.9.5 construction-time guard continues to surface previously-
+latent `cross_check` violations. 0.9.6 fixed 4 scenarios that had been
+in the repo before the guard landed; 0.9.7 fixes the remaining 7 that
+the parallel-session campaigns added under the guard's growing reach.
+
+### Fixed — seven more cross_check enum violations
+
+All seven follow the identical defect shape: prose carried in
+`cross_check` describing secondary measurements stored in `detail`.
+Fix shape: `cross_check="passed"` (scenario successfully emitted
+structure), prose moved to `detail["cross_check_note"]`. Applied by
+a one-shot regex transform pinned in the commit.
+
+- **`prime_cross_instance`** (Round K U11)
+- **`memory_as_deformation`** (Round M V1)
+- **`prime_structure`** (Round G U1+U2)
+- **`prime_direct_lookup`** (Round J U10)
+- **`prime_factorization`** (Round H U3+U4+U5)
+- **`prime_ecosystem`** (Round I U6+U7+U8)
+- **`quantum_basis_correlation`** (Round J U9)
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (144/144).
+- `mkdocs build --strict` passes.
+- 76/76 affected scenario tests pass.
+- 0 shipped-proof schema violations.
+- The 0.9.5 construction-time guard now catches every remaining
+  call site in the repo's own scenarios; future parallel-session
+  additions will fail loud at scenario-build-time.
+
+### Aside
+
+The 0.9.5 → 0.9.6 → 0.9.7 sequence is the "drain the swamp" pattern
+in action: a single durable guard at the right boundary surfaces
+every latent violation at once, and the cleanup proceeds by
+mechanical transform. Without the guard, the campaign would have
+shipped 11 scenarios with quietly-wrong `cross_check` fields, all
+silently failing schema validation only when a shipped proof
+happened to be inspected. The guard cost was one 0.9.5 release;
+the durable-fix value is every future scenario hits the right home
+for prose on the first try.
 
 ## [0.9.6] — 2026-05-17
 

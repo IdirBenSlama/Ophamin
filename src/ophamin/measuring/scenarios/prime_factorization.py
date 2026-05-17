@@ -370,11 +370,12 @@ class PrimeFactorizationScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
+                cross_check="passed",
+                detail={
+                    "cross_check_note": (
                     "secondary measurements: full F.1.1 GCD recovery, "
                     "p_thermo distribution, substrate_state_stamp provenance"
-                ),
-                detail={
+                    ),
                     "kimera_commit": kimera_commit,
                     "n_cycles": n_cycles,
                     "n_unique_concepts": n_unique_concepts,

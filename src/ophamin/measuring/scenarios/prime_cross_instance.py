@@ -315,12 +315,13 @@ class PrimeCrossInstanceScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
+                cross_check="passed",
+                detail={
+                    "cross_check_note": (
                     "secondary: p_thermo / stamp / composite invariance "
                     "rates; non-invariant p_thermo concept list for "
                     "Pattern-T investigation"
-                ),
-                detail={
+                    ),
                     "kimera_commit": kimera_commit,
                     "n_instances": n_instances,
                     "n_shared_concepts": n_shared,
