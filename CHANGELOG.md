@@ -7,7 +7,83 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.10.2] below for the latest cut.)
+(empty — see [0.11.0] below for the latest cut.)
+
+## [0.11.0] — 2026-05-17
+
+**Headline:** Phase E4 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md) —
+research-grade reproducibility, audited empirically by the framework
+itself. The new `deterministic-seed-audit` scenario runs a target
+scenario twice with identical inputs and asserts the two emitted
+proofs hash bit-identically (modulo wall-clock fields). VALIDATED
+proves the framework's "same inputs → same proof" promise empirically.
+
+This is the **third minor-version bump** in the 0.x line:
+
+- `0.9.0` — wire-format stability contract (E2)
+- `0.10.0` — Python-API stability contract (E8)
+- `0.11.0` — reproducibility contract empirically validated (E4)
+
+### Added
+
+- **`src/ophamin/measuring/scenarios/deterministic_seed_audit.py`**
+  — new measurement-machinery scenario.
+    - `DeterministicSeedAuditScenario` — picks a target scenario
+      (default `"crdt-laws"`), runs it twice with identical
+      kwargs, asserts the two proofs' reproducibility-form hashes
+      match. VALIDATED iff bit-identical.
+    - `reproducibility_hash(proof)` — content-addressed hash of a
+      proof's reproducibility form. Strips ONLY the load-bearing
+      list of wall-clock fields: `identity.created_at`,
+      `preregistration.preregistered_at`, the W3C PROV-O
+      `provenance` block (its activity timestamps drift),
+      `reproduction.command` (may have absolute paths), and
+      every `PillarEvidence.detail` key ending in `_seconds /
+      _avg_ms / _wall_time / _perf_counter`. Everything else
+      — the claim, threshold, statistic values, verdict — must
+      be bit-identical for the hashes to match.
+    - Both `Stable` decorator-tagged (Phase E8 contract).
+- **`tests/test_deterministic_seed_audit.py`** — 23 pinning tests:
+  construction invariants, end-to-end VALIDATED on the default
+  target, scenario registration, plus 11 direct tests on
+  `reproducibility_hash` proving exactly which fields it ignores
+  and which it preserves (statistic_value / verdict / non-timing
+  detail keys all surface; timestamps / PROV-O / reproduction
+  command / timing-suffixed detail keys are correctly stripped).
+
+### Significance
+
+The reproducibility contract is now a **first-class, empirically-
+auditable property** of every scenario. To demonstrate the
+contract holds for a new scenario, the author adds:
+
+```python
+DeterministicSeedAuditScenario(
+    target_scenario_name="my-new-scenario",
+    target_scenario_kwargs={"seed": 42, ...},
+)
+```
+
+…and runs it. VALIDATED proves the scenario is deterministic given
+the seed. REFUTED surfaces a non-determinism leak with the two
+proof_ids ready for direct diff.
+
+This closes the load-bearing half of RFC-0002 Phase E4. The
+remaining E4 sub-tasks (per-OS lockfiles for missing triples,
+cosign container signing, diffoscope-clean builds) are
+infrastructure-side and can land independently.
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (147/147).
+- `mkdocs build --strict` passes.
+- 23/23 deterministic-seed-audit tests pass.
+- Live audit: running the new scenario against `crdt-laws` with
+  small kwargs produces VALIDATED with two matching reproducibility
+  hashes (`78107f47…` on the smoke run).
+- The framework now self-attests to its own reproducibility
+  property — the `ophamin scenario list` registry shows 23
+  scenarios (was 22 in 0.10.2).
 
 ## [0.10.2] — 2026-05-17
 
