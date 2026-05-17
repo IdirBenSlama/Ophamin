@@ -161,19 +161,146 @@ def test_all_ok_and_any_failed():
 
 
 @pytest.fixture
-def lite_scenarios():
-    """A short list of fast scenarios for orchestrator testing.
+def lite_scenarios(request):
+    """A short list of fast self-contained scenarios for orchestrator testing.
 
-    The full default-scenarios set is comprehensive but slow (the
-    Bayesian-phi-posterior scenario runs PyMC NUTS). For tests we
-    use a 2-scenario subset that exercises the orchestrator's plumbing
-    without the wall-time cost.
+    The campaign orchestrator default-instantiates each Scenario class
+    (no args) and runs each against the substrate. Real scenarios like
+    ImmuneSiegeScenario / OrganizationalDissonanceScenario require their
+    backing corpora on disk (cyber-payloads / enron) — fine for the
+    author's dev box, broken on a clean CI runner where ``data/raw/`` is
+    gitignored.
+
+    To exercise the orchestrator's plumbing without coupling to corpus
+    availability, we register a synthetic in-memory corpus at fixture
+    setup, return the module-level test scenarios that use it, then
+    clean up the corpus registration on teardown. The scenario classes
+    are defined at module level (Scenario subclasses register globally
+    on creation, so a fixture-scoped class would collide on its second
+    invocation).
     """
-    from ophamin.measuring.scenarios import (
-        ImmuneSiegeScenario,
-        OrganizationalDissonanceScenario,
+    from ophamin.seeing.corpus import (
+        CORPUS_FACTORIES,
+        register_corpus_factory,
     )
-    return [ImmuneSiegeScenario, OrganizationalDissonanceScenario]
+
+    _NAME = "synthetic-test"
+    if _NAME in CORPUS_FACTORIES:
+        del CORPUS_FACTORIES[_NAME]
+    register_corpus_factory(_NAME, lambda root: _SyntheticCorpus(root))
+
+    try:
+        yield [_CampaignLiteScenario, _CampaignLiteScenarioB]
+    finally:
+        CORPUS_FACTORIES.pop(_NAME, None)
+
+
+# --- Module-level synthetic corpus + scenarios -----------------------------
+# Scenario subclasses register globally on creation; keeping them at module
+# scope means they register ONCE per test session and never collide.
+
+from typing import Iterator as _Iter  # noqa: E402
+
+from ophamin.measuring.proof import (  # noqa: E402
+    Claim as _Claim,
+    PillarEvidence as _PillarEvidence,
+    Threshold as _Threshold,
+)
+from ophamin.measuring.scenarios.base import (  # noqa: E402
+    Scenario as _Scenario,
+    ScenarioScore as _ScenarioScore,
+    Tier as _Tier,
+)
+from ophamin.seeing.corpus.base import (  # noqa: E402
+    Corpus as _Corpus,
+    CorpusRecord as _CorpusRecord,
+)
+
+
+class _SyntheticCorpus(_Corpus):
+    """In-memory corpus for orchestrator tests; emits 6 synthetic stimuli."""
+
+    name = "synthetic-test"
+    kind = "synthetic"
+    source = "in-memory (test fixture)"
+
+    def is_available(self) -> bool:
+        return True
+
+    def records(self) -> "_Iter[_CorpusRecord]":
+        for i in range(6):
+            yield _CorpusRecord(
+                id=f"syn-{i}", text=f"synthetic stimulus {i}", metadata={}
+            )
+
+    def _compute_content_hash(self) -> str:
+        return "0" * 64
+
+    def _compute_count(self) -> int:
+        return 6
+
+
+class _CampaignLiteScenario(_Scenario, register=False):
+    """Self-contained scenario for campaign tests — uses the synthetic
+    corpus + asserts the substrate produced ≥ 1 successful cycle.
+
+    ``register=False`` keeps this class out of the global ``SCENARIOS``
+    dict (so the CLI-iteration tests don't see it), while still being
+    class-instantiable for the campaign tests that pass it explicitly.
+    """
+
+    name = "campaign_lite_a"
+    tier = _Tier.SCIENTIFIC
+    family = "harness"
+    goal = "exercise the campaign orchestrator end-to-end"
+    explanation = (
+        "Synthetic corpus + thin scenario used to exercise the 6-phase "
+        "orchestrator without requiring real corpora on disk."
+    )
+    corpus_name = "synthetic-test"
+    target = "any"
+    n_cycles = 4
+
+    def build_claim(self) -> _Claim:
+        return _Claim(
+            statement="the substrate produces ≥ 1 successful cycle out of N",
+            operationalization="count cr.success across cycle_results",
+            threshold=_Threshold(
+                metric="n_success", comparator=">=", value=1.0
+            ),
+            h0="substrate produces zero successful cycles",
+            h1="substrate produces ≥ 1 successful cycle",
+        )
+
+    def select_records(self, corpus):
+        return corpus.records()
+
+    def score(self, cycle_results, records):
+        n_success = sum(1 for cr in cycle_results if cr.success)
+        return _ScenarioScore(
+            observed_value=float(n_success),
+            inconclusive=False,
+            reasoning=f"{n_success} successful cycle(s) of {len(cycle_results)}",
+            evidence=(
+                _PillarEvidence(
+                    pillar="harness",
+                    statistic_name="n_success",
+                    statistic_value=float(n_success),
+                    library="ophamin",
+                    library_version=__version__,
+                ),
+            ),
+        )
+
+    def analysis_plan(self) -> str:
+        return "Count successful cycles; verdict via Threshold n_success >= 1."
+
+
+class _CampaignLiteScenarioB(_CampaignLiteScenario, register=False):
+    """Second scenario for the iteration-over-list exercise."""
+
+    name = "campaign_lite_b"
+    goal = "second scenario for orchestrator iteration test"
 
 
 def test_run_campaign_against_mock_substrate(tmp_path, lite_scenarios):
@@ -296,6 +423,28 @@ def test_run_campaign_measuring_records_verdicts(tmp_path, lite_scenarios):
 # --- CLI smoke -------------------------------------------------------------
 
 
+def _real_corpus_available(name: str) -> bool:
+    """True iff the named corpus's expected root is on disk.
+
+    The CLI doesn't know about test-fixture corpora; it can only invoke
+    scenarios registered in ``SCENARIOS`` with real ``corpus_name`` values.
+    On a clean CI runner ``data/raw/`` is empty (gitignored), so the
+    scenarios referenced below need their backing corpora present to
+    run. Tests that exercise the CLI happy-path therefore skip when the
+    corpus is absent — a hosted Kimera-aware CI runner is the right
+    environment for the full CLI smoke."""
+    from ophamin.seeing.corpus import get_corpus
+    try:
+        corpus = get_corpus(name)
+        return corpus.is_available()
+    except Exception:
+        return False
+
+
+@pytest.mark.skipif(
+    not (_real_corpus_available("cyber") and _real_corpus_available("enron")),
+    reason="CLI smoke needs cyber + enron corpora on disk; absent in clean CI",
+)
 def test_cli_run_all_against_mock_substrate(tmp_path):
     """`ophamin run-all` against MockSubstrate (no --repo) — skip the
     slow scenarios via --scenarios to keep CI fast."""
@@ -345,6 +494,10 @@ def test_cli_run_all_unknown_phase_returns_2(tmp_path):
     assert "unknown phase" in result.stderr
 
 
+@pytest.mark.skipif(
+    not _real_corpus_available("cyber"),
+    reason="CLI smoke needs cyber corpus on disk; absent in clean CI",
+)
 def test_cli_run_all_skip_phases(tmp_path):
     result = subprocess.run(
         [

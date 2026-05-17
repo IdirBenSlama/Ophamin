@@ -114,6 +114,25 @@ def test_conformal_intervals_loud_failure_on_empty_calibration():
 # --------------------------------------------------------------------------
 
 
+# NPEET is a git-installable dep (not on PyPI). Skip these tests if it's
+# not present in the environment. ``mutual_information_npeet`` raises
+# ImportError at first call when NPEET is missing, so we probe with a
+# tiny call wrapped in a guard.
+def _npeet_available() -> bool:
+    try:
+        mutual_information_npeet([1.0, 2.0, 3.0], [1.0, 2.0, 3.0], k=1)
+        return True
+    except ImportError:
+        return False
+
+
+_NPEET_MISSING = pytest.mark.skipif(
+    not _npeet_available(),
+    reason="NPEET not installed (install via `pip install git+https://github.com/gregversteeg/NPEET`)",
+)
+
+
+@_NPEET_MISSING
 def test_npeet_mi_low_for_independent():
     rng = random.Random(0)
     x = [rng.gauss(0, 1) for _ in range(500)]
@@ -122,6 +141,7 @@ def test_npeet_mi_low_for_independent():
     assert mi < 0.3
 
 
+@_NPEET_MISSING
 def test_npeet_mi_high_for_dependent():
     rng = random.Random(0)
     x = [rng.gauss(0, 1) for _ in range(500)]
@@ -130,6 +150,7 @@ def test_npeet_mi_high_for_dependent():
     assert mi > 0.8
 
 
+@_NPEET_MISSING
 def test_npeet_mi_loud_failure_on_length_mismatch():
     with pytest.raises(ValueError, match="same length"):
         mutual_information_npeet([1.0, 2.0], [1.0, 2.0, 3.0])
@@ -140,6 +161,22 @@ def test_npeet_mi_loud_failure_on_length_mismatch():
 # --------------------------------------------------------------------------
 
 
+def _pacmap_available() -> bool:
+    try:
+        # 6 ≥ n_neighbors=5+1 to pass the "need ≥" guard
+        reduce_to_2d_pacmap([[0.0, 1.0]] * 6, n_neighbors=5, random_state=0)
+        return True
+    except ImportError:
+        return False
+
+
+_PACMAP_MISSING = pytest.mark.skipif(
+    not _pacmap_available(),
+    reason="pacmap not installed (install via `pip install pacmap`)",
+)
+
+
+@_PACMAP_MISSING
 def test_pacmap_reduces_to_2d_correct_shape():
     rng = random.Random(0)
     embeddings = [
@@ -152,6 +189,7 @@ def test_pacmap_reduces_to_2d_correct_shape():
         assert len(c) == 2
 
 
+@_PACMAP_MISSING
 def test_pacmap_loud_failure_on_too_few_samples():
     with pytest.raises(ValueError, match="need ≥"):
         reduce_to_2d_pacmap([[1.0, 2.0]], n_neighbors=5)

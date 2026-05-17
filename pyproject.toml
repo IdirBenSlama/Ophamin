@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ophamin"
-version = "0.7.1"
+version = "0.7.2"
 description = "Ophamin: an empirical framework for scaling and verifying iterative experimentation on a substrate under test (built for Kimera-SWM, independent of it)."
 readme = "README.md"
 requires-python = ">=3.10"

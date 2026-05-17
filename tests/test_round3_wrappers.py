@@ -347,10 +347,23 @@ def test_nonlinear_correlation_loud_failure_on_length_mismatch():
 
 def test_puncc_intervals_match_crepes_intervals():
     """Cross-check oracle: crepes vs puncc on the same residuals + yhats
-    must produce identical intervals (both use the same quantile rule)."""
+    must produce identical intervals (both use the same quantile rule).
+
+    ``puncc`` was removed from the ``[conformal]`` and ``[all]`` extras
+    in 0.7.1 (it pinned ``scikit-learn~=1.3.0`` which conflicted with
+    ``causalml``'s ``>=1.6.0`` constraint, breaking CI). The cross-check
+    oracle pattern is preserved; the test self-skips when puncc isn't
+    installed.
+    """
     from ophamin.measuring.analytic_helpers import (
         conformal_prediction_intervals,
     )
+    try:
+        puncc_intervals = conformal_prediction_intervals_puncc(
+            [0.0, 1.0], [0.5], confidence=0.9,
+        )
+    except ImportError as exc:
+        pytest.skip(f"puncc not installed: {exc}")
     cal = [-1.0, -0.5, 0.0, 0.5, 1.0, 0.2, -0.2, 0.8, -0.8, 0.0]
     yhats = [10.0, 20.0]
     crepes_intervals = conformal_prediction_intervals(cal, yhats, confidence=0.9)

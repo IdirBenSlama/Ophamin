@@ -50,7 +50,11 @@ jobs:
       - name: Run pytest
         env:
           PYTHONPATH: src
-        run: pytest -q
+        # Exclude tests/bench: pytest-benchmark lives in [property_test]
+        # rather than [all,dev] (test-infra not runtime), and the bench
+        # suite is for measuring perf baselines, not default verification.
+        # Matches the pre-push hook's `--ignore=tests/bench`.
+        run: pytest -q --ignore=tests/bench
 
   lint:
     name: lint (ruff + bandit)
