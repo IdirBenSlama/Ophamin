@@ -83,6 +83,75 @@ git push origin main
 git push origin v<version>
 ```
 
+## 4.5 PyPI publication (auto via Trusted Publishing)
+
+The `v<version>` tag push triggers
+[`.github/workflows/release.yml`](https://github.com/IdirBenSlama/Ophamin/blob/main/.github/workflows/release.yml),
+which builds an sdist + pure-Python wheel and publishes to PyPI via
+**Trusted Publishing** (OIDC; no long-lived API tokens).
+
+### One-time owner-side setup
+
+Before the first publish, the owner must wire PyPI's "pending publisher"
+for the project. Until this is done, the `publish` job in
+`release.yml` will fail with `invalid_grant` (expected and gating).
+The `build` job continues to succeed on every tag push so the wheel
+remains downloadable as a workflow artefact.
+
+1. Sign in at <https://pypi.org/manage/account/publishing/>.
+2. Click "Add a new pending publisher".
+3. Fill in:
+
+   | Field | Value |
+   |---|---|
+   | PyPI Project Name | `ophamin` |
+   | Owner | `IdirBenSlama` |
+   | Repository name | `Ophamin` |
+   | Workflow name | `release.yml` |
+   | Environment name | `pypi` |
+
+4. Save. The pending publisher will be active until the first
+   successful publish, at which point PyPI promotes it to a standard
+   trusted publisher.
+
+5. (Optional but recommended) Add `Idir Ben Slama <ben.slama.idir@gmail.com>`
+   as a project owner on PyPI under "Manage" once the project exists,
+   so future publishers don't depend on whoever made the first push.
+
+### Per-release behaviour
+
+After the one-time setup, every `v*` tag push:
+
+1. Builds sdist + wheel (`python -m build`).
+2. Verifies the build with `twine check --strict` (PyPI metadata sanity,
+   README rendering, long-description content type).
+3. Uploads both artefacts to PyPI as `ophamin <version>`.
+
+### Dry-run
+
+To rebuild without publishing — e.g. verifying a candidate before
+tagging — trigger the workflow manually with `dry_run=true`:
+
+```bash
+gh workflow run release.yml -f dry_run=true
+```
+
+The build job still runs + verifies; the publish job is skipped.
+
+### Local pre-flight
+
+To mirror the workflow's build + verify locally:
+
+```bash
+.venv/bin/python -m pip install -e ".[release]"
+rm -rf dist/
+.venv/bin/python -m build
+.venv/bin/python -m twine check --strict dist/*
+```
+
+The `[release]` extra is intentionally lightweight (build + twine
+only); no PyPI credentials are stored locally.
+
 ## 5. Zenodo DOI (minor + major only)
 
 Pre-requisite: the Zenodo–GitHub integration is configured. If not,

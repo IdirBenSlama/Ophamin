@@ -7,7 +7,80 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.9.0] below for the latest cut.)
+(empty — see [0.9.1] below for the latest cut.)
+
+## [0.9.1] — 2026-05-17
+
+**Headline:** Phase E6 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md) —
+PyPI publication infrastructure. `pip install ophamin` is one
+owner-side configuration step away from working.
+
+### Added
+
+- **`.github/workflows/release.yml`** — Trusted-Publishing release
+  workflow. Triggers on every `v*` tag push; also dispatchable
+  manually with a `dry_run` toggle.
+    - Builds sdist + pure-Python wheel via `python -m build`.
+    - Verifies with `twine check --strict` (README rendering, PyPI
+      metadata sanity, long-description content-type).
+    - Publishes via `pypa/gh-action-pypi-publish@release/v1` with
+      OIDC-minted short-lived tokens. **No long-lived PyPI API
+      tokens are stored in repo secrets** (per RFC 0002 §3.1 E6).
+    - The build artifact is uploaded as a workflow artefact on
+      every run so a published-build version exists even before PyPI
+      Trusted Publishing is wired (the publish step soft-fails with
+      `invalid_grant` until owner-side setup is done).
+- **`[release]` extra in `pyproject.toml`** — local mirror of the
+  workflow's build + verify tooling (`build`, `twine`). Operators
+  can `pip install -e ".[release]"` + `python -m build` to
+  reproduce the CI artefact locally.
+- **PyPI-quality metadata in `pyproject.toml`:**
+    - `keywords` — 12 entries spanning empirical / observatory /
+      falsifiability / multiplicity-correction / kimera-swm.
+    - `classifiers` — 16 entries: Development Status 4-Beta,
+      Apache-2.0 OSI, POSIX + Linux + macOS OS classifiers,
+      Python 3 + 3.12 + 3.13 language versions, Scientific/
+      Engineering + Software Development/QA topics, Typed marker.
+    - `[project.urls]` — Homepage, Documentation, Repository,
+      Issues, Changelog, Release notes (the six links PyPI surfaces
+      on every project page).
+    - `description` refined to the canonical one-line: *"An empirical
+      observatory wrapped around a substrate under test — six
+      wheels, signed proofs, falsifiable claims."*
+
+### Changed
+
+- **`docs/RELEASE_PROCEDURE.md`** — new §4.5 ("PyPI publication via
+  Trusted Publishing") documenting the one-time owner-side setup
+  (PyPI pending publisher) + per-release behaviour + dry-run flow
+  + local pre-flight commands.
+
+### Owner-side prerequisite (one-time)
+
+Before the first publish succeeds, the owner must wire PyPI's
+"pending publisher" for `ophamin`:
+
+| Field | Value |
+|---|---|
+| Owner | `IdirBenSlama` |
+| Repository name | `Ophamin` |
+| Workflow name | `release.yml` |
+| Environment name | `pypi` |
+
+Done at <https://pypi.org/manage/account/publishing/>. Until this is
+done, the `build` job continues to succeed (artefact downloadable);
+the `publish` job soft-fails with `invalid_grant` — that's the
+designed gate.
+
+### Validated
+
+- Local build emits both `ophamin-0.9.1.tar.gz` + `ophamin-0.9.1-py3-none-any.whl`.
+- `twine check --strict dist/*` PASSES on both artefacts.
+- `mypy --strict src/ophamin` clean.
+- `mkdocs build --strict` passes with the new §4.5 release-procedure
+  section.
+- No source-code changes — 0.9.1 is purely release-infrastructure +
+  metadata polish. Source coverage + test suite identical to 0.9.0.
 
 ## [0.9.0] — 2026-05-17
 

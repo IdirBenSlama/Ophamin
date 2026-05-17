@@ -4,12 +4,47 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ophamin"
-version = "0.9.0"
-description = "Ophamin: an empirical framework for scaling and verifying iterative experimentation on a substrate under test (built for Kimera-SWM, independent of it)."
+version = "0.9.1"
+description = "An empirical observatory wrapped around a substrate under test — six wheels, signed proofs, falsifiable claims."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Idir Ben Slama" }]
+keywords = [
+    "empirical",
+    "observatory",
+    "falsifiability",
+    "signed-proof",
+    "campaign",
+    "multiplicity-correction",
+    "fwer",
+    "fdr",
+    "holm-bonferroni",
+    "benjamini-hochberg",
+    "scientific-reproducibility",
+    "kimera-swm",
+]
+classifiers = [
+    # See https://pypi.org/classifiers/ for the canonical list.
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Typing :: Typed",
+]
+
 # Each pillar is backed by a mature, battle-tested library rather than a
 # from-scratch implementation:
 #   N  scikit-learn        cross-validation splitters
@@ -39,6 +74,14 @@ dependencies = [
     "psutil>=5.9",   # instrumenting wheel — per-cycle CPU / RSS / page-fault sampler
     "jsonschema>=4.0",  # measuring/proof codec — JSON-Schema validation against proof/schema.json
 ]
+
+[project.urls]
+Homepage = "https://idirbenslama.github.io/Ophamin/"
+Documentation = "https://idirbenslama.github.io/Ophamin/"
+Repository = "https://github.com/IdirBenSlama/Ophamin"
+Issues = "https://github.com/IdirBenSlama/Ophamin/issues"
+Changelog = "https://github.com/IdirBenSlama/Ophamin/blob/main/CHANGELOG.md"
+"Release notes" = "https://github.com/IdirBenSlama/Ophamin/releases"
 
 [project.optional-dependencies]
 viz = ["matplotlib>=3.6"]          # CumulativeMetaAnalysis.plot + reporting wheel charts
@@ -202,6 +245,13 @@ all = [                            # convenience: everything optional, for full 
     "ennemi>=1.4",
 ]
 dev = ["pytest>=7.0"]
+# `release` brings the build + verify tooling the .github/workflows/release.yml
+# uses. Mirrored locally so an operator can `python -m build` + `twine check`
+# without pip-installing the workflow's transient packages by hand.
+release = [
+    "build>=1.0",
+    "twine>=5.0",
+]
 
 [project.scripts]
 ophamin = "ophamin.cli:main"
