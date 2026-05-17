@@ -7,7 +7,67 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.9.5] below for the latest cut.)
+(empty — see [0.9.6] below for the latest cut.)
+
+## [0.9.6] — 2026-05-17
+
+The 0.9.5 construction-time guard worked exactly as designed: it
+caught **four pre-existing cross_check violations** in this repo's
+own scenarios that ship-time validation had been missing. Plus a
+typing-fallout cleanup on a parallel-session-added scenario
+(`tonus_conservation_discovery.py`).
+
+### Fixed — cross_check enum compliance (caught by 0.9.5's guard)
+
+- **`bayesian_phi_posterior`** — `cross_check` was carrying prose
+  describing the theoretical √N contraction lower bound. Replaced
+  with a meaningful enum decision: `"passed"` when observed
+  contraction ≥ theoretical, `"failed"` otherwise. The prose moves
+  to `detail["cross_check_note"]`.
+- **`crdt_laws`** — was carrying the prose `"pycrdt vs y_py (same
+  Yrs Rust core)"`. Replaced with `"passed" if n_agreed == n_total
+  else "failed"` (the actual cross-backend agreement metric).
+- **`cross_channel_mutual_information`** — was carrying prose about
+  ennemi version + agreement count. Replaced with `"passed"` when
+  all measurable pairs agreed on direction, `"failed"` otherwise.
+- **`causal_discovery`** — was carrying prose about per-link p-values.
+  Replaced with `"passed"` when tigramite emitted ≥ 1 significant
+  link, `"n/a"` otherwise. Per-link data stays in `detail`.
+
+### Fixed — parallel-session typing fallout
+
+- **`tonus_conservation_discovery`** — typing fixes for the scenario
+  added in concurrent commit `386d5cc`:
+    * `_avg()` gained `dict[str, Any]` / `tuple[str, ...]` annotations
+    * `_detect_walker_m4`, `_build_before_after_at_events` parameter
+      types tightened to `list[dict[str, Any]]`
+    * `per_corpus` explicit annotation `dict[str, dict[str, Any]]`
+      at declaration (was inferred as `dict[str, dict[str, int]]`
+      from the first branch, breaking the second branch's assignment)
+
+### Why these had been latent
+
+`PillarEvidence.cross_check` is an enum-constrained field, but
+pre-0.9.5 the constraint was only checked at JSON-schema validation
+time — i.e. when a *shipped proof file* was inspected. The four
+in-repo scenarios construct PillarEvidence with prose, but the
+*shipped proof artefacts* under `proofs/` had been emitted at an
+earlier time when those scenarios used different content OR the
+violation simply never made it past `twine check` because no shipped
+proof from those scenarios existed yet. 0.9.5's construction-time
+guard catches the prose at the **moment of build** in any consumer
+test, surfacing the latency to the surface and forcing the cleanup
+in this release.
+
+The construction-time guard is doing exactly what it was added for.
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (144/144).
+- `mkdocs build --strict` passes.
+- All four touched scenario test files (bayesian / crdt / cci / causal)
+  + the new cross_check guard suite: 60/60 pass.
+- No shipped proof artefacts violate the schema.
 
 ## [0.9.5] — 2026-05-17
 

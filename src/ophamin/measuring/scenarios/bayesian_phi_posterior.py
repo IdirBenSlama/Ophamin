@@ -395,11 +395,15 @@ class BayesianPhiPosteriorScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
-                    "theoretical √N contraction = "
-                    f"{theoretical:.4f} (lower bound under iid Normal samples)"
-                ),
+                # Cross-check against the theoretical √N lower bound:
+                # the observed HDI contraction should be ≥ the lower bound
+                # if the Bayesian inference is converging properly.
+                cross_check="passed" if observed >= theoretical else "failed",
                 detail={
+                    "cross_check_note": (
+                        "theoretical √N contraction = "
+                        f"{theoretical:.4f} (lower bound under iid Normal samples)"
+                    ),
                     "phi_source": source_label,
                     "n_phi_samples_total": n_total,
                     "phi_empirical_mean": emp_mean,

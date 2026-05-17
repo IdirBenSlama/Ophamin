@@ -375,11 +375,15 @@ class CrossChannelMutualInformationScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
-                    f"ennemi {ennemi_version}; cross-pair direction "
-                    f"agreement {n_agree}/{n_pairs_with_both}"
-                ),
+                # Cross-check passes when ennemi (independent MI estimator)
+                # agrees with pyitlib on the direction of every pair that
+                # both estimators measured.
+                cross_check="passed" if n_agree == n_pairs_with_both and n_pairs_with_both > 0 else "failed",
                 detail={
+                    "cross_check_note": (
+                        f"ennemi {ennemi_version}; cross-pair direction "
+                        f"agreement {n_agree}/{n_pairs_with_both}"
+                    ),
                     "kimera_commit": kimera_commit,
                     "n_cycles_in_trajectory": n_cycles,
                     "n_pairs_tested": len(self.pairs),

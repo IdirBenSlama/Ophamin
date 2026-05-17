@@ -101,7 +101,7 @@ _TENSION_FIELDS = (
 )
 
 
-def _avg(record, section, fields):
+def _avg(record: dict[str, Any], section: str, fields: tuple[str, ...]) -> float:
     vals = [
         v for v in (record.get(section, {}).get(f, 0.0) for f in fields)
         if isinstance(v, (int, float)) and math.isfinite(float(v))
@@ -115,7 +115,7 @@ def _normalize_per_signal(matrix: np.ndarray) -> np.ndarray:
     return matrix / std
 
 
-def _detect_walker_m4(records: list[dict]) -> list[int]:
+def _detect_walker_m4(records: list[dict[str, Any]]) -> list[int]:
     return [
         i for i, r in enumerate(records)
         if not r.get("crashed")
@@ -127,7 +127,7 @@ def _detect_walker_m4(records: list[dict]) -> list[int]:
 
 
 def _build_before_after_at_events(
-    records: list[dict], event_indices: list[int]
+    records: list[dict[str, Any]], event_indices: list[int]
 ) -> tuple[np.ndarray, np.ndarray]:
     P_raw = np.array([
         _avg(r, "pressure_proxies", _PRESSURE_FIELDS) if not r.get("crashed") else math.nan
@@ -359,7 +359,7 @@ class TonusConservationDiscoveryScenario(Scenario):
         sec_records = json.loads(self.sec_path.read_text())
         lit_records = json.loads(self.lit_path.read_text())
 
-        per_corpus = {}
+        per_corpus: dict[str, dict[str, Any]] = {}
         for label, records in (("sec_v2", sec_records), ("literary", lit_records)):
             event_idx = _detect_walker_m4(records)
             before, after = _build_before_after_at_events(records, event_idx)

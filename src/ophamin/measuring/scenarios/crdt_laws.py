@@ -343,8 +343,12 @@ class CRDTLawsScenario(Scenario):
                 ci_low=float(ci_low),
                 ci_high=float(ci_high),
                 p_value=None,
-                cross_check="pycrdt vs y_py (same Yrs Rust core)",
+                # Cross-check passes when pycrdt and y_py (both wrapping
+                # the same Yrs Rust core) reach identical convergence on
+                # the same operation sequence.
+                cross_check="passed" if n_agreed == n_total else "failed",
                 detail={
+                    "cross_check_note": "pycrdt vs y_py (same Yrs Rust core)",
                     "n_sequences": self.n_sequences,
                     "ops_per_sequence": self.ops_per_sequence,
                     "n_total_runs": n_total,
