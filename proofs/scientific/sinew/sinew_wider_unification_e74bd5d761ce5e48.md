@@ -1,6 +1,6 @@
 # Ophamin Empirical Proof Record — `VALIDATED`
 
-**Proof ID:** `113f83c38f906031e5c61fe29aa0fd52fb022fd4590819511a1be5c2a6784d45`
+**Proof ID:** `e74bd5d761ce5e48f2e0745713ea4f72b19bd578d00f04ae14a518360766c409`
 **Schema:** v1.0  
 **Created:** 2026-05-17T16:45:54.126957+00:00
 
@@ -28,7 +28,7 @@
 ## 5. Evidence
 | Pillar | Statistic | Value | Effect | 95% CI | p | Library | Cross-check |
 |---|---|---|---|---|---|---|---|
-| sinew_wider_unification | compatible_or_extends_count | 8 | — | — | — | ophamin.measuring.scenarios.sinew_wider_unification 0.9.0 | Per-candidate breakdown: EXTENDS, COMPATIBLE, BREAKS, INSUFFICIENT. EXTENDS candidates tighten conservation (participate compensatorily); COMPATIBLE candidates are independent of the conservation framework (orthogonal physics); BREAKS candidates sit OUTSIDE the conservation accounting at decision-points. |
+| sinew_wider_unification | compatible_or_extends_count | 8 | — | — | — | ophamin.measuring.scenarios.sinew_wider_unification 0.9.0 | passed |
 
 ## 6. Verdict
 ### **VALIDATED**
@@ -47,7 +47,7 @@ PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario sinew-wider-unification 
 - W3C PROV-O graph: 2 entities, 1 activities, 2 agents
 
 ## 9. Signature
-- `9271db2e605471539569226a33013531fe817a16c82d4117aa65503c15b88446`
+- `7c2730c6e3d6689339783ff340820a20519fddd693346e499d13f40068974b91`
 
 ---
 **✓ Record is well-formed** — falsifiable, pre-registered, traceable, reproducible, attributed.

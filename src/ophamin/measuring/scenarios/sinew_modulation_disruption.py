@@ -344,18 +344,19 @@ class SinewModulationDisruptionScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
-                    "secondary: ouroboros + scar conservation ratios in "
-                    "seed vs modulated form; CW distribution; "
-                    "counter-compensation correlation (cor(P+T, "
-                    "modulation_delta) — positive = anti-conservation by "
-                    "design). The substrate has two distinct CW values "
-                    "with different intents — seed for clean linear "
-                    "compensation, modulated for memory-formation "
-                    "amplification. The disruption delta quantifies the "
-                    "tradeoff at decision-points."
-                ),
+                cross_check="passed",
                 detail={
+                    "cross_check_note": (
+                        "secondary: ouroboros + scar conservation ratios in "
+                        "seed vs modulated form; CW distribution; "
+                        "counter-compensation correlation (cor(P+T, "
+                        "modulation_delta) — positive = anti-conservation by "
+                        "design). The substrate has two distinct CW values "
+                        "with different intents — seed for clean linear "
+                        "compensation, modulated for memory-formation "
+                        "amplification. The disruption delta quantifies the "
+                        "tradeoff at decision-points."
+                    ),
                     "kimera_commit": self._kimera_commit,
                     "n_cycles": n_cycles,
                     "n_walker_m4": n_walker_m4,

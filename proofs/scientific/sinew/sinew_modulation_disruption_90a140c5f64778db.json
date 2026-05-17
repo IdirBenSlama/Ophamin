@@ -1,29 +1,29 @@
 {
-  "proof_id": "113f83c38f906031e5c61fe29aa0fd52fb022fd4590819511a1be5c2a6784d45",
+  "proof_id": "90a140c5f64778db71689e04c73d8d3ee514e31a186a84c440350b3872917871",
   "schema_version": "1.0",
   "identity": {
-    "ophamin_version": "0.9.0",
-    "ophamin_git_commit": "266439da70a5c913b3aa1abe011918a785bcf3a6",
-    "created_at": "2026-05-17T16:45:54.126957+00:00"
+    "ophamin_version": "0.8.5",
+    "ophamin_git_commit": "4fe98758319bdc35e0ee5fe4f30129fa9d663554",
+    "created_at": "2026-05-17T16:40:41.235951+00:00"
   },
   "claim": {
-    "statement": "For each of 12 of Kimera's physics-named primitives (11 energy-field OrchestratorResult fields + prime_log_energy), test whether adding the primitive as a normalized 4th term to (P + T + CW_seed) at Walker M4 events is COMPATIBLE with the conservation framework (best-sign 4-term ratio \u2264 3-term baseline + 0.01). At least 8 of 12 candidates must be compatible \u2014 measurable physics-grade coherence at the conservation layer.",
-    "operationalization": "Compute 3-term baseline ratio (P + T + CW_seed) at walker_m4 events. For each physics candidate X, test (P + T + CW_seed + sign \u00b7 X) with sign \u2208 {+1, -1}; record best-sign 4-term ratio. Classify each candidate: EXTENDS if ratio < baseline - noise_floor; COMPATIBLE if within \u00b1noise_floor; BREAKS if > baseline + noise_floor. Headline metric = count of EXTENDS + COMPATIBLE candidates.",
+    "statement": "For Walker M4 events in a Sinew Phase 4-extended trajectory, the modulated-CW conservation ratio R_mod EXCEEDS the seed-CW conservation ratio R_seed by at least 0.05 \u2014 the substrate's Phase 148-182 SCAR-CW modulation chain encodes experience-accumulation at the cost of conservation. Both R values use the same (P + T + CW) three-term sum with std-normalized inputs; only the CW source differs (Phase 137 seed `_p137_scar_w` vs the post-modulation `self._scar_coherence_weight`).",
+    "operationalization": "Read trajectory; compute R_seed = median|\u0394(P+T+CW_seed)| / median|P+T+CW_seed| at Walker M4 events. Compute R_mod identically with CW = scar_coherence_weight_modulated. Headline metric = R_mod \u2212 R_seed. Verdict on delta \u2265 threshold. Secondary: per-event-class R_seed vs R_mod, cor(P+T, modulation_delta) as counter-compensation signature, CW distribution statistics for both.",
     "threshold": {
-      "metric": "compatible_or_extends_count",
+      "metric": "modulation_disruption_delta",
       "comparator": ">=",
-      "value": 8.0,
-      "units": "of_12"
+      "value": 0.05,
+      "units": "dimensionless"
     },
-    "h0": "compatible_or_extends_count < 8 \u2014 Kimera's physics-named primitives mostly DON'T fit the SEED conservation framework; Pattern-P at the primitive-name level; conservation is local to (P + T + CW_seed) rather than substrate-wide",
-    "h1": "compatible_or_extends_count >= 8 \u2014 substrate's physics-named primitives DO fit; physics-grade coherence is measurable at the conservation layer; Phase 5 of the Sinew campaign produces positive evidence"
+    "h0": "modulation_disruption_delta < 0.05 \u2014 the substrate's modulation chain has been redesigned to preserve conservation; entry 991's finding regressed; the Phase 137 seed and the modulated value behave similarly at decision-points",
+    "h1": "modulation_disruption_delta >= 0.05 \u2014 Phases 148-182 are counter-compensatory by design at decision-points; entry 991's finding holds; the substrate prioritizes memory formation (modulations push CW up when stress up) over strict conservation"
   },
   "preregistration": {
-    "config_hash": "c385cceb8c3ab1f0879134c7c3b01134ca634bebbc4a0edf136b174c0bafd727",
-    "data_hash": "5ca01594634b70ff8f5d176efc4e27ca605f0dc5040df136e88072707b1b8db8",
-    "analysis_plan": "Read captured Sinew Phase 4-extended trajectory. Compute 3-term baseline (P + T + CW_seed) conservation ratio at Walker M4 events. For each of 11 energy fields + prime_log_energy (12 candidates total), compute best-sign 4-term ratio (P + T + CW_seed \u00b1 candidate). Classify per-candidate as EXTENDS (ratio < baseline - noise_floor), COMPATIBLE (within \u00b1noise_floor), or BREAKS (> baseline + noise_floor). Headline = count of compatible+extends candidates >= 8 / 12.",
+    "config_hash": "e847a0d89a21a05d1efbe73a3c43b814da0c2cf7ac24a4581226e929f978b8ea",
+    "data_hash": "58732f97c5b2abbc04b7b7bf0d637947a75599ba9831ee1ee1a7335e3ca3e465",
+    "analysis_plan": "Read captured Kimera trajectory with both Phase 137 seed AND post-Phase-148-182 modulated scar_coherence_weight. Detect Walker M4 events. Compute R_seed and R_mod using same (P+T+CW) three-term sum, std-normalized. Headline = R_mod \u2212 R_seed. Verdict on delta >= 0.05. Secondary: cross-event-class R_seed vs R_mod; counter-compensation correlation cor(P+T, modulation_delta) as architectural signature.",
     "sweep_grid": {},
-    "preregistered_at": "2026-05-17T16:45:53.939625+00:00"
+    "preregistered_at": "2026-05-17T16:40:41.072581+00:00"
   },
   "data": {
     "substrate_name": "kimera-swm",
@@ -31,163 +31,75 @@
     "datasets": [
       {
         "name": "kimera-sinew-trajectory",
-        "content_hash": "5ca01594634b70ff8f5d176efc4e27ca605f0dc5040df136e88072707b1b8db8",
+        "content_hash": "58732f97c5b2abbc04b7b7bf0d637947a75599ba9831ee1ee1a7335e3ca3e465",
         "n_records": 500,
         "source": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)/experiments/observatory/runs/sinew_phase_4_extended_v2/per_cycle_records.json",
-        "kind": "takwin-sinew-extended-trajectory"
+        "kind": "takwin-sinew-extended-trajectory-with-modulated-cw"
       }
     ]
   },
   "evidence": [
     {
-      "pillar": "sinew_wider_unification",
-      "statistic_name": "compatible_or_extends_count",
-      "statistic_value": 8.0,
-      "library": "ophamin.measuring.scenarios.sinew_wider_unification",
-      "library_version": "0.9.0",
+      "pillar": "sinew_modulation_disruption",
+      "statistic_name": "modulation_disruption_delta",
+      "statistic_value": 0.09826126357599888,
+      "library": "ophamin.measuring.scenarios.sinew_modulation_disruption",
+      "library_version": "0.8.5",
       "effect_size": null,
       "ci_low": null,
       "ci_high": null,
       "p_value": null,
-      "cross_check": "Per-candidate breakdown: EXTENDS, COMPATIBLE, BREAKS, INSUFFICIENT. EXTENDS candidates tighten conservation (participate compensatorily); COMPATIBLE candidates are independent of the conservation framework (orthogonal physics); BREAKS candidates sit OUTSIDE the conservation accounting at decision-points.",
+      "cross_check": "passed",
       "detail": {
         "kimera_commit": "4552de7ee80c3c4eefb1ba103710e4c95fa11930",
         "n_cycles": 500,
         "n_walker_m4": 105,
-        "baseline_3term_ratio": 0.08734077535187149,
-        "noise_floor": 0.01,
-        "compatible_or_extends_count": 8,
-        "n_extends": 4,
-        "n_compatible": 4,
-        "n_breaks": 4,
-        "n_insufficient": 0,
-        "per_candidate": [
-          {
-            "field": "energy/quantum_energy",
-            "verdict": "BREAKS",
-            "ratio_plus": 0.09917988888605754,
-            "ratio_minus": 0.10030135535064427,
-            "best_sign": "+",
-            "best_ratio": 0.09917988888605754,
-            "delta_vs_baseline": 0.011839113534186055
-          },
-          {
-            "field": "energy/spde_ground_energy",
-            "verdict": "COMPATIBLE",
-            "ratio_plus": 0.15625317924672763,
-            "ratio_minus": 0.08512016627296003,
-            "best_sign": "\u2212",
-            "best_ratio": 0.08512016627296003,
-            "delta_vs_baseline": -0.002220609078911459
-          },
-          {
-            "field": "energy/entanglement_entropy",
-            "verdict": "BREAKS",
-            "ratio_plus": 0.09933332833304336,
-            "ratio_minus": 0.10052257005972481,
-            "best_sign": "+",
-            "best_ratio": 0.09933332833304336,
-            "delta_vs_baseline": 0.01199255298117187
-          },
-          {
-            "field": "energy/riemann_zeta_entropy",
-            "verdict": "EXTENDS",
-            "ratio_plus": 0.06627495095095227,
-            "ratio_minus": 0.14542110914643025,
-            "best_sign": "+",
-            "best_ratio": 0.06627495095095227,
-            "delta_vs_baseline": -0.02106582440091921
-          },
-          {
-            "field": "energy/riemann_zeta_free_energy",
-            "verdict": "EXTENDS",
-            "ratio_plus": 0.14542110914643028,
-            "ratio_minus": 0.06627495095095227,
-            "best_sign": "\u2212",
-            "best_ratio": 0.06627495095095227,
-            "delta_vs_baseline": -0.02106582440091921
-          },
-          {
-            "field": "energy/crystal_binding_energy",
-            "verdict": "COMPATIBLE",
-            "ratio_plus": 0.08045037732420818,
-            "ratio_minus": 0.10661135550006753,
-            "best_sign": "+",
-            "best_ratio": 0.08045037732420818,
-            "delta_vs_baseline": -0.006890398027663308
-          },
-          {
-            "field": "energy/quantum_interference_entropy",
-            "verdict": "EXTENDS",
-            "ratio_plus": 0.07531188589889522,
-            "ratio_minus": 0.13723696044870165,
-            "best_sign": "+",
-            "best_ratio": 0.07531188589889522,
-            "delta_vs_baseline": -0.012028889452976269
-          },
-          {
-            "field": "energy/quantum_prime_basis_entropy",
-            "verdict": "BREAKS",
-            "ratio_plus": 0.0994006379695769,
-            "ratio_minus": 0.10052257005972481,
-            "best_sign": "+",
-            "best_ratio": 0.0994006379695769,
-            "delta_vs_baseline": 0.012059862617705419
-          },
-          {
-            "field": "energy/rosetta_composition_entropy",
-            "verdict": "EXTENDS",
-            "ratio_plus": 0.07674975967475738,
-            "ratio_minus": 0.12900717443151935,
-            "best_sign": "+",
-            "best_ratio": 0.07674975967475738,
-            "delta_vs_baseline": -0.01059101567711411
-          },
-          {
-            "field": "energy/voronoi_neighbourhood_entropy",
-            "verdict": "COMPATIBLE",
-            "ratio_plus": 0.08243032299779762,
-            "ratio_minus": 0.13119112901503346,
-            "best_sign": "+",
-            "best_ratio": 0.08243032299779762,
-            "delta_vs_baseline": -0.004910452354073863
-          },
-          {
-            "field": "energy/turing_pattern_entropy",
-            "verdict": "COMPATIBLE",
-            "ratio_plus": 0.0777636014072177,
-            "ratio_minus": 0.09800955058937455,
-            "best_sign": "+",
-            "best_ratio": 0.0777636014072177,
-            "delta_vs_baseline": -0.00957717394465378
-          },
-          {
-            "field": "prime_log_energy",
-            "verdict": "BREAKS",
-            "ratio_plus": 0.1064235262441907,
-            "ratio_minus": 0.12994451703093304,
-            "best_sign": "+",
-            "best_ratio": 0.1064235262441907,
-            "delta_vs_baseline": 0.019082750892319214
-          }
+        "n_ouroboros": 35,
+        "n_scar": 465,
+        "walker_m4_R_seed": 0.08734077535187149,
+        "walker_m4_R_seed_ci": [
+          0.07391900487852783,
+          0.11229915097260705
         ],
-        "trajectory_path": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)/experiments/observatory/runs/sinew_phase_4_extended_v2/per_cycle_records.json"
+        "walker_m4_R_modulated": 0.18560203892787036,
+        "walker_m4_R_modulated_ci": [
+          0.1572655057262228,
+          0.2563707625384407
+        ],
+        "modulation_disruption_delta": 0.09826126357599888,
+        "ouroboros_R_seed": 0.11626094065612183,
+        "ouroboros_R_modulated": 0.19883964837989024,
+        "scar_R_seed": 0.10475882981445855,
+        "scar_R_modulated": 0.1780870561510858,
+        "counter_compensation_cor": 0.268764979536322,
+        "cw_distribution": {
+          "seed_min": 0.5,
+          "seed_max": 1.0,
+          "seed_mean": 0.8158032336470225,
+          "seed_std": 0.091827926657891,
+          "modulated_min": 0.3484479578895613,
+          "modulated_max": 1.3793830353855843,
+          "modulated_mean": 0.7919208108957,
+          "modulated_std": 0.1549829671461319
+        },
+        "trajectory_path": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)/experiments/observatory/runs/sinew_phase_4_extended_v2/per_cycle_records.json",
+        "cross_check_note": "secondary: ouroboros + scar conservation ratios in seed vs modulated form; CW distribution; counter-compensation correlation (cor(P+T, modulation_delta) \u2014 positive = anti-conservation by design). The substrate has two distinct CW values with different intents \u2014 seed for clean linear compensation, modulated for memory-formation amplification. The disruption delta quantifies the tradeoff at decision-points."
       }
     }
   ],
   "verdict": {
     "outcome": "VALIDATED",
-    "observed_value": 8.0,
+    "observed_value": 0.09826126357599888,
     "threshold": {
-      "metric": "compatible_or_extends_count",
+      "metric": "modulation_disruption_delta",
       "comparator": ">=",
-      "value": 8.0,
-      "units": "of_12"
+      "value": 0.05,
+      "units": "dimensionless"
     },
-    "reasoning": "Wider-unification analysis (500 cycles, 105 walker_m4 events): 3-term baseline ratio = 0.0873. Per-candidate (out of 12): 4 EXTENDS, 4 COMPATIBLE, 4 BREAKS, 0 INSUFFICIENT. compatible_or_extends_count = 8. Details: quantum_energy=BREAKS(0.0992), spde_ground_energy=COMPATIBLE(0.0851), entanglement_entropy=BREAKS(0.0993), riemann_zeta_entropy=EXTENDS(0.0663), riemann_zeta_free_energy=EXTENDS(0.0663), crystal_binding_energy=COMPATIBLE(0.0805), quantum_interference_entropy=EXTENDS(0.0753), quantum_prime_basis_entropy=BREAKS(0.0994), rosetta_composition_entropy=EXTENDS(0.0767), voronoi_neighbourhood_entropy=COMPATIBLE(0.0824), turing_pattern_entropy=COMPATIBLE(0.0778), prime_log_energy=BREAKS(0.1064)."
+    "reasoning": "Modulation-disruption measurement (500 cycles, 105 walker_m4 events): R_seed = 0.0873 [CI 0.0739, 0.1123], R_mod = 0.1856 [CI 0.1573, 0.2564], delta = +0.0983. Counter-compensation signature cor(P+T, modulation_delta) = +0.2688 (positive = modulations push CW up when stress up = anti-conservation by design)."
   },
   "reproduction": {
-    "command": "PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario sinew-wider-unification --trajectory-path /Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)/experiments/observatory/runs/sinew_phase_4_extended_v2/per_cycle_records.json",
+    "command": "PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario sinew-modulation-disruption --trajectory-path /Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)/experiments/observatory/runs/sinew_phase_4_extended_v2/per_cycle_records.json",
     "environment": {
       "python": "3.14.3",
       "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
@@ -590,7 +502,7 @@
     "agent": {
       "ophamin:ophamin": {
         "ophamin:role": "experimentation_framework",
-        "ophamin:version": "0.9.0"
+        "ophamin:version": "0.8.5"
       },
       "ophamin:kimera-swm": {
         "ophamin:role": "substrate_under_observation"
@@ -598,17 +510,17 @@
     },
     "entity": {
       "ophamin:corpus_kimera-sinew-trajectory": {
-        "ophamin:content_hash": "5ca01594634b70ff8f5d176efc4e27ca605f0dc5040df136e88072707b1b8db8",
+        "ophamin:content_hash": "58732f97c5b2abbc04b7b7bf0d637947a75599ba9831ee1ee1a7335e3ca3e465",
         "ophamin:n_records": {
           "$": 500,
           "type": "xsd:int"
         },
         "ophamin:source": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)/experiments/observatory/runs/sinew_phase_4_extended_v2/per_cycle_records.json"
       },
-      "ophamin:proof_sinew-wider-unification": {}
+      "ophamin:proof_sinew-modulation-disruption": {}
     },
     "activity": {
-      "ophamin:scenario_sinew-wider-unification": {
+      "ophamin:scenario_sinew-modulation-disruption": {
         "ophamin:target": "captured_takwin_trajectory",
         "ophamin:n_walker_m4": {
           "$": 105,
@@ -618,38 +530,38 @@
     },
     "used": {
       "_:id1": {
-        "prov:activity": "ophamin:scenario_sinew-wider-unification",
+        "prov:activity": "ophamin:scenario_sinew-modulation-disruption",
         "prov:entity": "ophamin:corpus_kimera-sinew-trajectory"
       }
     },
     "wasAssociatedWith": {
       "_:id2": {
-        "prov:activity": "ophamin:scenario_sinew-wider-unification",
+        "prov:activity": "ophamin:scenario_sinew-modulation-disruption",
         "prov:agent": "ophamin:ophamin"
       },
       "_:id3": {
-        "prov:activity": "ophamin:scenario_sinew-wider-unification",
+        "prov:activity": "ophamin:scenario_sinew-modulation-disruption",
         "prov:agent": "ophamin:kimera-swm"
       }
     },
     "wasGeneratedBy": {
       "_:id4": {
-        "prov:entity": "ophamin:proof_sinew-wider-unification",
-        "prov:activity": "ophamin:scenario_sinew-wider-unification"
+        "prov:entity": "ophamin:proof_sinew-modulation-disruption",
+        "prov:activity": "ophamin:scenario_sinew-modulation-disruption"
       }
     },
     "wasAttributedTo": {
       "_:id5": {
-        "prov:entity": "ophamin:proof_sinew-wider-unification",
+        "prov:entity": "ophamin:proof_sinew-modulation-disruption",
         "prov:agent": "ophamin:kimera-swm"
       }
     },
     "wasDerivedFrom": {
       "_:id6": {
-        "prov:generatedEntity": "ophamin:proof_sinew-wider-unification",
+        "prov:generatedEntity": "ophamin:proof_sinew-modulation-disruption",
         "prov:usedEntity": "ophamin:corpus_kimera-sinew-trajectory"
       }
     }
   },
-  "signature": "9271db2e605471539569226a33013531fe817a16c82d4117aa65503c15b88446"
+  "signature": "2670a76324187a0a7ab171123de0f1e1ffdd6456e0c01bfd3df120feceba5db0"
 }

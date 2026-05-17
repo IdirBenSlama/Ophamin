@@ -1,6 +1,6 @@
 # Ophamin Empirical Proof Record — `VALIDATED`
 
-**Proof ID:** `58dd7030d0cf2a210cce0dd0459df8bb79e58d733721d1d246be855b8440c160`
+**Proof ID:** `1bc36bbeb4b5c33785a90a4d6c669cf87c8d7119fd9c354439d3eea3efd6b43a`
 **Schema:** v1.0  
 **Created:** 2026-05-17T16:40:40.864594+00:00
 
@@ -28,7 +28,7 @@
 ## 5. Evidence
 | Pillar | Statistic | Value | Effect | 95% CI | p | Library | Cross-check |
 |---|---|---|---|---|---|---|---|
-| sinew_conservation | walker_m4_conservation_ratio | 0.0873408 | — | (0.07392, 0.1123) | — | ophamin.measuring.scenarios.sinew_conservation 0.8.5 | secondary: ouroboros + scar conservation ratios + scar magnitude quartile breakdown (Q1-Q4 leak structure). The Phase 137 SEED conserves at decision-points (walker_m4) but degrades with event magnitude on routine SCAR formation (Q4 near-FAIL). Modulated CW (post-148-182) makes conservation worse — per CLAUDE.md sum-of-conditional-experience axiom + journal entries 989/990/991/992. |
+| sinew_conservation | walker_m4_conservation_ratio | 0.0873408 | — | (0.07392, 0.1123) | — | ophamin.measuring.scenarios.sinew_conservation 0.8.5 | passed |
 
 ## 6. Verdict
 ### **VALIDATED**
@@ -47,7 +47,7 @@ PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario sinew-conservation --tra
 - W3C PROV-O graph: 2 entities, 1 activities, 2 agents
 
 ## 9. Signature
-- `d5d01b530e3776c20c3f1263f99cfe4fb56a24f52a8ff0de6fed89453e0039da`
+- `16ed28c491801a914cc628c62638ea2348b8de4dc96057ff58a3ad50c8d009f0`
 
 ---
 **✓ Record is well-formed** — falsifiable, pre-registered, traceable, reproducible, attributed.

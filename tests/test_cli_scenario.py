@@ -32,7 +32,13 @@ def test_scenario_list_human_smoke():
     assert "tier" in result.stdout
     assert "family" in result.stdout
     assert "concentrated-immune-siege" in result.stdout
-    assert "(19 scenario(s) registered)" in result.stdout
+    # Count is derived from the registry rather than hard-coded so adding
+    # a new scenario doesn't require updating this test (one of the
+    # `_p<phase>` ratchet points that bit us when the Sinew scenarios
+    # landed: 19 → 22 in one campaign with the count assertion not
+    # updated).
+    expected_count = len(SCENARIOS)
+    assert f"({expected_count} scenario(s) registered)" in result.stdout
 
 
 def test_scenario_list_json_emits_every_registered_scenario():

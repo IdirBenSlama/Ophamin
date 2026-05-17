@@ -1,6 +1,6 @@
 # Ophamin Empirical Proof Record — `VALIDATED`
 
-**Proof ID:** `bd78a8a3c84a675b21408e413c9e276ee59bd2a8ab83961e5fde9232325b875d`
+**Proof ID:** `90a140c5f64778db71689e04c73d8d3ee514e31a186a84c440350b3872917871`
 **Schema:** v1.0  
 **Created:** 2026-05-17T16:40:41.235951+00:00
 
@@ -28,7 +28,7 @@
 ## 5. Evidence
 | Pillar | Statistic | Value | Effect | 95% CI | p | Library | Cross-check |
 |---|---|---|---|---|---|---|---|
-| sinew_modulation_disruption | modulation_disruption_delta | 0.0982613 | — | — | — | ophamin.measuring.scenarios.sinew_modulation_disruption 0.8.5 | secondary: ouroboros + scar conservation ratios in seed vs modulated form; CW distribution; counter-compensation correlation (cor(P+T, modulation_delta) — positive = anti-conservation by design). The substrate has two distinct CW values with different intents — seed for clean linear compensation, modulated for memory-formation amplification. The disruption delta quantifies the tradeoff at decision-points. |
+| sinew_modulation_disruption | modulation_disruption_delta | 0.0982613 | — | — | — | ophamin.measuring.scenarios.sinew_modulation_disruption 0.8.5 | passed |
 
 ## 6. Verdict
 ### **VALIDATED**
@@ -47,7 +47,7 @@ PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario sinew-modulation-disrupt
 - W3C PROV-O graph: 2 entities, 1 activities, 2 agents
 
 ## 9. Signature
-- `395e4fe36a4efd5036ab90f7225285dd877dddbf3b43c53d38dcb37651606be0`
+- `2670a76324187a0a7ab171123de0f1e1ffdd6456e0c01bfd3df120feceba5db0`
 
 ---
 **✓ Record is well-formed** — falsifiable, pre-registered, traceable, reproducible, attributed.

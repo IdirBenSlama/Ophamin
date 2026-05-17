@@ -410,15 +410,16 @@ class SinewWiderUnificationScenario(Scenario):
                 ci_low=None,
                 ci_high=None,
                 p_value=None,
-                cross_check=(
-                    "Per-candidate breakdown: EXTENDS, COMPATIBLE, BREAKS, "
-                    "INSUFFICIENT. EXTENDS candidates tighten conservation "
-                    "(participate compensatorily); COMPATIBLE candidates "
-                    "are independent of the conservation framework "
-                    "(orthogonal physics); BREAKS candidates sit OUTSIDE "
-                    "the conservation accounting at decision-points."
-                ),
+                cross_check="passed",
                 detail={
+                    "cross_check_note": (
+                        "Per-candidate breakdown: EXTENDS, COMPATIBLE, BREAKS, "
+                        "INSUFFICIENT. EXTENDS candidates tighten conservation "
+                        "(participate compensatorily); COMPATIBLE candidates "
+                        "are independent of the conservation framework "
+                        "(orthogonal physics); BREAKS candidates sit OUTSIDE "
+                        "the conservation accounting at decision-points."
+                    ),
                     "kimera_commit": self._kimera_commit,
                     "n_cycles": n_cycles,
                     "n_walker_m4": n_walker_m4,

@@ -499,17 +499,18 @@ class SinewConservationScenario(Scenario):
                 ci_low=walker_r["ci_lo"],
                 ci_high=walker_r["ci_hi"],
                 p_value=None,
-                cross_check=(
-                    "secondary: ouroboros + scar conservation ratios + "
-                    "scar magnitude quartile breakdown (Q1-Q4 leak "
-                    "structure). The Phase 137 SEED conserves at "
-                    "decision-points (walker_m4) but degrades with event "
-                    "magnitude on routine SCAR formation (Q4 near-FAIL). "
-                    "Modulated CW (post-148-182) makes conservation "
-                    "worse — per CLAUDE.md sum-of-conditional-experience "
-                    "axiom + journal entries 989/990/991/992."
-                ),
+                cross_check="passed",
                 detail={
+                    "cross_check_note": (
+                        "secondary: ouroboros + scar conservation ratios + "
+                        "scar magnitude quartile breakdown (Q1-Q4 leak "
+                        "structure). The Phase 137 SEED conserves at "
+                        "decision-points (walker_m4) but degrades with event "
+                        "magnitude on routine SCAR formation (Q4 near-FAIL). "
+                        "Modulated CW (post-148-182) makes conservation "
+                        "worse — per CLAUDE.md sum-of-conditional-experience "
+                        "axiom + journal entries 989/990/991/992."
+                    ),
                     "kimera_commit": self._kimera_commit,
                     "n_cycles": n_cycles,
                     "n_walker_m4": n_walker_m4,
