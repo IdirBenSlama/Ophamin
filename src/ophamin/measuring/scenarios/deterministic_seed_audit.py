@@ -103,13 +103,21 @@ _REPRODUCIBILITY_EXCLUDED_PATHS: tuple[tuple[str, ...], ...] = (
 )
 
 #: Field paths whose VALUES are stripped from each PillarEvidence's
-#: ``detail`` dict — these are timing measurements that vary per
-#: invocation but don't change the scenario's verdict.
+#: ``detail`` dict — these are timing measurements and per-invocation
+#: identifiers that vary per invocation but don't change the
+#: scenario's verdict.
 _REPRODUCIBILITY_EXCLUDED_DETAIL_KEY_SUFFIXES: tuple[str, ...] = (
     "_seconds",
     "_avg_ms",
     "_wall_time",
     "_perf_counter",
+    # Per-invocation proof IDs — content-hashed but include
+    # wall-clock identity.created_at in their input, so they drift
+    # even when the underlying scenario is reproducible. Excluding
+    # them lets the audit scenario be self-reproducible — verified
+    # by tests/test_deterministic_seed_audit.py +
+    # examples/walkthrough_reproducibility_audit.py.
+    "_proof_id",
 )
 
 

@@ -7,7 +7,84 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.11.2] below for the latest cut.)
+(empty — see [0.11.3] below for the latest cut.)
+
+## [0.11.3] — 2026-05-17
+
+**Headline:** Phase E3 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md)
+opens with consumer-facing **concept walkthroughs** for the three
+load-bearing RFC-0002 phases shipped so far (E2 FWER / E4
+reproducibility / E8 API stability). Plus a real defect surfaced
++ fixed by writing the E4 walkthrough.
+
+### Added
+
+- **`examples/walkthrough_fwer_correction.py`** — Phase E2 demo.
+  Constructs a family of 10 p-values, runs Holm-Bonferroni + BH +
+  no-correction against them, prints per-claim adjusted-p tables,
+  asserts Holm ⊆ BH ⊆ raw rejection invariant. Shows the
+  `CampaignRecord/2.0` `corrected_verdicts` integration.
+- **`examples/walkthrough_reproducibility_audit.py`** — Phase E4 demo.
+  Runs `DeterministicSeedAuditScenario` against `crdt-laws`,
+  prints the two matching reproducibility hashes side by side,
+  documents the strip + preserve list of
+  `reproducibility_hash`, and shows the framework-wide audit gate.
+- **`examples/walkthrough_api_stability.py`** — Phase E8 demo.
+  Synthetic targets tagged with each of the four tiers; prints
+  the tier inventory; demonstrates `@Deprecated`'s
+  `DeprecationWarning` at call site; surfaces the `StabilityInfo`
+  construction-time invariants.
+- **`tests/test_example_walkthroughs.py`** — 7 tests:
+  - 3 parametrized smokes asserting each walkthrough runs as
+    `python examples/walkthrough_X.py` with exit code 0
+  - 3 parametrized assertions that each walkthrough emits its
+    closing `✓ ... complete` success marker (pins that
+    in-script assertions all pass + main() runs to completion)
+  - 1 drift detector confirming `examples/README.md` indexes
+    every shipped walkthrough
+- **`examples/README.md`** gains a "Concept walkthroughs" section
+  with a per-walkthrough table.
+
+### Fixed — real defect surfaced by writing the walkthrough
+
+While writing `walkthrough_reproducibility_audit.py`, an
+in-script assertion that the audit scenario itself must be
+self-reproducible (running the audit twice produces two proofs
+whose `reproducibility_hash` matches) **failed**. Root cause:
+the audit's evidence detail dict carries `first_proof_id` +
+`second_proof_id` of the inner runs. Those proof_ids are
+content-hashed but include the inner proofs' wall-clock
+`created_at`, so they drift between outer invocations and break
+the outer reproducibility property.
+
+Fix: extended `_REPRODUCIBILITY_EXCLUDED_DETAIL_KEY_SUFFIXES` to
+include `_proof_id`. Detail keys ending in `_proof_id` are now
+stripped from the reproducibility hash — they're forensic info
+(operator can re-run to get them), not load-bearing claim content.
+
+This makes the audit scenario self-reproducible. Verified by
+the walkthrough's in-script assertion.
+
+### Significance
+
+The reproducibility-hash exclusion list is part of the **framework's
+own contract** — when a new detail-key pattern carries
+per-invocation content, it has to be added to the exclusion list
+or the reproducibility property won't hold for scenarios that
+emit it. The walkthrough acted as a real consumer of the audit
+primitive and found the gap. Without the walkthrough,
+self-reproducibility would have stayed silently broken.
+
+### Validated
+
+- `mypy --strict src/ophamin tests/test_example_walkthroughs.py` clean (147/147).
+- `mkdocs build --strict` passes.
+- 35 tests pass across the walkthrough suite + adjacent E4 tests:
+  - 7 walkthrough smokes
+  - 23 deterministic-seed-audit pins
+  - 5 framework-wide reproducibility audits
+- All three walkthroughs run end-to-end + emit the
+  closing-success marker.
 
 ## [0.11.2] — 2026-05-17
 

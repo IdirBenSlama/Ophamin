@@ -30,6 +30,22 @@ python examples/run_scenario.py organizational-dissonance --n-cycles 100
 python examples/run_scenario.py rosetta-scaling --out proofs/scientific/rosetta/test.json
 ```
 
+## Concept walkthroughs (RFC-0002 phase demos)
+
+Three walkthrough scripts demonstrate the load-bearing framework
+primitives shipped in the 0.9.x / 0.10.x / 0.11.x line. Each:
+
+* runs end-to-end with `PYTHONPATH=src python examples/walkthrough_*.py`,
+* has rich docstring + annotated stdout,
+* asserts its own invariants (the `assert` at the bottom is the
+  contract; CI runs each as a smoke).
+
+| Walkthrough | RFC-0002 phase | What it shows |
+|---|---|---|
+| [`walkthrough_fwer_correction.py`](walkthrough_fwer_correction.py) | E2 | Holm-Bonferroni + Benjamini-Hochberg on a hand-crafted family of 10 p-values; pins the Holm ⊆ BH rejection-set invariant; shows `CampaignRecord/2.0`'s `corrected_verdicts` integration. |
+| [`walkthrough_reproducibility_audit.py`](walkthrough_reproducibility_audit.py) | E4 | `DeterministicSeedAuditScenario` against `crdt-laws`; demonstrates the exclusion list of `reproducibility_hash`; explains what the framework-wide audit gate in `tests/test_framework_wide_reproducibility.py` covers. |
+| [`walkthrough_api_stability.py`](walkthrough_api_stability.py) | E8 | `@Stable` / `@Provisional` / `@Internal` / `@Deprecated` decorators on synthetic targets; shows the predicates (`is_stable`, `is_deprecated`); demonstrates `@Deprecated`'s `DeprecationWarning` at call site; surfaces the `StabilityInfo` invariants enforced at construction time. |
+
 ## Discovery commands (no code reading required)
 
 ```bash
