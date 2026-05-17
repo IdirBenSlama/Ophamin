@@ -7,7 +7,43 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.9.1] below for the latest cut.)
+(empty — see [0.9.2] below for the latest cut.)
+
+## [0.9.2] — 2026-05-17
+
+Post-0.9.1 follow-up patch — same pattern as 0.8.4: surface the
+PyPI-Trusted-Publisher-not-yet-configured state honestly without
+gating CI on owner-side configuration.
+
+### Fixed
+
+- **`.github/workflows/release.yml`: publish step is now advisory
+  until owner-side setup completes.** 0.9.1's release workflow fires
+  cleanly through `build` ✅ + `twine check --strict` ✅, but the
+  `publish to PyPI` step fails with `invalid-publisher: no
+  corresponding publisher` because the PyPI pending publisher for
+  `ophamin` hasn't been registered yet (owner-side, one-time).
+  Setting `continue-on-error: true` on the publish job converts the
+  failure to a soft warning until the one-time setup completes. The
+  build artefact uploaded by `build` is the source of truth
+  meanwhile (downloadable from every workflow run). Once the PyPI
+  pending publisher is registered + the first publish succeeds, the
+  `continue-on-error` flag should be removed in a follow-up patch
+  (same pattern as the 0.8.4 → 0.8.5 docs-deploy gate flip).
+
+### Validated
+
+- `python -m build` emits `ophamin-0.9.2.tar.gz` + `ophamin-0.9.2-py3-none-any.whl`.
+- `twine check --strict dist/*` PASSES on both artefacts.
+- `mypy --strict src/ophamin` clean (142/142).
+- `mkdocs build --strict` passes.
+
+### Owner action still pending
+
+The PyPI Trusted Publisher setup walkthrough remains in
+[`docs/RELEASE_PROCEDURE.md` §4.5](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/RELEASE_PROCEDURE.md).
+0.9.1 + 0.9.2 leave a verifiable wheel as a workflow artefact; the
+owner-side step unlocks the canonical PyPI install path.
 
 ## [0.9.1] — 2026-05-17
 

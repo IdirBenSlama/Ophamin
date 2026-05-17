@@ -94,6 +94,14 @@ jobs:
     if: |
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run != 'true')
+    # PyPI Trusted Publishing is owner-side configuration (one-time setup at
+    # https://pypi.org/manage/account/publishing/ for the `ophamin` project).
+    # Until the pending publisher is registered, this step fails with
+    # `invalid-publisher` — the artifact uploaded by the `build` job above
+    # is the source of truth meanwhile. Once owner-side setup is complete,
+    # revert this `continue-on-error` so future publish regressions fail
+    # loud (same pattern as the 0.8.4 → 0.8.5 docs-deploy gate flip).
+    continue-on-error: true
     environment:
       name: pypi
       url: https://pypi.org/project/ophamin/
