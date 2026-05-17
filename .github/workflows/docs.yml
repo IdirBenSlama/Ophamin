@@ -5,6 +5,7 @@ name: docs
 on:
   push:
     branches: [main]
+    tags: ["v*"]      # per-release doc snapshots (0.8.2+)
   pull_request:
     branches: [main]
   # Manual trigger for forced rebuilds.
@@ -46,15 +47,12 @@ jobs:
           # Install ophamin + docs extra so mkdocstrings can introspect.
           pip install -e ".[docs]"
 
-      - name: Build site
-        # NOTE: ``--strict`` is intentionally omitted for the first cut
-        # of Phase L1. Many doc pages include-markdown root-level files
-        # (CHANGELOG, SCHEMAS, CONTRIBUTING) which then contain relative
-        # paths like ``../src/...`` — those paths resolve in the GitHub
-        # repo browser but not under mkdocs. Cleanup is tracked as an
-        # L1 follow-up; mkdocs in non-strict mode warns on console but
-        # renders the site correctly.
-        run: mkdocs build
+      - name: Build site (strict — fails on any warning)
+        # 0.8.2 cleanup pass landed: every cross-file link in the source
+        # files now uses absolute GitHub URLs (so it resolves both in
+        # the GitHub repo browser AND under mkdocs). Strict mode catches
+        # any future link rot at PR time.
+        run: mkdocs build --strict
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -63,8 +61,13 @@ jobs:
 
   deploy:
     name: deploy to GitHub Pages
-    # Don't deploy from PRs — preview-only.
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    # Deploy only from main-branch push or manual workflow_dispatch.
+    # PR builds are preview-only (no deploy); tag pushes build but
+    # don't redeploy main's content (the tag's docs snapshot is kept
+    # as a build artefact only — multi-version docs is a future RFC).
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'workflow_dispatch'
     needs: build
     runs-on: ubuntu-latest
     environment:

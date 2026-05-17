@@ -23,7 +23,7 @@ Ophamin follows [Semantic Versioning](https://semver.org):
   CLI semantics; requires a migration script
 
 Schema version bumps are tracked separately in
-[`SCHEMAS.md`](../SCHEMAS.md); ophamin-version and schema-version are
+[`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md); ophamin-version and schema-version are
 NOT coupled (a patch ophamin bump may still ship a v2 of one schema
 when the older v1 stays readable).
 
@@ -88,7 +88,7 @@ git push origin v<version>
 Pre-requisite: the Zenodo–GitHub integration is configured. If not,
 **this is owner-territory** — the owner authenticates Zenodo on
 zenodo.org and authorises the GitHub repo. After that, every tagged
-release auto-mints a DOI based on [`.zenodo.json`](../.zenodo.json)
+release auto-mints a DOI based on [`.zenodo.json`](https://github.com/IdirBenSlama/Ophamin/blob/main/.zenodo.json)
 metadata.
 
 To verify: visit
@@ -113,7 +113,7 @@ docker run --rm ophamin:<version> --help
 ```
 
 (The image is CORE-only — `pip install -e .` with no extras. See
-[`Dockerfile`](../Dockerfile) for the scope rationale.)
+[`Dockerfile`](https://github.com/IdirBenSlama/Ophamin/blob/main/Dockerfile) for the scope rationale.)
 
 ## 7. Regenerate the SBOM
 

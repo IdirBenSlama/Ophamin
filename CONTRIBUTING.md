@@ -2,7 +2,7 @@
 
 Thanks for taking an interest. This document covers the *what* and *how* of
 contribution. The framework is open-source under the **Apache License
-2.0** (see [`LICENSE`](LICENSE) + [`NOTICE`](NOTICE)). External
+2.0** (see [`LICENSE`](https://github.com/IdirBenSlama/Ophamin/blob/main/LICENSE) + [`NOTICE`](https://github.com/IdirBenSlama/Ophamin/blob/main/NOTICE)). External
 contributions are welcome through the standard GitHub PR flow; the
 project follows an RFC process for non-trivial design changes (see
 `docs/rfc/` once the process lands; currently architectural
@@ -44,7 +44,7 @@ git hook that runs the full test suite before allowing a push:
 git config core.hooksPath .githooks
 ```
 
-The hook lives at [.githooks/pre-push](.githooks/pre-push) and adds ~8 s
+The hook lives at [.githooks/pre-push](https://github.com/IdirBenSlama/Ophamin/blob/main/.githooks/pre-push) and adds ~8 s
 to every push. Skip a one-off push with `git push --no-verify`.
 
 ## Authoring a new scenario
@@ -94,7 +94,7 @@ Some changes need a written design document before code lands. The
 **RFC process** ([`docs/rfc/README.md`](docs/rfc/README.md)) covers:
 
 - new public APIs (CLI commands, codec functions, Protocol contracts)
-- signed-record schema field changes (see [`SCHEMAS.md`](SCHEMAS.md))
+- signed-record schema field changes (see [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md))
 - new dependencies in `[project.dependencies]` (vs. an extra)
 - new experimentation tiers in the scenario taxonomy
 - splits / merges of the six wheels
@@ -117,7 +117,7 @@ Before opening a PR:
 - [ ] `ruff check src tests` reports no new violations.
 - [ ] If you added a public API, you also added tests for it.
 - [ ] If you added a signed-record field, you also updated
-      [`SCHEMAS.md`](SCHEMAS.md) and the corresponding codec round-trip
+      [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md) and the corresponding codec round-trip
       property test.
 - [ ] If you added an external dependency, it's reflected in
       `pyproject.toml` extras AND the relevant lockfile is refreshed.
@@ -129,12 +129,12 @@ Before opening a PR:
 
 ## Reporting issues
 
-See [`SECURITY.md`](SECURITY.md) for security issues; use the issue
+See [`SECURITY.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SECURITY.md) for security issues; use the issue
 templates for everything else.
 
 ## Code of conduct
 
-See [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). Engage in good faith, be
+See [`CODE_OF_CONDUCT.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/CODE_OF_CONDUCT.md). Engage in good faith, be
 respectful, and bring your honest thinking. Ophamin is a project that values
 empirical refutation over comfortable validation — the same disposition
 applies to discussion.

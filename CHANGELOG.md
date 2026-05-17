@@ -7,7 +7,50 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.8.1] below for the latest cut.)
+(empty — see [0.8.2] below for the latest cut.)
+
+## [0.8.2] — 2026-05-17
+
+L1 strict-mode closure + first concrete RFC + tag-aware docs build.
+Closes the three on-my-side items flagged in 0.8.1's "known L1
+follow-ups".
+
+### Added
+
+- **RFC 0001** — a retrospective pointer at the pre-0.8.0 audit
+  documents. Validates the L5 RFC process end-to-end (template
+  rendered, numbering scheme exercised, DRAFT→ACCEPTED lifecycle
+  terminated) without forcing the existing audits through a template
+  they don't structurally fit. See
+  [`docs/rfc/0001-retrospective-pre-0.8.0-architecture.md`](docs/rfc/0001-retrospective-pre-0.8.0-architecture.md).
+- **Docs workflow `push: tags: ["v*"]`** trigger — every release
+  tag now builds the docs site (deploy stays main-only; tag builds
+  are validation-only until multi-version docs is its own RFC).
+
+### Fixed
+
+- **L1 strict-mode closure.** 0.8.1 shipped the docs site without
+  `--strict` because include-markdown'd root files (CHANGELOG /
+  CONTRIBUTING / SCHEMAS / SECURITY / RFC README) contained relative
+  paths like `../src/...` and `../SCHEMAS.md` that resolve in the
+  GitHub repo browser but not under mkdocs. This patch rewrites
+  **39 cross-file links** across 11 source files to use absolute
+  GitHub URLs (which work in BOTH the GitHub browser AND the mkdocs
+  site). The `.github/workflows/docs.yml` build step now runs
+  `mkdocs build --strict` — any future link rot fails CI at PR time.
+- `docs/rfc/README.md` link to `docs/` parent now points at
+  `../index.md` rather than `..`.
+- `mkdocs.yml` nav now includes `TIER_2_TELEMETRY_PROPOSAL.md` and
+  the new RFC 0001 (cleared the "page exists but not in nav" info).
+
+### Validated
+
+- `mkdocs build --strict` passes locally (1.13s, 1 info-level
+  placeholder for the future `migrations/` directory — not a warning).
+- `mypy --strict src/ophamin` clean (138/138).
+- 39 cross-file links rewritten across the 11 source files via a
+  reproducible regex pass; rendered correctly in BOTH the GitHub repo
+  browser and the mkdocs-material site.
 
 ## [0.8.1] — 2026-05-17
 
@@ -91,7 +134,7 @@ the elevation roadmap's 2–3 session estimate.
 
 ### Added — L4 versioned schemas
 
-- **[`SCHEMAS.md`](SCHEMAS.md)** catalogues every signed-record schema
+- **[`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md)** catalogues every signed-record schema
   (EmpiricalProofRecord 1.0, AuditRecord audit/1.1, CampaignRecord
   1.0, RegressionAlertRecord regression-alert/1.0, DriftScan 2) plus
   three structural-probe schemas (KimeraInventory, Telemetry,

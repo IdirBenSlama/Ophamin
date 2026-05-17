@@ -15,7 +15,7 @@
 
 ## 1. What Ophamin v0.1 actually observes
 
-The `KimeraAdapter` in [`seeing/substrate/kimera_adapter.py`](../src/ophamin/seeing/substrate/kimera_adapter.py)
+The `KimeraAdapter` in [`seeing/substrate/kimera_adapter.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/seeing/substrate/kimera_adapter.py)
 targets **11 cognitive primitives** via direct Python entry points:
 
 ```

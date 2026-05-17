@@ -60,7 +60,7 @@ DRAFT  →  REVIEW  →  ACCEPTED  →  IMPLEMENTED
 
 ## Existing architectural decisions
 
-The audits and extended-audit documents under [`docs/`](..)
+The audits and extended-audit documents under [`docs/`](../index.md)
 (`ARCHITECTURE_EXTENDED_AUDIT_*.md`,
 `ARCHITECTURE_INTENT_VS_REALITY_*.md`,
 `ELEVATION_ROADMAP_*.md`) predate this RFC process and stand as the
@@ -78,7 +78,7 @@ Use this when reviewing an RFC PR:
 - [ ] Acceptance criteria are testable (not "feels right")
 - [ ] Drawbacks are honestly listed (not just upsides)
 - [ ] If the RFC introduces a new signed-record schema or modifies an
-      existing one, [`SCHEMAS.md`](../../SCHEMAS.md) update is part of
+      existing one, [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md) update is part of
       the implementation plan
 
 ## Where this came from

@@ -3,7 +3,7 @@
 ## Supported versions
 
 Ophamin is currently at **0.4.0**. The framework is open-source under
-the **Apache License 2.0** (see [`LICENSE`](LICENSE) + [`NOTICE`](NOTICE)).
+the **Apache License 2.0** (see [`LICENSE`](https://github.com/IdirBenSlama/Ophamin/blob/main/LICENSE) + [`NOTICE`](https://github.com/IdirBenSlama/Ophamin/blob/main/NOTICE)).
 Security patches are committed to `main` and released as patch-level
 tags as needed.
 

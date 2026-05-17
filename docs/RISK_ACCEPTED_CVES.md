@@ -2,7 +2,7 @@
 
 > **Living document — every entry must justify why suppression is safe.**
 > Adding a CVE to `DEFAULT_RISK_ACCEPTED_CVES` in
-> [`src/ophamin/auditing/pillars/pip_audit_pillar.py`](../src/ophamin/auditing/pillars/pip_audit_pillar.py)
+> [`src/ophamin/auditing/pillars/pip_audit_pillar.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/auditing/pillars/pip_audit_pillar.py)
 > requires a matching section here.
 
 This file enumerates dependency CVEs that Ophamin's `pip_audit` pillar is
@@ -30,7 +30,7 @@ Reviewed 2026-05-15. Re-review whenever pip-audit surfaces new vulns.
   deserialization).
 - **Reachability in Ophamin**:
   - Ophamin uses DVC for lineage storage in
-    [`src/ophamin/comparing/provenance/`](../src/ophamin/comparing/provenance/)
+    [`src/ophamin/comparing/provenance/`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/comparing/provenance/)
   - Cache directory is local to the Ophamin install; written and read by
     the same user that runs Ophamin
   - No cross-user attack surface in single-tenant dev / CI usage

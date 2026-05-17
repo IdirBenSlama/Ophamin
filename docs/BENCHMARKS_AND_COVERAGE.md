@@ -13,7 +13,7 @@
 ## 1. Coverage baseline (Phase S2)
 
 Measured on Python 3.14, pytest 7+ with `pytest-cov` 7.1, branch
-coverage enabled. Configuration lives in [`.coveragerc`](../.coveragerc);
+coverage enabled. Configuration lives in [`.coveragerc`](https://github.com/IdirBenSlama/Ophamin/blob/main/.coveragerc);
 the canonical run command is:
 
 ```bash

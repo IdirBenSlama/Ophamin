@@ -3,7 +3,7 @@
 Auto-generated from the source docstrings via
 [`mkdocstrings`](https://mkdocstrings.github.io/). Every public symbol
 listed below is part of Ophamin's stable surface; breaking changes
-follow the [semver promise](../SCHEMAS.md#migration-policy).
+follow the [semver promise](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md#migration-policy).
 
 ## Top-level
 

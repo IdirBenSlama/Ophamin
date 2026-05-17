@@ -23,7 +23,7 @@ we use today. It exists so a future maintainer doesn't re-discover them.
 | Feature | Notes |
 |---|---|
 | **GitHub Actions minutes** | 2,000 min/month free on private. Our CI matrix (3.12 + 3.13) + audit + lint uses ~3-4 min per push. Plenty of headroom. |
-| **Dependabot version updates** | The PR-creating side is free. We configured weekly cadence in [`.github/dependabot.yml`](../.github/dependabot.yml). |
+| **Dependabot version updates** | The PR-creating side is free. We configured weekly cadence in [`.github/dependabot.yml`](https://github.com/IdirBenSlama/Ophamin/blob/main/.github/dependabot.yml). |
 | **Workflow artifacts** | 500 MB storage / 1 GB transfer / month free. Audit JSON + SARIF artifacts are small (~10 KB each). |
 | **Issues / PRs / Discussions** | Free with no limits. |
 | **Webhooks** | Free with no limits. |
