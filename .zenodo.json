@@ -1,0 +1,39 @@
+{
+  "title": "Ophamin: an empirical observatory wrapped around a substrate under test",
+  "description": "Ophamin is an empirical observatory wrapped around a substrate under test. It is built for Kimera-SWM but independent of it: the substrate plugs in through one adapter and a MockSubstrate makes the framework runnable without Kimera. The architecture is six wheels in two concentric triads — an outer triad for empirical observation (seeing / measuring / comparing) and an inner triad for engineering observation (instrumenting / auditing / reporting) — plus cross-cutting layers for per-primitive inspection and standard-format interop (SARIF / JUnit XML / MLflow / CycloneDX SBOM). Nineteen scenarios across five experimentation tiers (scientific, engineering, philosophical, measurement-machinery, structural) produce signed 9-section Empirical Proof Records with pre-registered falsifiable claims. Every signed record is content-addressed and HMAC-signed; the schema versions are catalogued in SCHEMAS.md with explicit backward-compat policy.",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "Ben Slama, Idir",
+      "affiliation": "Independent"
+    }
+  ],
+  "keywords": [
+    "empirical-framework",
+    "kimera-swm",
+    "falsifiable-claims",
+    "pre-registration",
+    "sarif",
+    "cyclonedx",
+    "mlflow",
+    "junit-xml",
+    "audit",
+    "observability",
+    "property-based-testing",
+    "reproducibility",
+    "signed-records",
+    "schema-versioning"
+  ],
+  "license": "Apache-2.0",
+  "access_right": "open",
+  "language": "eng",
+  "related_identifiers": [
+    {
+      "scheme": "url",
+      "identifier": "https://github.com/IdirBenSlama/Ophamin",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ],
+  "communities": []
+}

@@ -88,18 +88,44 @@ New scenarios should land in ~80 LOC (analytic-deep scenarios in
 7. Add tests in `tests/test_auditing.py` using `unittest.mock.patch` against
    `subprocess.run` (no live tool invocation in unit tests).
 
+## RFC-first rule for design changes
+
+Some changes need a written design document before code lands. The
+**RFC process** ([`docs/rfc/README.md`](docs/rfc/README.md)) covers:
+
+- new public APIs (CLI commands, codec functions, Protocol contracts)
+- signed-record schema field changes (see [`SCHEMAS.md`](SCHEMAS.md))
+- new dependencies in `[project.dependencies]` (vs. an extra)
+- new experimentation tiers in the scenario taxonomy
+- splits / merges of the six wheels
+
+Open a PR adding `docs/rfc/NNNN-<slug>.md` based on
+[`docs/rfc/0000-template.md`](docs/rfc/0000-template.md). The
+maintainer either accepts the RFC (after which an implementation PR
+references it by number) or asks for revisions.
+
+**Bug fixes, refactors that don't change behavior, new tests, doc
+improvements, and dependency-version bumps** go straight to a PR —
+no RFC needed.
+
 ## Pull request checklist
 
 Before opening a PR:
 
-- [ ] `pytest -q` runs green locally (all 842+ tests pass).
+- [ ] `pytest -q --ignore=tests/bench` runs green locally (1208+ tests).
+- [ ] `mypy --strict src/ophamin` clean (138/138 source files).
 - [ ] `ruff check src tests` reports no new violations.
 - [ ] If you added a public API, you also added tests for it.
+- [ ] If you added a signed-record field, you also updated
+      [`SCHEMAS.md`](SCHEMAS.md) and the corresponding codec round-trip
+      property test.
 - [ ] If you added an external dependency, it's reflected in
-      `pyproject.toml` AND `requirements.txt` / `requirements-dev.txt`.
+      `pyproject.toml` extras AND the relevant lockfile is refreshed.
 - [ ] If you added a scenario, you also added an example runner.
-- [ ] Your commit message explains the *why* in the body, not just the *what*
-      in the title.
+- [ ] If the change is design-shaped (per the RFC-first rule above),
+      the RFC PR landed first.
+- [ ] Your commit message explains the *why* in the body, not just the
+      *what* in the title.
 
 ## Reporting issues
 

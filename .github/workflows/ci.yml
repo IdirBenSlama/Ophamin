@@ -39,22 +39,89 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # full-feature install — every extra Ophamin needs to run end-to-end
-          pip install -e ".[all,dev]"
+          # full-feature install — every extra Ophamin needs to run end-to-end,
+          # PLUS property_test so the bench / coverage / hypothesis tooling
+          # is available for the dedicated jobs below.
+          pip install -e ".[all,dev,property_test]"
 
       - name: Verify install (every required dep + audit binary present)
         env:
           PYTHONPATH: src
         run: python -m ophamin.cli verify
 
-      - name: Run pytest
+      - name: Run pytest with coverage gate
         env:
           PYTHONPATH: src
-        # Exclude tests/bench: pytest-benchmark lives in [property_test]
-        # rather than [all,dev] (test-infra not runtime), and the bench
-        # suite is for measuring perf baselines, not default verification.
-        # Matches the pre-push hook's `--ignore=tests/bench`.
-        run: pytest -q --ignore=tests/bench
+        # Coverage threshold matches the pre-push hook (77 %, ratcheting
+        # toward 85 % per BENCHMARKS_AND_COVERAGE.md).
+        run: |
+          pytest -q --ignore=tests/bench \
+            --cov=src/ophamin --cov-branch --cov-fail-under=77 \
+            --cov-report=xml --cov-report=term:skip-covered
+
+      - name: Upload coverage artifact
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-xml-py3.12
+          path: coverage.xml
+          retention-days: 14
+
+  typecheck:
+    name: typecheck (mypy --strict)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all,dev]"
+
+      - name: mypy --strict (full package)
+        env:
+          PYTHONPATH: src
+        # Phase S1 closed 2026-05-16: every source file is strict-clean.
+        # Any new strict-mode regression fails the build.
+        run: mypy --strict src/ophamin
+
+  audit:
+    name: dependency audit (pip-audit)
+    runs-on: ubuntu-latest
+    # Don't fail the build on a new CVE — the audit pillar is the
+    # tracking surface. CVEs that aren't already in
+    # `docs/RISK_ACCEPTED_CVES.md` trigger a follow-up; CVEs that are
+    # documented + suppressed don't gate ship.
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[audit]"
+
+      - name: Run pip-audit against the install
+        # ``--ignore-vuln`` carries every CVE documented in
+        # docs/RISK_ACCEPTED_CVES.md. Update both files together.
+        run: |
+          pip-audit \
+            --ignore-vuln CVE-2025-69872 \
+            --ignore-vuln PYSEC-2022-42969
 
   lint:
     name: lint (ruff + bandit)

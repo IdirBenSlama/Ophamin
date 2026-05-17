@@ -3,9 +3,11 @@
 [![CI](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
 [![Audit](https://github.com/IdirBenSlama/Ophamin/actions/workflows/audit.yml/badge.svg?branch=main)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/audit.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue.svg)](https://github.com/IdirBenSlama/Ophamin/blob/main/pyproject.toml)
-[![Version](https://img.shields.io/badge/version-0.6.0-blue.svg)](https://github.com/IdirBenSlama/Ophamin/releases)
+[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/IdirBenSlama/Ophamin/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-1148%2B%20passing-brightgreen.svg)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-1223%2B%20passing-brightgreen.svg)](https://github.com/IdirBenSlama/Ophamin/actions/workflows/ci.yml)
+[![mypy](https://img.shields.io/badge/mypy-strict%20%E2%9C%93-blue.svg)](docs/MYPY_STRICT_BASELINE.md)
+[![Schemas](https://img.shields.io/badge/schemas-versioned-blueviolet.svg)](SCHEMAS.md)
 
 **An empirical observatory wrapped around a substrate under test.**
 

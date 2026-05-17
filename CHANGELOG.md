@@ -7,7 +7,105 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.7.2] below for the latest cut.)
+(empty — see [0.8.0] below for the latest cut.)
+
+## [0.8.0] — 2026-05-17
+
+Stage-3 elevation phases: **L2** (Zenodo DOI prep), **L3** (mature
+public CI), **L4** (versioned schemas with explicit migration
+guarantees), **L5** (RFC process for design changes). Phase L1
+(full mkdocs documentation site) is deferred to its own campaign per
+the elevation roadmap's 2–3 session estimate.
+
+### Added — L4 versioned schemas
+
+- **[`SCHEMAS.md`](SCHEMAS.md)** catalogues every signed-record schema
+  (EmpiricalProofRecord 1.0, AuditRecord audit/1.1, CampaignRecord
+  1.0, RegressionAlertRecord regression-alert/1.0, DriftScan 2) plus
+  three structural-probe schemas (KimeraInventory, Telemetry,
+  WiringReport). For each: codec module, current version, backward-
+  compat read-policy, stable + optional fields, and round-trip test
+  pointer. Defines the **semver promise on the wire**: minor bumps
+  are forward-additions only; major bumps require a migration script
+  and a deprecation cycle.
+- **`ophamin schema` CLI umbrella** with three actions:
+  - `schema list` — print every documented schema + current version
+  - `schema info <path>` — detect kind + version of a record file
+  - `schema validate <path>` — validate structure + optional
+    HMAC-signature verification (with `--key`); supports
+    `--recursive` for directory trees and
+    `--allow-any-schema-version` for forensic use
+- **15 new tests** in `tests/test_cli_schema.py` pinning the CLI
+  surface end-to-end (subprocess invocation, every action, every
+  failure path).
+- **`SCHEMA_VERSION`** added to `auditing.codec.__all__` so it's
+  importable as a public symbol (was the underlying constant for
+  `audit/1.1` but not exported).
+
+### Added — L3 mature CI
+
+- **`typecheck` job**: runs `mypy --strict src/ophamin` against the
+  full package on every push + PR. Phase S1 closed at 138/138
+  strict-clean; this gate prevents regression.
+- **Coverage gate**: pytest now runs with `--cov-fail-under=77`
+  matching the pre-push hook. Coverage XML uploaded as a workflow
+  artefact on the Python 3.12 leg.
+- **`audit` job**: runs `pip-audit` with the documented
+  `--ignore-vuln` set for the two risk-accepted CVEs
+  (CVE-2025-69872, PYSEC-2022-42969 — see
+  [`docs/RISK_ACCEPTED_CVES.md`](docs/RISK_ACCEPTED_CVES.md)).
+  Marked `continue-on-error: true` so a new transitive CVE
+  surfaces in the log without blocking ship; the audit pillar is
+  the tracking surface.
+- **`[property_test]` extra now installed alongside `[all,dev]`** in
+  the test job so `pytest-cov` is present (was previously missing
+  alongside the just-fixed `pytest-benchmark` discipline).
+- **README badges** updated to reflect mypy strict status + schema
+  policy + version bump.
+
+### Added — L2 Zenodo prep
+
+- **`.zenodo.json`** with full metadata (title, authors, keywords,
+  description, license) so the Zenodo–GitHub integration auto-mints
+  a DOI on the next `v*` tag push. Activation of the integration
+  itself (OAuth Zenodo↔GitHub) is owner-territory — see the
+  release procedure.
+- **CITATION.cff** version pin maintained (currently 0.8.0); ORCID
+  placeholder remains for the author to fill in.
+
+### Added — L5 RFC process
+
+- **[`docs/rfc/README.md`](docs/rfc/README.md)** documents the
+  process: when an RFC is needed, the four-stage lifecycle
+  (DRAFT → REVIEW → ACCEPTED → IMPLEMENTED), and a reviewer
+  checklist.
+- **[`docs/rfc/0000-template.md`](docs/rfc/0000-template.md)** is
+  the canonical template: summary / problem / proposal / public-
+  surface impact / backward-compat / alternatives / drawbacks /
+  acceptance criteria / migration / open questions.
+- **CONTRIBUTING.md** expanded with an RFC-first rule for design
+  changes (vs. PR-first for bug fixes) plus the updated PR
+  checklist (1208+ tests, mypy strict, SCHEMAS.md update when
+  applicable).
+- **[`docs/RELEASE_PROCEDURE.md`](docs/RELEASE_PROCEDURE.md)** is
+  the source-of-truth checklist for tagging a release: version-bump
+  triplet (pyproject + `__init__` + CITATION), CHANGELOG entry,
+  tag push, Zenodo activation, SBOM regen, post-release housekeeping,
+  recovery guidance for common failure modes.
+
+### Changed
+
+- Bumped: `0.7.2` → `0.8.0`. Minor bump because the `ophamin schema`
+  CLI surface is new public API.
+
+### Validated
+
+- `mypy --strict src/ophamin` clean (138/138)
+- `pytest -q --ignore=tests/bench` → 1223 passed / 1 skipped / 0
+  failed locally on macOS Python 3.14 (+15 schema CLI tests)
+- `ophamin schema list` / `info` / `validate` smoke-tested
+- Final CI cross-validation on Ubuntu Python 3.12 + 3.13 pending the
+  push of this commit
 
 ## [0.7.2] — 2026-05-17
 

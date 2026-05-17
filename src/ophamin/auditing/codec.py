@@ -357,6 +357,7 @@ def list_audits(
 
 
 __all__ = [
+    "SCHEMA_VERSION",
     "AuditCodecError",
     "AuditDecodeError",
     "AuditListEntry",

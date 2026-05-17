@@ -1527,6 +1527,253 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_schema(args: argparse.Namespace) -> int:
+    """Umbrella for `ophamin schema <action>` subcommands (Phase L4).
+
+    Three actions:
+
+    - ``info <path>`` — detect the schema_version of a signed record,
+      print the catalogue row from SCHEMAS.md, exit 0.
+    - ``validate <path>`` — load the record via the appropriate codec
+      (structural validation), optionally verify the signature when
+      ``--key`` is provided. Exit 0 on success, 2 on any failure.
+    - ``list`` — print every documented schema name + current version.
+
+    The action runs against any of the framework's signed record types:
+    EmpiricalProofRecord (proof.json), AuditRecord (audit.json),
+    CampaignRecord, RegressionAlertRecord, DriftScan. Detection is by
+    inspecting top-level keys: ``proof_id`` → proof, ``audit_id`` →
+    audit, ``campaign_id`` → campaign, ``alert_id`` → regression-alert,
+    ``events`` + ``metric_name`` → drift-scan.
+
+    See SCHEMAS.md for the full versioning policy.
+    """
+    action = args.schema_action
+    if action == "list":
+        return _schema_list()
+    if action == "info":
+        return _schema_info(args.path)
+    if action == "validate":
+        sign_key = (
+            args.key.encode("utf-8") if getattr(args, "key", None) else None
+        )
+        return _schema_validate(
+            args.path, sign_key=sign_key,
+            allow_any_version=bool(getattr(args, "allow_any_schema_version", False)),
+            recursive=bool(getattr(args, "recursive", False)),
+        )
+    sys.stderr.write(f"ophamin schema: unknown action {action!r}\n")
+    return 2
+
+
+def _schema_list() -> int:
+    rows = [
+        ("EmpiricalProofRecord", "1.0", "measuring/proof/codec.py"),
+        ("AuditRecord",          "audit/1.1", "auditing/codec.py"),
+        ("CampaignRecord",       "1.0", "campaign.py"),
+        ("RegressionAlertRecord", "regression-alert/1.0", "comparing/regression_alert.py"),
+        ("DriftScan",            "2", "comparing/drift_detection/river_detector.py"),
+    ]
+    print(f"{'schema':<28} {'version':<24} module")
+    print("-" * 86)
+    for name, ver, mod in rows:
+        print(f"{name:<28} {ver:<24} {mod}")
+    print()
+    print("See SCHEMAS.md for the full versioning policy + migration story.")
+    return 0
+
+
+def _detect_schema_kind(payload: dict[str, Any]) -> str | None:
+    """Return one of: 'proof', 'audit', 'campaign', 'regression-alert',
+    'drift-scan', or None if unrecognised."""
+    if "proof_id" in payload:
+        return "proof"
+    if "audit_id" in payload:
+        return "audit"
+    if "campaign_id" in payload:
+        return "campaign"
+    if "alert_id" in payload:
+        return "regression-alert"
+    if "events" in payload and "metric_name" in payload:
+        return "drift-scan"
+    return None
+
+
+def _schema_info(path: str | Path) -> int:
+    p = Path(path)
+    if not p.is_file():
+        sys.stderr.write(f"ophamin schema info: not a file: {p}\n")
+        return 2
+    try:
+        payload = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        sys.stderr.write(f"ophamin schema info: cannot read {p}: {exc}\n")
+        return 2
+    if not isinstance(payload, dict):
+        sys.stderr.write(f"ophamin schema info: top level must be an object, got {type(payload).__name__}\n")
+        return 2
+    kind = _detect_schema_kind(payload)
+    version = payload.get("schema_version", "<missing>")
+    print(f"path:           {p}")
+    print(f"detected kind:  {kind or '<unrecognised>'}")
+    print(f"schema_version: {version}")
+    if "signature" in payload:
+        sig = payload.get("signature") or ""
+        print(f"signature:      {sig[:20]}{'…' if len(sig) > 20 else ''} ({'present' if sig else '<empty>'})")
+    else:
+        print("signature:      <not present in this schema>")
+    return 0
+
+
+def _schema_validate(
+    path: str | Path,
+    *,
+    sign_key: bytes | None,
+    allow_any_version: bool,
+    recursive: bool,
+) -> int:
+    p = Path(path)
+    if recursive and p.is_dir():
+        targets = sorted(p.rglob("*.json"))
+        if not targets:
+            sys.stderr.write(f"ophamin schema validate: no .json files under {p}\n")
+            return 2
+    elif p.is_file():
+        targets = [p]
+    elif p.is_dir() and not recursive:
+        sys.stderr.write(
+            f"ophamin schema validate: {p} is a directory; pass --recursive to scan it\n"
+        )
+        return 2
+    else:
+        sys.stderr.write(f"ophamin schema validate: not found: {p}\n")
+        return 2
+
+    n_ok = 0
+    n_failed = 0
+    for target in targets:
+        try:
+            payload = json.loads(target.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"FAIL  {target}: cannot read: {exc}")
+            n_failed += 1
+            continue
+        if not isinstance(payload, dict):
+            print(f"FAIL  {target}: top-level must be a JSON object")
+            n_failed += 1
+            continue
+        kind = _detect_schema_kind(payload)
+        if kind is None:
+            print(f"FAIL  {target}: unrecognised schema (no recognised id field)")
+            n_failed += 1
+            continue
+        try:
+            _validate_one(target, kind, payload, sign_key, allow_any_version)
+        except Exception as exc:  # noqa: BLE001 — surface per-file failures
+            print(f"FAIL  {target}: {type(exc).__name__}: {exc}")
+            n_failed += 1
+            continue
+        sig_note = " (signature verified)" if sign_key else ""
+        print(f"OK    {target}: {kind}@{payload.get('schema_version', '?')}{sig_note}")
+        n_ok += 1
+
+    print()
+    print(f"summary: {n_ok} ok, {n_failed} failed")
+    return 0 if n_failed == 0 else 2
+
+
+def _validate_one(
+    target: Path,
+    kind: str,
+    payload: dict[str, Any],
+    sign_key: bytes | None,
+    allow_any_version: bool,
+) -> None:
+    """Dispatch validation to the appropriate codec; raises on failure."""
+    if kind == "proof":
+        from ophamin.measuring.proof.codec import (
+            SCHEMA_VERSION as PROOF_VERSION,
+            load as proof_load,
+            verify_signature as proof_verify,
+        )
+        version = payload.get("schema_version")
+        if not allow_any_version and version != PROOF_VERSION:
+            raise ValueError(
+                f"schema_version mismatch: file is {version!r}, codec expects {PROOF_VERSION!r}"
+            )
+        proof_load(target)  # structural validation; raises on shape errors
+        if sign_key is not None:
+            if not proof_verify(target, sign_key):
+                raise ValueError("signature verification failed")
+        return
+
+    if kind == "audit":
+        from ophamin.auditing.codec import (
+            SCHEMA_VERSION as AUDIT_VERSION,
+            load as audit_load,
+            verify_signature as audit_verify,
+        )
+        version = payload.get("schema_version")
+        # AuditRecord v1.1 codec accepts v1.0 cleanly; only block on a
+        # different major. allow_any_version skips even that.
+        if not allow_any_version and version not in {AUDIT_VERSION, "audit/1.0"}:
+            raise ValueError(
+                f"schema_version mismatch: file is {version!r}, codec accepts {AUDIT_VERSION!r} or audit/1.0"
+            )
+        audit_load(target)
+        if sign_key is not None:
+            if not audit_verify(target, sign_key):
+                raise ValueError("signature verification failed")
+        return
+
+    if kind == "campaign":
+        from ophamin.campaign import (
+            CAMPAIGN_SCHEMA_VERSION,
+            load_campaign,
+        )
+        version = payload.get("schema_version")
+        if not allow_any_version and version != CAMPAIGN_SCHEMA_VERSION:
+            raise ValueError(
+                f"schema_version mismatch: file is {version!r}, codec expects {CAMPAIGN_SCHEMA_VERSION!r}"
+            )
+        campaign_record = load_campaign(target)
+        if sign_key is not None and not campaign_record.verify_signature(sign_key):
+            raise ValueError("signature verification failed")
+        return
+
+    if kind == "regression-alert":
+        from ophamin.comparing.regression_alert import (
+            REGRESSION_ALERT_SCHEMA_VERSION,
+            RegressionAlertRecord,
+        )
+        version = payload.get("schema_version")
+        if not allow_any_version and version != REGRESSION_ALERT_SCHEMA_VERSION:
+            raise ValueError(
+                f"schema_version mismatch: file is {version!r}, codec expects {REGRESSION_ALERT_SCHEMA_VERSION!r}"
+            )
+        alert_record = RegressionAlertRecord.from_dict(payload)
+        if sign_key is not None and not alert_record.verify_signature(sign_key):
+            raise ValueError("signature verification failed")
+        return
+
+    if kind == "drift-scan":
+        from ophamin.comparing.drift_detection.river_detector import (
+            DRIFT_SCHEMA_VERSION,
+        )
+        version = payload.get("schema_version")
+        if not allow_any_version and version not in {DRIFT_SCHEMA_VERSION, 1}:
+            raise ValueError(
+                f"schema_version mismatch: file is {version!r}, codec accepts {DRIFT_SCHEMA_VERSION} or 1"
+            )
+        # drift-scan has no codec-level signing yet; structural-only
+        for required in ("events", "metric_name", "n_observations"):
+            if required not in payload:
+                raise ValueError(f"missing required field {required!r}")
+        return
+
+    raise ValueError(f"no dispatcher for kind {kind!r}")
+
+
 def cmd_scenario(args: argparse.Namespace) -> int:
     """Umbrella for `ophamin scenario <action>` subcommands.
 
@@ -2513,6 +2760,54 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_scen_info.add_argument("name", help="scenario name")
     p_scen_info.set_defaults(func=cmd_scenario)
+
+    # ophamin schema — umbrella for the cross-record schema surface (Phase L4)
+    p_schema = sub.add_parser(
+        "schema",
+        help="signed-record schema policy — list / info / validate across every codec",
+    )
+    schema_sub = p_schema.add_subparsers(
+        dest="schema_action",
+        metavar="action",
+        required=True,
+    )
+    p_schema_list = schema_sub.add_parser(
+        "list",
+        help="print every documented schema name + current version",
+    )
+    p_schema_list.set_defaults(func=cmd_schema)
+
+    p_schema_info = schema_sub.add_parser(
+        "info",
+        help="detect the schema kind + version of one record file",
+    )
+    p_schema_info.add_argument("path", help="path to record JSON file")
+    p_schema_info.set_defaults(func=cmd_schema)
+
+    p_schema_validate = schema_sub.add_parser(
+        "validate",
+        help="validate one file or a directory tree of signed records",
+    )
+    p_schema_validate.add_argument(
+        "path",
+        help="path to record JSON file or directory (with --recursive)",
+    )
+    p_schema_validate.add_argument(
+        "--key",
+        default="",
+        help="HMAC key for signature verification (omit to skip)",
+    )
+    p_schema_validate.add_argument(
+        "--allow-any-schema-version",
+        action="store_true",
+        help="allow major-version mismatch — forensic use only",
+    )
+    p_schema_validate.add_argument(
+        "--recursive",
+        action="store_true",
+        help="when path is a directory, scan all *.json files under it",
+    )
+    p_schema_validate.set_defaults(func=cmd_schema)
 
     # ophamin proof — umbrella for the proof-record codec surface
     p_proof = sub.add_parser(
