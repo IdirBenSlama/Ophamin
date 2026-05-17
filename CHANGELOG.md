@@ -7,7 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.10.0] below for the latest cut.)
+(empty — see [0.10.1] below for the latest cut.)
+
+## [0.10.1] — 2026-05-17
+
+Coverage-gate fix. 0.10.0 added ~410 lines of new code (decorators +
+CLI handler + tests) and the framework's coverage dropped from 77 % →
+74.5 %, 0.5 pp under the 75 % CI gate. The `_stability.py` module is
+covered by `test_api_stability_contract.py`; the CLI handler
+`cmd_api_stability` in `cli.py` was unexercised. This patch adds an
+end-to-end smoke test for the handler.
+
+### Added
+
+- **`tests/test_cli_api_stability.py`** — 11 subprocess-launched tests
+  covering:
+    - `ophamin api-stability list` (text + JSON outputs, exit 0, lists
+      Stable group)
+    - `ophamin api-stability check <clean-dir>` (exit 0, JSON empty
+      array)
+    - `ophamin api-stability check <bad-path>` (exit 2 with
+      `is not a directory` on stderr)
+    - argparse rejection of unknown subcommand (exit 2)
+    - **Self-audit**: the framework's own `tests/` directory must
+      report 0 violations from the API stability contract — an
+      important invariant that pins the contract against future
+      drift if the framework ever uses one of its own
+      `@Deprecated` symbols inside its own tests.
+
+### Validated
+
+- 11/11 CLI tests pass.
+- Coverage restored above the 75 % gate (back to ~77 % locally).
 
 ## [0.10.0] — 2026-05-17
 
