@@ -1,47 +1,66 @@
 # See https://citation-file-format.github.io/ for the full spec.
 # GitHub renders this as a "Cite this repository" button on the repo page.
 cff-version: 1.2.0
-title: "Ophamin: an empirical observatory wrapped around a substrate under test"
+title: "Ophamin: a falsifiability-first experimentation framework with signed, cross-language-verifiable empirical proof records"
 message: "If you use this software, please cite it as below."
 type: software
 authors:
   - family-names: "Ben Slama"
     given-names: "Idir"
     orcid: "https://orcid.org/0000-0000-0000-0000"  # replace with your real ORCID
-version: 0.13.0
-date-released: "2026-05-16"
+version: 0.21.2
+date-released: "2026-05-18"
 url: "https://github.com/IdirBenSlama/Ophamin"
 repository-code: "https://github.com/IdirBenSlama/Ophamin"
 license: "Apache-2.0"
 abstract: >-
-  Ophamin is an empirical observatory wrapped around a substrate under test.
-  It is built for Kimera-SWM but independent of it: the substrate plugs in
-  through one adapter and a MockSubstrate makes the framework runnable
-  without Kimera. The architecture is six wheels in two concentric triads —
-  an outer triad for empirical observation (seeing / measuring / comparing)
-  and an inner triad for engineering observation (instrumenting / auditing /
-  reporting) — plus cross-cutting layers for per-primitive inspection and
-  standard-format interop (SARIF / JUnit XML / MLflow / CycloneDX SBOM).
-  Six scenarios across three experimentation tiers (scientific, engineering,
-  philosophical) produce signed 9-section Empirical Proof Records with
-  pre-registered falsifiable claims.
+  Ophamin is a Python framework that turns experiments into signed
+  empirical proof records. Every measurement is bound to its
+  pre-registered falsifiable claim, to a byte-equal data corpus, to a
+  versioned substrate-under-test, and to a tamper-evident HMAC-SHA256
+  signature; the verdict (VALIDATED / REFUTED / INCONCLUSIVE) is
+  computed mechanically from the claim's threshold rather than chosen
+  by the experimenter. The signed-record wire format is normatively
+  specified and verified byte-for-byte by read + write ports in Rust
+  (`crates/ophamin-proof`) and JavaScript / TypeScript
+  (`packages/ophamin-proof-js`); the round-trip is symmetric — any
+  port emits, any port verifies. Five interop layers wrap the same
+  shared implementations: cross-language wire-format
+  (Rust + JS read + write), an MCP server (`ophamin mcp serve`) for
+  agent-callable access (Claude Code, Claude Desktop, Cursor, Cline),
+  an HTTP REST API (`ophamin http serve`) for service-style consumers,
+  a CloudEvents 1.0 wrapper for event-stream interop, and OpenTelemetry
+  instrumentation (spans + metrics) for production observability. The
+  measurement-machinery tier includes seven cross-framework validation
+  scenarios (Bayesian PyMC↔NumPyro, Wilson CI scipy↔statsmodels,
+  Spearman scipy↔pingouin, Pearson scipy↔numpy↔pingouin, Welch's t-test
+  scipy↔statsmodels↔pingouin, one-way ANOVA three-way, Mann-Whitney U
+  scipy↔pingouin) — each a signed VALIDATED proof at floating-point
+  agreement levels.
 keywords:
   - empirical-framework
-  - kimera-swm
-  - falsifiable-claims
+  - falsifiability
+  - signed-records
+  - cross-language-interop
+  - canonical-form
+  - model-context-protocol
+  - mcp-server
+  - http-rest-api
+  - cloudevents
+  - opentelemetry
+  - reproducibility
   - pre-registration
-  - sarif
-  - cyclonedx
-  - mlflow
-  - junit-xml
+  - cross-framework-validation
+  - falsifiable-claims
   - audit
   - observability
+  - kimera-swm
 preferred-citation:
   type: software
   authors:
     - family-names: "Ben Slama"
       given-names: "Idir"
-  title: "Ophamin: an empirical observatory wrapped around a substrate under test"
-  version: 0.13.0
+  title: "Ophamin: a falsifiability-first experimentation framework with signed, cross-language-verifiable empirical proof records"
+  version: 0.21.2
   year: 2026
   url: "https://github.com/IdirBenSlama/Ophamin"

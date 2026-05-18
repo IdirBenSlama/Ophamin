@@ -1,6 +1,6 @@
 {
-  "title": "Ophamin: an empirical observatory wrapped around a substrate under test",
-  "description": "Ophamin is an empirical observatory wrapped around a substrate under test. It is built for Kimera-SWM but independent of it: the substrate plugs in through one adapter and a MockSubstrate makes the framework runnable without Kimera. The architecture is six wheels in two concentric triads — an outer triad for empirical observation (seeing / measuring / comparing) and an inner triad for engineering observation (instrumenting / auditing / reporting) — plus cross-cutting layers for per-primitive inspection and standard-format interop (SARIF / JUnit XML / MLflow / CycloneDX SBOM). Nineteen scenarios across five experimentation tiers (scientific, engineering, philosophical, measurement-machinery, structural) produce signed 9-section Empirical Proof Records with pre-registered falsifiable claims. Every signed record is content-addressed and HMAC-signed; the schema versions are catalogued in SCHEMAS.md with explicit backward-compat policy.",
+  "title": "Ophamin: a falsifiability-first experimentation framework with signed, cross-language-verifiable empirical proof records",
+  "description": "Ophamin is a Python framework that turns experiments into signed empirical proof records. Every measurement is bound to its pre-registered falsifiable claim, to a byte-equal data corpus, to a versioned substrate-under-test, and to a tamper-evident HMAC-SHA256 signature; the verdict (VALIDATED / REFUTED / INCONCLUSIVE) is computed mechanically from the claim's threshold rather than chosen by the experimenter. The signed-record wire format is normatively specified in SCHEMAS.md (rules R1–R11) and verified byte-for-byte by read + write ports in Rust (crates/ophamin-proof) and JavaScript / TypeScript (packages/ophamin-proof-js); the round-trip is symmetric. Five interop layers wrap the same shared implementations: cross-language wire-format, an MCP server for agent-callable access, an HTTP REST API for service-style consumers, a CloudEvents 1.0 wrapper for event-stream interop, and OpenTelemetry instrumentation for production observability. The measurement-machinery tier includes seven cross-framework validation scenarios (Bayesian PyMC↔NumPyro, Wilson CI, Spearman, Pearson three-way, Welch's t-test three-way, one-way ANOVA three-way, Mann-Whitney U) — each a signed VALIDATED proof at floating-point agreement levels of ≤ 7×10⁻¹⁴.",
   "upload_type": "software",
   "creators": [
     {
@@ -10,19 +10,25 @@
   ],
   "keywords": [
     "empirical-framework",
-    "kimera-swm",
-    "falsifiable-claims",
+    "falsifiability",
+    "signed-records",
+    "cross-language-interop",
+    "canonical-form",
+    "model-context-protocol",
+    "mcp-server",
+    "http-rest-api",
+    "cloudevents",
+    "opentelemetry",
+    "reproducibility",
     "pre-registration",
-    "sarif",
-    "cyclonedx",
-    "mlflow",
-    "junit-xml",
+    "cross-framework-validation",
+    "falsifiable-claims",
     "audit",
     "observability",
     "property-based-testing",
-    "reproducibility",
-    "signed-records",
-    "schema-versioning"
+    "signed-empirical-records",
+    "schema-versioning",
+    "kimera-swm"
   ],
   "license": "Apache-2.0",
   "access_right": "open",
@@ -33,6 +39,18 @@
       "identifier": "https://github.com/IdirBenSlama/Ophamin",
       "relation": "isSupplementTo",
       "resource_type": "software"
+    },
+    {
+      "scheme": "url",
+      "identifier": "https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md",
+      "relation": "isDocumentedBy",
+      "resource_type": "publication-other"
+    },
+    {
+      "scheme": "url",
+      "identifier": "https://github.com/IdirBenSlama/Ophamin/blob/main/paper/paper.md",
+      "relation": "isDescribedBy",
+      "resource_type": "publication-article"
     }
   ],
   "communities": []

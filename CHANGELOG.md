@@ -7,7 +7,105 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.21.2] below for the latest cut.)
+(empty — see [0.22.0] below for the latest cut.)
+
+## [0.22.0] — 2026-05-18
+
+**Headline:** Owner-side closeout prep. Refreshes citation +
+Zenodo deposit metadata to reflect the 0.16.x–0.21.x interop work,
+and adds `docs/REPRODUCING.md` — the external-rebuild guide RFC 0002
+Phase E4 closeout names.
+
+This unblocks three owner-side RFC 0002 phases that were waiting on
+authoritative metadata + a reviewer-facing rebuild guide:
+
+- **E3** (Zenodo deposit + DOI) — `.zenodo.json` now describes the
+  framework's full scope across all five interop layers; once the
+  Zenodo account is wired to the GitHub repo, the deposit lands
+  with accurate metadata automatically.
+- **E4 closeout** (external reviewer rebuild) — `docs/REPRODUCING.md`
+  gives a 10-minute and a 1–2-hour reproducer path that an external
+  verifier can follow without prior framework context. Surfaces the
+  exact expected test counts at v0.21.2.
+- **E5** (paper submission) — `CITATION.cff` is now JOSS-aligned
+  with full keyword set + the abstract reflecting the five-layer
+  interop story. (The paper draft itself stays at the 0.14.0
+  baseline; the next minor will refresh it.)
+
+This is the **fourteenth minor-version bump** in the 0.x line.
+Python framework version only — no Rust / JS package bump in this
+release.
+
+### Updated — `CITATION.cff`
+
+- Version bumped 0.13.0 → 0.21.2.
+- Title sharpened to match the paper: "a falsifiability-first
+  experimentation framework with signed, cross-language-verifiable
+  empirical proof records".
+- Abstract rewritten to reflect:
+  - The signed `EmpiricalProofRecord` model.
+  - Round-trip cross-language Rust + JS ports.
+  - All five interop layers (wire-format, MCP, HTTP, CloudEvents,
+    OpenTelemetry).
+  - Seven cross-framework validation scenarios shipped through
+    0.15.0.
+- Keyword set extended with the interop-layer terms (mcp-server,
+  http-rest-api, cloudevents, opentelemetry, etc.) so search-engine
+  discovery surfaces the framework's actual capabilities.
+- Preferred-citation block updated to match.
+
+### Updated — `.zenodo.json`
+
+- Description rewritten to match the new CITATION.cff abstract
+  (with prose appropriate for Zenodo's display).
+- Keyword set extended in lockstep.
+- Added two new `related_identifiers` entries:
+  - `SCHEMAS.md` as `isDocumentedBy` (the normative wire-format
+    spec).
+  - `paper/paper.md` as `isDescribedBy` (the methods paper).
+
+### Added — `docs/REPRODUCING.md`
+
+External-rebuild guide. Sections:
+
+- "What 'reproducible' means here" — the two distinct
+  reproducibility claims (within-release bit-stability + cross-
+  language byte-equivalence).
+- **Minimum reproducer (10 minutes)** — 5-step Quick Start: clone,
+  install, run cross-language fixture tests (21 expected), run JS
+  port (55 expected), run Rust port (28+ expected), end-to-end
+  verify a shipped signed proof via Python + JS independently.
+- **Full reproducer (1–2 hours)** — full Python suite (1693
+  expected), single-machine build reproducibility under
+  `SOURCE_DATE_EPOCH`.
+- "Verify a signed empirical proof from a paper" — the
+  reviewer workflow for verifying any record cited externally.
+- Table of what's verified by this guide vs. what's owner-side
+  closeout (diffoscope-clean cross-machine, Zenodo deposit,
+  JOSS / SoftwareX / JMLR-OSS submission).
+
+Every claim in the guide names the test it traces back to so a
+failure is diagnosable.
+
+### Why this matters (interop closure)
+
+RFC 0002 §3.1's E4 acceptance criterion was:
+
+> external reviewer rebuilds a tagged release + verifies byte-equal
+> SBOM + signed-record output
+
+Until 0.22.0 there was no consolidated reviewer-facing guide for
+this — the test layout was idiomatic to contributors but not
+self-onboarding. `docs/REPRODUCING.md` is the missing piece. An
+external reviewer can now go from "I want to verify Ophamin's
+claims" to "all 1693 + 55 + 28 tests pass on my system" in 10
+minutes (minimum) or 1–2 hours (full matrix).
+
+### Verification
+
+- No code changes in this release; only metadata + documentation.
+- CITATION.cff valid per [citation-file-format.github.io](https://citation-file-format.github.io/) v1.2.0 (matches existing schema).
+- .zenodo.json valid per [Zenodo deposit metadata](https://developers.zenodo.org/#metadata) (matches existing schema with one new `related_identifiers` block).
 
 ## [0.21.2] — 2026-05-18
 
