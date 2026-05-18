@@ -84,6 +84,16 @@ _AUDIT_KWARGS: dict[str, dict[str, Any]] = {
         "n_pairs": 8,
         "sample_size": 40,
     },
+    "anova-crosscheck": {
+        "seed": 20260518,
+        "n_datasets": 8,
+        "sample_size": 20,
+    },
+    "mann-whitney-crosscheck": {
+        "seed": 20260518,
+        "n_pairs": 8,
+        "sample_size": 40,
+    },
 }
 
 

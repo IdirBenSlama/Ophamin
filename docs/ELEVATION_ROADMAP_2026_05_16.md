@@ -374,7 +374,9 @@ patch/minor releases; the canonical record is the CHANGELOG.
 | **E1.3** | Third cross-framework validation — Spearman ρ scipy↔pingouin (exact 0.000 agreement, signed proof under `proofs/measurement_machinery/spearman_cross_framework/`) | ✅ shipped | `0.13.0` |
 | **E1.4** | Fourth cross-framework validation — Pearson r scipy↔numpy↔pingouin (three-way, machine-epsilon agreement, signed proof under `proofs/measurement_machinery/pearson_cross_framework/`) | ✅ shipped | `0.14.0` |
 | **E1.5** | Fifth cross-framework validation — Welch's t-test scipy↔statsmodels↔pingouin (three-way, both *t* and two-sided *p*, ~8× machine epsilon agreement; signed proof under `proofs/measurement_machinery/welch_t_cross_framework/`) | ✅ shipped | `0.14.0` |
-| **E1 acceptance** | ≥ 3 cross-framework VALIDATED proofs under `proofs/measurement_machinery/` | ✅ met (5 / 3) | `0.13.0`, `0.14.0` |
+| **E1.6** | Sixth cross-framework validation — one-way ANOVA scipy↔statsmodels↔pingouin (three-way, both F and two-sided p, ~32× machine epsilon agreement; signed proof under `proofs/measurement_machinery/anova_cross_framework/`) | ✅ shipped | `0.15.0` |
+| **E1.7** | Seventh cross-framework validation — Mann-Whitney U scipy↔pingouin (exact agreement on both U and p under matched continuity; first non-parametric check in the portfolio; signed proof under `proofs/measurement_machinery/mann_whitney_cross_framework/`) | ✅ shipped | `0.15.0` |
+| **E1 acceptance** | ≥ 3 cross-framework VALIDATED proofs under `proofs/measurement_machinery/` | ✅ met (7 / 3) | `0.13.0`–`0.15.0` |
 | **E9 spec** | Canonical-form byte representation promoted to normative `SCHEMAS.md` §"Canonical-form determinism (normative)" R1–R11 + three cross-language test fixtures under `tests/canonical_form/` with HMAC pins | ✅ shipped | `0.14.0` |
 | **E5 draft** | JOSS-style methods paper draft authored under `paper/paper.md` + `paper/paper.bib` (~1500 words, 5 cross-framework agreement proofs tabulated) | ✅ shipped | `0.14.0` |
 | **E3** owner-side | Zenodo benchmark deposit + DOI + reproducer notebooks for ≥ 6 scenarios | open (owner) | — |

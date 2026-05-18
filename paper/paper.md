@@ -38,13 +38,19 @@ measurement-machinery) and a registry of ready-to-run scenarios
 that emit such records. The measurement-machinery tier in
 particular contains cross-framework validation scenarios that
 verify the upstream statistical primitives Ophamin itself depends
-on — currently scipy ↔ statsmodels Wilson confidence intervals,
-scipy ↔ pingouin Spearman rank correlation, scipy ↔ numpy ↔
-pingouin Pearson correlation, scipy ↔ statsmodels ↔ pingouin
-Welch's two-sample *t*-test, and PyMC ↔ NumPyro Bayesian
-posterior agreement — each of which has produced a signed
-`VALIDATED` proof at agreement levels of $\le 2 \times 10^{-15}$
-(a few units of machine epsilon).
+on. As of `0.15.0`, seven such scenarios ship as signed `VALIDATED`
+proofs spanning six statistical-primitive families: proportion
+confidence intervals (scipy ↔ statsmodels Wilson), rank correlation
+(scipy ↔ pingouin Spearman), product-moment correlation
+(scipy ↔ numpy ↔ pingouin Pearson), two-sample parametric
+hypothesis testing (scipy ↔ statsmodels ↔ pingouin Welch's
+*t*-test), multi-group parametric hypothesis testing (scipy
+↔ statsmodels ↔ pingouin one-way ANOVA), non-parametric two-
+sample hypothesis testing (scipy ↔ pingouin Mann-Whitney U), and
+Bayesian posterior inference (PyMC ↔ NumPyro). All seven agree at
+$\le 7 \times 10^{-14}$ — a few units of double-precision machine
+epsilon for the parametric checks, exact agreement for the
+non-parametric rank-based check.
 
 The framework is intended for researchers and engineers who want
 to make falsifiable claims about a software system's behaviour
@@ -200,7 +206,8 @@ the audit against each one as a single PR-time gate.
 
 # Concrete falsifications and agreements produced
 
-The framework has produced both verdicts. Selected examples:
+The framework has produced both verdicts. Selected examples
+across the seven cross-framework agreement checks:
 
 - **PyMC ↔ NumPyro Bayesian agreement** (proof ID
   `aae6cf83833b7c05`): posterior mean difference $1.7 \times
@@ -227,6 +234,23 @@ The framework has produced both verdicts. Selected examples:
   $\delta \in [-1, 1]$ and variance ratio $\sigma_y / \sigma_x
   \in [0.5, 2.0]$; `VALIDATED`. statsmodels is a genuinely
   independent implementation that does not delegate to scipy.
+- **scipy ↔ statsmodels ↔ pingouin one-way ANOVA** (proof ID
+  `b0fcc417fb505410`): three-way pairwise agreement $7.1 \times
+  10^{-14}$ on both the F statistic AND the two-sided *p* value
+  across 30 three-group datasets sweeping effect magnitude
+  $\in [0, 1.5]$; `VALIDATED`. Generalises the two-sample
+  Welch check to $k \ge 3$ groups; statsmodels here drives ANOVA
+  through OLS + `anova_lm` (Type II SS), again an independent
+  path.
+- **scipy ↔ pingouin Mann-Whitney U** (proof ID
+  `e71be64487df9f56`): pairwise agreement of exactly $0$ on both
+  the *U* statistic and the two-sided *p* value across 30
+  independent-sample pairs drawn from a rotation of normal,
+  log-normal, and Cauchy distributions; `VALIDATED`. First
+  non-parametric check; both backends pinned at
+  `use_continuity=True`. Exact agreement under matched
+  continuity settings is a stronger pin than the parametric
+  cross-checks above can give.
 
 Per-scenario refutations (also in the repository's
 `EMPIRICAL_VALIDATION.md` record) include falsifications of

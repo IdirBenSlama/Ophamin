@@ -71,8 +71,8 @@ acceptance criteria items that remain owner-driven:
 
 ## Falsifiable claims the paper itself makes
 
-The paper makes seven empirical claims about the framework's
-own behaviour. Each is reproducible from the repository at the
+The paper makes nine empirical claims about the framework's own
+behaviour. Each is reproducible from the repository at the
 released version:
 
 | Claim | Reproducer |
@@ -82,6 +82,8 @@ released version:
 | Spearman ρ scipy ↔ pingouin exact (zero diff) | `ophamin scenario spearman-crosscheck` |
 | Pearson r scipy ↔ numpy ↔ pingouin $\le 10^{-9}$ | `ophamin scenario pearson-crosscheck` |
 | Welch t scipy ↔ statsmodels ↔ pingouin $\le 10^{-9}$ | `ophamin scenario welch-t-crosscheck` |
+| One-way ANOVA scipy ↔ statsmodels ↔ pingouin $\le 10^{-9}$ | `ophamin scenario anova-crosscheck` |
+| Mann-Whitney U scipy ↔ pingouin exact under matched continuity | `ophamin scenario mann-whitney-crosscheck` |
 | Every seed-taking scenario satisfies the reproducibility audit | `pytest tests/test_framework_wide_reproducibility.py` |
 | Canonical-form byte representation is bit-stable across the three fixtures | `pytest tests/test_canonical_form_fixtures.py` |
 

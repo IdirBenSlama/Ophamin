@@ -40,6 +40,8 @@ Scenarios come in five experimentation tiers:
         SpearmanCrosscheckScenario        scipy ↔ pingouin Spearman ρ
         PearsonCrosscheckScenario         scipy ↔ numpy ↔ pingouin Pearson r
         WelchTTestCrosscheckScenario      scipy ↔ statsmodels ↔ pingouin Welch t
+        OneWayAnovaCrosscheckScenario     scipy ↔ statsmodels ↔ pingouin one-way ANOVA
+        MannWhitneyUCrosscheckScenario    scipy ↔ pingouin Mann-Whitney U (non-param)
 
 All tiers share the same Scenario / ScenarioScore / signed proof-record
 discipline. They differ in what fields they read from CycleResult.raw + how

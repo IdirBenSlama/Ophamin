@@ -7,7 +7,110 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.14.0] below for the latest cut.)
+(empty — see [0.15.0] below for the latest cut.)
+
+## [0.15.0] — 2026-05-18
+
+**Headline:** Two more cross-framework cross-checks land, lifting
+the count to **7 signed `VALIDATED` proofs across 6 statistical-
+primitive families** — covering proportion CI, rank correlation,
+product-moment correlation, parametric two-sample hypothesis
+testing, parametric multi-group hypothesis testing,
+non-parametric two-sample hypothesis testing, and Bayesian
+posterior inference. The paper draft updates to reflect the
+fuller portfolio.
+
+This is the **seventh minor-version bump** in the 0.x line.
+
+### Added — two new cross-framework cross-checks
+
+- **`src/ophamin/measuring/scenarios/anova_crosscheck.py`** —
+  `OneWayAnovaCrosscheckScenario`. Three-way cross-check across
+  `scipy.stats.f_oneway`, `statsmodels.stats.anova.anova_lm`
+  (via `statsmodels.formula.api.ols` + Type II SS), and
+  `pingouin.anova` on 30 three-group datasets sweeping effect
+  magnitude from null (0σ) to large (1.5σ) at $N=30$ per group.
+  Checks BOTH the F statistic AND the two-sided *p* value across
+  all three pairwise comparisons.
+  **Empirical agreement: 7.11e-14 (~32× machine epsilon).**
+  statsmodels reaches ANOVA via OLS regression then `anova_lm`
+  — a genuinely independent code path from scipy's direct
+  sum-of-squares decomposition.
+- **`src/ophamin/measuring/scenarios/mann_whitney_crosscheck.py`** —
+  `MannWhitneyUCrosscheckScenario`. Two-way cross-check across
+  `scipy.stats.mannwhitneyu(use_continuity=True)` and
+  `pingouin.mwu` on 30 independent-sample pairs cycling through
+  Normal, log-normal, and Cauchy distributions with location
+  shifts sweeping [-1, 1]. **Empirical agreement: 0.0 (exact)**
+  on both *U* and *p* under matched continuity settings. The
+  first non-parametric check in the portfolio; rank-based
+  statistics are integer-valued for U (rank sums), so exact
+  agreement is the only conformant verdict.
+- **2 new canonical signed proofs** under
+  `proofs/measurement_machinery/`:
+  - `anova_cross_framework/anova_scipy_vs_statsmodels_vs_pingouin_b0fcc417fb505410.json`
+  - `mann_whitney_cross_framework/mann_whitney_u_scipy_vs_pingouin_e71be64487df9f56.json`
+- **29 new pinning tests** across:
+  - `tests/test_anova_crosscheck.py` (15)
+  - `tests/test_mann_whitney_crosscheck.py` (14)
+
+### Changed — paper draft updates
+
+- **`paper/paper.md`** — Summary + Concrete falsifications
+  section now describe seven cross-framework agreements across
+  six statistical-primitive families (was five across five).
+  Single bound updated to $\le 7 \times 10^{-14}$ to reflect
+  the new ANOVA result.
+- **`paper/README.md`** — Falsifiable-claims table extended
+  from seven rows to nine (adding the two new scenarios).
+
+### Changed — catalogue + audit coverage
+
+- **`src/ophamin/measuring/scenarios/__init__.py`** — module
+  docstring's measurement-machinery catalogue extended with
+  `OneWayAnovaCrosscheckScenario` and
+  `MannWhitneyUCrosscheckScenario`.
+- **`tests/test_framework_wide_reproducibility.py`** —
+  `_AUDIT_KWARGS` extended for the two new scenarios with
+  CI-friendly kwargs.
+
+### Statistical context (updated)
+
+Seven cross-framework cross-checks now ship as signed `VALIDATED`
+proofs across **six distinct primitive families**:
+
+| Family | Statistic | Backends | Empirical agreement | Proof ID |
+|---|---|---|---|---|
+| Bayesian inference | Posterior mean (φ) | PyMC vs NumPyro | 1.7e-3 (HDI ratio 1.02) | `aae6cf83833b7c05` |
+| Proportion CI | Wilson CI bounds (95 %) | scipy vs statsmodels | 1.11e-16 | `80d5b9f33fbaf6d7` |
+| Rank correlation | Spearman ρ | scipy vs pingouin | 0 (exact) | `f65319cb2ab7eb3d` |
+| Product-moment correlation | Pearson r | scipy vs numpy vs pingouin | 3.33e-16 | `7b2498c1937091d1` |
+| Two-sample parametric | Welch t + p | scipy vs statsmodels vs pingouin | 1.78e-15 | `5c6f481298cbfa3f` |
+| Multi-group parametric | One-way ANOVA F + p | scipy vs statsmodels vs pingouin | 7.11e-14 | `b0fcc417fb505410` |
+| Two-sample non-parametric | Mann-Whitney U + p | scipy vs pingouin | 0 (exact) | `e71be64487df9f56` |
+
+### Why this matters (RFC 0002 framing)
+
+- **E1.6 + E1.7** are direct extensions of Phase E1; the
+  acceptance criterion ("≥ 3 cross-framework validation
+  proofs") was met in 0.13.0 (3/3) and progressively reinforced
+  in 0.14.0 (5/3) and now 0.15.0 (7/3).
+- The portfolio now covers all six of the statistical-primitive
+  families Ophamin pillars actually call (per the import
+  audit): proportion CI, rank correlation, product-moment
+  correlation, parametric two-sample testing, parametric
+  multi-group testing, and non-parametric two-sample testing.
+  The first non-parametric check in particular closes the most
+  heavily-exercised methodology gap.
+
+### Verification
+
+- `pytest tests/test_anova_crosscheck.py` — 15/15 pass.
+- `pytest tests/test_mann_whitney_crosscheck.py` — 14/14 pass.
+- `pytest tests/test_framework_wide_reproducibility.py -k 'anova or mann'` — 2/2 pass.
+- Signed proofs verify via `ophamin proof validate proofs/measurement_machinery/...`.
+- The seven cross-framework scenarios re-run from the released
+  CLI and produce byte-equal signatures on the same seed.
 
 ## [0.14.0] — 2026-05-18
 
