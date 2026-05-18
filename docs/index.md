@@ -55,6 +55,25 @@ over a canonical JSON form. Minor versions never break existing
 records; major versions ship migration scripts. See
 [`SCHEMAS.md`](reference/schemas.md) for the full policy.
 
+## Five interop layers
+
+Ophamin is a Python framework, but every consumer shape can drive,
+consume, or observe it without writing Python:
+
+| Consumer shape | Layer | Surface |
+|---|---|---|
+| Non-Python systems needing cryptographic verification | Wire-format ports | Rust `ophamin-proof` crate + JS `@ophamin/proof` package (both read AND write) |
+| AI agents speaking MCP | MCP server | `ophamin mcp serve` (stdio / SSE / streamable-http) |
+| HTTP / service-style consumers | HTTP REST API | `ophamin http serve` (FastAPI; OpenAPI 3 at `/openapi.json`) |
+| Event-stream routing | CloudEvents 1.0 envelope | `ophamin.cloudevents.wrap` / `unwrap` |
+| Observability backends | OpenTelemetry instrumentation | `ophamin.observability.setup_otel()` |
+
+All five layers wrap the **same shared implementations**, so
+behavioural drift between them is structurally impossible. See
+[`INTEROP_OVERVIEW.md`](INTEROP_OVERVIEW.md) for the per-layer
+on-ramp, and [`REPRODUCING.md`](REPRODUCING.md) for the external
+reviewer's rebuild guide.
+
 ## Where to next
 
 - New to Ophamin? Start with [Installation](getting-started/install.md)

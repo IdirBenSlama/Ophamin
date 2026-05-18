@@ -112,6 +112,9 @@ nav:
       - Scenario authoring: SCENARIO_AUTHORING.md
       - Plugin catalog: PLUGIN_CATALOG_2026_05_15.md
       - Kimera observational surface: KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md
+  - Interop:
+      - Interop overview (5 layers): INTEROP_OVERVIEW.md
+      - Reproducing the framework: REPRODUCING.md
   - Reference:
       - Schemas (signed records): reference/schemas.md
       - Public API: reference/api.md

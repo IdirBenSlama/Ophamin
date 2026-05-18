@@ -7,7 +7,44 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.24.1] below for the latest cut.)
+(empty — see [0.24.2] below for the latest cut.)
+
+## [0.24.2] — 2026-05-18
+
+**Headline:** Docs-only release absorbing the 0.16.x–0.24.1 interop
+arc into the elevation roadmap, the docs home page, and the site
+navigation. No substrate or wire-format changes.
+
+The execution-status table in `docs/ELEVATION_ROADMAP_2026_05_16.md`
+hadn't been updated since `0.16.0`. After the 0.17.0–0.24.1 interop
+landings, it was stale on:
+
+- E9 implementation (read-side) split into E9.1 read-side + E9.2
+  write-side. The "future" row from 0.16.0 is now ✅ shipped at
+  `0.21.0`–`0.21.2`.
+- Five new sub-phases: E9.3 MCP server (`0.17.0`–`0.17.1`), E9.4
+  HTTP REST API (`0.18.0`), E9.5 CloudEvents wrapper (`0.19.0`),
+  E9.6 OTel instrumentation (`0.20.0`), E9.7 fixture corpus
+  extension (`0.24.0`), E9.8 end-to-end layer composition (`0.24.0`).
+- Owner-prep rows for E2 / E4 / E5 reflecting the 0.22.0 metadata
+  refresh + 0.23.0 paper update + INTEROP_OVERVIEW.md + REPRODUCING.md.
+- `docs CI hygiene` row for the `0.24.1` link rewrite.
+- The 1.0.0-prereq paragraph now reads `0.24.x` instead of `0.12.x`
+  and ends with a brief overview of the five interop layers + the
+  shared-impls structural guarantee.
+
+### Added — site navigation + home page
+
+- `mkdocs.yml`: new "Interop" nav section above Reference exposing
+  `INTEROP_OVERVIEW.md` + `REPRODUCING.md` from the site sidebar.
+- `docs/index.md`: new "Five interop layers" table that surfaces
+  every consumer-shape on the landing page, with links to
+  `INTEROP_OVERVIEW.md` and `REPRODUCING.md`.
+
+### Verified
+
+- `mkdocs build --strict` clean, exit 0, zero warnings on link
+  resolution or nav coverage.
 
 ## [0.24.1] — 2026-05-18
 

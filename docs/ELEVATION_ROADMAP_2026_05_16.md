@@ -379,18 +379,38 @@ patch/minor releases; the canonical record is the CHANGELOG.
 | **E1 acceptance** | ≥ 3 cross-framework VALIDATED proofs under `proofs/measurement_machinery/` | ✅ met (7 / 3) | `0.13.0`–`0.15.0` |
 | **E9 spec** | Canonical-form byte representation promoted to normative `SCHEMAS.md` §"Canonical-form determinism (normative)" R1–R11 + three cross-language test fixtures under `tests/canonical_form/` with HMAC pins | ✅ shipped | `0.14.0` |
 | **E5 draft** | JOSS-style methods paper draft authored under `paper/paper.md` + `paper/paper.bib` (~1500 words, 7 cross-framework agreement proofs tabulated) | ✅ shipped (refreshed `0.15.0`) | `0.14.0`, `0.15.0` |
-| **E9 implementation** | Rust `crates/ophamin-proof` (read-only verifier; serde_json + arbitrary_precision + custom escape_string per R6) + TS `packages/ophamin-proof-js` (custom JSON parser preserving int/float + Python-repr float formatter + ensure_ascii escape) + CI workflow `.github/workflows/cross-language.yml` running both fixture suites AND signature verification on every shipped Python-emitted signed proof | ✅ shipped (read-only) | `0.16.0` |
+| **E9.1 read-side** | Rust `crates/ophamin-proof` (read-only verifier; serde_json + arbitrary_precision + custom escape_string per R6) + TS `packages/ophamin-proof-js` (custom JSON parser preserving int/float + Python-repr float formatter + ensure_ascii escape) + CI workflow `.github/workflows/cross-language.yml` running both fixture suites AND signature verification on every shipped Python-emitted signed proof | ✅ shipped | `0.16.0`, `0.16.1`, `0.16.2` |
+| **E9.2 write-side** | Canonical-form WRITERS in Rust + JS — `CanonicalValue::Object/Int/Float/...` + `canonicalize_bytes` + `sign_canonical` (Rust); `PyInt` wrapper + `canonicalize` + `signCanonical` (JS). 7 + 7 cross-language conformance fixtures pin byte-equality with Python emitter. Closes the "future" row from the 0.16.0 line. | ✅ shipped | `0.21.0`, `0.21.1`, `0.21.2` |
+| **E9.3 MCP server** | `ophamin mcp serve` — FastMCP server exposing 6 tools (`list_scenarios`, `get_scenario_claim`, `verify_proof`, `canonicalize_value`, `read_proof_index`, `run_scenario`). stdio + SSE + streamable-http transports. AI-agent interop path: any MCP client (Claude Code, Cursor, Cline) can drive Ophamin. Shared impls in `ophamin.interfaces._impls` reused by every other transport. | ✅ shipped | `0.17.0`, `0.17.1` |
+| **E9.4 HTTP REST API** | `ophamin http serve` — FastAPI app with 8 endpoints (`/health`, `/version`, `/scenarios`, `/claim`, `/verify`, `/canonicalize`, `/proofs/index`, `/run`). Auto-generated OpenAPI 3 spec at `/openapi.json`; Swagger UI at `/docs`; ReDoc at `/redoc`. Same shared impls. | ✅ shipped | `0.18.0` |
+| **E9.5 CloudEvents wrapper** | `ophamin.cloudevents.wrap(proof, source=...)` / `unwrap(envelope)` — wraps signed proofs in CloudEvents 1.0 structured-mode envelope for event-stream routing infrastructure (Kafka, EventBridge, Knative). Signature surface unchanged — the proof inside the envelope still verifies bit-equal. | ✅ shipped | `0.19.0` |
+| **E9.6 OTel instrumentation** | `ophamin.observability.setup_otel(otlp_endpoint=...)` — `OphaminInstrumentor` singleton + standard spans (`ophamin.scenario.run.*`, `ophamin.proof.verify`, `ophamin.canonical.encode`) + standard metrics (`ophamin_scenarios_run_total`, `ophamin_scenario_duration_seconds`, `ophamin_proofs_verified_total`, `ophamin_canonical_bytes_encoded`). Drop-in with Jaeger / Prometheus / Datadog / any OTLP-receiving backend. | ✅ shipped | `0.20.0` |
+| **E9.7 fixture corpus extension** | Cross-language canonical-form conformance grown from 3 → 5 fixtures. New `boundary_cases` (empty containers, control chars, JSON escape specials — R6 corners). New `deeply_nested` (4-level nested object tree, arrays-of-objects-of-arrays, recursive sort under R3). 21 Python + 12 JS + 10 Rust fixture-conformance tests. | ✅ shipped | `0.24.0` |
+| **E9.8 end-to-end layer composition** | `tests/test_interop_endtoend.py` — 11 end-to-end multi-layer tests pinning the "all five layers compose" promise (MCP ↔ HTTP ↔ CloudEvents ↔ OTel ↔ wire-format) with a single round-trip. Refuses behavioural drift between layers structurally. | ✅ shipped | `0.24.0` |
+| **E5 update — paper interop section** | `paper/paper.md` extended with `§Cross-host interoperability` describing all five interop layers + the cross-language wire-format round-trip. `paper/README.md` falsifiable-claims table grown from 8 → 12 rows. `paper/paper.bib` adds MCP / FastAPI / CloudEvents / OTel spec references. | ✅ shipped (refreshed) | `0.23.0` |
+| **E5 owner-prep — INTEROP_OVERVIEW** | New consolidated `docs/INTEROP_OVERVIEW.md` — single-page on-ramp covering every way to drive, consume, or observe Ophamin from outside Python. Decision tree by consumer shape + stability contract + cross-layer composition. | ✅ shipped | `0.23.0` |
+| **E4 owner-prep — REPRODUCING.md** | New `docs/REPRODUCING.md` — external-rebuild guide. 10-minute reproducer (clone + cross-language fixture verification + shipped proof end-to-end) + 1–2-hour full reproducer (matrix across Python + JS + Rust + `SOURCE_DATE_EPOCH` build reproducibility). Names what's still owner-side (diffoscope cross-machine + Zenodo + JOSS submission). | ✅ shipped | `0.22.0` |
+| **E2 owner-prep — CITATION + Zenodo refresh** | `CITATION.cff` + `.zenodo.json` refreshed to reflect the 0.16.x–0.21.x interop arc. New `related_identifiers` link Zenodo deposit to `SCHEMAS.md` (`isDocumentedBy`) + `paper/paper.md` (`isDescribedBy`). | ✅ shipped | `0.22.0` |
+| **docs CI hygiene** | `docs/INTEROP_OVERVIEW.md` + `docs/REPRODUCING.md` external `../path` links rewritten to absolute `https://github.com/IdirBenSlama/Ophamin/blob/main/...` URLs so mkdocs `--strict` accepts them. | ✅ shipped | `0.24.1` |
 | **E3** owner-side | Zenodo benchmark deposit + DOI + reproducer notebooks for ≥ 6 scenarios | open (owner) | — |
 | **E4** owner-side | External reviewer rebuild verification (byte-equal SBOM + signed-record output) | open (owner) | — |
 | **E5 submission** | Methods paper submission (JOSS / SoftwareX / JMLR-OSS) + reviewer-time feedback | open (owner: ORCID + venue + Zenodo DOI per `paper/README.md`) | — |
-| **E9 write-side (future)** | Canonical-form WRITERS in Rust + JS (require reimplementing Python's `repr(float)` byte-for-byte) | not implemented; out of scope for the 0.16.0 read-API contract | — |
 
 **Both 1.0.0 prerequisites met:** wire-format stability contract (E2 — `0.9.0`)
 and Python-API stability contract (E8 — `0.10.0`). What separates the
-current `0.12.x` line from `1.0.0` is **external validation under real
+current `0.24.x` line from `1.0.0` is **external validation under real
 upgrade pressure** — RFC 0002 §3.2 names "third party rebuilds a tagged
 release and verifies byte-equal SBOM + signed-record output" (E4
 owner-side) and "methods paper passes review" (E5) as the two doors.
+
+Between `0.16.0` and `0.24.1` the framework grew **five interop
+layers** (read-side Rust + JS verifier, write-side Rust + JS
+emitter, MCP server, HTTP REST API, CloudEvents 1.0 envelope, OTel
+instrumentation) on top of the same shared `ophamin.interfaces._impls`
+substrate. Every layer routes through one Python function;
+behavioural drift between layers is structurally impossible. The
+single-page on-ramp for any external consumer is
+[`docs/INTEROP_OVERVIEW.md`](INTEROP_OVERVIEW.md).
 
 ## 9. Stage 5 — state-of-the-art scientific tier
 
