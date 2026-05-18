@@ -48,6 +48,7 @@ class LogicTopologySiegeScenario(Scenario):
     name = "logic-topology-siege"
     tier = Tier.SCIENTIFIC
     family = "walker"
+    runner_path = "examples/run_logic_topology_siege.py"
     goal = (
         "Measure Kimera's walker sustained-traversal rate on technical "
         "content (Linux kernel commit messages)."

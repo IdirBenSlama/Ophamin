@@ -1,8 +1,99 @@
 # Proposal — Working reproduction commands in §7 of every emitted proof
 
-> **Status:** open, awaiting owner pick.
+> **Status:** **partial fix shipped at 0.29.0** (Option C, scoped to
+> the 6 hand-rolled-runner scenarios). Wider refactor for the
+> remaining 26 sites is owner-pending.
 > **Discovered while drafting:** [`proofs/REPRODUCERS/immune_siege.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/immune_siege.md) (0.28.0).
 > **Tier:** Tier-2 (substrate-touching but reversible + scoped).
+
+## Update (0.29.0) — partial Option-C fix landed
+
+The fix landed at 0.29.0 covers the **6 hand-rolled-runner
+scenarios** (`concentrated-immune-siege`, `logic-topology-siege`,
+`organizational-dissonance`, `philosophical-self-reference`,
+`rosetta-scaling`, `throughput-ceiling`):
+
+- [`base.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/measuring/scenarios/base.py)
+  gained the opt-in `runner_path: str = ""` class attribute on
+  the `Scenario` base.
+- Each of the 6 scenarios above declares its
+  `runner_path = "examples/run_<name>.py"`.
+- The Reproduction.command emission in base.py is now conditional:
+  `runner_path`-set → `python -u {runner_path}`; otherwise →
+  fallback to `run-all --scenarios {name}`.
+- 9 hardening tests pinned in
+  [`tests/test_runner_path_reproduction.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_runner_path_reproduction.py).
+
+**Validated**: fresh proofs from any of the 6 scenarios now emit
+a §7 reproduction command that points at a working runner script.
+
+## Wider scope discovered (still open)
+
+While implementing the 0.29.0 fix, surfaced that **26 of 32
+scenarios bypass the base.py emission path entirely** — each one
+constructs its own `EmpiricalProofRecord` with a hand-built
+`Reproduction.command` string. The hand-built strings carry the
+same stale `ophamin.cli scenario {name}` form, often with
+per-scenario CLI flags (`--n-pairs`, `--n-datasets`,
+`--trajectory-path`, `--target-scenario`, `--threshold`,
+`--kimera-repo`, etc.) that the current CLI never had.
+
+Inventory of affected scenarios (all 26 contain hardcoded stale
+strings; none of them benefit from the 0.29.0 partial fix):
+
+```
+anova_crosscheck, bayesian_phi_posterior,
+bayesian_phi_posterior_crosscheck, causal_discovery, crdt_laws,
+cross_channel_mutual_information, deterministic_seed_audit,
+interface_contract_stability, mann_whitney_crosscheck,
+memory_as_deformation, pearson_crosscheck, prime_cross_instance,
+prime_direct_lookup, prime_ecosystem, prime_factorization,
+prime_structure, proprio_self_discovery, quantum_basis_correlation,
+sinew_conservation, sinew_modulation_disruption,
+sinew_wider_unification, spearman_crosscheck, substrate_completeness,
+tonus_conservation_discovery, welch_t_crosscheck,
+wilson_ci_crosscheck
+```
+
+Some have required ctor args (e.g. `cross_channel_mi` needs
+`trajectory_path`); these cannot be reproduced via a generic
+runner — they need their own runner script OR an inline-Python
+form.
+
+## Recommended follow-up (after 0.29.0)
+
+The remaining 26 sites need one of two follow-ups, owner pick:
+
+**(R1) Refactor each of the 26 to call a shared helper.** Add
+`Scenario._build_reproduction_command()` to base.py; refactor each
+hardcoded site to call it. Helper logic:
+
+- If `runner_path` is set → `python -u {runner_path}`
+- Else if scenario has a generic-runnable constructor (no required
+  args beyond defaults) → `python examples/run_scenario.py {name}`
+- Else (required ctor args) → emit an inline-Python snippet that
+  constructs the class with default kwargs + signs the proof.
+
+**Effort**: ~80 LOC across 27 files (26 scenarios + base helper).
+Mechanical refactor; low semantic risk per file. Pinned by an
+extended version of `test_runner_path_reproduction.py`.
+
+**(R2) Author dedicated runner scripts for the 26.** Match the
+6-scenario pattern: write `examples/run_<name>.py` for each
+crosscheck / empirical-deep / structural scenario. Then add
+`runner_path` to each.
+
+**Effort**: ~1-2 hours per scenario × 26 = 26-52 hours. Tedious
+but produces hand-tailored runners for each scenario (per-scenario
+defaults, hardcoded sample sizes, etc.).
+
+Recommendation: **R1**. The 26 hardcoded strings are uniform in
+shape; one helper closes them all. R2 is overkill for scenarios
+whose CLI surface is exactly "construct with defaults + run".
+
+---
+
+## Original finding (preserved for trail)
 
 ## Finding
 

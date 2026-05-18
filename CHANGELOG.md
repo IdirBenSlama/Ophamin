@@ -7,7 +7,88 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.28.0] below for the latest cut.)
+(empty — see [0.29.0] below for the latest cut.)
+
+## [0.29.0] — 2026-05-18
+
+**Headline:** Partial Option-C fix for the §7 reproduction-command
+staleness landed (RFC 0002 Phase E3, follow-up to 0.28.0's Tier-2
+proposal). The 6 hand-rolled-runner scenarios now emit working
+`Reproduction.command` strings in every freshly-signed proof.
+While implementing, surfaced that the staleness has wider scope
+than the proposal claimed — 26 scenarios bypass the base.py
+emission path entirely and need either a per-site refactor or
+their own runner scripts. That follow-up remains owner-pending.
+
+This release is the first substrate-touching change since 0.21.x.
+No published-package (Rust/JS) version bump.
+
+### Added — `Scenario.runner_path` opt-in metadata field
+
+[`src/ophamin/measuring/scenarios/base.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/measuring/scenarios/base.py)
+gains a `runner_path: str = ""` class attribute on the `Scenario`
+base, alongside the existing `name` / `tier` / `family` / `goal`
+metadata. When set, the auto-emitted `Reproduction.command` in
+each proof points at that runner script:
+`PYTHONPATH=src .venv/bin/python -u {runner_path}`. When empty
+(the default), falls through to the generic
+`run-all --scenarios {name}` form.
+
+6 scenarios declare their `runner_path` in this release:
+
+| Scenario class | runner_path |
+|---|---|
+| `ImmuneSiegeScenario` | `examples/run_immune_siege.py` |
+| `LogicTopologySiegeScenario` | `examples/run_logic_topology_siege.py` |
+| `OrganizationalDissonanceScenario` | `examples/run_organizational_dissonance.py` |
+| `PhilosophicalSelfReferenceScenario` | `examples/run_philosophical_self_reference.py` |
+| `RosettaScalingScenario` | `examples/run_rosetta_scaling.py` |
+| `ThroughputCeilingScenario` | `examples/run_throughput_ceiling.py` |
+
+All 6 paths point at scripts that exist + run + emit signed
+proofs.
+
+### Added — hardening pin
+
+[`tests/test_runner_path_reproduction.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_runner_path_reproduction.py)
+— 9 tests pinning:
+
+- `Scenario.runner_path` exists, is `str`, defaults to `""`.
+- Each of the 6 scenarios above declares the expected runner_path
+  AND the file at that path exists.
+- A scenario with `runner_path` set emits a Reproduction.command
+  containing that path (and NO stale `ophamin.cli scenario` form).
+- The base.py conditional has both branches (runner_path + fallback).
+
+### Updated — `docs/proposals/PROOF_REPRODUCTION_COMMAND.md`
+
+Header status flipped to "partial fix shipped at 0.29.0". New
+**"Update (0.29.0) — partial Option-C fix landed"** section
+inventorying what shipped. New **"Wider scope discovered (still
+open)"** section listing the 26 scenarios with hardcoded stale
+strings that bypass the base.py emission path — these need a
+follow-up R1 (refactor to a shared helper) or R2 (write
+hand-rolled runner per scenario). Recommendation: R1.
+
+### Updated — `proofs/REPRODUCERS/immune_siege.md`
+
+§4 caveat box updated with the **"Update (0.29.0)"** sub-paragraph
+acknowledging that the upstream emitter is fixed for this and the
+other 5 hand-rolled-runner scenarios; the shipped proofs from
+earlier versions still carry their historical §7 strings, but
+fresh proofs from 0.29.0+ emit working commands.
+
+### Verified
+
+- 144 tests pass across `test_runner_path_reproduction.py` (9 new)
+  + `test_proof.py` + `test_interop.py` + `test_reporting.py` +
+  `test_proof_codec.py` (existing). No test pinned the stale
+  format, so the format change is safe.
+- Empirical: `ThroughputCeilingScenario(n_cycles=10)` on
+  `MockSubstrate(seed=1)` emits `PYTHONPATH=src .venv/bin/python -u
+  examples/run_throughput_ceiling.py` as Reproduction.command —
+  matches the runner_path declaration.
+- `mkdocs build --strict` clean, exit 0.
 
 ## [0.28.0] — 2026-05-18
 

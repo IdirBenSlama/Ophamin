@@ -287,6 +287,16 @@ class Scenario(abc.ABC):
     #: ``ophamin diagnose`` when a REFUTED verdict surfaces.
     falsification_consequence: str = ""
 
+    #: Optional path (repo-relative) to a hand-rolled runner script
+    #: that emits this scenario's signed proof end-to-end. When set,
+    #: the auto-emitted ``Reproduction.command`` in each proof points
+    #: at this runner; when empty (the default), the command points
+    #: at the generic ``run-all --scenarios <name>`` form via the
+    #: ophamin CLI. See ``docs/proposals/PROOF_REPRODUCTION_COMMAND.md``
+    #: for the rationale (resolves §7-staleness across all
+    #: future-emitted proofs).
+    runner_path: str = ""
+
     corpus_name: str = ""
     target: str = "entity"
     n_cycles: int = 1000
@@ -462,7 +472,22 @@ class Scenario(abc.ABC):
             evidence=score.evidence,
             verdict=verdict,
             reproduction=Reproduction(
-                command=f"PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario {self.name}"
+                command=(
+                    # Per-scenario runner script when declared (handles
+                    # multi-target scenarios like immune_siege that
+                    # emit two proofs in one invocation):
+                    f"PYTHONPATH=src .venv/bin/python -u {self.runner_path}"
+                    if self.runner_path
+                    # Generic CLI runner otherwise — `run-all
+                    # --scenarios <name>` is the canonical
+                    # entry-point that resolves a scenario name
+                    # to its registered class and emits a signed
+                    # CampaignRecord wrapping the proof:
+                    else (
+                        f"PYTHONPATH=src .venv/bin/python "
+                        f"-m ophamin.cli run-all --scenarios {self.name}"
+                    )
+                ),
             ),
             provenance=self._build_provenance(substrate, dataset).to_prov_json(),
             ophamin_version=__version__,

@@ -38,6 +38,7 @@ class ImmuneSiegeScenario(Scenario):
     name = "concentrated-immune-siege"
     tier = Tier.SCIENTIFIC
     family = "immune"
+    runner_path = "examples/run_immune_siege.py"
     goal = (
         "Measure Kimera's GWF false-positive ceiling under sustained "
         "adversarial bombardment from labelled offensive-security corpora."

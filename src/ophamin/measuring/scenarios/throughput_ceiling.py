@@ -47,6 +47,7 @@ class ThroughputCeilingScenario(Scenario):
     name = "throughput-ceiling"
     tier = Tier.ENGINEERING
     family = "throughput"
+    runner_path = "examples/run_throughput_ceiling.py"
     goal = (
         "Measure Kimera's p95 per-cycle wall-time ceiling — "
         "engineering-tier claim about substrate cost rather than "

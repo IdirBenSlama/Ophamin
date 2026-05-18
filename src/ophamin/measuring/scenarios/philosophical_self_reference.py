@@ -88,6 +88,7 @@ class PhilosophicalSelfReferenceScenario(Scenario):
     name = "philosophical-self-reference"
     tier = Tier.PHILOSOPHICAL
     family = "self_reference"
+    runner_path = "examples/run_philosophical_self_reference.py"
     goal = (
         "Test whether Kimera produces a measurably different "
         "cognitive signature on text about itself vs neutral text "

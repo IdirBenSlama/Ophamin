@@ -47,6 +47,7 @@ class OrganizationalDissonanceScenario(Scenario):
     name = "organizational-dissonance"
     tier = Tier.SCIENTIFIC
     family = "dissonance"
+    runner_path = "examples/run_organizational_dissonance.py"
     goal = (
         "Measure whether Kimera's dissonance machinery fires reliably "
         "on routine non-engineered organizational text."

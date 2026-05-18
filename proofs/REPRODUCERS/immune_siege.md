@@ -193,6 +193,16 @@ named `immune_siege_gwf_<proof_id_prefix>.json`.
 > metadata of how the proof was produced at the time, not a
 > guarantee the same string still runs today. For the canonical
 > entry-point, follow this section.
+>
+> **Update (0.29.0)**: the upstream emitter is fixed. Future
+> proofs from this scenario family — and the other 5
+> hand-rolled-runner scenarios (logic_topology_siege,
+> organizational_dissonance, philosophical_self_reference,
+> rosetta_scaling, throughput_ceiling) — now emit
+> `PYTHONPATH=src .venv/bin/python -u examples/run_immune_siege.py`
+> in their §7. See
+> [`docs/proposals/PROOF_REPRODUCTION_COMMAND.md`](../../docs/proposals/PROOF_REPRODUCTION_COMMAND.md)
+> for the partial-fix status + the wider 26-site follow-up.
 
 **Hard-coded runner constants** (in
 [`examples/run_immune_siege.py`](../../examples/run_immune_siege.py)):

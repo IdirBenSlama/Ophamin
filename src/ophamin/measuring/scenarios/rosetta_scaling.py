@@ -50,6 +50,7 @@ class RosettaScalingScenario(Scenario):
     name = "rosetta-scaling"
     tier = Tier.SCIENTIFIC
     family = "rosetta"
+    runner_path = "examples/run_rosetta_scaling.py"
     goal = (
         "Test Rosetta's universal-semantic-address promise: every "
         "concept, in every language, should collapse to one canonical."
