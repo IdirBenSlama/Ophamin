@@ -116,6 +116,8 @@ nav:
       - Interop overview (5 layers): INTEROP_OVERVIEW.md
       - Reproducing the framework: REPRODUCING.md
       - Zenodo deposit workflow: ZENODO_DEPOSIT_WORKFLOW.md
+  - Proposals (Tier-2 owner picks):
+      - Proof reproduction command: proposals/PROOF_REPRODUCTION_COMMAND.md
   - Reference:
       - Schemas (signed records): reference/schemas.md
       - Public API: reference/api.md

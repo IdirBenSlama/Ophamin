@@ -254,6 +254,21 @@ These remain owner-driven per RFC 0002:
   (`paper/paper.md`) submitted, reviewer feedback addressed.
   Owner-side because requires an ORCID + venue choice.
 
+## Per-proof-family reproducer walkthroughs
+
+For deeper end-to-end reproduction of a specific shipped proof
+family (loads ONE family, verifies signatures, explains why
+multiple verdicts ship, walks through re-running + spot-checking
++ cross-proof diff), see the per-family reproducer docs under
+[`proofs/REPRODUCERS/`](https://github.com/IdirBenSlama/Ophamin/tree/main/proofs/REPRODUCERS):
+
+- [`immune_siege.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/immune_siege.md)
+  — Concentrated Immune Siege (GWF false-positive ceiling)
+  family. 8 proofs across 3 experimental setups (entity-target
+  VALIDATED, gwf-direct REFUTED, one INCONCLUSIVE adapter-error
+  variant); illustrates Ophamin's discipline of shipping
+  REFUTED proofs alongside VALIDATED ones.
+
 ## See also
 
 - [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md) — normative wire-format spec.

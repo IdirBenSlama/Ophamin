@@ -7,7 +7,114 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.27.1] below for the latest cut.)
+(empty — see [0.28.0] below for the latest cut.)
+
+## [0.28.0] — 2026-05-18
+
+**Headline:** First per-proof-family reproducer walkthrough lands
+(immune_siege, 8 Kimera-side proofs across 3 experimental
+setups). While drafting, surfaced and documented a real issue:
+**every shipped proof's §7 reproduction-command string is stale
+against the current CLI**. Workaround documented in the
+reproducer doc; Tier-2 fix proposal opened for owner decision.
+
+No substrate or wire-format changes in this release. The Tier-2
+fix proposal (when accepted) would be a substrate change shipped
+in 0.29.0+.
+
+### Added — `proofs/REPRODUCERS/immune_siege.md`
+
+First per-proof-family reproducer walkthrough (~350 lines, 7
+sections). Closes ~1/6 of RFC 0002 Phase E3 owner-side "reproducer
+notebooks for ≥ 6 scenarios" — using prose docs rather than
+Jupyter notebooks for the moment (jupyter not in dev install;
+notebook format harder to validate; can upgrade to notebooks
+later).
+
+Walks an external reviewer through:
+
+1. The pre-registered claim (GWF false-positive ceiling 5-tuple).
+2. Why 8 proofs exist with 3 different verdicts (entity-target
+   VALIDATED ×3, gwf-direct REFUTED ×4, one INCONCLUSIVE
+   adapter-error variant). Illustrates the framework's discipline
+   of shipping REFUTED proofs alongside VALIDATED ones — both are
+   honest empirical outcomes.
+3. Verify a proof signature without re-running, via Python,
+   Rust, or JS recipes. All three recipes were **validated
+   locally** against shipped proof
+   `immune_siege_entity_0a0575db92c0dcf5.json` while drafting.
+4. Re-run the scenario via `examples/run_immune_siege.py` (the
+   canonical entry point) with a caveat box about the §7 staleness.
+5. Spot-check approaches — edit `N_CYCLES` in the runner OR
+   construct `ImmuneSiegeScenario` directly in Python.
+6. Cross-proof diff between a freshly-emitted proof and a
+   shipped one.
+7. What this proof family demonstrates about Ophamin's discipline.
+
+All 17 internal link targets verified to exist.
+
+### Added — `docs/proposals/PROOF_REPRODUCTION_COMMAND.md`
+
+Tier-2 proposal documenting a finding surfaced while drafting
+the reproducer doc above:
+[`src/ophamin/measuring/scenarios/base.py:464-466`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/measuring/scenarios/base.py)
+emits the literal string
+
+```text
+PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario {self.name}
+```
+
+into every signed proof's §7 reproduction command. That command
+**does not work** under the current CLI surface — `ophamin
+scenario` is now a list / show / info umbrella only. Every proof
+emitted since the CLI refactor carries this stale string.
+
+The shipped proofs' bodies are sealed (signature verification
+unaffected); the reproducer doc above documents the workaround
+per family. But the upstream source should be fixed so future-
+emitted proofs don't perpetuate the issue. Proposal lays out
+three options:
+
+- **A**: one-line edit to point at `run-all --scenarios <name>`
+  (smallest change, single line of code).
+- **B**: add an `ophamin scenario run <name>` subcommand
+  (~30 LOC; semantically cleanest match to the historical format).
+- **C**: per-scenario `runner_path` metadata field declaring
+  custom runner scripts (architecturally cleanest; matches
+  how the `examples/run_*.py` runners already exist).
+
+Recommendation: Option C. Owner-pick; agent executes the
+selected option in 0.29.0.
+
+### Updated — `docs/REPRODUCING.md`
+
+New "Per-proof-family reproducer walkthroughs" section linking
+to the reproducer docs under `proofs/REPRODUCERS/` (currently
+one entry: immune_siege; family grows as more reproducer docs
+land).
+
+### Updated — `mkdocs.yml`
+
+New "Proposals (Tier-2 owner picks)" nav section above Reference.
+First entry: `PROOF_REPRODUCTION_COMMAND.md`. Future Tier-2
+proposals land here too.
+
+### Verified
+
+- All 17 internal links in `proofs/REPRODUCERS/immune_siege.md`
+  resolve to existing files (2 paths corrected mid-draft when
+  initial filename guesses were wrong: scenarios path is
+  `immune_siege.py` not `concentrated_immune_siege.py`; corpus
+  loader is `seeing/corpus/connectors.py:244+` not
+  `seeing/corpora/offensive_security.py`).
+- Python CLI verify recipe **executed locally** against the
+  shipped proof: `OK proofs/immune_siege_entity_0a0575db92c0dcf5.json:
+  proof@1.0 / summary: 1 ok, 0 failed`.
+- JS recipe **executed locally** via `npm run example:verify --
+  <path>`: `✓ signature verified under DEFAULT_SIGN_KEY`.
+- `mkdocs build --strict` clean, exit 0 (after rewriting 4 link
+  targets in the proposal doc from relative `../../` paths to
+  absolute GitHub URLs — same fix pattern as 0.24.1).
 
 ## [0.27.1] — 2026-05-18
 
