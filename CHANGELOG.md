@@ -7,7 +7,164 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.13.0] below for the latest cut.)
+(empty — see [0.14.0] below for the latest cut.)
+
+## [0.14.0] — 2026-05-18
+
+**Headline:** Canonical-form byte representation promoted from
+implementation-defined behaviour to a **normative spec** in
+`SCHEMAS.md` §"Canonical-form determinism (normative)" with rules
+R1–R11 covering every byte the encoder emits. Three cross-language
+test fixtures (`simple`, `unicode`, `numerical_edge`) ship under
+`tests/canonical_form/` with their expected canonical bytes + HMAC
+digests under a fixed test key — a non-Python codec can now claim
+conformance by reproducing those three byte streams. Plus two new
+cross-framework validation pillars (Pearson three-way; Welch's
+t-test three-way) and the JOSS-style methods paper draft for
+RFC-0002 Phase E5.
+
+This is the **sixth minor-version bump** in the 0.x line.
+
+### Added — normative canonical-form spec + cross-language fixtures
+
+- **`SCHEMAS.md` — new §"Canonical-form determinism (normative)"**.
+  Replaces the prior 25-line description with ~150 lines of
+  implementer-grade rules. R1 (UTF-8), R2 (separators / no
+  whitespace), R3 (recursive lexicographic key sort by Unicode
+  code point), R4 (integers), R5 (float repr — `1e+20` / `1e-07`
+  / `-0.0` preservation), R6 (string escaping under
+  `ensure_ascii=True` with UTF-16 surrogate pairs), R7
+  (lowercase null/true/false), R8 (arrays), R9 (objects with
+  string-only keys), R10 (NaN / Infinity — non-portable, marked
+  explicitly), R11 (`default=str` — non-portable, explicit).
+  Plus body-field layout for `EmpiricalProofRecord._body()` and
+  the stability-guarantee axes.
+- **`tests/canonical_form/`** — three canonical-form fixtures:
+  - `simple.{input.json, canonical.bytes, hmac_sha256.hex}` —
+    basic types + recursive key sort.
+  - `unicode.{...}` — Latin supplement, Cyrillic (including a
+    non-ASCII *key*), CJK, U+1F680 emoji (UTF-16 surrogate pair).
+  - `numerical_edge.{...}` — 1e+20, 1e-07, -0.0, 0.0 vs 0
+    distinction.
+  Each fixture's HMAC-SHA256 is computed under the fixed test
+  key `b"ophamin-canonical-test-key-v1"`.
+- **`tests/canonical_form/_generate_fixtures.py`** —
+  regeneration entry point. Run manually after editing the
+  `_FIXTURES` dict.
+- **`tests/canonical_form/README.md`** — fixture contract,
+  cross-language verification protocol, and add-a-fixture
+  instructions.
+- **`tests/test_canonical_form_fixtures.py`** — **21 new tests**:
+  per-fixture byte-equivalence, per-fixture HMAC equivalence,
+  generator-vs-production reference parity, plus 9
+  spec-rule-coverage tests pinning specific bullets of R3–R7,
+  plus catalogue-vs-disk drift detection.
+
+### Added — two new cross-framework cross-checks
+
+- **`src/ophamin/measuring/scenarios/pearson_crosscheck.py`** —
+  `PearsonCrosscheckScenario`. Three-way cross-check across
+  `scipy.stats.pearsonr`, `numpy.corrcoef`, and
+  `pingouin.corr(method='pearson')` on 30 (x, y) pairs with
+  target correlations sweeping [-0.9, 0.9] at N=100.
+  **Empirical agreement: 3.33e-16 (~1.5× machine epsilon).**
+  Worst pair is scipy↔numpy — the two libraries take genuinely
+  different numerical paths (centered-product vs covariance
+  matrix), so machine-epsilon agreement is a strong empirical
+  signal that neither has drifted.
+- **`src/ophamin/measuring/scenarios/welch_t_test_crosscheck.py`** —
+  `WelchTTestCrosscheckScenario`. Three-way cross-check across
+  `scipy.stats.ttest_ind(equal_var=False)`,
+  `statsmodels.stats.weightstats.ttest_ind(usevar='unequal')`,
+  and `pingouin.ttest(correction=True)` on 30 two-sample pairs
+  sweeping effect-size δ ∈ [-1, 1] and variance-ratio σ_y/σ_x
+  ∈ [0.5, 2.0]. Checks BOTH the *t* statistic AND the two-sided
+  *p* value across all three pairwise comparisons.
+  **Empirical agreement: 1.78e-15 (~8× machine epsilon).**
+  statsmodels is the tightest pillar here — it implements Welch
+  independently rather than delegating to scipy.
+- **2 new canonical signed proofs** under
+  `proofs/measurement_machinery/`:
+  - `pearson_cross_framework/pearson_scipy_vs_numpy_vs_pingouin_7b2498c1937091d1.json`
+  - `welch_t_cross_framework/welch_t_scipy_vs_statsmodels_vs_pingouin_5c6f481298cbfa3f.json`
+- **29 new pinning tests** across:
+  - `tests/test_pearson_crosscheck.py` (14)
+  - `tests/test_welch_t_test_crosscheck.py` (15)
+
+### Added — JOSS-style methods paper draft (RFC-0002 Phase E5)
+
+- **`paper/paper.md`** — JOSS-style draft (~1500 words). Covers
+  the signed `EmpiricalProofRecord` model, the cross-language
+  canonical form, the five experimentation tiers, multiplicity
+  correction, the reproducibility audit, and tabulates concrete
+  cross-framework agreements (Bayesian / Wilson / Spearman /
+  Pearson / Welch t) with their proof IDs.
+- **`paper/paper.bib`** — BibTeX references (Begley-Ioannidis
+  2015, Baker 2016, Holm 1979, Benjamini–Hochberg 1995, plus
+  pointers to `SCHEMAS.md` and the RFC).
+- **`paper/README.md`** — submission workflow, what is
+  owner-side before submission (ORCID, venue choice, Zenodo
+  DOI), and the seven falsifiable claims the paper itself makes
+  with their reproducer commands.
+
+### Added — framework-wide audit coverage
+
+- `tests/test_framework_wide_reproducibility.py` `_AUDIT_KWARGS`
+  extended to cover `pearson-crosscheck` and
+  `welch-t-crosscheck` with CI-friendly kwargs
+  (`n_pairs=8, sample_size=40, seed=20260518`). All eligible
+  scenarios continue to satisfy the deterministic-seed audit
+  contract.
+
+### Changed
+
+- **`src/ophamin/measuring/scenarios/__init__.py`** — module
+  docstring's measurement-machinery catalogue updated to list
+  the five cross-framework scenarios (Bayesian / Wilson /
+  Spearman / Pearson / Welch t) alongside the original
+  `CRDTLawsScenario`.
+- **`crates/README.md`** — canonical-form documentation
+  checkpoint marked done; new §"Cross-language conformance test
+  corpus" describes what a Rust port's first conformance test
+  looks like and points at `tests/canonical_form/` as the
+  authoritative byte-stream contract.
+
+### Statistical context
+
+Five cross-framework cross-checks now ship as signed `VALIDATED`
+proofs:
+
+| Statistic | Backends | Empirical agreement | Proof ID |
+|---|---|---|---|
+| Bayesian posterior mean (φ) | PyMC vs NumPyro | 1.7e-3 (HDI ratio 1.02) | `aae6cf83833b7c05` |
+| Wilson CI bounds (95 %) | scipy vs statsmodels | 1.11e-16 | `80d5b9f33fbaf6d7` |
+| Spearman ρ | scipy vs pingouin | 0 (exact) | `f65319cb2ab7eb3d` |
+| Pearson r | scipy vs numpy vs pingouin | 3.33e-16 | `7b2498c1937091d1` |
+| Welch t + p (two-sided) | scipy vs statsmodels vs pingouin | 1.78e-15 | `5c6f481298cbfa3f` |
+
+The two new three-way checks (Pearson + Welch t) include
+statsmodels, which is the tightest test because it implements
+each primitive without delegating to scipy. Drift in any of
+these would surface as a `REFUTED` proof on the next CI run.
+
+### Why this matters (RFC 0002 framing)
+
+- **E1.4 + E1.5** ship as direct extensions of Phase E1; the
+  acceptance criterion ("≥ 3 cross-framework validation proofs")
+  was met in 0.13.0, and 0.14.0 raises the count to 5 across
+  three statistical-primitive families (correlation, hypothesis
+  testing, Bayesian inference).
+- **E9 unblocked at the spec layer.** The normative canonical-
+  form spec + the three test fixtures are what a non-Python codec
+  needs in order to claim signature compatibility with Python-
+  emitted records. The Rust crate (`crates/ophamin-proof`) and
+  the JS/TS package (`packages/ophamin-proof-js`) remain
+  scaffolding-only because cargo + node are not yet available
+  in the dev environment, but their first test target is now
+  fully specified.
+- **E5 draft authored.** The methods paper is ready for owner-
+  side submission (ORCID + venue + Zenodo DOI are the remaining
+  owner-driven items per `paper/README.md`).
 
 ## [0.13.0] — 2026-05-18
 

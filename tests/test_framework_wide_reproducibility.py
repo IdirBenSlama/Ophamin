@@ -74,6 +74,16 @@ _AUDIT_KWARGS: dict[str, dict[str, Any]] = {
         "n_pairs": 8,
         "sample_size": 40,
     },
+    "pearson-crosscheck": {
+        "seed": 20260518,
+        "n_pairs": 8,
+        "sample_size": 40,
+    },
+    "welch-t-crosscheck": {
+        "seed": 20260518,
+        "n_pairs": 8,
+        "sample_size": 40,
+    },
 }
 
 

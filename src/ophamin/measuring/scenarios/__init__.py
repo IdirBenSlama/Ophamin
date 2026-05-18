@@ -35,6 +35,11 @@ Scenarios come in five experimentation tiers:
 
     Measurement-machinery tier — validation of upstream libraries
         CRDTLawsScenario                  Yjs CRDT convergence
+        BayesianPhiPosteriorCrosscheckScenario  PyMC ↔ NumPyro cross-framework
+        WilsonCICrosscheckScenario        scipy ↔ statsmodels Wilson CI
+        SpearmanCrosscheckScenario        scipy ↔ pingouin Spearman ρ
+        PearsonCrosscheckScenario         scipy ↔ numpy ↔ pingouin Pearson r
+        WelchTTestCrosscheckScenario      scipy ↔ statsmodels ↔ pingouin Welch t
 
 All tiers share the same Scenario / ScenarioScore / signed proof-record
 discipline. They differ in what fields they read from CycleResult.raw + how

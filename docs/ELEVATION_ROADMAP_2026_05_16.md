@@ -372,11 +372,15 @@ patch/minor releases; the canonical record is the CHANGELOG.
 | **E1.1** | First cross-framework validation — PyMC↔NumPyro Bayesian posterior agreement + signed proof published under `proofs/measurement_machinery/bayesian_cross_framework/` | ✅ shipped | `0.12.0` |
 | **E1.2** | Second cross-framework validation — Wilson CI scipy↔statsmodels (machine-epsilon agreement, signed proof under `proofs/measurement_machinery/wilson_ci_cross_framework/`) | ✅ shipped | `0.13.0` |
 | **E1.3** | Third cross-framework validation — Spearman ρ scipy↔pingouin (exact 0.000 agreement, signed proof under `proofs/measurement_machinery/spearman_cross_framework/`) | ✅ shipped | `0.13.0` |
-| **E1 acceptance** | ≥ 3 cross-framework VALIDATED proofs under `proofs/measurement_machinery/` | ✅ met | `0.13.0` |
-| **E3** owner-side | Zenodo benchmark deposit + DOI + reproducer notebooks for ≥ 6 scenarios + methods paper draft | open (owner) | — |
+| **E1.4** | Fourth cross-framework validation — Pearson r scipy↔numpy↔pingouin (three-way, machine-epsilon agreement, signed proof under `proofs/measurement_machinery/pearson_cross_framework/`) | ✅ shipped | `0.14.0` |
+| **E1.5** | Fifth cross-framework validation — Welch's t-test scipy↔statsmodels↔pingouin (three-way, both *t* and two-sided *p*, ~8× machine epsilon agreement; signed proof under `proofs/measurement_machinery/welch_t_cross_framework/`) | ✅ shipped | `0.14.0` |
+| **E1 acceptance** | ≥ 3 cross-framework VALIDATED proofs under `proofs/measurement_machinery/` | ✅ met (5 / 3) | `0.13.0`, `0.14.0` |
+| **E9 spec** | Canonical-form byte representation promoted to normative `SCHEMAS.md` §"Canonical-form determinism (normative)" R1–R11 + three cross-language test fixtures under `tests/canonical_form/` with HMAC pins | ✅ shipped | `0.14.0` |
+| **E5 draft** | JOSS-style methods paper draft authored under `paper/paper.md` + `paper/paper.bib` (~1500 words, 5 cross-framework agreement proofs tabulated) | ✅ shipped | `0.14.0` |
+| **E3** owner-side | Zenodo benchmark deposit + DOI + reproducer notebooks for ≥ 6 scenarios | open (owner) | — |
 | **E4** owner-side | External reviewer rebuild verification (byte-equal SBOM + signed-record output) | open (owner) | — |
-| **E5** | Methods paper submission (JOSS / SoftwareX / JMLR-OSS) + reviewer-time feedback | open (owner) | — |
-| **E9** | Cross-language read APIs (Rust `crates/ophamin-proof` + TS `packages/ophamin-proof-js`) | scaffolding only (no cargo/node in dev env); see [`crates/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/crates/README.md) for the design + queued work | — |
+| **E5 submission** | Methods paper submission (JOSS / SoftwareX / JMLR-OSS) + reviewer-time feedback | open (owner: ORCID + venue + Zenodo DOI per `paper/README.md`) | — |
+| **E9 implementation** | Rust `crates/ophamin-proof` + TS `packages/ophamin-proof-js` byte-equal verifiers against the three canonical-form fixtures | scaffolding only (no cargo/node in dev env); first conformance test fully specified in [`crates/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/crates/README.md) | — |
 
 **Both 1.0.0 prerequisites met:** wire-format stability contract (E2 — `0.9.0`)
 and Python-API stability contract (E8 — `0.10.0`). What separates the

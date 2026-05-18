@@ -1,0 +1,9 @@
+{
+  "large_pos": 1e+20,
+  "neg_value": -2.5,
+  "neg_zero_float": -0.0,
+  "pi": 3.14159,
+  "small_neg_exp": 1e-07,
+  "zero_float": 0.0,
+  "zero_int": 0
+}

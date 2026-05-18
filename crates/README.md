@@ -65,10 +65,51 @@ The remaining work to ship Phase E9.1:
 3. Pin a byte-equality assertion: every shipped Python proof
    under `proofs/` verifies cleanly under the Rust crate using the
    same `DEFAULT_SIGN_KEY`.
-4. Document the canonical-body byte representation in `SCHEMAS.md`
-   (currently informally documented in `record.py`'s `_canonical`
-   helper — must be promoted to a normative spec when a second
-   implementation lands).
+4. ~~Document the canonical-body byte representation in `SCHEMAS.md`~~
+   **Done in 0.14.0.** [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md)
+   §"Canonical-form determinism (normative)" specifies rules R1–R11
+   for the byte representation, and the cross-language test corpus
+   at [`tests/canonical_form/`](https://github.com/IdirBenSlama/Ophamin/tree/main/tests/canonical_form)
+   provides three reference fixtures (`simple`, `unicode`,
+   `numerical_edge`) with their expected canonical bytes + HMAC-SHA256
+   digests under a fixed test key. The Rust crate's first test target
+   should be byte-equivalence on all three fixtures; once those pass,
+   signature compatibility with the Python emitter follows for any
+   record inside the portable subset.
+
+## Cross-language conformance test corpus
+
+The Rust crate (and any future JS/TS or other-language port) must
+pass the **canonical-form conformance suite** before it can claim
+read compatibility with Python-emitted records. The suite lives at
+[`tests/canonical_form/`](https://github.com/IdirBenSlama/Ophamin/tree/main/tests/canonical_form)
+and has the shape:
+
+| File | Purpose |
+|---|---|
+| `<stem>.input.json` | Language-neutral input. Parse via the language's JSON library. |
+| `<stem>.canonical.bytes` | Expected canonical byte stream from a conformant encoder. |
+| `<stem>.hmac_sha256.hex` | Expected HMAC-SHA256 hex digest under `b"ophamin-canonical-test-key-v1"`. |
+
+A Rust port's first conformance test is essentially:
+
+```rust
+#[test]
+fn fixture_simple_canonical_bytes_match() {
+    let input: serde_json::Value = serde_json::from_str(
+        include_str!("../../../tests/canonical_form/simple.input.json")
+    ).unwrap();
+    let canonical = ophamin_proof::canonical_body_bytes(&input);
+    let expected = include_bytes!("../../../tests/canonical_form/simple.canonical.bytes");
+    assert_eq!(canonical, expected);
+}
+```
+
+The Python reference itself is tested against the fixtures on every
+CI run via [`tests/test_canonical_form_fixtures.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_canonical_form_fixtures.py).
+The fixtures are content-addressed by their inputs — to extend the
+corpus, edit `tests/canonical_form/_generate_fixtures.py` and
+regenerate.
 
 ## Why this matters
 
