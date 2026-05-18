@@ -7,7 +7,154 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.17.1] below for the latest cut.)
+(empty — see [0.18.0] below for the latest cut.)
+
+## [0.18.0] — 2026-05-18
+
+**Headline:** Ophamin now ships an **HTTP REST API** alongside the
+MCP server. Any consumer that speaks JSON over HTTP — Kubernetes
+microservices, browser apps, curl scripts, language SDKs without
+an MCP implementation — can now drive scenarios and verify signed
+proofs without writing a Python integration.
+
+This is the **third interop layer**, alongside:
+- **Wire-format** (`SCHEMAS.md` + Rust + JS): non-Python *systems*
+  verify Python-emitted records.
+- **MCP server** (0.17.x): non-Python *agents* drive Python execution.
+- **HTTP REST API** (0.18.0): non-Python *services* speak JSON / HTTP.
+
+This is the **tenth minor-version bump** in the 0.x line.
+
+### Added — `ophamin.interfaces` (shared transport-agnostic impls)
+
+The MCP server and the new HTTP server now wrap the **same shared
+implementations** so behavioural drift between the two transports
+is structurally impossible.
+
+- **`src/ophamin/interfaces/_impls.py`** — pure transport-agnostic
+  functions. All take JSON-friendly string arguments and return
+  JSON-friendly `dict[str, Any]`. Decoupled from FastAPI / FastMCP
+  / any specific transport library:
+  - `list_scenarios_impl`
+  - `get_scenario_claim_impl`
+  - `verify_proof_impl`
+  - `canonicalize_value_impl`
+  - `read_proof_index_impl`
+  - `run_scenario_impl`
+  - `scenario_metadata` (helper)
+  - `decode_sign_key` (helper)
+- **`src/ophamin/interfaces/__init__.py`** — public API.
+
+### Changed — `ophamin.mcp.server` refactor
+
+The MCP server now imports from `interfaces._impls` instead of
+embedding the tool implementations inline. Backward-compatible
+aliases for the underscore-prefixed names (`_decode_sign_key`,
+`_list_scenarios_impl`, etc.) are kept so the 0.17.x tests + any
+external callers continue to work without code change.
+
+The FastMCP tool registrations in `build_server()` remain the
+canonical surface for MCP consumers; only the underlying
+implementations moved.
+
+### Added — `ophamin.http_api` (FastAPI server)
+
+- **`src/ophamin/http_api/server.py`** — FastAPI app with eight
+  endpoints (same logical surface as the MCP server, plus health
+  + version + auto-generated OpenAPI):
+  - `GET /health` — liveness probe target (always 200; no backend
+    touch — safe for Kubernetes readiness/liveness probes).
+  - `GET /version` — server identity + framework version.
+  - `GET /scenarios` — enumerate every registered scenario.
+  - `GET /scenarios/{name}/claim` — get a scenario's falsifiable
+    claim (404 on unknown name).
+  - `POST /verify` — verify a wire-form signed proof. Body:
+    `{proof_json, sign_key_b64?}`. Returns 200 with
+    `verified: false` on tampered records (NOT 4xx — surfaces the
+    result for caller introspection).
+  - `POST /canonicalize` — canonical UTF-8 bytes + HMAC for any
+    value. Body: `{value_json, sign_key_b64?}`.
+  - `POST /proofs/index` — walk a server-side directory tree.
+    Body: `{directory}`.
+  - `POST /scenarios/{name}/run` — **heavyweight** — run a
+    scenario. Body: `{kwargs_json?}`.
+  - `GET /openapi.json` / `/docs` / `/redoc` — FastAPI's
+    auto-generated OpenAPI spec + Swagger UI + ReDoc.
+- **`src/ophamin/http_api/__init__.py`** — public API:
+  `build_app()`, `SERVER_NAME`, `SERVER_TITLE`, `SERVER_VERSION`.
+- **`src/ophamin/http_api/README.md`** — endpoint catalogue + CLI
+  usage + curl examples for every endpoint + deployment recipes
+  (Docker, Kubernetes, systemd) + authentication notes (the
+  server is auth-agnostic by design; wrap in middleware as
+  needed) + interop framing.
+
+### Added — `ophamin http serve` CLI subcommand
+
+- **`src/ophamin/cli.py`** — new `http` subcommand with a single
+  `serve` action.
+  - `ophamin http serve` — bind 127.0.0.1:8000 (default).
+  - `ophamin http serve --host 0.0.0.0 --port 80` — production.
+  - `--workers N` — multiple uvicorn worker processes.
+  - `--log-level critical/error/warning/info/debug/trace`.
+- Gates the FastAPI / uvicorn import with a structured error if
+  somehow they're not in the install (both ARE in core deps).
+
+### Added — pinning tests
+
+- **`tests/test_http_api.py`** — **26 new tests** covering:
+  - Server identity (name / title / version).
+  - `/health` always 200.
+  - `/version` returns framework version.
+  - `/scenarios` returns the full registry; covers the seven
+    cross-framework scenarios shipped through 0.15.0.
+  - `/scenarios/{name}/claim` returns the five-tuple; 404 on
+    unknown name.
+  - `/verify` against real shipped proofs (200 + `verified: true`);
+    against single-bit-tampered signature (200 + `verified: false`,
+    NOT 4xx); against malformed JSON (400); against non-object
+    JSON (400); against invalid base64 sign key (400).
+  - `/canonicalize` produces canonical bytes (int / float
+    distinction preserved per the wire-format contract); custom
+    key changes HMAC but not canonical bytes; malformed JSON → 400.
+  - `/proofs/index` indexes shipped proofs; missing dir → 400;
+    not-a-dir → 400.
+  - `/scenarios/{name}/run` smoke-test with minimal kwargs;
+    unknown scenario → 400; malformed kwargs → 400.
+  - OpenAPI surface: `/openapi.json` available, `/docs` (Swagger
+    UI), `/redoc` (ReDoc); every documented path appears in the
+    spec.
+  - Error envelope: malformed body → JSON 4xx with `detail`, NOT
+    a raw stack trace.
+
+### Why this matters (interop closure)
+
+Ophamin's interop story now spans four distinct consumer shapes:
+
+| Shape | Surface | Status |
+|---|---|---|
+| Cryptographic verifier in a non-Python language | `crates/ophamin-proof` (Rust), `packages/ophamin-proof-js` (JS/TS) | 0.16.x |
+| Agent that speaks MCP | `ophamin mcp serve` | 0.17.x |
+| Service that speaks JSON over HTTP | `ophamin http serve` | **0.18.0** |
+| In-process Python consumer | `import ophamin` | base |
+
+A consumer that can't (or won't) take a Python dependency now has
+multiple ways to drive Ophamin: a cryptographic verifier in their
+own language (read-only), an MCP client (agent-callable), or an
+HTTP API (any service-style consumer). The "interoperable platform"
+reframe is fully realized across the consumer shapes that exist in
+the wild.
+
+### Verification
+
+- HTTP API tests: 26/26 pass locally in 1.65s.
+- MCP server tests: 30/30 continue to pass after the shared-impls
+  refactor.
+- Combined HTTP + MCP: 56/56 pass in 1.94s.
+- `ruff check` clean on all new modules.
+- `mypy --strict` clean across 159 source files (4 more than the
+  0.17.x baseline = the new `interfaces` + `http_api` subpackages).
+- Full Python test suite expected ~1649 passed, 2 skipped at HEAD
+  (≈ +26 vs 0.17.x baseline = the new HTTP API tests).
 
 ## [0.17.1] — 2026-05-18
 

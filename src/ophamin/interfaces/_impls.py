@@ -1,0 +1,330 @@
+"""Pure transport-agnostic tool implementations.
+
+The MCP server (:mod:`ophamin.mcp`) and the HTTP REST API
+(:mod:`ophamin.http_api`) both wrap these functions verbatim.
+Changing behaviour means changing this module.
+
+Each function takes JSON-friendly string arguments and returns a
+JSON-friendly ``dict[str, Any]``. The sign-key argument
+``sign_key_b64`` is base64-encoded bytes; an empty string is the
+framework-wide ``DEFAULT_SIGN_KEY``.
+
+Functions:
+
+- :func:`list_scenarios_impl`
+- :func:`get_scenario_claim_impl`
+- :func:`verify_proof_impl`
+- :func:`canonicalize_value_impl`
+- :func:`read_proof_index_impl`
+- :func:`run_scenario_impl`
+- :func:`scenario_metadata` (internal helper)
+- :func:`decode_sign_key` (internal helper)
+"""
+
+from __future__ import annotations
+
+import base64
+import hashlib
+import hmac
+import json
+from pathlib import Path
+from typing import Any
+
+from ophamin import __version__
+from ophamin.measuring.proof.codec import iter_proofs, load
+from ophamin.measuring.proof.record import _canonical, content_hash
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, SCENARIOS, Tier
+from ophamin.seeing.substrate.mock import MockSubstrate
+
+
+# --------------------------------------------------------------------------
+# Helper: decode an optional base64-encoded signing key argument
+# --------------------------------------------------------------------------
+
+
+def decode_sign_key(sign_key_b64: str) -> bytes:
+    """Return the bytes of a signing key, either from base64 or the default.
+
+    Transport-agnostic: every interface (MCP / HTTP / ...) accepts the
+    signing key as a base64-encoded string so it round-trips cleanly
+    through JSON. Empty string → use Ophamin's framework-wide
+    ``DEFAULT_SIGN_KEY``.
+
+    Raises:
+        ValueError: if the input is non-empty but not valid base64.
+    """
+    if not sign_key_b64:
+        return DEFAULT_SIGN_KEY
+    try:
+        return base64.b64decode(sign_key_b64, validate=True)
+    except Exception as exc:  # narrow: base64 raises binascii.Error
+        raise ValueError(
+            f"sign_key_b64 must be valid standard base64 (got {len(sign_key_b64)} "
+            f"chars); base64 decode failed: {exc}"
+        ) from exc
+
+
+def scenario_metadata(name: str) -> dict[str, Any]:
+    """Read-only metadata for a single scenario class.
+
+    Raises:
+        ValueError: if ``name`` isn't in :data:`SCENARIOS`.
+    """
+    if name not in SCENARIOS:
+        raise ValueError(
+            f"unknown scenario {name!r}; available scenarios via list_scenarios"
+        )
+    cls = SCENARIOS[name]
+    tier = getattr(cls, "tier", None)
+    tier_label = tier.value if isinstance(tier, Tier) else str(tier)
+    return {
+        "name": name,
+        "family": getattr(cls, "family", ""),
+        "tier": tier_label,
+        "target": getattr(cls, "target", ""),
+        "goal": getattr(cls, "goal", ""),
+        "method": getattr(cls, "method", ""),
+        "corpus_name": getattr(cls, "corpus_name", ""),
+        "falsification_consequence": getattr(cls, "falsification_consequence", ""),
+        "explanation": getattr(cls, "explanation", ""),
+    }
+
+
+# --------------------------------------------------------------------------
+# Tool implementations
+# --------------------------------------------------------------------------
+
+
+def list_scenarios_impl() -> dict[str, Any]:
+    """Enumerate every scenario in the registry with metadata."""
+    scenarios = [scenario_metadata(name) for name in sorted(SCENARIOS)]
+    return {
+        "count": len(scenarios),
+        "scenarios": scenarios,
+        "framework_version": __version__,
+    }
+
+
+def get_scenario_claim_impl(name: str) -> dict[str, Any]:
+    """Return a scenario's falsifiable claim + metadata.
+
+    Constructs the scenario with default kwargs to materialise the
+    claim. If the constructor requires arguments, returns
+    ``claim_available: False`` with a structured reason; callers can
+    pass kwargs to :func:`run_scenario_impl` directly.
+    """
+    if name not in SCENARIOS:
+        raise ValueError(f"unknown scenario {name!r}")
+    cls = SCENARIOS[name]
+    try:
+        instance = cls()
+    except TypeError as exc:
+        return {
+            "name": name,
+            "metadata": scenario_metadata(name),
+            "claim_available": False,
+            "claim_unavailable_reason": (
+                f"scenario constructor requires arguments; cannot materialise "
+                f"the claim from defaults ({exc})"
+            ),
+        }
+    claim = instance.build_claim()
+    return {
+        "name": name,
+        "metadata": scenario_metadata(name),
+        "claim_available": True,
+        "claim": {
+            "statement": claim.statement,
+            "operationalization": claim.operationalization,
+            "threshold": {
+                "metric": claim.threshold.metric,
+                "comparator": claim.threshold.comparator,
+                "value": claim.threshold.value,
+                "units": claim.threshold.units,
+            },
+            "h0": claim.h0,
+            "h1": claim.h1,
+        },
+    }
+
+
+def verify_proof_impl(proof_json: str, sign_key_b64: str = "") -> dict[str, Any]:
+    """Parse + verify a wire-form signed record.
+
+    Returns a structured verdict + verification result. Does NOT raise
+    on signature mismatch — the result is surfaced as
+    ``verified: False`` so callers can introspect the proof's fields
+    even when verification fails.
+
+    Raises:
+        ValueError: only on malformed JSON or non-object top-level
+            input. Signature mismatch is a normal result, not an error.
+    """
+    key = decode_sign_key(sign_key_b64)
+    try:
+        record_dict: Any = json.loads(proof_json)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"proof_json is not valid JSON: {exc}") from exc
+    if not isinstance(record_dict, dict):
+        raise ValueError("proof_json must decode to a JSON object")
+
+    # Reconstruct the body that Python signed over (everything except
+    # ``signature`` and ``proof_id``). Mirrors the Rust + JS ports'
+    # body-for-signing semantics.
+    body = {k: v for k, v in record_dict.items() if k not in ("signature", "proof_id")}
+    canonical = _canonical(body).encode("utf-8")
+    expected_hex = hmac.new(key, canonical, hashlib.sha256).hexdigest()
+    sig = record_dict.get("signature", "")
+    verified = isinstance(sig, str) and hmac.compare_digest(sig, expected_hex)
+    proof_id = hashlib.sha256(canonical).hexdigest()
+
+    verdict = record_dict.get("verdict") or {}
+
+    return {
+        "verified": verified,
+        "proof_id": proof_id,
+        "schema_version": record_dict.get("schema_version", ""),
+        "verdict": {
+            "outcome": verdict.get("outcome", ""),
+            "observed_value": verdict.get("observed_value", None),
+            "reasoning": verdict.get("reasoning", ""),
+            "threshold": verdict.get("threshold", {}),
+        },
+        "claim_statement": (record_dict.get("claim") or {}).get("statement", ""),
+        "framework_versions": {
+            "ophamin_version_in_record": (record_dict.get("identity") or {}).get(
+                "ophamin_version", ""
+            ),
+            "ophamin_version_in_server": __version__,
+        },
+    }
+
+
+def canonicalize_value_impl(
+    value_json: str, sign_key_b64: str = ""
+) -> dict[str, Any]:
+    """Canonicalise any JSON value and compute its HMAC-SHA256.
+
+    The default ``sign_key_b64`` is empty, in which case the framework-
+    wide ``DEFAULT_SIGN_KEY`` is used. Pass a custom key when verifying
+    against alternative deployment signatures.
+    """
+    key = decode_sign_key(sign_key_b64)
+    try:
+        value = json.loads(value_json)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"value_json is not valid JSON: {exc}") from exc
+
+    canonical = _canonical(value)
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    mac = hmac.new(key, canonical.encode("utf-8"), hashlib.sha256).hexdigest()
+    return {
+        "canonical": canonical,
+        "canonical_bytes_len": len(canonical),
+        "sha256_hex": digest,
+        "hmac_sha256_hex": mac,
+        "content_hash": content_hash(value),
+    }
+
+
+def read_proof_index_impl(directory: str) -> dict[str, Any]:
+    """Walk a directory tree and index every signed proof under it.
+
+    Returns per-scenario counts, verdict distribution, and proof_ids.
+    Does NOT verify signatures (use :func:`verify_proof_impl` on
+    individual records for that).
+    """
+    root = Path(directory).expanduser()
+    if not root.exists():
+        raise ValueError(f"directory does not exist: {directory!r}")
+    if not root.is_dir():
+        raise ValueError(f"path is not a directory: {directory!r}")
+
+    proofs: list[dict[str, Any]] = []
+    scenarios: dict[str, dict[str, Any]] = {}
+    for path in iter_proofs(root):
+        try:
+            rec = load(path)
+        except Exception as exc:
+            proofs.append(
+                {
+                    "path": str(path),
+                    "error": f"failed to load: {type(exc).__name__}: {exc}",
+                }
+            )
+            continue
+        scen = rec.evidence[0].pillar if rec.evidence else "(no evidence)"
+        outcome = rec.verdict.outcome
+        proofs.append(
+            {
+                "path": str(path),
+                "scenario_pillar": scen,
+                "verdict": outcome,
+                "proof_id_prefix": rec.proof_id[:16],
+                "schema_version": rec.schema_version,
+            }
+        )
+        bucket = scenarios.setdefault(scen, {"count": 0, "by_verdict": {}})
+        bucket["count"] += 1
+        bucket["by_verdict"][outcome] = bucket["by_verdict"].get(outcome, 0) + 1
+
+    return {
+        "directory": str(root),
+        "total_proofs": sum(1 for p in proofs if "error" not in p),
+        "load_errors": sum(1 for p in proofs if "error" in p),
+        "by_scenario": scenarios,
+        "proofs": proofs,
+    }
+
+
+def run_scenario_impl(name: str, kwargs_json: str = "{}") -> dict[str, Any]:
+    """Construct + run a scenario and return its signed-proof summary.
+
+    Warning: this is the heaviest tool exposed. Scenarios may run for
+    tens of seconds to many minutes. Use sparingly.
+
+    Args:
+        name: scenario registered name.
+        kwargs_json: JSON-encoded dict of constructor kwargs. Pass
+            ``"{}"`` for default construction.
+
+    Returns:
+        A summary dict (NOT the full proof — proofs may be tens of KB
+        and would overwhelm MCP transports). Persist server-side if you
+        need the full record.
+    """
+    if name not in SCENARIOS:
+        raise ValueError(f"unknown scenario {name!r}")
+    cls = SCENARIOS[name]
+    try:
+        kwargs: Any = json.loads(kwargs_json) if kwargs_json else {}
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"kwargs_json is not valid JSON: {exc}") from exc
+    if not isinstance(kwargs, dict):
+        raise ValueError("kwargs_json must decode to a JSON object")
+
+    instance = cls(**kwargs)
+    # Cross-framework scenarios ignore the substrate (they have their own
+    # oracle); other scenarios (Tier.SCIENTIFIC, etc.) read from it. Pass
+    # a deterministic MockSubstrate so both shapes work without the caller
+    # having to know which tier they're invoking.
+    substrate = MockSubstrate(seed=1)
+    proof = instance.run(substrate=substrate)
+    return {
+        "scenario": name,
+        "verdict": {
+            "outcome": proof.verdict.outcome,
+            "observed_value": proof.verdict.observed_value,
+            "threshold": {
+                "metric": proof.verdict.threshold.metric,
+                "comparator": proof.verdict.threshold.comparator,
+                "value": proof.verdict.threshold.value,
+            },
+            "reasoning": proof.verdict.reasoning,
+        },
+        "proof_id": proof.proof_id,
+        "signature_prefix": proof.signature[:16],
+        "claim_statement": proof.claim.statement,
+        "n_evidence_pillars": len(proof.evidence),
+        "framework_version": __version__,
+    }

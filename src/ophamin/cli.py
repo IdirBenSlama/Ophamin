@@ -912,6 +912,41 @@ def cmd_verify(args: argparse.Namespace) -> int:
     return 1 if has_required_failure(results) else 0
 
 
+def cmd_http_serve(args: argparse.Namespace) -> int:
+    """Start the Ophamin HTTP REST API server (uvicorn-backed).
+
+    Returns exit code 0 on clean shutdown; the function blocks until
+    uvicorn returns. Bind host defaults to 127.0.0.1 — pass
+    ``--host 0.0.0.0`` for production.
+
+    Requires fastapi + uvicorn (both in core deps).
+    """
+    try:
+        import uvicorn  # noqa: F401  # imported only for runtime check
+
+        from ophamin.http_api import build_app
+    except ImportError as exc:
+        print(
+            "ophamin http serve requires fastapi + uvicorn (in core "
+            "dependencies). The import failed: "
+            f"{exc}",
+            file=__import__("sys").stderr,
+        )
+        return 1
+
+    app = build_app()
+    import uvicorn as _uvicorn
+
+    _uvicorn.run(
+        app,
+        host=args.host,
+        port=args.port,
+        workers=args.workers,
+        log_level=args.log_level,
+    )
+    return 0
+
+
 def cmd_mcp_serve(args: argparse.Namespace) -> int:
     """Start the Ophamin MCP server.
 
@@ -2670,6 +2705,45 @@ def build_parser() -> argparse.ArgumentParser:
         help="optional mount path for sse / streamable-http transports",
     )
     p_mcp_serve.set_defaults(func=cmd_mcp_serve)
+
+    p_http = sub.add_parser(
+        "http",
+        help="run the Ophamin HTTP REST API "
+             "(exposes scenarios + signature operations to any HTTP "
+             "client — Kubernetes microservices, browsers, curl scripts, "
+             "any consumer that speaks JSON over HTTP)",
+    )
+    p_http_sub = p_http.add_subparsers(dest="http_cmd", required=True)
+    p_http_serve = p_http_sub.add_parser(
+        "serve",
+        help="start the HTTP API server (uvicorn-backed)",
+    )
+    p_http_serve.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="bind host (default: 127.0.0.1 — change to 0.0.0.0 "
+             "to listen on all interfaces)",
+    )
+    p_http_serve.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="bind port (default: 8000)",
+    )
+    p_http_serve.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="number of worker processes (default: 1; uvicorn-supported "
+             "values 1..N)",
+    )
+    p_http_serve.add_argument(
+        "--log-level",
+        default="info",
+        choices=["critical", "error", "warning", "info", "debug", "trace"],
+        help="uvicorn log level (default: info)",
+    )
+    p_http_serve.set_defaults(func=cmd_http_serve)
 
     p_drift = sub.add_parser(
         "drift-detect",
