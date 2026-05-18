@@ -7,7 +7,60 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.26.0] below for the latest cut.)
+(empty — see [0.26.1] below for the latest cut.)
+
+## [0.26.1] — 2026-05-18
+
+**Headline:** Cross-language CI fix on 0.26.0's Rust example +
+docs absorption surfacing the runnable examples from
+`INTEROP_OVERVIEW.md`.
+
+### Fixed — clippy `approx_constant` on the Rust write-side example
+
+The 0.26.0 release added
+`crates/ophamin-proof/examples/sign_value.rs` containing the
+literal `3.14159` (matching the Python cross-language fixture's
+"pi" key exactly so the example's canonical bytes line up with
+every other port). Rust stable's clippy treats `3.14159` as an
+approximate-PI usage and refuses to build under
+`-D warnings` — the same lint that landed
+`#![allow(clippy::approx_constant)]` on `writer.rs` and
+`writer_conformance.rs` at 0.21.2.
+
+Fix: same `#![allow(clippy::approx_constant)]` opening + brief
+inline comment explaining why the literal is deliberate at the
+top of `examples/sign_value.rs`.
+
+Also tightened the file's docstring (it referenced
+`ophamin_proof::writer` while the example uses the re-exported
+crate-root surface).
+
+### Added — `docs/INTEROP_OVERVIEW.md` "Runnable examples" section
+
+New table mapping each of the five interop layers (plus Python
+wire-format) to its run-command and what the demo exercises:
+
+- **Wire-format (Python)** — `pytest tests/test_canonical_form_fixtures.py`
+- **Wire-format (Rust)** — `cargo run --example verify_proof` /
+  `cargo run --example sign_value`
+- **Wire-format (JS)** — `npm run example:verify` /
+  `npm run example:sign`
+- **MCP / HTTP / CloudEvents / OTel** — the four Python walkthroughs
+  added at 0.25.0
+
+Closing paragraph names that each script self-asserts its
+invariants (CI smoke gates them) and points at
+[`examples/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/examples/README.md)
+for the full catalogue.
+
+### Verified
+
+- `mkdocs build --strict` clean, exit 0.
+- Clippy fix mirrors the 0.21.2 pattern already validated on the
+  same lint.
+
+No substrate or wire-format changes. Rust + JS package versions
+remain at 0.21.2.
 
 ## [0.26.0] — 2026-05-18
 

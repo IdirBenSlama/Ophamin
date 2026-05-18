@@ -195,6 +195,25 @@ The interop layers follow Ophamin's
 A drift in any `@Stable` surface is a major-version bump with a
 documented migration path.
 
+## Runnable examples
+
+Every layer ships at least one runnable consumer-facing example:
+
+| Layer | Run | What it does |
+|---|---|---|
+| Wire-format (Python) | `pytest tests/test_canonical_form_fixtures.py` | Validates Python canonical-form encoder against 5 cross-language fixtures |
+| Wire-format (Rust) | `cd crates/ophamin-proof && cargo run --example verify_proof`<br>`cargo run --example sign_value` | Loads a shipped proof + verifies HMAC under default key; builds a `CanonicalValue` tree + signs |
+| Wire-format (JS) | `cd packages/ophamin-proof-js && npm run example:verify`<br>`npm run example:sign` | Same shape as the Rust examples |
+| MCP server | `PYTHONPATH=src python examples/walkthrough_mcp_server.py` | Exercises all 6 MCP tools through FastMCP's in-process `call_tool` |
+| HTTP REST API | `PYTHONPATH=src python examples/walkthrough_http_api.py` | Drives 7 endpoints + inspects `/openapi.json` via `TestClient` |
+| CloudEvents | `PYTHONPATH=src python examples/walkthrough_cloudevents.py` | Wraps + transit-serializes + unwraps + re-verifies a real shipped proof |
+| OpenTelemetry | `PYTHONPATH=src python examples/walkthrough_otel.py` | Installs `InMemoryExporter`, exercises impls, prints captured spans + metrics |
+
+Each script self-asserts its invariants — they exit non-zero on
+behavioural drift, so they double as CI smoke pins. See
+[`examples/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/examples/README.md)
+for the full catalogue.
+
 ## See also
 
 - [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md) — the normative wire-format spec.

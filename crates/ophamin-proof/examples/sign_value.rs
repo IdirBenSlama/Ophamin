@@ -1,3 +1,10 @@
+#![allow(clippy::approx_constant)]
+// ^ ``3.14159`` below is deliberately used as a near-PI fixture
+// value matching the Python cross-language fixture exactly so the
+// canonical bytes shown by the example match what every other port
+// produces. Clippy's ``approx_constant`` lint would suggest the
+// constant; allow locally rather than diverge from the fixture.
+
 //! Write-side example: build a canonical value tree from Rust,
 //! canonicalize to bytes, and sign with HMAC-SHA256.
 //!
@@ -5,10 +12,10 @@
 //!
 //!     cargo run --example sign_value
 //!
-//! Demonstrates the consumer-facing surface of the
-//! ``ophamin_proof::writer`` module: construct a ``CanonicalValue``
-//! tree using the typed enum (``Object`` / ``Array`` / ``String`` /
-//! ``Int`` / ``Float`` / ``Bool`` / ``Null``), canonicalize to bytes
+//! Demonstrates the consumer-facing write-side of
+//! ``ophamin_proof``: construct a ``CanonicalValue`` tree using
+//! the typed enum (``Object`` / ``Array`` / ``String`` / ``Int`` /
+//! ``Float`` / ``Bool`` / ``Null``), canonicalize to bytes
 //! matching the Python reference encoder byte-for-byte, then sign
 //! under any application key. The resulting signature verifies
 //! identically against the Python reference verifier.
