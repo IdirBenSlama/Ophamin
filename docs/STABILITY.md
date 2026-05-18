@@ -36,6 +36,26 @@ Both follow the same shape:
 | Deprecation cycle | `@Deprecated(removal_version=...)` | Document in "Deprecated fields" row + 1+ minor of read-compat |
 | Reader robustness | Default values for new optional params | `from_dict` defaults absent fields |
 
+## Interop-layer stability
+
+The five interop layers shipped at `0.16.0`–`0.21.0` (cross-language
+wire-format ports, MCP server, HTTP REST API, CloudEvents wrapper,
+OpenTelemetry instrumentation) each have their own stability surface
+that sits on top of the runtime + wire-format contracts above:
+
+| Layer | `@Stable` surface | `@Provisional` surface |
+|---|---|---|
+| Wire-format ports (Rust + JS) | Public exports listed in each port's `lib.rs` / `src/index.ts` — `parseProof`, `verifySignature`, `canonicalBytes`, `signCanonical`, `CanonicalValue` enum, `PyInt` wrapper | Internal module layout under `crates/ophamin-proof/src/**` + `packages/ophamin-proof-js/src/**` |
+| MCP server | The six tool names + their argument schemas (`list_scenarios`, `get_scenario_claim`, `verify_proof`, `canonicalize_value`, `read_proof_index`, `run_scenario`) | Transport choice (stdio vs SSE vs streamable-http); server bootstrap internals |
+| HTTP REST API | Endpoint paths + request/response body shapes (`/health`, `/version`, `/scenarios`, `/scenarios/{name}/claim`, `/scenarios/{name}/run`, `/canonicalize`, `/verify`, `/proofs/index`) | Underlying FastAPI app object identity; middleware order |
+| CloudEvents wrapper | Envelope attribute names emitted by `wrap()` (`specversion`, `type`, `source`, `id`, `time`, `datacontenttype`); `wrap()` / `unwrap()` Python signatures | Default `type` value naming; per-extension future fields |
+| OpenTelemetry instrumentation | Span names (`ophamin.scenario.run.<name>`, `ophamin.proof.verify`, `ophamin.canonical.encode`), span attribute names, metric names (`ophamin_scenarios_run_total`, `ophamin_scenario_duration_seconds`, `ophamin_proofs_verified_total`, `ophamin_canonical_bytes_encoded`) | Metric internals (histogram bucket boundaries, exemplar policy) |
+
+A drift in any `@Stable` interop surface is a major-version bump
+with a documented migration path. The single-page on-ramp for any
+external consumer reviewing the full surface is
+[`INTEROP_OVERVIEW.md`](INTEROP_OVERVIEW.md).
+
 ## Auditing your own codebase
 
 If you depend on Ophamin, run:

@@ -7,7 +7,46 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.25.0] below for the latest cut.)
+(empty — see [0.25.1] below for the latest cut.)
+
+## [0.25.1] — 2026-05-18
+
+**Headline:** Docs-only patch absorbing the interop-layer stability
+contract into the canonical `docs/STABILITY.md` page. No substrate
+or wire-format changes.
+
+The 0.16.0-0.21.0 interop arc shipped five new public surfaces
+(wire-format ports, MCP server, HTTP REST API, CloudEvents
+wrapper, OpenTelemetry instrumentation), each with its own
+stability surface. The contract was already documented in
+`docs/INTEROP_OVERVIEW.md` §"Stability contract" but the
+canonical `docs/STABILITY.md` page only covered the Python-API
+contract (E8) + the wire-format contract (SCHEMAS.md). This
+patch absorbs the interop-layer contract into the same page so
+the consumer sees one canonical stability surface.
+
+### Added — `docs/STABILITY.md` interop-layer stability section
+
+New table mapping each layer's `@Stable` surface and
+`@Provisional` surface:
+
+- **Wire-format ports (Rust + JS)**: stable exports listed in
+  each port's public module; provisional internal layout.
+- **MCP server**: stable tool names + argument schemas;
+  provisional transport choice + bootstrap internals.
+- **HTTP REST API**: stable endpoint paths + request/response
+  body shapes; provisional FastAPI app object identity +
+  middleware order.
+- **CloudEvents wrapper**: stable envelope attributes emitted by
+  `wrap()` + `wrap()`/`unwrap()` Python signatures; provisional
+  default `type` naming.
+- **OTel instrumentation**: stable span names + attribute names +
+  metric names; provisional metric internals (histogram bucket
+  boundaries, exemplar policy).
+
+### Verified
+
+- `mkdocs build --strict` clean, exit 0.
 
 ## [0.25.0] — 2026-05-18
 
