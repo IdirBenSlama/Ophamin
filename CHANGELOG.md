@@ -7,7 +7,126 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.19.0] below for the latest cut.)
+(empty — see [0.20.0] below for the latest cut.)
+
+## [0.20.0] — 2026-05-18
+
+**Headline:** Ophamin now ships **OpenTelemetry instrumentation**.
+Every scenario run, proof verification, and canonical-form
+operation emits OTel spans + metrics; any OTel-compatible backend
+(Jaeger / Zipkin / Tempo / Grafana / Datadog / New Relic / Honeycomb
+/ GCP Cloud Trace / AWS X-Ray / Azure Monitor) can collect and
+visualize Ophamin in production.
+
+This is the **fifth interop layer**:
+- Wire-format ports (0.16.x): non-Python *systems* verify.
+- MCP server (0.17.x): non-Python *agents* drive.
+- HTTP REST API (0.18.0): non-Python *services* speak JSON / HTTP.
+- CloudEvents wrapper (0.19.0): *event streams* route Ophamin records.
+- **OpenTelemetry observability (0.20.0): *backends* see what runs.**
+
+This is the **twelfth minor-version bump** in the 0.x line.
+
+### Added — `ophamin.observability` subpackage
+
+- **`src/ophamin/observability/otel.py`** — tracer + meter
+  accessors + opt-in setup helper:
+  - `get_tracer() / get_meter()` — return the Ophamin-namespaced
+    proxies (no-op when no SDK provider is configured; pick up
+    the SDK when one is wired).
+  - `setup_otel(*, service_name, otlp_endpoint, enable_console_exporter)`
+    — wires OTLP HTTP exporter + (optional) console exporter onto
+    a single Ophamin-namespaced TracerProvider + MeterProvider.
+    Idempotent. Reads `OTEL_EXPORTER_OTLP_ENDPOINT` env var when
+    the argument is `None`.
+  - `OphaminInstrumentor` — lazy facade for the framework's
+    standard set of metric instruments. Singleton; reset via
+    `OphaminInstrumentor.reset()` (for tests only).
+- **`src/ophamin/observability/__init__.py`** — public API.
+- **`src/ophamin/observability/README.md`** — instrumentation
+  catalogue + quick start + production OTLP recipes + sidecar
+  wiring with HTTP API + MCP server + CloudEvents.
+
+### Changed — `ophamin.interfaces._impls` instrumented
+
+The three load-bearing shared impls now emit spans + metrics:
+
+| Function | Span | Metric |
+|---|---|---|
+| `run_scenario_impl` | `ophamin.scenario.run.<name>` | `ophamin_scenarios_run_total` + `ophamin_scenario_duration_seconds` |
+| `verify_proof_impl` | `ophamin.proof.verify` | `ophamin_proofs_verified_total` |
+| `canonicalize_value_impl` | `ophamin.canonical.encode` | `ophamin_canonical_bytes_encoded` |
+
+Span attributes follow the `ophamin.*` namespace (e.g.
+`ophamin.scenario.name`, `ophamin.proof.id`,
+`ophamin.verdict.outcome`). Counter / histogram labels are stable
+across versions per the framework's API-stability contract.
+
+Critical property: instrumentation is **always-on at the API
+surface**. When no SDK provider is configured (the production
+default after `pip install ophamin`), OTel's API returns proxy
+tracers + meters; the call overhead is ~100 ns per span. Wire an
+SDK provider via `setup_otel()` to ship telemetry to a backend.
+
+Cross-transport propagation: because the MCP server, HTTP REST API,
+and CloudEvents wrapper all call the SAME shared impls, **every
+consumer surface gets the same spans automatically** without
+per-transport instrumentation.
+
+### Added — pinning tests in `tests/test_otel_instrumentation.py`
+
+**13 new tests** using OTel's `InMemorySpanExporter` and
+`InMemoryMetricReader` to capture what gets emitted. Tests cover:
+
+- Constants (`DEFAULT_SERVICE_NAME`, `INSTRUMENTATION_NAME`,
+  `INSTRUMENTATION_VERSION` match framework version).
+- No-op path: `get_tracer()` / `get_meter()` return functional
+  proxies when no SDK is configured; `start_as_current_span` is
+  callable.
+- Per-instrumentation-site:
+  - `verify_proof_impl` emits `ophamin.proof.verify` span with
+    `ophamin.proof.verified` / `ophamin.verdict.outcome` /
+    `ophamin.proof.id` attributes.
+  - Tampered proof sets span status to ERROR (without raising).
+  - `verify_proof_impl` increments
+    `ophamin_proofs_verified_total`.
+  - `canonicalize_value_impl` emits `ophamin.canonical.encode`
+    span with `ophamin.canonical.bytes` attribute; records
+    `ophamin_canonical_bytes_encoded` histogram.
+  - `run_scenario_impl` emits `ophamin.scenario.run.<name>`
+    span with the full scenario metadata; records both counter
+    + duration histogram.
+- **Behavioural-drift guard**: `verify_proof_impl`'s return shape
+  is unchanged with OTel SDK installed vs without. Every field
+  that existed pre-0.20.0 still present.
+
+### Why this matters (interop closure)
+
+OpenTelemetry is the de-facto standard for observability across
+cloud-native + on-prem infrastructure. Wiring it into Ophamin's
+shared impls means:
+
+- **Tracing**: every scenario run becomes a span. A multi-step
+  research pipeline (run → verify → wrap-in-CloudEvent → route →
+  re-verify) shows up as a single trace tree, joinable on
+  `ophamin.proof.id`.
+- **Metrics**: scenario throughput, duration distribution, verify
+  outcomes — all available as Prometheus / Datadog / Cloud Watch
+  metrics with stable labels.
+- **Backend-agnostic**: pick your provider. Ophamin doesn't
+  prescribe.
+- **Production zero-cost-when-off**: no-op proxies when no SDK is
+  wired. Same code path everywhere.
+
+### Verification
+
+- OTel tests: 13/13 pass locally in 1.80s.
+- All five transport-layer interop test files together (MCP,
+  HTTP, CloudEvents, OTel, plus the shared canonical-form
+  fixtures) — **100/100 pass in 2.40s**.
+- `ruff check` + `mypy --strict` clean on the new modules.
+- Behavioural-drift guard test confirms: every shared-impl
+  return value is identical with vs without OTel SDK installed.
 
 ## [0.19.0] — 2026-05-18
 

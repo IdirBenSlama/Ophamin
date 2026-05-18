@@ -27,13 +27,18 @@ import base64
 import hashlib
 import hmac
 import json
+import time
 from pathlib import Path
 from typing import Any
+
+from opentelemetry import trace
+from opentelemetry.trace import Status, StatusCode
 
 from ophamin import __version__
 from ophamin.measuring.proof.codec import iter_proofs, load
 from ophamin.measuring.proof.record import _canonical, content_hash
 from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, SCENARIOS, Tier
+from ophamin.observability.otel import OphaminInstrumentor
 from ophamin.seeing.substrate.mock import MockSubstrate
 
 
@@ -156,48 +161,84 @@ def verify_proof_impl(proof_json: str, sign_key_b64: str = "") -> dict[str, Any]
     ``verified: False`` so callers can introspect the proof's fields
     even when verification fails.
 
+    Emits an OpenTelemetry span ``ophamin.proof.verify`` with
+    attributes ``ophamin.proof.verified`` (bool), ``ophamin.proof.id``
+    (sha256 hex), ``ophamin.verdict.outcome``, and increments the
+    ``ophamin_proofs_verified_total`` counter.
+
     Raises:
         ValueError: only on malformed JSON or non-object top-level
             input. Signature mismatch is a normal result, not an error.
     """
-    key = decode_sign_key(sign_key_b64)
-    try:
-        record_dict: Any = json.loads(proof_json)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"proof_json is not valid JSON: {exc}") from exc
-    if not isinstance(record_dict, dict):
-        raise ValueError("proof_json must decode to a JSON object")
+    instr = OphaminInstrumentor.get()
+    with instr.tracer.start_as_current_span("ophamin.proof.verify") as span:
+        key = decode_sign_key(sign_key_b64)
+        try:
+            record_dict: Any = json.loads(proof_json)
+        except json.JSONDecodeError as exc:
+            span.set_status(Status(StatusCode.ERROR, "invalid_json"))
+            raise ValueError(f"proof_json is not valid JSON: {exc}") from exc
+        if not isinstance(record_dict, dict):
+            span.set_status(Status(StatusCode.ERROR, "not_object"))
+            raise ValueError("proof_json must decode to a JSON object")
 
-    # Reconstruct the body that Python signed over (everything except
-    # ``signature`` and ``proof_id``). Mirrors the Rust + JS ports'
-    # body-for-signing semantics.
-    body = {k: v for k, v in record_dict.items() if k not in ("signature", "proof_id")}
-    canonical = _canonical(body).encode("utf-8")
-    expected_hex = hmac.new(key, canonical, hashlib.sha256).hexdigest()
-    sig = record_dict.get("signature", "")
-    verified = isinstance(sig, str) and hmac.compare_digest(sig, expected_hex)
-    proof_id = hashlib.sha256(canonical).hexdigest()
+        # Reconstruct the body that Python signed over (everything except
+        # ``signature`` and ``proof_id``). Mirrors the Rust + JS ports'
+        # body-for-signing semantics.
+        body = {k: v for k, v in record_dict.items() if k not in ("signature", "proof_id")}
+        canonical = _canonical(body).encode("utf-8")
+        expected_hex = hmac.new(key, canonical, hashlib.sha256).hexdigest()
+        sig = record_dict.get("signature", "")
+        verified = isinstance(sig, str) and hmac.compare_digest(sig, expected_hex)
+        proof_id = hashlib.sha256(canonical).hexdigest()
 
-    verdict = record_dict.get("verdict") or {}
+        verdict = record_dict.get("verdict") or {}
+        outcome = verdict.get("outcome", "") if isinstance(verdict, dict) else ""
 
-    return {
-        "verified": verified,
-        "proof_id": proof_id,
-        "schema_version": record_dict.get("schema_version", ""),
-        "verdict": {
-            "outcome": verdict.get("outcome", ""),
-            "observed_value": verdict.get("observed_value", None),
-            "reasoning": verdict.get("reasoning", ""),
-            "threshold": verdict.get("threshold", {}),
-        },
-        "claim_statement": (record_dict.get("claim") or {}).get("statement", ""),
-        "framework_versions": {
-            "ophamin_version_in_record": (record_dict.get("identity") or {}).get(
-                "ophamin_version", ""
-            ),
-            "ophamin_version_in_server": __version__,
-        },
-    }
+        span.set_attribute("ophamin.proof.verified", verified)
+        span.set_attribute("ophamin.proof.id", proof_id)
+        span.set_attribute("ophamin.verdict.outcome", outcome)
+        if not verified:
+            span.set_status(Status(StatusCode.ERROR, "signature_mismatch"))
+
+        instr.proofs_verified.add(
+            1,
+            attributes={
+                "verified": str(verified).lower(),
+                "outcome": outcome,
+            },
+        )
+
+        return {
+            "verified": verified,
+            "proof_id": proof_id,
+            "schema_version": record_dict.get("schema_version", ""),
+            "verdict": {
+                "outcome": outcome,
+                "observed_value": (
+                    verdict.get("observed_value", None)
+                    if isinstance(verdict, dict)
+                    else None
+                ),
+                "reasoning": (
+                    verdict.get("reasoning", "")
+                    if isinstance(verdict, dict)
+                    else ""
+                ),
+                "threshold": (
+                    verdict.get("threshold", {})
+                    if isinstance(verdict, dict)
+                    else {}
+                ),
+            },
+            "claim_statement": (record_dict.get("claim") or {}).get("statement", ""),
+            "framework_versions": {
+                "ophamin_version_in_record": (record_dict.get("identity") or {}).get(
+                    "ophamin_version", ""
+                ),
+                "ophamin_version_in_server": __version__,
+            },
+        }
 
 
 def canonicalize_value_impl(
@@ -208,23 +249,32 @@ def canonicalize_value_impl(
     The default ``sign_key_b64`` is empty, in which case the framework-
     wide ``DEFAULT_SIGN_KEY`` is used. Pass a custom key when verifying
     against alternative deployment signatures.
-    """
-    key = decode_sign_key(sign_key_b64)
-    try:
-        value = json.loads(value_json)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"value_json is not valid JSON: {exc}") from exc
 
-    canonical = _canonical(value)
-    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
-    mac = hmac.new(key, canonical.encode("utf-8"), hashlib.sha256).hexdigest()
-    return {
-        "canonical": canonical,
-        "canonical_bytes_len": len(canonical),
-        "sha256_hex": digest,
-        "hmac_sha256_hex": mac,
-        "content_hash": content_hash(value),
-    }
+    Emits an ``ophamin.canonical.encode`` span with
+    ``ophamin.canonical.bytes`` attribute and records the byte length
+    on the ``ophamin_canonical_bytes_encoded`` histogram.
+    """
+    instr = OphaminInstrumentor.get()
+    with instr.tracer.start_as_current_span("ophamin.canonical.encode") as span:
+        key = decode_sign_key(sign_key_b64)
+        try:
+            value = json.loads(value_json)
+        except json.JSONDecodeError as exc:
+            span.set_status(Status(StatusCode.ERROR, "invalid_json"))
+            raise ValueError(f"value_json is not valid JSON: {exc}") from exc
+
+        canonical = _canonical(value)
+        digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        mac = hmac.new(key, canonical.encode("utf-8"), hashlib.sha256).hexdigest()
+        span.set_attribute("ophamin.canonical.bytes", len(canonical))
+        instr.canonical_bytes.record(len(canonical))
+        return {
+            "canonical": canonical,
+            "canonical_bytes_len": len(canonical),
+            "sha256_hex": digest,
+            "hmac_sha256_hex": mac,
+            "content_hash": content_hash(value),
+        }
 
 
 def read_proof_index_impl(directory: str) -> dict[str, Any]:
@@ -303,28 +353,77 @@ def run_scenario_impl(name: str, kwargs_json: str = "{}") -> dict[str, Any]:
     if not isinstance(kwargs, dict):
         raise ValueError("kwargs_json must decode to a JSON object")
 
-    instance = cls(**kwargs)
-    # Cross-framework scenarios ignore the substrate (they have their own
-    # oracle); other scenarios (Tier.SCIENTIFIC, etc.) read from it. Pass
-    # a deterministic MockSubstrate so both shapes work without the caller
-    # having to know which tier they're invoking.
-    substrate = MockSubstrate(seed=1)
-    proof = instance.run(substrate=substrate)
-    return {
-        "scenario": name,
-        "verdict": {
-            "outcome": proof.verdict.outcome,
-            "observed_value": proof.verdict.observed_value,
-            "threshold": {
-                "metric": proof.verdict.threshold.metric,
-                "comparator": proof.verdict.threshold.comparator,
-                "value": proof.verdict.threshold.value,
+    instr = OphaminInstrumentor.get()
+    meta = scenario_metadata(name)
+    with instr.tracer.start_as_current_span(f"ophamin.scenario.run.{name}") as span:
+        span.set_attribute("ophamin.scenario.name", name)
+        span.set_attribute("ophamin.scenario.family", meta.get("family", ""))
+        span.set_attribute("ophamin.scenario.tier", meta.get("tier", ""))
+        span.set_attribute("ophamin.scenario.target", meta.get("target", ""))
+
+        instance = cls(**kwargs)
+        # Cross-framework scenarios ignore the substrate (they have their own
+        # oracle); other scenarios (Tier.SCIENTIFIC, etc.) read from it.
+        # Pass a deterministic MockSubstrate so both shapes work without the
+        # caller having to know which tier they're invoking.
+        substrate = MockSubstrate(seed=1)
+        t0 = time.perf_counter()
+        try:
+            proof = instance.run(substrate=substrate)
+        except Exception as exc:
+            span.set_status(Status(StatusCode.ERROR, str(exc)))
+            span.record_exception(exc)
+            instr.scenarios_run.add(
+                1,
+                attributes={
+                    "scenario": name,
+                    "family": meta.get("family", ""),
+                    "tier": meta.get("tier", ""),
+                    "outcome": "EXCEPTION",
+                },
+            )
+            raise
+        duration = time.perf_counter() - t0
+        instr.scenario_duration.record(
+            duration,
+            attributes={"scenario": name, "family": meta.get("family", "")},
+        )
+
+        span.set_attribute("ophamin.verdict.outcome", proof.verdict.outcome)
+        span.set_attribute(
+            "ophamin.verdict.observed_value", proof.verdict.observed_value
+        )
+        span.set_attribute("ophamin.proof.id", proof.proof_id)
+        # Status from verdict: VALIDATED/INCONCLUSIVE are OK from
+        # the framework's POV (the scenario completed normally);
+        # REFUTED is also OK at the span level (a refutation is a
+        # successful experimental outcome, not an error). Only
+        # exceptions flip the span to ERROR.
+        instr.scenarios_run.add(
+            1,
+            attributes={
+                "scenario": name,
+                "family": meta.get("family", ""),
+                "tier": meta.get("tier", ""),
+                "outcome": proof.verdict.outcome,
             },
-            "reasoning": proof.verdict.reasoning,
-        },
-        "proof_id": proof.proof_id,
-        "signature_prefix": proof.signature[:16],
-        "claim_statement": proof.claim.statement,
-        "n_evidence_pillars": len(proof.evidence),
-        "framework_version": __version__,
-    }
+        )
+
+        return {
+            "scenario": name,
+            "verdict": {
+                "outcome": proof.verdict.outcome,
+                "observed_value": proof.verdict.observed_value,
+                "threshold": {
+                    "metric": proof.verdict.threshold.metric,
+                    "comparator": proof.verdict.threshold.comparator,
+                    "value": proof.verdict.threshold.value,
+                },
+                "reasoning": proof.verdict.reasoning,
+            },
+            "proof_id": proof.proof_id,
+            "signature_prefix": proof.signature[:16],
+            "claim_statement": proof.claim.statement,
+            "n_evidence_pillars": len(proof.evidence),
+            "framework_version": __version__,
+        }
