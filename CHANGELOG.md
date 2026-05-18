@@ -7,7 +7,91 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.22.0] below for the latest cut.)
+(empty — see [0.23.0] below for the latest cut.)
+
+## [0.23.0] — 2026-05-18
+
+**Headline:** Documentation consolidation reflecting the interop
+arc landed across 0.16.x–0.21.x. The methods paper draft now
+covers all five interop layers + the cross-language wire-format
+round-trip; a new consolidated `docs/INTEROP_OVERVIEW.md` is the
+single-page on-ramp for any consumer that wants to drive,
+consume, or observe Ophamin from outside Python.
+
+This is the **fifteenth minor-version bump** in the 0.x line.
+Python framework version only — no Rust / JS package bump in this
+release.
+
+### Updated — `paper/paper.md`
+
+The methods paper, last updated at 0.15.0, has been substantially
+extended:
+
+- **§Summary**: new paragraph describing the five interop layers
+  (cross-language wire-format ports, MCP server, HTTP REST API,
+  CloudEvents wrapper, OpenTelemetry instrumentation) and the
+  "same shared implementations" guarantee.
+- **§Cross-host interoperability** (new section between Design
+  and Concrete falsifications): one subsection per layer covering
+  the technical surface, what it solves, and the load-bearing
+  property the framework provides. New citations:
+  [@mcp-spec], [@fastapi], [@cloudevents-spec], [@otel-spec].
+- **§Limitations**: rewritten. Previous "cross-language read APIs
+  ship as of 0.16.0 / writers remain future work" replaced with
+  the current state — the round-trip is symmetric since 0.21.0.
+  The non-portability of `NaN` / `Infinity` / `default=str` is
+  now explicitly called out as a documented spec limit.
+
+### Added — `paper/paper.bib` references
+
+Four new bibliography entries for the new §Interoperability
+section: `mcp-spec`, `fastapi`, `cloudevents-spec`, `otel-spec`.
+
+### Updated — `paper/README.md` falsifiable-claims table
+
+Extended from 9 to 12 falsifiable claims the paper makes.
+The three new rows lock the cross-language round-trip:
+
+- Rust write-side: a `CanonicalValue` tree built in Rust
+  canonicalises + signs to bytes Python verifies byte-for-byte.
+- JS write-side: a value tree built in JS canonicalises + signs
+  to bytes Python verifies byte-for-byte.
+- Cross-language fixtures: same canonical bytes produced by
+  Python, Rust, and JS on the same input — gated by
+  `.github/workflows/cross-language.yml` on every PR.
+
+### Added — `docs/INTEROP_OVERVIEW.md`
+
+Consolidated single-page on-ramp covering all five interop
+layers. Sections:
+
+- **At a glance**: table mapping consumer shape →
+  layer → surface → read-only? → first-shipped version.
+- **Choosing your layer**: six concrete consumer scenarios
+  ("I have a record I want to verify from a non-Python
+  language", "I'm building an AI agent", "I'm building a
+  service that talks JSON over HTTP", etc.) each with the
+  minimal code snippet to start.
+- **Cross-layer composition**: how the layers compose (Rust
+  producer → CloudEvents wrap → Kafka transit → consumer +
+  OTel span + verify via HTTP).
+- **Stability contract**: which surfaces are `@Stable` vs
+  `@Provisional`, how drift surfaces (major-version bump with
+  migration).
+- **See also**: full cross-reference to per-layer READMEs +
+  `SCHEMAS.md` + `REPRODUCING.md` + `STABILITY.md` + the
+  methods paper.
+
+Until 0.23.0 the only place that listed the full interop story
+together was the per-release CHANGELOG entries. This page is the
+canonical entry point for a new reader.
+
+### Verification
+
+- No code changes in this release; documentation only.
+- `paper/paper.md` cites every claim with a tested reference.
+- `docs/INTEROP_OVERVIEW.md` links cross-checked against the
+  current README files.
 
 ## [0.22.0] — 2026-05-18
 

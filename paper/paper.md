@@ -52,10 +52,46 @@ $\le 7 \times 10^{-14}$ — a few units of double-precision machine
 epsilon for the parametric checks, exact agreement for the
 non-parametric rank-based check.
 
+As of `0.21.x`, the framework is reachable from non-Python
+consumers across five distinct interop layers:
+
+1. **Cross-language wire-format ports**: read + write canonical
+   bytes from Rust (`crates/ophamin-proof`) and JS/TS
+   (`packages/ophamin-proof-js`). The round-trip is symmetric —
+   a Rust-built record verifies under Python and JS, a JS-built
+   record verifies under Python and Rust, all on the same
+   committed cross-language fixtures.
+2. **Model Context Protocol (MCP) server** (`ophamin mcp serve`):
+   exposes scenario listing, claim inspection, signature
+   verification, canonicalization, proof-index reading, and
+   scenario execution as MCP tools. Any MCP client (Claude Code,
+   Claude Desktop, Cursor, Cline) can drive Ophamin without a
+   Python integration.
+3. **HTTP REST API** (`ophamin http serve`): same logical surface
+   as the MCP server, exposed over HTTP for service-style
+   consumers (Kubernetes microservices, browser apps, curl
+   scripts). FastAPI-backed; auto-generates OpenAPI 3 spec at
+   `/openapi.json`.
+4. **CloudEvents 1.0 wrapper**: wraps signed proofs in
+   structured-mode envelopes so event-stream consumers (Kafka,
+   EventBridge, Knative, NATS) can route Ophamin records
+   natively without knowing the framework's wire format.
+5. **OpenTelemetry instrumentation**: scenario execution, proof
+   verification, and canonicalization emit spans + metrics with
+   stable `ophamin.*` attribute names. Any OTel-compatible
+   backend (Jaeger, Zipkin, Tempo, Datadog, New Relic,
+   Honeycomb, GCP Cloud Trace, AWS X-Ray, Azure Monitor) can
+   collect them.
+
+All five layers wrap the **same shared implementations**
+(`ophamin.interfaces._impls`), so behavioural drift between them
+is structurally impossible.
+
 The framework is intended for researchers and engineers who want
 to make falsifiable claims about a software system's behaviour
 under data, and who need those claims to survive review, replay,
-and cross-machine verification without manual intervention.
+cross-machine verification, and consumption by non-Python
+infrastructure without manual intervention.
 
 # Statement of need
 
@@ -204,6 +240,73 @@ framework-wide parametrised test
 scenario whose constructor accepts a `seed` parameter and runs
 the audit against each one as a single PR-time gate.
 
+# Cross-host interoperability
+
+Ophamin's interop story is structured so that **the same logical
+surface is exposed across five transports without code
+duplication**. A single Python module
+(`ophamin.interfaces._impls`) implements six tools — list
+scenarios, get scenario claim, verify proof, canonicalize value,
+read proof index, run scenario — as transport-agnostic
+functions. Each transport is a thin wrapper around these
+functions, so a behavioural change in one transport is
+structurally impossible without breaking all.
+
+## Cross-language wire-format ports
+
+The Rust crate `ophamin-proof` and the JS/TS package
+`@ophamin/proof` implement read-only verifiers AND write-side
+canonical-form encoders byte-for-byte equivalent to the Python
+reference. The cross-language fixtures at
+`tests/canonical_form/` consist of three reference values
+(`simple`, `unicode`, `numerical_edge`) each with its expected
+canonical byte stream and HMAC-SHA256 digest under a fixed test
+key. A `.github/workflows/cross-language.yml` CI workflow runs
+both ports against the fixtures on every PR; drift fails CI
+loud. The Rust `CanonicalValue` enum (with distinct
+`Int(i64)` / `Float(f64)` variants) preserves Python's int/float
+distinction at the type system level; the JS port uses a `PyInt`
+class for the same purpose.
+
+## MCP server
+
+`ophamin mcp serve` starts a Model Context Protocol [@mcp-spec]
+server speaking JSON-RPC over stdio (default), SSE, or
+streamable-HTTP. Any MCP client can invoke six tools mirroring
+the shared implementations. The package's `[mcp]` extra installs
+the underlying `mcp` Python SDK.
+
+## HTTP REST API
+
+`ophamin http serve` starts a FastAPI [@fastapi] app on a
+configurable host/port with eight endpoints (the six tools plus
+`/health` and `/version`). FastAPI auto-generates OpenAPI 3.x
+spec at `/openapi.json` and renders Swagger UI at `/docs`. The
+server is auth-agnostic by design; production deployments wrap
+it in middleware or sit behind an authenticating reverse proxy.
+
+## CloudEvents wrapper
+
+`ophamin.cloudevents.wrap(proof, source=...)` produces a
+CloudEvents 1.0 [@cloudevents-spec] structured-mode envelope
+with required attributes (`specversion`, `id` from the
+content-addressed `proof_id`, `source`, `type`, `time`,
+`datacontenttype`, `dataschema`) plus Ophamin-specific
+extensions (`ophaminversion`, `ophaminschema`, `ophaminverdict`)
+that consumers can route on. `ophamin.cloudevents.unwrap`
+recovers the embedded proof for downstream verification.
+
+## OpenTelemetry instrumentation
+
+The shared implementations emit OpenTelemetry [@otel-spec] spans
+with stable `ophamin.*` attribute names and metrics with stable
+labels. When no SDK provider is configured (the
+production default after `pip install ophamin`), the OTel API
+returns no-op tracers and meters; the overhead is roughly 100
+nanoseconds per span. Calling `ophamin.observability.setup_otel()`
+wires the OTLP HTTP exporter for trace + metric export to any
+OTel-compatible backend.
+
 # Concrete falsifications and agreements produced
 
 The framework has produced both verdicts. Selected examples
@@ -266,22 +369,21 @@ Three limitations bound the framework's current claim:
    to the canonical-form rules is a major-version bump with
    migration. The wire format is therefore stable today but
    evolves coarsely.
-2. **The cross-language read APIs ship as of `0.16.0`**: the
-   Rust crate [`ophamin-proof`](https://github.com/IdirBenSlama/Ophamin/tree/main/crates/ophamin-proof)
-   and the JS/TS package
-   [`@ophamin/proof`](https://github.com/IdirBenSlama/Ophamin/tree/main/packages/ophamin-proof-js)
-   both pass the canonical-form fixture suite and verify every
-   shipped Python-emitted signed proof under
-   `proofs/measurement_machinery/`. CI ([`cross-language.yml`](https://github.com/IdirBenSlama/Ophamin/blob/main/.github/workflows/cross-language.yml))
-   runs both ports on every PR. The frameworks are **read-only**
-   by design; canonical-form writers in those languages would
-   require reimplementing Python's `repr(float)` byte-for-byte
-   and remain future work.
+2. **`NaN`, `Infinity`, and Python's `default=str` fallback are
+   non-portable**: bare `NaN` / `Infinity` literals appear in
+   Python's `json.dumps` output (non-standard JSON, rejected by
+   strict parsers), and `default=str(obj)` produces
+   Python-specific string representations of non-JSON-native
+   values. Records using them remain verifiable under the
+   Python reference but cross-language ports are not required
+   to reproduce them. Scenario authors avoiding these values
+   keep records inside the portable subset; the framework's
+   own scenarios do.
 3. **The included scenarios cover a single substrate
    (`kimera-swm`) in detail.** The framework is substrate-agnostic
    by design — any system that emits per-cycle telemetry can be
    the target — but the empirical record is broadest for that one
-   case study. The five measurement-machinery scenarios are
+   case study. The seven measurement-machinery scenarios are
    substrate-free and apply universally.
 
 # Acknowledgements
