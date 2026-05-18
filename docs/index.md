@@ -45,7 +45,7 @@ signed [Empirical Proof Record](reference/schemas.md):
 - **Measurement-machinery** — claims about the *measurement apparatus*
 - **Structural** — claims about *what the substrate is*, not what it does
 
-19 scenarios ship today. See [`SCENARIO_AUTHORING.md`](SCENARIO_AUTHORING.md)
+32 scenarios ship today. See [`SCENARIO_AUTHORING.md`](SCENARIO_AUTHORING.md)
 for the authoring path.
 
 ## The load-bearing promise

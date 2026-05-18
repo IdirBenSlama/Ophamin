@@ -1,7 +1,9 @@
 //! Cross-language canonical-form fixture conformance suite.
 //!
-//! Loads the three reference fixtures under
-//! ``<repo>/tests/canonical_form/`` and asserts:
+//! Loads the five reference fixtures under
+//! ``<repo>/tests/canonical_form/`` (``boundary_cases``,
+//! ``deeply_nested``, ``numerical_edge``, ``simple``, ``unicode``)
+//! and asserts:
 //!
 //! - The Rust canonical-form encoder produces byte-equivalent output
 //!   to the committed ``<stem>.canonical.bytes`` for each fixture.

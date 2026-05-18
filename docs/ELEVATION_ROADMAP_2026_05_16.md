@@ -474,7 +474,7 @@ Estimated effort: 2–4 sessions.
 A SOTA scientific framework publishes its **benchmark corpus**:
 
 - **Substrate-vs-claim benchmark suite.** Curate 100+ signed proofs
-  across the 19 scenarios + N synthetic-substrate variants; publish
+  across the 32 scenarios + N synthetic-substrate variants; publish
   as a tagged Zenodo deposit with its own DOI separate from the
   framework's. The benchmark is then *citable as a dataset* —
   downstream papers can reference it directly.

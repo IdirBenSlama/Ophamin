@@ -10,7 +10,7 @@ few seconds, produces a signed proof record.
 ophamin scenario list
 ```
 
-You should see 19 scenarios across five tiers. Pick one that doesn't
+You should see 32 scenarios across five tiers. Pick one that doesn't
 need a real corpus on disk — `BayesianPhiPosteriorScenario` runs
 against a Family-L simulation built into the scenario itself:
 

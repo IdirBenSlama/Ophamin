@@ -73,7 +73,7 @@ acceptance criteria items that remain owner-driven:
 
 The paper makes empirical claims about the framework's own
 behaviour. Each is reproducible from the repository at the
-released version (`v0.23.0` or later):
+released version (`v0.24.0` or later):
 
 | Claim | Reproducer |
 |---|---|
@@ -85,7 +85,7 @@ released version (`v0.23.0` or later):
 | One-way ANOVA scipy ↔ statsmodels ↔ pingouin $\le 10^{-9}$ | `ophamin scenario anova-crosscheck` |
 | Mann-Whitney U scipy ↔ pingouin exact under matched continuity | `ophamin scenario mann-whitney-crosscheck` |
 | Every seed-taking scenario satisfies the reproducibility audit | `pytest tests/test_framework_wide_reproducibility.py` |
-| Canonical-form byte representation is bit-stable across the three fixtures | `pytest tests/test_canonical_form_fixtures.py` |
+| Canonical-form byte representation is bit-stable across the five fixtures (simple, unicode, numerical_edge, boundary_cases, deeply_nested) | `pytest tests/test_canonical_form_fixtures.py` |
 | Rust write-side: a `CanonicalValue` tree built in Rust canonicalises + signs to bytes Python verifies byte-for-byte | `cd crates/ophamin-proof && cargo test writer_conformance` |
 | JS write-side: a value tree built in JS canonicalises + signs to bytes Python verifies byte-for-byte | `cd packages/ophamin-proof-js && npm test -- --test-name-pattern 'JS write-side'` |
 | Cross-language fixtures: same canonical bytes produced by Python, Rust, and JS on the same input | `.github/workflows/cross-language.yml` (CI gate) |

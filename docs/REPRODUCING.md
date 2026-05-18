@@ -64,7 +64,9 @@ These are the load-bearing wire-format pins:
 pytest tests/test_canonical_form_fixtures.py -v
 ```
 
-**Expected output:** 21 passed.
+**Expected output:** all tests pass (27 at the time of writing —
+exact count grows as fixtures are added; pytest reports the total
+at the end of the run).
 
 If any of these fail on your system, the Python reference encoder
 has drifted from the committed fixtures — that's a critical signal.
@@ -79,7 +81,10 @@ npm install
 npm test
 ```
 
-**Expected output:** 55 tests passing — 48 read-side + 7 write-side.
+**Expected output:** all tests pass — read-side (canonical-form
+unit pins + fixture conformance + proof verification) + 7
+write-side conformance tests. `npm test` reports the total at
+the end of the run.
 
 The output includes lines like:
 ```
@@ -102,8 +107,10 @@ cargo test
 Requires Rust ≥ 1.75 (the documented MSRV). Install via
 [rustup](https://rustup.rs/) if you don't have a toolchain.
 
-**Expected output:** 28+ tests passing — 13 in-source unit tests +
-~10 read-side integration tests + 7 write-side conformance tests.
+**Expected output:** all tests pass — in-source unit tests +
+read-side fixture conformance + read-side integration on shipped
+proofs + 7 write-side conformance tests. `cargo test` reports
+the total at the end of the run.
 
 ### Step 5 — Verify a shipped signed proof end-to-end
 
@@ -143,18 +150,23 @@ For RFC 0002 E4 owner-side closeout, run the FULL test matrix:
 # Python — full suite (~7 minutes on a modern laptop)
 pytest -q
 
-# Expected at v0.21.2: 1693+ passed, 2 skipped, 0 failed.
+# Expected: all tests pass (1693+ at v0.21.2; the count grows
+# with every release as scenarios + fixtures + hardening pins
+# accumulate — pytest reports the total at the end of the run).
 
 # JS — full local suite (~3 seconds)
 cd packages/ophamin-proof-js && npm test
 
-# Expected: 55 passed.
+# Expected: all tests pass — read-side + write-side. The exact
+# count grows; `npm test` reports the total at the end of the run.
 
 # Rust — full local suite (~30 seconds with deps cached)
 cd crates/ophamin-proof && cargo test --all-features
 
-# Expected: 28+ passed (varies by what test files are added in
-# future releases — see the suite's --list output for the exact count).
+# Expected: all tests pass — in-source unit + integration +
+# fixture conformance + write-side conformance. Exact count
+# varies by what test files are added in future releases — see
+# the suite's --list output for the exact count.
 
 # Build reproducibility (single-machine — full cross-OS diffoscope
 # is the owner-side closeout step)
@@ -220,7 +232,7 @@ the workflow is:
 
 | Check | Where | Tests |
 |---|---|---|
-| Cross-language canonical-form (3 fixtures) | Python `tests/test_canonical_form_fixtures.py`; JS `tests/fixtures.test.ts`; Rust `tests/fixture_conformance.rs` | 21 + 12 + 10 |
+| Cross-language canonical-form (5 fixtures: simple, unicode, numerical_edge, boundary_cases, deeply_nested) | Python `tests/test_canonical_form_fixtures.py`; JS `tests/fixtures.test.ts`; Rust `tests/fixture_conformance.rs` | Python 27 + JS 4 (over 5 fixtures) + Rust 5 |
 | Cross-language WRITE side (Rust+JS → Python verify) | Rust `tests/writer_conformance.rs`; JS `tests/writer.test.ts` | 7 + 7 |
 | Real shipped proofs (7 cross-framework + ...) | All three ports | 7+ each |
 | Build reproducibility (single-machine, SOURCE_DATE_EPOCH) | Python `tests/test_build_reproducibility.py` | 3 |

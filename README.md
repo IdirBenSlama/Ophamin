@@ -82,15 +82,16 @@ Config composition / merge / dotted access is delegated to **OmegaConf**.
 
 ---
 
-## Three experimentation tiers — 19 shipped scenarios
+## Five experimentation tiers — 32 shipped scenarios
 
-The original six scenarios (Scientific / Engineering / Philosophical
-tiers) have been joined by an **empirical-deep tier** (Family A–V in
-Kimera's `EMPIRICAL_VALIDATION.md` — substrate-physics scenarios) and a
-**measurement-machinery tier** (validation of the upstream libraries
-Ophamin itself depends on). The discipline is unchanged: every scenario
-captures a pre-registered falsifiable claim before the run and emits a
-signed 9-section Empirical Proof Record.
+The original three tiers (Scientific / Engineering / Philosophical)
+have been joined by an **empirical-deep tier** (Family A–V in Kimera's
+`EMPIRICAL_VALIDATION.md` — substrate-physics scenarios) and a
+**measurement-machinery tier** (cross-framework validation of the
+upstream libraries Ophamin itself depends on: scipy ↔ statsmodels ↔
+pingouin ↔ numpy ↔ pymc ↔ numpyro). The discipline is unchanged:
+every scenario captures a pre-registered falsifiable claim before
+the run and emits a signed 9-section Empirical Proof Record.
 
 ### Scientific tier — claims about substrate behaviour
 
@@ -101,7 +102,7 @@ signed 9-section Empirical Proof Record.
 | Organizational Dissonance | Enron email (~500k records) | `entity` | Dissonance fires on ≥ 90% of GWF-cleared cycles | VALIDATED 97.4% (CI 96.2%–98.3%) |
 | Logic-Topology Siege | Linux kernel commits (~1.4M) | `entity` | Walker sustained-traversal rate ≥ 60% | REFUTED 39.6% (CI 36.0%–43.4%) |
 | Interface Contract Stability | Kimera substrate self-introspect | (structural) | OrchestratorResult field-contract violations ≤ 2 per probe | first signed proof landed |
-| Substrate Completeness | Kimera repo structural walk | (structural) | Aggregate orphan rate ≤ 20% (canonical-name files in `kimera_swm/`) | VALIDATED 8.05% (Wilson CI [0.0555, 0.13.0]) |
+| Substrate Completeness | Kimera repo structural walk | (structural) | Aggregate orphan rate ≤ 20% (canonical-name files in `kimera_swm/`) | VALIDATED 8.05% (Wilson CI [0.0555, 0.1153]) |
 | Memory-As-Deformation | captured Takwin trajectory | `entity` | Concept-set Jaccard floor across re-exposure pairs ≥ 0.80 | VALIDATED 1.0000 (Round M) |
 
 ### Engineering tier — claims about substrate cost
@@ -294,7 +295,7 @@ Ophamin/
 │   │   └── wiring/                          WiringProbe — orphan / WIRE_CANDIDATE / wired classifier
 │   ├── measuring/                         # Wheel 2 — pre-registered measurement
 │   │   ├── proof/                           the 9-section Empirical Proof Record
-│   │   ├── scenarios/                       19 scenarios across 5 tiers + authoring helpers
+│   │   ├── scenarios/                       32 scenarios across 5 tiers + authoring helpers
 │   │   ├── metrics/                         three-tier metric model
 │   │   ├── pillars/                         O · F · A · M · I · N (statsmodels / scikit-learn / scipy / …)
 │   │   └── *_helpers.py                     analytic / bayesian / causal / graph / sat_smt / timeseries

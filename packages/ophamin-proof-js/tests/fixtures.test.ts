@@ -1,8 +1,9 @@
 /**
  * Cross-language canonical-form fixture conformance suite.
  *
- * Loads the three fixtures under ``<repo>/tests/canonical_form/`` and
- * asserts:
+ * Loads the five fixtures under ``<repo>/tests/canonical_form/``
+ * (``boundary_cases``, ``deeply_nested``, ``numerical_edge``,
+ * ``simple``, ``unicode``) and asserts:
  *
  * - The JS canonical-form encoder produces byte-equivalent output to
  *   the committed ``<stem>.canonical.bytes`` for each fixture.

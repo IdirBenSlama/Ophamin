@@ -32,7 +32,7 @@ Python package under `src/ophamin/`; cross-cutting layers
 | Wheel | What it owns | Backed by |
 |---|---|---|
 | `seeing` | corpus connectors + substrate adapters + field-schema discovery + Prometheus / wiring probes | scikit-learn, h5py, pandas |
-| `measuring` | the 19 scenarios + the six pillars (O / F / A / M / I / N) + the signed proof codec | statsmodels, mapie, river, scipy, numpyro, pymc |
+| `measuring` | the 32 scenarios + the six pillars (O / F / A / M / I / N) + the signed proof codec | statsmodels, mapie, river, scipy, numpyro, pymc |
 | `comparing` | cross-commit drift detection + W3C PROV-O lineage + regression alerts | prov, mlflow, dvc, river |
 | `instrumenting` | per-cycle CPU / RSS / page-fault sampling + OTEL traces + flamegraph capture | psutil, opentelemetry, py-spy, memray |
 | `auditing` | orchestrated static analyses (ruff / bandit / mypy / pip-audit / radon / vulture / interrogate) + SARIF export | ruff, bandit, mypy, vulture, radon, pip-audit, cyclonedx-python-lib |
@@ -121,7 +121,7 @@ src/ophamin/
 │   └── wiring/          WiringProbe (orphan/wire-candidate classification)
 ├── measuring/
 │   ├── pillars/         O / F / A / M / I / N + diagnostics + adaptive + …
-│   ├── scenarios/       the 19 scenarios
+│   ├── scenarios/       the 32 scenarios
 │   ├── proof/           signed-record codec + JSON Schema
 │   └── metrics/         Tier1/2/3 metrics
 ├── comparing/

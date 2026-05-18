@@ -7,7 +7,119 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.24.2] below for the latest cut.)
+(empty — see [0.24.3] below for the latest cut.)
+
+## [0.24.3] — 2026-05-18
+
+**Headline:** Docs-only release absorbing two stale-fact-class
+drifts that surfaced during the 0.24.2 review. No substrate or
+wire-format changes; the framework's behaviour is unchanged.
+
+### Fixed — scenario count + wheel count
+
+The framework grew from 19 → 32 scenarios across the 0.13.x–0.15.x
+cross-framework cluster + Family L/M/T/U/V Round work, and grew
+from 3 → 6 wheels (added `instrumenting/`, `auditing/`, `reporting/`)
+at some point before this date. Multiple landing-page surfaces
+were still asserting the old counts.
+
+- `docs/index.md`: "19 scenarios ship today" → "32 scenarios
+  ship today" (single-line factual update).
+- `docs/getting-started/first-scenario.md`: "You should see 19
+  scenarios across five tiers" → "32 scenarios" (the tier count
+  is correct).
+- `docs/architecture/overview.md`: two occurrences of "the 19
+  scenarios" → "the 32 scenarios" (table cell + directory-tree
+  comment).
+- `docs/ELEVATION_ROADMAP_2026_05_16.md`: benchmark-suite
+  acceptance criterion "across the 19 scenarios + N synthetic-
+  substrate variants" → "across the 32 scenarios + N ...".
+- `README.md`: directory-tree comment "19 scenarios across 5
+  tiers + authoring helpers" → "32 scenarios across 5 tiers".
+- `README.md`: experimentation-tier section heading "Three
+  experimentation tiers — 19 shipped scenarios" → "Five
+  experimentation tiers — 32 shipped scenarios". The body
+  already described the empirical-deep + measurement-machinery
+  tiers as added beyond the original three — the heading was
+  lagging.
+- `src/ophamin/__init__.py`: package docstring "The structure has
+  **three wheels**, each a ring with many eyes:" → "**six
+  wheels**, in two concentric triads:" with the inner engineering
+  triad (`instrumenting` / `auditing` / `reporting`) added. The
+  docs (`index.md`, `ELEVATION_ROADMAP_2026_05_16.md`, README)
+  already described the framework with six wheels; the package
+  docstring was the one remaining holdout.
+
+### Fixed — Substrate Completeness verdict-string typo
+
+- `README.md`: the Substrate Completeness row showed Wilson CI
+  upper bound as `0.13.0` (a version-number-shaped typo);
+  corrected to `0.1153` to match the canonical Family S
+  measurement recorded in Kimera's `EMPIRICAL_VALIDATION.md`.
+
+### Fixed — paper falsifiable-claims table
+
+- `paper/README.md`: "released version (`v0.23.0` or later)"
+  bumped to `v0.24.0` (the fixture corpus extension shipped at
+  0.24.0 means claims 9 + 12 in the table reproduce only from
+  0.24.0 onward).
+- `paper/README.md`: claim row #9 "bit-stable across the three
+  fixtures" → "bit-stable across the five fixtures (simple,
+  unicode, numerical_edge, boundary_cases, deeply_nested)"
+  reflecting the 0.24.0 fixture-corpus extension.
+
+### Fixed — REPRODUCING.md durability
+
+The external-reviewer rebuild guide pinned specific test counts
+(21 / 55 / 28+) that were accurate at 0.16.0–0.21.2 but went stale
+the moment new fixtures or hardening pins landed. Replaced with
+durable "all tests pass" framing + a single-line note that pytest
+/ npm test / cargo test report the exact count at run end.
+
+- `docs/REPRODUCING.md` §Step 2 (Python fixtures): "Expected
+  output: 21 passed" → "all tests pass (27 at time of writing —
+  exact count grows as fixtures are added; pytest reports the
+  total at the end of the run)".
+- `docs/REPRODUCING.md` §Step 3 (JS port): "Expected output: 55
+  tests passing — 48 read-side + 7 write-side" → durable framing.
+- `docs/REPRODUCING.md` §Step 4 (Rust port): "Expected output:
+  28+ tests passing" → durable framing.
+- `docs/REPRODUCING.md` §Full reproducer block: three Expected
+  comments reframed the same way.
+- `docs/REPRODUCING.md` §"What's verified" table row: "Cross-
+  language canonical-form (3 fixtures)" → "(5 fixtures: simple,
+  unicode, numerical_edge, boundary_cases, deeply_nested)" with
+  per-port test counts re-grounded (Python 27 + JS 4 over 5
+  fixtures + Rust 5).
+
+### Fixed — JS + Rust test-file docstrings
+
+These docstrings had the same "Loads the three fixtures" claim
+from 0.16.0 that the 0.24.0 fixture extension made stale. They
+sit in the cross-language-port source trees, so updates touch
+`packages/ophamin-proof-js/**` + `crates/ophamin-proof/**` and
+trigger the `cross-language` CI workflow as a side effect (which
+is the right gate — the workflow validates byte-equality so any
+unintended change to the test files would be caught).
+
+- `packages/ophamin-proof-js/tests/fixtures.test.ts`: top-level
+  JSDoc "Loads the three fixtures" → "Loads the five fixtures
+  (`boundary_cases`, `deeply_nested`, `numerical_edge`, `simple`,
+  `unicode`)".
+- `crates/ophamin-proof/tests/fixture_conformance.rs`: top-level
+  `//!` doc-comment "Loads the three reference fixtures" → "Loads
+  the five reference fixtures (`boundary_cases`, `deeply_nested`,
+  `numerical_edge`, `simple`, `unicode`)".
+
+These are comment-only edits — no Rust types, methods, signatures,
+or JS exports change. The compiled bytes are identical to 0.21.2
+on both ports, so the Rust + JS package versions remain at 0.21.2.
+
+### Verified
+
+- `mkdocs build --strict` clean, exit 0, zero warnings.
+- `python -c "import ophamin; print(ophamin.__version__)"` works;
+  no public-API changes.
 
 ## [0.24.2] — 2026-05-18
 

@@ -6,15 +6,24 @@ Kimera: Kimera sits at the centre emitting; Ophamin envelops, senses, and
 returns measurement to the operator. Not a tool next to Kimera — a structure
 around it.
 
-The structure has **three wheels**, each a ring with many eyes:
+The structure has **six wheels**, in two concentric triads:
 
-    seeing      Wheel 1 — how the observatory senses Kimera and the world
-                (substrate, corpus, discovery)
-    measuring   Wheel 2 — pre-registered measurement engines + plug-in pillars
-                (proof, scenarios, metrics, pillars.{observability, adaptive,
-                effects, synthesis, robustness, diagnostics})
-    comparing   Wheel 3 — cross-Kimera-commit retrospection
-                (drift, provenance, orchestration)
+    Outer (empirical) triad:
+      seeing       Wheel 1 — how the observatory senses Kimera and the world
+                   (substrate, corpus, discovery)
+      measuring    Wheel 2 — pre-registered measurement engines + plug-in pillars
+                   (proof, scenarios, metrics, pillars.{observability, adaptive,
+                   effects, synthesis, robustness, diagnostics})
+      comparing    Wheel 3 — cross-Kimera-commit retrospection
+                   (drift, provenance, orchestration)
+
+    Inner (engineering) triad:
+      instrumenting  Wheel 4 — per-cycle CPU / RSS / page-fault sampling
+                     (psutil, opentelemetry, py-spy, memray)
+      auditing       Wheel 5 — orchestrated static-analysis tools
+                     (ruff, bandit, mypy, pip-audit)
+      reporting      Wheel 6 — render results to Markdown / HTML / LaTeX
+                     (matplotlib, jinja2)
 
 The six **plug-in pillars** (O · F · A · M · I · N) live inside the
 ``measuring`` ring:
@@ -31,7 +40,7 @@ The framework is independent of any particular substrate-under-test;
 system, and ``KimeraAdapter`` plugs in Kimera-SWM via a subprocess boundary.
 """
 
-__version__ = "0.24.2"
+__version__ = "0.24.3"
 
 from ophamin.measuring.metrics.tiers import (
     MetricBundle,
