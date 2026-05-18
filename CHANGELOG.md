@@ -7,7 +7,86 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.30.0] below for the latest cut.)
+(empty — see [0.31.0] below for the latest cut.)
+
+## [0.31.0] — 2026-05-19
+
+**Headline:** Closes RFC 0002 Phase E3 reproducer-notebooks
+acceptance ("≥ 6 scenarios") — **6/6 reproducer docs now ship**,
+covering the entire Kimera-side scientific-tier proof corpus
+(17 shipped proofs across 6 scenario families). Continues the
+campaign that started at 0.28.0 (immune_siege) and threaded
+through 0.29.0 / 0.30.0 (the §7-staleness fix).
+
+Doc-only release. No substrate or wire-format changes.
+
+### Added — 5 new per-proof-family reproducer docs
+
+Under [`proofs/REPRODUCERS/`](https://github.com/IdirBenSlama/Ophamin/tree/main/proofs/REPRODUCERS):
+
+| Doc | Proofs covered | Verdict mix |
+|---|---|---|
+| [`throughput_ceiling.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/throughput_ceiling.md) | 3 (`ThroughputCeilingScenario` × 2 + `measure_kimera_throughput.py` × 1) | 2 VALIDATED + 1 INCONCLUSIVE |
+| [`organizational_dissonance.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/organizational_dissonance.md) | 2 | both VALIDATED at 96.4 % / 97.4 % |
+| [`logic_topology_siege.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/logic_topology_siege.md) | 2 | both REFUTED at ~40 % vs 60 % threshold |
+| [`rosetta_scaling.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/rosetta_scaling.md) | 1 | REFUTED at 0/20 groups all-agree |
+| [`philosophical_self_reference.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/philosophical_self_reference.md) | 1 | REFUTED at Cohen's *d* = −0.359 (wrong-direction effect) |
+
+Each doc is anchored in primary sources (the .json proof files +
+the scenario source + the runner script) and validated against
+the actual shipped proof structure. Each:
+
+- Restates the pre-registered claim as a five-tuple.
+- Inventories the shipped proofs + verdicts.
+- Explains why the framework's discipline routes to the
+  observed verdict (especially the INCONCLUSIVE and
+  wrong-direction REFUTED cases).
+- Provides verify / re-run / spot-check / cross-proof-diff
+  workflows (cross-referencing `immune_siege.md` for the
+  recipe templates rather than repeating).
+- Names the architectural claim each test illuminates.
+
+**Empirical narrative the 6 docs together tell**:
+
+- VALIDATED proofs across multiple Kimera commits demonstrate
+  **cross-commit robustness** of substrate properties
+  (immune_siege entity-target, organizational_dissonance).
+- REFUTED proofs across multiple Kimera commits demonstrate
+  the **same gap is real**, not a one-off (immune_siege
+  gwf-direct, logic_topology_siege).
+- INCONCLUSIVE proofs demonstrate the framework's discipline
+  of refusing to declare a verdict when the substrate isn't
+  exercised (immune_siege adapter-error,
+  throughput_ceiling instrumentation gap).
+- Wrong-direction REFUTED (philosophical_self_reference,
+  Cohen's *d* = −0.359) illustrates the framework's ability
+  to report **signed** effect sizes, not just "no effect".
+- The Rosetta REFUTED at 0/20 is **the most load-bearing
+  single REFUTATION** in the corpus — directly contradicts the
+  Rosetta universal-semantic-address promise at K=10 languages.
+
+### Updated — `docs/REPRODUCING.md`
+
+The "Per-proof-family reproducer walkthroughs" section grew
+from 1 entry to a 6-row table mapping each reproducer doc to
+its proof count, verdict mix, and architectural-claim
+illumination. Closing paragraph notes that RFC 0002 Phase E3
+"≥ 6 scenarios" is now closed at 6/6 — using prose docs rather
+than Jupyter notebooks; the upgrade-to-notebooks path remains
+open.
+
+### Verified
+
+- All 14 internal link targets across the 4 new docs (2 each
+  for organizational_dissonance + logic_topology_siege; 1 each
+  for rosetta_scaling + philosophical_self_reference) resolve
+  to existing files.
+- Ctor signatures cited in each doc match scenario source
+  (verified by grep against `src/ophamin/measuring/scenarios/`).
+- `mkdocs build --strict` clean, exit 0.
+
+No substrate or wire-format changes. Rust + JS package versions
+remain at 0.21.2.
 
 ## [0.30.0] — 2026-05-18
 

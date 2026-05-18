@@ -260,14 +260,23 @@ For deeper end-to-end reproduction of a specific shipped proof
 family (loads ONE family, verifies signatures, explains why
 multiple verdicts ship, walks through re-running + spot-checking
 + cross-proof diff), see the per-family reproducer docs under
-[`proofs/REPRODUCERS/`](https://github.com/IdirBenSlama/Ophamin/tree/main/proofs/REPRODUCERS):
+[`proofs/REPRODUCERS/`](https://github.com/IdirBenSlama/Ophamin/tree/main/proofs/REPRODUCERS).
+6 reproducer docs ship today, covering the entire scientific-tier
+proof corpus from Kimera-SWM:
 
-- [`immune_siege.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/immune_siege.md)
-  — Concentrated Immune Siege (GWF false-positive ceiling)
-  family. 8 proofs across 3 experimental setups (entity-target
-  VALIDATED, gwf-direct REFUTED, one INCONCLUSIVE adapter-error
-  variant); illustrates Ophamin's discipline of shipping
-  REFUTED proofs alongside VALIDATED ones.
+| Reproducer doc | Proofs covered | Verdict mix | What it illustrates |
+|---|---|---|---|
+| [`immune_siege.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/immune_siege.md) | 8 | 3 VALIDATED + 4 REFUTED + 1 INCONCLUSIVE | GWF false-positive ceiling across two target arms; framework discipline around adapter errors → INCONCLUSIVE |
+| [`throughput_ceiling.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/throughput_ceiling.md) | 3 | 2 VALIDATED + 1 INCONCLUSIVE | p95 cycle wall-time + 50K-cycle projection; how INCONCLUSIVE captures instrumentation gaps |
+| [`organizational_dissonance.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/organizational_dissonance.md) | 2 | 2 VALIDATED | Dissonance firing rate on Enron baseline; cross-commit robustness of a VALIDATED claim |
+| [`logic_topology_siege.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/logic_topology_siege.md) | 2 | 2 REFUTED | Walker sustained-traversal rate on Linux kernel commits; cross-commit robustness of a REFUTED claim |
+| [`rosetta_scaling.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/rosetta_scaling.md) | 1 | 1 REFUTED | Cross-language canonical-agreement at K=10 — the most load-bearing single REFUTATION in the corpus |
+| [`philosophical_self_reference.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/philosophical_self_reference.md) | 1 | 1 REFUTED (negative *d*) | Cohen's *d* on self-ref vs neutral dissonance; how the framework distinguishes "no effect" from "wrong-direction effect" |
+
+This closes RFC 0002 Phase E3 "reproducer notebooks for ≥ 6
+scenarios" (6/6) — using prose docs rather than Jupyter
+notebooks; the upgrade-to-notebooks path remains open if owner
+prefers.
 
 ## See also
 
