@@ -516,12 +516,9 @@ class TonusConservationDiscoveryScenario(Scenario):
             evidence=evidence,
             verdict=verdict,
             reproduction=Reproduction(
-                command=(
-                    f"PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario "
-                    f"{self.name} "
-                    f"--sec-trajectory-path {self.sec_path} "
-                    f"--literary-trajectory-path {self.lit_path}"
-                )
+
+                command=self._build_reproduction_command(),
+
             ),
             provenance=prov.to_prov_json(),
             ophamin_version=__version__,

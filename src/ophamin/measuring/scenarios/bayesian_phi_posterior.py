@@ -457,10 +457,9 @@ class BayesianPhiPosteriorScenario(Scenario):
             evidence=evidence,
             verdict=verdict,
             reproduction=Reproduction(
-                command=(
-                    f"PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario "
-                    f"{self.name} --seed {self.seed}"
-                )
+
+                command=self._build_reproduction_command(),
+
             ),
             provenance=prov.to_prov_json(),
             ophamin_version=__version__,

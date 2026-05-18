@@ -385,12 +385,9 @@ class ProprioSelfDiscoveryScenario(Scenario):
             evidence=evidence,
             verdict=verdict,
             reproduction=Reproduction(
-                command=(
-                    f"PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario "
-                    f"{self.name} --phase-2-report {self.phase_2_path} "
-                    f"--phase-3-report {self.phase_3_path} "
-                    f"--phase-4-report {self.phase_4_path}"
-                )
+
+                command=self._build_reproduction_command(),
+
             ),
             provenance=prov.to_prov_json(),
             ophamin_version=__version__,

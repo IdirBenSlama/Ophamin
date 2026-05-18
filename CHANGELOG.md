@@ -7,7 +7,122 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.29.0] below for the latest cut.)
+(empty — see [0.30.0] below for the latest cut.)
+
+## [0.30.0] — 2026-05-18
+
+**Headline:** Full R1 refactor of the §7 reproduction-command
+staleness — every one of the 32 registered scenarios now emits a
+working `Reproduction.command` in fresh proofs. The Tier-2
+proposal opened at 0.28.0 is **fully closed**.
+
+This release continues the campaign that started at 0.28.0
+(immune_siege reproducer doc) and 0.29.0 (partial Option-C fix
+for the 6 hand-rolled-runner scenarios). 0.30.0 lands the wider
+R1 refactor for the remaining 26 scenarios that had been
+bypassing the base.py emission path with hardcoded stale strings.
+
+### Added — `Scenario._build_reproduction_command()` helper
+
+[`src/ophamin/measuring/scenarios/base.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/measuring/scenarios/base.py)
+gains a `_build_reproduction_command()` method on the `Scenario`
+base. Routes through three cases:
+
+| Case | Emits |
+|---|---|
+| `self.runner_path` set | `PYTHONPATH=src .venv/bin/python -u {runner_path}` |
+| Default-instantiable (no required ctor args) | `PYTHONPATH=src .venv/bin/python examples/run_scenario.py {name}` |
+| Required ctor args (trajectory_path, kimera_repo, etc.) | `PYTHONPATH=src .venv/bin/python -c "from ... import {Cls} as S; ...; S({args}).run(...).sign(...); print(r.proof_id)"` |
+
+The third case (inline-Python form) is verbose but **literally
+runnable** when copy-pasted: it captures the actual argument
+values from `self.<arg>` at proof-emit time, so the reviewer
+gets a working invocation with the exact paths used.
+
+### Refactored — 26 scenarios
+
+All 26 scenarios that previously hardcoded a Reproduction.command
+string now call `self._build_reproduction_command()` instead. The
+refactor was scripted via a regex-driven Python helper to avoid
+per-site copy-paste errors; pattern verification confirms zero
+stale `ophamin.cli scenario ` strings remain in
+`src/ophamin/measuring/scenarios/`.
+
+Scenarios refactored (10 default-instantiable + 16 required-args):
+`anova_crosscheck`, `bayesian_phi_posterior`,
+`bayesian_phi_posterior_crosscheck`, `causal_discovery`,
+`crdt_laws`, `cross_channel_mutual_information`,
+`deterministic_seed_audit`, `interface_contract_stability`,
+`mann_whitney_crosscheck`, `memory_as_deformation`,
+`pearson_crosscheck`, `prime_cross_instance`,
+`prime_direct_lookup`, `prime_ecosystem`, `prime_factorization`,
+`prime_structure`, `proprio_self_discovery`,
+`quantum_basis_correlation`, `sinew_conservation`,
+`sinew_modulation_disruption`, `sinew_wider_unification`,
+`spearman_crosscheck`, `substrate_completeness`,
+`tonus_conservation_discovery`, `welch_t_test_crosscheck`,
+`wilson_ci_crosscheck`.
+
+### Hardening — 11 pins (was 9 at 0.29.0)
+
+[`tests/test_runner_path_reproduction.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_runner_path_reproduction.py)
+extended with 2 new pins for the additional routing cases:
+
+- `test_default_instantiable_scenario_emits_run_scenario_form` —
+  verifies `SpearmanCrosscheckScenario` emits the
+  `examples/run_scenario.py` form via the helper.
+- `test_required_args_scenario_emits_inline_python_form` —
+  verifies a Scenario subclass with required ctor args emits the
+  inline `python -c "..."` form capturing actual arg values.
+- `test_no_scenario_in_registry_still_emits_stale_string` —
+  R1 closure pin: greps every registered scenario's source and
+  asserts zero `ophamin.cli scenario ` strings remain. Catches
+  any future scenario added with the stale pattern at PR time.
+
+All 11 pass.
+
+### Fixed — 0.29.0 CI regression
+
+The 0.29.0 hardening test `test_reproduction_command_uses_runner_path_when_set`
+called `ThroughputCeilingScenario(n_cycles=10).run(substrate=MockSubstrate())`
+end-to-end. Locally that ran clean (the offensive-security-corpus
+exists on the dev host) but CI failed on every OS/Python pair
+because the corpus is 4.4M records and isn't downloaded on CI
+runners. Refactored to call `_build_reproduction_command()`
+directly — same contract, no corpus dependency. The same
+treatment applied prophylactically to
+`test_default_instantiable_scenario_emits_run_scenario_form`
+(0.30.0 addition) so it doesn't develop the same issue.
+
+This was the genuine 0.29.0 substrate-touching regression — the
+helper-routing logic itself is unaffected; only the test's
+unnecessary `.run()` call needed swapping for a direct helper
+call.
+
+### Updated — proposal doc
+
+[`docs/proposals/PROOF_REPRODUCTION_COMMAND.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/proposals/PROOF_REPRODUCTION_COMMAND.md)
+header status flipped to **CLOSED at 0.30.0**. New "Update
+(0.30.0) — R1 refactor landed in full" section documents the
+three routing cases + the 26 refactored sites.
+
+### Verified
+
+- 11/11 hardening tests pass.
+- 144 tests pass across the regression-sensitive suites
+  (`test_proof.py`, `test_interop.py`, `test_reporting.py`,
+  `test_proof_codec.py` + the runner_path suite).
+- End-to-end smoke validates each of the 3 routing cases against
+  a real scenario.
+- No public-API breakage (the helper is purely additive; the
+  emission site routing remained semantically equivalent for the
+  6 scenarios that previously had runner_path).
+- `mkdocs build --strict` clean, exit 0.
+
+No published-package (Rust/JS) version bump. No wire-format
+changes (the signature canonical bytes include the
+Reproduction.command, so future proofs will have different
+proof_ids — but historical proofs are sealed and unchanged).
 
 ## [0.29.0] — 2026-05-18
 

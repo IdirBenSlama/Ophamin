@@ -413,10 +413,9 @@ class SinewModulationDisruptionScenario(Scenario):
             evidence=evidence,
             verdict=verdict,
             reproduction=Reproduction(
-                command=(
-                    f"PYTHONPATH=src .venv/bin/python -m ophamin.cli scenario "
-                    f"{self.name} --trajectory-path {self.trajectory_path}"
-                )
+
+                command=self._build_reproduction_command(),
+
             ),
             provenance=prov.to_prov_json(),
             ophamin_version=__version__,

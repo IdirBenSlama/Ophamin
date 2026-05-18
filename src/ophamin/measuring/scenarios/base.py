@@ -372,6 +372,79 @@ class Scenario(abc.ABC):
         """Which corpus records to use — default is the corpus stream; override to filter."""
         return corpus.records()
 
+    def _build_reproduction_command(self) -> str:
+        """Compose the canonical §7 ``Reproduction.command`` for this scenario.
+
+        Routes through three cases:
+
+        1. **``runner_path`` set** — point at the hand-rolled runner
+           script (handles multi-target scenarios + scenarios with
+           hardcoded sample sizes that the generic runner can't
+           parameterize). Closed for the 6 hand-rolled-runner
+           scenarios at 0.29.0.
+        2. **No ``runner_path`` + default-instantiable** — point at
+           the generic ``examples/run_scenario.py {name}`` runner,
+           which constructs the class with default ctor args.
+        3. **No ``runner_path`` + required ctor args** — emit a
+           runnable inline-Python form that calls the ctor with the
+           required args captured from ``self.<arg>``. Verbose but
+           **actually runnable** when copied verbatim.
+
+        Closes RFC 0002 Phase E3 §7-staleness across all 32
+        currently-registered scenarios. See
+        ``docs/proposals/PROOF_REPRODUCTION_COMMAND.md`` for the
+        full rationale (Option R1, landed at 0.30.0).
+        """
+        import inspect
+
+        if self.runner_path:
+            return (
+                f"PYTHONPATH=src .venv/bin/python -u {self.runner_path}"
+            )
+
+        sig = inspect.signature(type(self).__init__)
+        required = [
+            p.name
+            for p in sig.parameters.values()
+            if p.default is inspect.Parameter.empty
+            and p.name != "self"
+            and p.kind is not inspect.Parameter.VAR_POSITIONAL
+            and p.kind is not inspect.Parameter.VAR_KEYWORD
+        ]
+
+        if not required:
+            # Default-instantiable scenarios (crosscheck tier, etc.)
+            # — the generic runner handles them by name.
+            return (
+                f"PYTHONPATH=src .venv/bin/python "
+                f"examples/run_scenario.py {self.name}"
+            )
+
+        # Required-args path: emit an inline-Python form with actual
+        # values captured from self.<arg>. The repr() formatting
+        # quotes strings safely and reproduces standard types
+        # (Path, int, float, etc.) verbatim.
+        cls = type(self)
+        # Convert Path values to their string form for repr cleanliness.
+        from pathlib import Path as _Path
+
+        def _repr_value(value: object) -> str:
+            if isinstance(value, _Path):
+                return repr(str(value))
+            return repr(value)
+
+        arg_repr = ", ".join(
+            f"{n}={_repr_value(getattr(self, n))}" for n in required
+        )
+        return (
+            f"PYTHONPATH=src .venv/bin/python -c "
+            f'"from {cls.__module__} import {cls.__name__} as S; '
+            f"from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY; "
+            f"from ophamin.seeing.substrate import MockSubstrate; "
+            f"r = S({arg_repr}).run(substrate=MockSubstrate(seed=1))"
+            f'.sign(DEFAULT_SIGN_KEY); print(r.proof_id)"'
+        )
+
     # -- the harness -------------------------------------------------------
 
     def _build_provenance(
@@ -472,22 +545,7 @@ class Scenario(abc.ABC):
             evidence=score.evidence,
             verdict=verdict,
             reproduction=Reproduction(
-                command=(
-                    # Per-scenario runner script when declared (handles
-                    # multi-target scenarios like immune_siege that
-                    # emit two proofs in one invocation):
-                    f"PYTHONPATH=src .venv/bin/python -u {self.runner_path}"
-                    if self.runner_path
-                    # Generic CLI runner otherwise — `run-all
-                    # --scenarios <name>` is the canonical
-                    # entry-point that resolves a scenario name
-                    # to its registered class and emits a signed
-                    # CampaignRecord wrapping the proof:
-                    else (
-                        f"PYTHONPATH=src .venv/bin/python "
-                        f"-m ophamin.cli run-all --scenarios {self.name}"
-                    )
-                ),
+                command=self._build_reproduction_command(),
             ),
             provenance=self._build_provenance(substrate, dataset).to_prov_json(),
             ophamin_version=__version__,

@@ -81,12 +81,15 @@ def test_hand_rolled_runner_scenarios_declare_runner_path(
 def test_reproduction_command_uses_runner_path_when_set() -> None:
     """A scenario with ``runner_path`` emits a Reproduction.command
     that references the runner path (no longer the stale
-    ``ophamin.cli scenario`` form)."""
-    scenario = ThroughputCeilingScenario(n_cycles=10)
-    substrate = MockSubstrate(seed=1)
-    proof = scenario.run(substrate=substrate).sign(DEFAULT_SIGN_KEY)
+    ``ophamin.cli scenario`` form).
 
-    command = proof.reproduction.command
+    Calls the ``_build_reproduction_command()`` helper directly
+    rather than going through ``.run()`` — the helper's contract
+    is what we're pinning, and ``.run()`` would require a real
+    corpus (offensive-security-corpus is 4.4M records, not in CI).
+    """
+    scenario = ThroughputCeilingScenario(n_cycles=10)
+    command = scenario._build_reproduction_command()
     assert "examples/run_throughput_ceiling.py" in command, (
         f"expected runner_path-form command, got: {command!r}"
     )
@@ -96,27 +99,101 @@ def test_reproduction_command_uses_runner_path_when_set() -> None:
     )
 
 
-def test_reproduction_command_falls_through_to_runall_when_runner_path_empty() -> None:
-    """A scenario WITHOUT ``runner_path`` falls through to the
-    base.py ``run-all --scenarios`` form. Demonstrated with a
-    test-only Scenario subclass that doesn't set runner_path.
+def test_default_instantiable_scenario_emits_run_scenario_form() -> None:
+    """A scenario without ``runner_path`` and with no required ctor
+    args emits a ``examples/run_scenario.py {name}`` command via the
+    R1 helper (landed at 0.30.0).
 
-    Note: all 32 production scenarios currently either set
-    runner_path (6 hand-rolled-runner cases) or override the
-    Reproduction emission entirely (26 with custom CLI flags
-    pending the wider refactor). This test fabricates a minimal
-    Scenario to exercise the fallback path explicitly.
+    Calls the helper directly — no full ``.run()`` invocation so
+    the test doesn't depend on corpus availability on CI runners.
     """
-    # The fallback path is exercised by inspecting the base.py
-    # source rather than instantiating a synthetic Scenario (which
-    # would require pillar wiring + dataset config). The pin is
-    # structural — that the conditional emission exists with both
-    # branches.
+    from ophamin.measuring.scenarios.spearman_crosscheck import (
+        SpearmanCrosscheckScenario,
+    )
+
+    scenario = SpearmanCrosscheckScenario(n_pairs=2, sample_size=20)
+    command = scenario._build_reproduction_command()
+    assert "examples/run_scenario.py" in command
+    assert scenario.name in command
+    assert "ophamin.cli scenario " not in command  # stale form gone
+
+
+def test_required_args_scenario_emits_inline_python_form() -> None:
+    """A scenario with required ctor args emits an inline-Python form
+    via the R1 helper. Validates by calling the helper directly
+    against a scenario subclass that requires args (we can't
+    instantiate cross-channel-mi without a real trajectory file, so
+    we construct a minimal subclass)."""
+    from ophamin.measuring.scenarios.base import (
+        Scenario,
+        ScenarioScore,
+        Tier,
+    )
+    from ophamin.measuring.proof import Claim, Threshold
+
+    class _NeedsArg(Scenario, register=False):
+        name = "test-needs-arg"
+        tier = Tier.SCIENTIFIC
+        family = "test"
+        goal = "test"
+        explanation = "test"
+
+        def __init__(self, required_arg: str):
+            self.required_arg = required_arg
+
+        def build_claim(self) -> Claim:  # pragma: no cover — helper only
+            return Claim(
+                statement="x",
+                operationalization="x",
+                threshold=Threshold(metric="m", comparator="<=", value=1.0),
+                h0="x",
+                h1="x",
+            )
+
+        def score(self, results):  # pragma: no cover — helper only
+            return ScenarioScore(observed=0.0, evidence=[])
+
+    instance = _NeedsArg(required_arg="/tmp/some/path")
+    command = instance._build_reproduction_command()
+
+    # The inline form must be a runnable Python invocation.
+    assert "python -c" in command
+    # It must reference the actual class.
+    assert "_NeedsArg" in command
+    # It must capture the actual argument value via self.<name>.
+    assert "/tmp/some/path" in command
+    # The stale form must be gone.
+    assert "ophamin.cli scenario " not in command
+
+
+def test_no_scenario_in_registry_still_emits_stale_string() -> None:
+    """R1 closure pin: zero registered scenarios should emit a fresh
+    proof whose Reproduction.command contains the stale CLI form.
+
+    This is the structural completeness check — proves the R1
+    refactor landed across all 32 sites.
+    """
     import inspect
     from ophamin.measuring.scenarios import base as base_module
+    from ophamin.measuring.scenarios import SCENARIOS
 
+    # No scenario source contains the stale string anymore.
+    scenario_modules = [
+        inspect.getsourcefile(cls) for cls in SCENARIOS.values()
+    ]
+    for path in scenario_modules:
+        if path is None:
+            continue
+        with open(path, "r", encoding="utf-8") as f:
+            src = f.read()
+        assert "ophamin.cli scenario " not in src, (
+            f"stale 'ophamin.cli scenario ' string still present in {path}"
+        )
+
+    # The helper exists on the base class.
     src = inspect.getsource(base_module)
-    # The runner_path branch
+    assert "def _build_reproduction_command" in src
+    # All 3 routing branches are present.
     assert "if self.runner_path" in src
-    # The else branch (the generic fallback)
-    assert "run-all --scenarios" in src
+    assert "examples/run_scenario.py" in src
+    assert 'python -c' in src  # inline-Python form for required-args case

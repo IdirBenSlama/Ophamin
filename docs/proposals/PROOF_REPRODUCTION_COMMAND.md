@@ -1,10 +1,40 @@
 # Proposal — Working reproduction commands in §7 of every emitted proof
 
-> **Status:** **partial fix shipped at 0.29.0** (Option C, scoped to
-> the 6 hand-rolled-runner scenarios). Wider refactor for the
-> remaining 26 sites is owner-pending.
+> **Status:** **CLOSED at 0.30.0**. All 32 registered scenarios
+> now emit working §7 reproduction commands via the
+> ``Scenario._build_reproduction_command()`` helper. The R1
+> refactor recommended in this proposal landed in full.
 > **Discovered while drafting:** [`proofs/REPRODUCERS/immune_siege.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/proofs/REPRODUCERS/immune_siege.md) (0.28.0).
 > **Tier:** Tier-2 (substrate-touching but reversible + scoped).
+
+## Update (0.30.0) — R1 refactor landed in full
+
+The shared helper [`Scenario._build_reproduction_command()`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/measuring/scenarios/base.py)
+now lives on the base class and routes through three cases:
+
+1. **`runner_path` set** → emits `python -u {runner_path}`
+   pointing at the hand-rolled runner script. Used by the 6
+   scenarios listed below.
+2. **No `runner_path` + default-instantiable ctor** → emits
+   `python examples/run_scenario.py {name}` pointing at the
+   generic runner. Used by 10 scenarios (the cross-framework
+   crosscheck tier + a few others).
+3. **No `runner_path` + required ctor args** → emits an inline
+   `python -c "<verbose snippet>"` form that captures the actual
+   arg values from `self.<name>` and is *literally runnable* when
+   copy-pasted. Used by 16 scenarios (the empirical-deep tier
+   that needs trajectory paths + the 2 structural scenarios that
+   need Kimera repo paths).
+
+All 26 scenarios that previously hardcoded the stale `ophamin.cli
+scenario {name}` form now call the helper instead. The 6
+hand-rolled-runner scenarios already routed through the base.py
+emission path; nothing changes for them.
+
+**Verified**: 11 hardening tests pin all 3 routing cases plus the
+"no stale string remaining" structural invariant. 144 tests pass
+across the regression-sensitive suites. End-to-end smoke confirms
+each of the 3 routing cases emits the correct shape.
 
 ## Update (0.29.0) — partial Option-C fix landed
 
@@ -27,7 +57,7 @@ scenarios** (`concentrated-immune-siege`, `logic-topology-siege`,
 **Validated**: fresh proofs from any of the 6 scenarios now emit
 a §7 reproduction command that points at a working runner script.
 
-## Wider scope discovered (still open)
+## Wider scope discovered (still open) — CLOSED 0.30.0
 
 While implementing the 0.29.0 fix, surfaced that **26 of 32
 scenarios bypass the base.py emission path entirely** — each one
