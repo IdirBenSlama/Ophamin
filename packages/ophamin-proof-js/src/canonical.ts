@@ -291,3 +291,28 @@ export function canonicalize(value: CanonicalValue): string {
 export function canonicalBytes(value: CanonicalValue): Uint8Array {
   return new TextEncoder().encode(canonicalize(value));
 }
+
+/**
+ * Compute the HMAC-SHA256 hex digest over the canonical UTF-8 bytes
+ * of ``value`` under ``key`` (Node-side write-side; RFC 0002 Phase E9).
+ *
+ * The returned hex string is what a Python verifier (or the
+ * cross-language Rust read-side) will accept. Use this when a
+ * Node producer needs to emit signed records that Python /
+ * Rust / future ports can verify.
+ *
+ * Node's built-in :mod:`node:crypto` is used; no external dependency.
+ *
+ * @param value any JSON-native value (or one constructed via
+ *   :class:`PyInt` for explicit integer markers).
+ * @param key the signing key bytes.
+ * @returns lowercase hex string (64 chars).
+ */
+export async function signCanonical(
+  value: CanonicalValue,
+  key: Uint8Array,
+): Promise<string> {
+  const { createHmac } = await import("node:crypto");
+  const bytes = canonicalBytes(value);
+  return createHmac("sha256", key).update(bytes).digest("hex");
+}

@@ -6,15 +6,19 @@
 > §"Canonical-form determinism (normative)".
 
 This is the **JavaScript/TypeScript half** of Ophamin's
-cross-language read API (RFC 0002 Phase E9). It parses a signed
-`EmpiricalProofRecord` from the wire form, reconstructs the canonical
-body bytes Python signed over, and verifies the HMAC-SHA256
-signature.
+cross-language interop contract (RFC 0002 Phase E9). It provides:
 
-The package is **read-only by design**. Records originate from the
-Python reference emitter; the JS port verifies them. Mutating a
-record or re-signing it is intentionally not supported — that is
-the canonical author tier and lives in Python.
+- **Read side** (since 0.16.0): parse a signed `EmpiricalProofRecord`
+  from the wire form, reconstruct the canonical body bytes Python
+  signed over, and verify the HMAC-SHA256 signature.
+- **Write side** (since 0.21.0): produce canonical bytes + signed
+  HMAC from native JS values. `canonicalize` + `signCanonical` are
+  the entry points; use the exported `PyInt` class to mark integers
+  explicitly where Python would emit an int (no trailing `.0`).
+
+The round-trip is symmetric: a JS-produced canonical-byte stream
+verifies under Python (and Rust) byte-for-byte. The cross-language
+fixtures (`tests/canonical_form/*`) lock in both directions.
 
 ## Installation
 

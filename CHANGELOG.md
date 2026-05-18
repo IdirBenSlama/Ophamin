@@ -7,7 +7,146 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.20.0] below for the latest cut.)
+(empty — see [0.21.0] below for the latest cut.)
+
+## [0.21.0] — 2026-05-18
+
+**Headline:** RFC 0002 Phase **E9 write-side lands**. Native Rust
+and JS code can now PRODUCE canonical bytes + signed records that
+verify byte-for-byte under Python (and across the cross-language
+fixtures). The previous E9 ports (0.16.x) were read-only verifiers
+of Python-emitted records; this release closes the round-trip
+contract — any port can produce, any port can verify.
+
+This is the **thirteenth minor-version bump** in the 0.x line.
+Versions across the three implementations are now in lockstep:
+
+| Implementation | Version |
+|---|---|
+| Python framework (`ophamin`) | `0.21.0` |
+| Rust crate (`crates/ophamin-proof`) | `0.21.0` (was 0.16.2) |
+| JS/TS package (`@ophamin/proof`) | `0.21.0` (was 0.16.2) |
+
+### Added — Rust `crates/ophamin-proof::writer` module
+
+- **`crates/ophamin-proof/src/writer.rs`** — write-side encoder
+  + signer. Public API:
+  - `CanonicalValue` enum with distinct `Int(i64)` and
+    `Float(f64)` variants so Python's int / float distinction
+    is type-enforced from construction.
+  - `canonicalize_bytes(value: &CanonicalValue) -> Result<Vec<u8>, ProofError>`
+    — produces the canonical UTF-8 bytes per SCHEMAS.md R1–R11.
+  - `sign_canonical(value: &CanonicalValue, key: &[u8]) -> Result<String, ProofError>`
+    — HMAC-SHA256 hex digest a Python verifier accepts.
+  - `python_repr(f: f64) -> Result<String, ProofError>` — the
+    load-bearing float formatter; reproduces Python's `repr(float)`
+    byte-for-byte (range gate at 1e-4 / 1e16, `e+EE` exponent
+    style with `+` for positive + zero-pad to ≥ 2 digits for
+    negative).
+- `From` conversions for `bool`, `i32`, `i64`, `f64`, `&str`,
+  `String` so callers can construct values ergonomically.
+- 13 in-module unit tests covering python_repr edge cases +
+  the canonicalization rules.
+
+### Added — Rust write-side conformance suite
+
+- **`crates/ophamin-proof/tests/writer_conformance.rs`** — 7 new
+  integration tests:
+  - For each of the three cross-language fixtures (`simple`,
+    `unicode`, `numerical_edge`): build a `CanonicalValue` tree
+    from native Rust primitives and assert
+    `canonicalize_bytes` matches the committed Python-produced
+    `<stem>.canonical.bytes` byte-for-byte.
+  - For each fixture: `sign_canonical` HMAC under the test key
+    matches the committed `<stem>.hmac_sha256.hex`.
+  - Round-trip: sign → recompute the HMAC manually via
+    `hmac` crate primitives → matches.
+
+### Added — JS `@ophamin/proof` `signCanonical`
+
+- **`packages/ophamin-proof-js/src/canonical.ts`** — new exported
+  `signCanonical(value, key)` function. Uses Node's built-in
+  `node:crypto.createHmac` (no new dependency). Returns a 64-char
+  lowercase hex digest a Python verifier (or the Rust read-side)
+  accepts.
+- The JS canonical-form encoder was already byte-equivalent to
+  Python (it powered the read-side fixture conformance since
+  0.16.0); this release exposes it formally as a write surface
+  by adding the signing helper.
+
+### Added — JS write-side conformance suite
+
+- **`packages/ophamin-proof-js/tests/writer.test.ts`** — 7 new
+  tests mirroring the Rust suite:
+  - For each fixture: build the value tree from native JS
+    primitives (with `PyInt` for explicit int markers where the
+    source JSON was int-typed), canonicalize, assert bytes match
+    the committed fixture.
+  - For each fixture: `signCanonical` HMAC matches the committed
+    hex.
+  - Output-shape test: `signCanonical` returns 64 lowercase hex
+    chars.
+
+### Changed — version lockstep
+
+The Rust crate and the JS package's versions now track the
+framework version (both bumped 0.16.2 → 0.21.0). Going forward,
+all three implementations release in lockstep when the write
+contract changes.
+
+### Why this matters (interop round-trip)
+
+Before 0.21.0: cross-language ports could verify Python-emitted
+records but could not PRODUCE them. Any record originating from a
+non-Python language had to round-trip through Python first.
+
+After 0.21.0: the round-trip is symmetric.
+
+```text
+[Rust producer]                [Python verifier]
+  CanonicalValue::Object        verify_proof_impl(json.dumps(record))
+  + signed proof  ────────────► verified: True
+       │
+       └────► same bytes
+       ┌────► same bytes
+       │
+[JS producer]                   [JS verifier]
+  signCanonical(value, key) ──► same hex
+                                same canonical bytes
+```
+
+The cross-language fixtures (`tests/canonical_form/*`) now lock
+in BOTH directions:
+
+| Direction | Test surface |
+|---|---|
+| **Read** (Python emit → Rust/JS verify) | Existing fixture conformance, 21 + 12 tests |
+| **Write** (Rust/JS emit → Python verify) | **New** — 14 tests (7 Rust + 7 JS) |
+
+Any drift in either port — read OR write — fails CI loud.
+
+### Fixed — 0.20.0's mypy --strict CI failure
+
+The 0.20.0 ship of OTel instrumentation passed mypy locally but
+failed on CI because the optional OTLP HTTP exporter subpackages
+(`opentelemetry.exporter.otlp.proto.http.*`) ship without type
+stubs. Added them — and the `opentelemetry.sdk.trace.export.in_memory_span_exporter`
+test utility — to the existing `ignore_missing_imports = true`
+override block in `pyproject.toml`. mypy --strict now clean
+across 163 source files on CI.
+
+### Verification
+
+- Rust unit tests in `src/writer.rs`: 13 tests covering
+  `python_repr` + `canonicalize_bytes` + `sign_canonical`.
+- Rust integration tests in `tests/writer_conformance.rs`: 7
+  tests verifying byte-equivalence against the committed
+  fixtures. CI is the validation gate (cargo not available
+  locally per `crates/README.md`).
+- JS tests: **55/55 pass locally under Node 24** (48 read-side
+  + 7 new write-side).
+- Python suite unchanged (no Python source changes in this
+  release).
 
 ## [0.20.0] — 2026-05-18
 

@@ -5,15 +5,21 @@
 > [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md)
 > §"Canonical-form determinism (normative)".
 
-This is the **Rust half** of Ophamin's cross-language read API
-(RFC 0002 Phase E9). It parses a signed `EmpiricalProofRecord` from
-the wire form, reconstructs the canonical body bytes Python signed
-over, and verifies the HMAC-SHA256 signature.
+This is the **Rust half** of Ophamin's cross-language interop
+contract (RFC 0002 Phase E9). It provides:
 
-The crate is **read-only by design**. Records originate from the
-Python reference emitter; the Rust port verifies them. Mutating a
-record or re-signing it is intentionally not supported — that is
-the canonical author tier and lives in Python.
+- **Read side** (since 0.16.0): parse a signed `EmpiricalProofRecord`
+  from the wire form, reconstruct the canonical body bytes Python
+  signed over, and verify the HMAC-SHA256 signature.
+- **Write side** (since 0.21.0): produce canonical bytes + signed
+  HMAC from native Rust primitives. A `CanonicalValue` enum (with
+  distinct `Int`/`Float` variants so the Python int/float
+  distinction is type-enforced) is the input; `canonicalize_bytes`
+  + `sign_canonical` are the entry points.
+
+The round-trip is symmetric: a Rust-produced canonical-byte stream
+verifies under Python (and JS) byte-for-byte. The cross-language
+fixtures (`tests/canonical_form/*`) lock in both directions.
 
 ## Cargo manifest
 
@@ -41,6 +47,8 @@ assert!(verify_signature(&proof, key)?);
 
 ## What's in the crate
 
+**Read side** (parse + verify Python-emitted records):
+
 | Surface | Purpose |
 |---|---|
 | `parse_proof(text: &str) -> Result<EmpiricalProofRecord, ProofError>` | Parse a wire-form JSON record. |
@@ -49,6 +57,15 @@ assert!(verify_signature(&proof, key)?);
 | `verify_signature(&record, key) -> Result<bool>` | HMAC-SHA256 verify. Constant-time compare via `subtle`. |
 | `compute_proof_id(&record) -> Result<String>` | SHA-256 of the canonical body bytes (content-addressed identifier). |
 | `testing::canonicalize_value_to_bytes(value)` | Encode any `serde_json::Value` to canonical UTF-8 bytes. Not part of the stable API — exposed for cross-language conformance tests. |
+
+**Write side** (build native values + emit canonical bytes + sign):
+
+| Surface | Purpose |
+|---|---|
+| `CanonicalValue` (in `writer` module) | Value enum with distinct `Int(i64)` / `Float(f64)` variants so Python's int/float distinction is type-enforced from construction. |
+| `canonicalize_bytes(&value) -> Result<Vec<u8>>` | Produce the canonical UTF-8 bytes per SCHEMAS.md R1–R11. |
+| `sign_canonical(&value, key) -> Result<String>` | HMAC-SHA256 hex digest a Python verifier accepts. |
+| `python_repr(f64) -> Result<String>` | Standalone float formatter byte-equivalent to Python's `repr(float)`. Useful when implementing custom encoders. |
 
 ## Cross-language conformance
 

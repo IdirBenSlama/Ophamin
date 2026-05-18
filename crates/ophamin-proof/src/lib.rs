@@ -51,6 +51,9 @@ use std::collections::BTreeMap;
 use subtle::ConstantTimeEq;
 use thiserror::Error;
 
+pub mod writer;
+pub use writer::{canonicalize_bytes, python_repr, sign_canonical, CanonicalValue};
+
 type HmacSha256 = Hmac<Sha256>;
 
 // ---------------------------------------------------------------------------

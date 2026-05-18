@@ -29,6 +29,7 @@ export {
   canonicalBytes,
   escapeString,
   pythonRepr,
+  signCanonical,
 } from "./canonical.js";
 export type { CanonicalValue } from "./canonical.js";
 

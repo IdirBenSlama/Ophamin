@@ -31,7 +31,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 
 from ophamin import __version__
