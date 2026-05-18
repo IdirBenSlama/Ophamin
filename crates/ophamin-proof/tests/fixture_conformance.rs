@@ -15,9 +15,7 @@
 //! reference and the read-API contract is broken.
 
 use hmac::{Hmac, Mac};
-use ophamin_proof::{
-    canonical_body_bytes, compute_proof_id, parse_proof, verify_signature,
-};
+use ophamin_proof::{compute_proof_id, parse_proof, verify_signature};
 use serde_json::Value;
 use sha2::Sha256;
 use std::fs;
@@ -36,8 +34,8 @@ fn repo_root() -> PathBuf {
     manifest_dir
         .parent()
         .and_then(Path::parent)
-        .unwrap_or(&manifest_dir)
-        .to_path_buf()
+        .map(Path::to_path_buf)
+        .unwrap_or(manifest_dir)
 }
 
 fn fixtures_dir() -> PathBuf {
@@ -80,9 +78,9 @@ fn fixture_hmac_matches_python_reference() {
         let canon_path = fixtures_dir().join(format!("{stem}.canonical.bytes"));
         let hmac_path = fixtures_dir().join(format!("{stem}.hmac_sha256.hex"));
 
-        let canonical = fs::read(&canon_path).expect("read canonical bytes");
+        let canonical = fs::read(canon_path).expect("read canonical bytes");
         let expected_hex =
-            fs::read_to_string(&hmac_path).expect("read hmac").trim().to_string();
+            fs::read_to_string(hmac_path).expect("read hmac").trim().to_string();
 
         let mut mac = <HmacSha256 as Mac>::new_from_slice(TEST_KEY).unwrap();
         mac.update(&canonical);
@@ -108,7 +106,7 @@ fn shipped_proofs_verify_under_default_key() {
         if !path.is_dir() {
             continue;
         }
-        for sub in fs::read_dir(&path).expect("read subdir") {
+        for sub in fs::read_dir(path).expect("read subdir") {
             let sub = sub.expect("subentry");
             let p = sub.path();
             if p.extension().is_some_and(|e| e == "json") {
@@ -137,12 +135,12 @@ fn shipped_proofs_verify_under_default_key() {
 #[test]
 fn computed_proof_id_matches_filename_id_prefix() {
     let dir = proofs_dir();
-    for entry in fs::read_dir(&dir).expect("read proofs dir") {
+    for entry in fs::read_dir(dir).expect("read proofs dir") {
         let path = entry.expect("entry").path();
         if !path.is_dir() {
             continue;
         }
-        for sub in fs::read_dir(&path).expect("read subdir") {
+        for sub in fs::read_dir(path).expect("read subdir") {
             let sub_path = sub.expect("subentry").path();
             if sub_path.extension().is_some_and(|e| e == "json") {
                 let text = fs::read_to_string(&sub_path).expect("read");
@@ -172,7 +170,7 @@ fn re_canonicalize_round_trip_idempotent() {
     // already-canonical input.
     for stem in FIXTURE_STEMS {
         let canon_path = fixtures_dir().join(format!("{stem}.canonical.bytes"));
-        let canonical = fs::read(&canon_path).expect("read");
+        let canonical = fs::read(canon_path).expect("read");
         let value: Value = serde_json::from_slice(&canonical).expect("parse");
         let re = ophamin_proof::testing::canonicalize_value_to_bytes(&value)
             .expect("canonicalize");

@@ -7,7 +7,54 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.16.0] below for the latest cut.)
+(empty — see [0.16.1] below for the latest cut.)
+
+## [0.16.1] — 2026-05-18
+
+**Patch:** Rust `ophamin-proof` clippy fixes for stable toolchain.
+
+The 0.16.0 ship of the Rust crate compiled and passed tests cleanly
+on MSRV 1.75 but failed `cargo clippy --all-features --all-targets
+-- -D warnings` on stable due to lints that newer clippy versions
+enforce more strictly. This patch closes the gap so the cross-language
+CI workflow lands green on both rustc toolchains.
+
+### Changed
+
+- `crates/ophamin-proof/src/lib.rs`:
+  - `verify_signature` — `hex::encode(&expected)` → `hex::encode(expected)`
+    (clippy `needless_borrows_for_generic_args` on
+    `expected: GenericArray<u8, _>` passed to
+    `hex::encode<T: AsRef<[u8]>>`).
+  - `compute_proof_id` — `hasher.update(&body)` → `hasher.update(body)`
+    (same lint on `body: Vec<u8>` passed to
+    `Digest::update(impl AsRef<[u8]>)`).
+- `crates/ophamin-proof/tests/fixture_conformance.rs`:
+  - Removed unused `canonical_body_bytes` import that was left behind
+    after the test file's refactor (warning under
+    `cargo test`, error under `clippy -D warnings`).
+  - Six `fs::read(&path) / fs::read_to_string(&path) / fs::read_dir(&path)`
+    sites where `path` is not used after — passed by value instead
+    (`needless_borrows_for_generic_args` on `path: PathBuf` to
+    `impl AsRef<Path>` functions).
+  - `repo_root()` — cleaned the chain to `.map(Path::to_path_buf).unwrap_or(manifest_dir)`
+    so `&manifest_dir`'s borrow doesn't outlive the move into `unwrap_or`.
+
+### Version bumps in lockstep
+
+- `pyproject.toml` + `src/ophamin/__init__.py`: 0.16.0 → 0.16.1
+- `crates/ophamin-proof/Cargo.toml`: 0.16.0 → 0.16.1
+- `packages/ophamin-proof-js/package.json`: 0.16.0 → 0.16.1
+
+### Verification
+
+- JS/TS suite continues to pass (no JS changes, only Rust + version
+  bumps); local: 48/48 pass under Node 24.
+- Python suite continues to pass (no Python changes); 1593 passed,
+  2 skipped at HEAD.
+- Rust: CI is the validation gate. The two clippy lints surfaced
+  by the 0.16.0 stable job are now fixed; CI on this commit should
+  land green on both stable and MSRV 1.75.
 
 ## [0.16.0] — 2026-05-18
 

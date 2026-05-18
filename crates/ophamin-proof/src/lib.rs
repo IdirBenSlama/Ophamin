@@ -149,7 +149,7 @@ pub fn verify_signature(
     let mut mac = <HmacSha256 as Mac>::new_from_slice(key).map_err(|_| ProofError::HmacKey)?;
     mac.update(&body);
     let expected = mac.finalize().into_bytes();
-    let expected_hex = hex::encode(&expected);
+    let expected_hex = hex::encode(expected);
     // Constant-time compare on the hex strings.
     Ok(record
         .signature
@@ -163,7 +163,7 @@ pub fn compute_proof_id(record: &EmpiricalProofRecord) -> Result<String, ProofEr
     use sha2::Digest;
     let body = canonical_body_bytes(record)?;
     let mut hasher = Sha256::new();
-    hasher.update(&body);
+    hasher.update(body);
     Ok(hex::encode(hasher.finalize()))
 }
 
