@@ -7,7 +7,121 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.18.0] below for the latest cut.)
+(empty — see [0.19.0] below for the latest cut.)
+
+## [0.19.0] — 2026-05-18
+
+**Headline:** Ophamin now ships a **CloudEvents 1.0 wrapper** for
+event-stream interop. Wrap any signed proof in a CloudEvents
+structured-mode envelope and emit it on Kafka, EventBridge,
+Knative, NATS, or any CloudEvents-aware sink. Consumers route
+natively without needing to know Ophamin's wire format.
+
+This is the **fourth interop layer**:
+
+| Layer | Surface | First shipped |
+|---|---|---|
+| Cross-language verifier ports | Rust `ophamin-proof`, JS `@ophamin/proof` | 0.16.0 |
+| MCP server | `ophamin mcp serve` | 0.17.0 |
+| HTTP REST API | `ophamin http serve` | 0.18.0 |
+| **CloudEvents wrapper** | `ophamin.cloudevents.wrap` / `unwrap` | **0.19.0** |
+
+This is the **eleventh minor-version bump** in the 0.x line.
+
+### Added — `ophamin.cloudevents` subpackage
+
+- **`src/ophamin/cloudevents/envelope.py`** — pure-stdlib
+  CloudEvents 1.0 structured-mode encoder/decoder. No external
+  dependencies; the envelope shape is small enough to encode
+  directly. Three public functions:
+  - `wrap(proof, *, source, event_type=DEFAULT_TYPE, extra_extensions=None)`
+    → CloudEvents 1.0 envelope dict.
+  - `unwrap(envelope)` → embedded proof dict.
+  - `validate_envelope(envelope)` → asserts §3.1 REQUIRED
+    attributes; raises `CloudEventEnvelopeError`.
+- Required CloudEvents attributes emitted: `specversion=1.0`,
+  `id` (content-addressed proof_id), `source` (caller-supplied),
+  `type` (default `dev.ophamin.proof.emitted.v1`), `time` (from
+  the record's `identity.created_at`), `datacontenttype`,
+  `dataschema` (URI pointing at SCHEMAS.md), `data` (the proof).
+- Ophamin-specific extension attributes emitted (all CloudEvents
+  §3.1 compliant — `[a-z0-9]{1,20}`):
+  - `ophaminversion` — framework version that emitted the proof.
+  - `ophaminschema` — record's wire-format schema_version.
+  - `ophaminverdict` — `VALIDATED` / `REFUTED` / `INCONCLUSIVE`.
+- Caller-supplied extensions via `extra_extensions=` dict; name
+  validation (`[a-z0-9]{1,20}`), value-type check (must be
+  string), and collision detection against built-in + Ophamin
+  extension names.
+- **`src/ophamin/cloudevents/__init__.py`** — public API
+  re-exports.
+- **`src/ophamin/cloudevents/README.md`** — usage examples,
+  attribute catalogue, Kafka + EventBridge recipes,
+  signature-verification flow on the consumer side, and CloudEvents
+  spec compliance notes.
+
+### Added — 31 pinning tests in `tests/test_cloudevents.py`
+
+- Constants (`CLOUDEVENTS_SPEC_VERSION`, `DEFAULT_TYPE`,
+  `OPHAMIN_DATASCHEMA`) match spec + convention.
+- `wrap`:
+  - Required CloudEvents attributes present on a wrapped real
+    Python-emitted signed proof.
+  - `id` matches the record's `proof_id` (content-addressed).
+  - `time` extracted from the record's `identity.created_at`.
+  - `ophaminverdict` carries `VALIDATED` / `REFUTED` /
+    `INCONCLUSIVE` literally.
+  - `ophaminversion` falls back to the framework version when the
+    record lacks identity info.
+  - Accepts proof as dict / JSON string / JSON bytes — all three
+    produce equivalent envelopes (id is content-addressed).
+  - Extension-attribute name validation: must match
+    `[a-z0-9]{1,20}`; length > 20 rejected; non-string value
+    rejected; collision with built-in or Ophamin attribute
+    rejected.
+  - `source` empty → ValueError.
+  - Non-dict / non-JSON proof → ValueError.
+- `unwrap`:
+  - Roundtrip preserves the proof byte-for-byte.
+  - The unwrapped proof STILL verifies under the framework's
+    default sign key (wrapper does not modify the embedded
+    record).
+  - Accepts envelope as dict / JSON string / JSON bytes.
+  - Missing required attribute → `CloudEventEnvelopeError`
+    naming the attribute.
+  - `specversion != "1.0"` → loud failure.
+  - `data` non-object → loud failure (structured mode required).
+  - Malformed JSON / non-object envelope text → loud failure.
+- `validate_envelope`:
+  - Valid envelope passes.
+  - Missing `id` raises naming the field.
+  - Empty required attribute raises.
+- Cross-layer interop test: a proof wrapped → unwrapped → passed
+  through the shared HTTP/MCP `verify_proof_impl` returns
+  `verified: true` with `proof_id` matching the envelope's `id`.
+
+### Why this matters (interop closure)
+
+CloudEvents is the CNCF standard for describing events in a
+common way across infrastructure. By wrapping Ophamin proofs in
+CloudEvents 1.0 envelopes, any event-routing infrastructure
+that understands CloudEvents — Kafka, EventBridge, Knative
+Eventing, NATS, Azure Event Grid, GCP Eventarc — can route
+Ophamin records natively without needing to know the wire
+format.
+
+The wrapper does NOT verify the embedded proof — that's the
+consumer's job, and the right approach (consumers may have
+deployment-specific signing keys). Verification still goes
+through the shared `verify_proof_impl` (or the Rust/JS verifier
+ports for cross-language consumers).
+
+### Verification
+
+- CloudEvents tests: 31/31 pass locally in 1.16s.
+- `ruff check` + `mypy --strict` clean on the new modules.
+- Cross-layer integration: a wrapped proof → unwrapped → passes
+  `verify_proof_impl` with `verified: true`.
 
 ## [0.18.0] — 2026-05-18
 
