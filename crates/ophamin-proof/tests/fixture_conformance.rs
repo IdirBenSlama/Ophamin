@@ -51,20 +51,20 @@ fn fixture_canonical_bytes_match_python_reference() {
     for stem in FIXTURE_STEMS {
         let input_path = fixtures_dir().join(format!("{stem}.input.json"));
         let canon_path = fixtures_dir().join(format!("{stem}.canonical.bytes"));
-        let input_text = fs::read_to_string(&input_path)
-            .unwrap_or_else(|e| panic!("read {input_path:?}: {e}"));
-        let expected = fs::read(&canon_path)
-            .unwrap_or_else(|e| panic!("read {canon_path:?}: {e}"));
+        let input_text =
+            fs::read_to_string(&input_path).unwrap_or_else(|e| panic!("read {input_path:?}: {e}"));
+        let expected = fs::read(&canon_path).unwrap_or_else(|e| panic!("read {canon_path:?}: {e}"));
 
         // Parse the input as a serde_json::Value (with
         // arbitrary_precision via Cargo.toml feature) and canonicalize
         // via the crate's testing-export of the internal encoder.
         let value: Value = serde_json::from_str(&input_text).expect("parse input");
-        let actual = ophamin_proof::testing::canonicalize_value_to_bytes(&value)
-            .expect("canonicalize");
+        let actual =
+            ophamin_proof::testing::canonicalize_value_to_bytes(&value).expect("canonicalize");
 
         assert_eq!(
-            actual, expected,
+            actual,
+            expected,
             "canonical-form drift on {stem}:\n  expected: {}\n  actual:   {}",
             String::from_utf8_lossy(&expected),
             String::from_utf8_lossy(&actual),
@@ -79,8 +79,10 @@ fn fixture_hmac_matches_python_reference() {
         let hmac_path = fixtures_dir().join(format!("{stem}.hmac_sha256.hex"));
 
         let canonical = fs::read(canon_path).expect("read canonical bytes");
-        let expected_hex =
-            fs::read_to_string(hmac_path).expect("read hmac").trim().to_string();
+        let expected_hex = fs::read_to_string(hmac_path)
+            .expect("read hmac")
+            .trim()
+            .to_string();
 
         let mut mac = <HmacSha256 as Mac>::new_from_slice(TEST_KEY).unwrap();
         mac.update(&canonical);
@@ -111,8 +113,7 @@ fn shipped_proofs_verify_under_default_key() {
             let p = sub.path();
             if p.extension().is_some_and(|e| e == "json") {
                 let text = fs::read_to_string(&p).expect("read proof");
-                let record = parse_proof(&text)
-                    .unwrap_or_else(|e| panic!("parse {p:?}: {e}"));
+                let record = parse_proof(&text).unwrap_or_else(|e| panic!("parse {p:?}: {e}"));
                 let ok = verify_signature(&record, DEFAULT_SIGN_KEY)
                     .unwrap_or_else(|e| panic!("verify {p:?}: {e}"));
                 assert!(
@@ -146,10 +147,7 @@ fn computed_proof_id_matches_filename_id_prefix() {
                 let text = fs::read_to_string(&sub_path).expect("read");
                 let record = parse_proof(&text).expect("parse");
                 let proof_id = compute_proof_id(&record).expect("compute");
-                let stem = sub_path
-                    .file_stem()
-                    .and_then(|s| s.to_str())
-                    .expect("stem");
+                let stem = sub_path.file_stem().and_then(|s| s.to_str()).expect("stem");
                 let id16 = &proof_id[..16];
                 assert!(
                     stem.contains(id16),
@@ -172,8 +170,7 @@ fn re_canonicalize_round_trip_idempotent() {
         let canon_path = fixtures_dir().join(format!("{stem}.canonical.bytes"));
         let canonical = fs::read(canon_path).expect("read");
         let value: Value = serde_json::from_slice(&canonical).expect("parse");
-        let re = ophamin_proof::testing::canonicalize_value_to_bytes(&value)
-            .expect("canonicalize");
+        let re = ophamin_proof::testing::canonicalize_value_to_bytes(&value).expect("canonicalize");
         assert_eq!(
             re, canonical,
             "canonicalization not idempotent on fixture {stem}"

@@ -141,10 +141,7 @@ pub fn canonical_body_bytes(record: &EmpiricalProofRecord) -> Result<Vec<u8>, Pr
 /// Verify the record's HMAC-SHA256 signature under `key`.
 ///
 /// Returns `Ok(true)` iff the signature matches.
-pub fn verify_signature(
-    record: &EmpiricalProofRecord,
-    key: &[u8],
-) -> Result<bool, ProofError> {
+pub fn verify_signature(record: &EmpiricalProofRecord, key: &[u8]) -> Result<bool, ProofError> {
     let body = canonical_body_bytes(record)?;
     let mut mac = <HmacSha256 as Mac>::new_from_slice(key).map_err(|_| ProofError::HmacKey)?;
     mac.update(&body);
@@ -176,10 +173,16 @@ fn build_body_value(record: &EmpiricalProofRecord) -> Value {
     // encoder sorts at every depth anyway, but this keeps the
     // structure explicit.
     let mut map = serde_json::Map::new();
-    map.insert("schema_version".to_string(), Value::String(record.schema_version.clone()));
+    map.insert(
+        "schema_version".to_string(),
+        Value::String(record.schema_version.clone()),
+    );
     map.insert("identity".to_string(), record.identity.clone());
     map.insert("claim".to_string(), record.claim.clone());
-    map.insert("preregistration".to_string(), record.preregistration.clone());
+    map.insert(
+        "preregistration".to_string(),
+        record.preregistration.clone(),
+    );
     map.insert("data".to_string(), record.data.clone());
     map.insert("evidence".to_string(), record.evidence.clone());
     map.insert("verdict".to_string(), record.verdict.clone());
