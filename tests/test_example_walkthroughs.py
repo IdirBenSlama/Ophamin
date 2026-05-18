@@ -1,7 +1,11 @@
 """Smoke tests for the concept walkthroughs under ``examples/``.
 
-Three walkthroughs ship under ``examples/walkthrough_*.py``, one per
-load-bearing RFC-0002 phase (E2 / E4 / E8). Each:
+Eight walkthroughs ship under ``examples/walkthrough_*.py`` covering
+every load-bearing RFC-0002 phase. The original four target the
+foundational phases (E2 FWER correction, E4 reproducibility audit,
+E8 API stability, E1 cross-framework validation). The 0.25.0
+addition covers every interop layer (E9.3 MCP, E9.4 HTTP REST,
+E9.5 CloudEvents, E9.6 OTel). Each:
 
 * Has a rich docstring explaining the concept;
 * Runs end-to-end as ``python examples/walkthrough_X.py``;
@@ -33,6 +37,10 @@ _WALKTHROUGHS = (
     "walkthrough_reproducibility_audit.py",
     "walkthrough_api_stability.py",
     "walkthrough_cross_framework.py",
+    "walkthrough_cloudevents.py",
+    "walkthrough_http_api.py",
+    "walkthrough_mcp_server.py",
+    "walkthrough_otel.py",
 )
 
 

@@ -32,13 +32,20 @@ python examples/run_scenario.py rosetta-scaling --out proofs/scientific/rosetta/
 
 ## Concept walkthroughs (RFC-0002 phase demos)
 
-Three walkthrough scripts demonstrate the load-bearing framework
-primitives shipped in the 0.9.x / 0.10.x / 0.11.x line. Each:
+Eight walkthrough scripts demonstrate the load-bearing framework
+primitives shipped across the 0.9.x → 0.24.x line. Each:
 
 * runs end-to-end with `PYTHONPATH=src python examples/walkthrough_*.py`,
 * has rich docstring + annotated stdout,
 * asserts its own invariants (the `assert` at the bottom is the
   contract; CI runs each as a smoke).
+
+The four interop walkthroughs (CloudEvents / HTTP / MCP / OTel)
+demonstrate the consumer-facing surfaces shipped at 0.17.0–0.21.0
+that let any non-Python consumer drive, observe, or route Ophamin
+records.
+
+### Foundational phase walkthroughs
 
 | Walkthrough | RFC-0002 phase | What it shows |
 |---|---|---|
@@ -46,6 +53,15 @@ primitives shipped in the 0.9.x / 0.10.x / 0.11.x line. Each:
 | [`walkthrough_reproducibility_audit.py`](walkthrough_reproducibility_audit.py) | E4 | `DeterministicSeedAuditScenario` against `crdt-laws`; demonstrates the exclusion list of `reproducibility_hash`; explains what the framework-wide audit gate in `tests/test_framework_wide_reproducibility.py` covers. |
 | [`walkthrough_api_stability.py`](walkthrough_api_stability.py) | E8 | `@Stable` / `@Provisional` / `@Internal` / `@Deprecated` decorators on synthetic targets; shows the predicates (`is_stable`, `is_deprecated`); demonstrates `@Deprecated`'s `DeprecationWarning` at call site; surfaces the `StabilityInfo` invariants enforced at construction time. |
 | [`walkthrough_cross_framework.py`](walkthrough_cross_framework.py) | E1 | Runs `BayesianPhiPosteriorCrosscheckScenario` — same NormalMean model under PyMC + NumPyro on the same synthetic data; prints per-backend posteriors side by side + agreement metrics; asserts means agree to ≤ 0.05. Demonstrates the cross-framework validation primitive RFC 0002 §3.1 E1 names as load-bearing. |
+
+### Interop layer walkthroughs (E9.3 – E9.6)
+
+| Walkthrough | RFC-0002 phase | What it shows |
+|---|---|---|
+| [`walkthrough_mcp_server.py`](walkthrough_mcp_server.py) | E9.3 (MCP) | Exercises all 6 MCP tools (`list_scenarios`, `get_scenario_claim`, `verify_proof`, `canonicalize_value`, `read_proof_index`, `run_scenario`) through FastMCP's in-process `call_tool` path. Demonstrates the AI-agent interop surface (Claude Code / Cursor / Cline). |
+| [`walkthrough_http_api.py`](walkthrough_http_api.py) | E9.4 (HTTP REST) | Drives every HTTP endpoint (`/health`, `/version`, `/scenarios`, `/scenarios/{name}/claim`, `/canonicalize`, `/verify`, `/proofs/index`, `/openapi.json`) via `fastapi.testclient.TestClient`. Demonstrates the service-style interop surface (Kubernetes / API-gateway / curl). |
+| [`walkthrough_cloudevents.py`](walkthrough_cloudevents.py) | E9.5 (CloudEvents) | Wraps a real shipped proof in a CloudEvents 1.0 envelope, serializes for transit, unwraps on the consumer side, and asserts the verification surface is preserved byte-for-byte. Demonstrates the event-stream interop surface (Kafka / EventBridge / Knative / NATS). |
+| [`walkthrough_otel.py`](walkthrough_otel.py) | E9.6 (OTel) | Installs `InMemorySpanExporter` + `InMemoryMetricReader`, exercises `verify_proof_impl` + `canonicalize_value_impl`, and prints the captured spans (`ophamin.proof.verify`, `ophamin.canonical.encode`) + metrics (`ophamin_proofs_verified_total`, `ophamin_canonical_bytes_encoded`). Demonstrates the observability interop surface (Jaeger / Datadog / Prometheus / Grafana). |
 
 ## Discovery commands (no code reading required)
 

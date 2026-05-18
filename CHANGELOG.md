@@ -7,7 +7,64 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.24.3] below for the latest cut.)
+(empty — see [0.25.0] below for the latest cut.)
+
+## [0.25.0] — 2026-05-18
+
+**Headline:** Ships **four runnable walkthrough scripts** for the
+interop layers (CloudEvents / HTTP / MCP / OTel) that landed
+between `0.17.0` and `0.21.0`. Each script demonstrates one
+consumer-facing surface end-to-end with rich annotated stdout +
+self-asserting invariants, and runs as a CI smoke pin in the
+same test rig that already covered the four foundational
+walkthroughs (E1 / E2 / E4 / E8).
+
+This is the **seventeenth minor-version bump** in the 0.x line.
+Python framework version only — no Rust / JS package bump in
+this release (the wire-format ports remain at 0.21.2).
+
+### Added — four interop concept walkthroughs
+
+| Walkthrough | Phase | Demonstrates |
+|---|---|---|
+| `examples/walkthrough_cloudevents.py` | E9.5 | Wraps a shipped proof in a CloudEvents 1.0 envelope, simulates transit, unwraps on the consumer side, and asserts the verification surface is preserved byte-for-byte. Prints the envelope metadata + per-step proof IDs. |
+| `examples/walkthrough_http_api.py` | E9.4 | Drives 7 of the 8 HTTP REST endpoints (`/health`, `/version`, `/scenarios`, `/scenarios/{name}/claim`, `/canonicalize`, `/verify`, `/proofs/index`) plus inspects `/openapi.json` via `fastapi.testclient.TestClient`. |
+| `examples/walkthrough_mcp_server.py` | E9.3 | Exercises all 6 MCP tools through FastMCP's in-process `call_tool` path: `list_scenarios`, `get_scenario_claim`, `verify_proof`, `canonicalize_value`, `read_proof_index`, `run_scenario`. Loud-fails at startup if the `[mcp]` extra isn't installed. |
+| `examples/walkthrough_otel.py` | E9.6 | Installs OTel's `InMemorySpanExporter` + `InMemoryMetricReader`, exercises the shared impls, then prints the captured spans (`ophamin.proof.verify`, `ophamin.canonical.encode`) + metrics (`ophamin_proofs_verified_total`, `ophamin_canonical_bytes_encoded`). |
+
+Each script:
+
+- Has a rich top-level docstring explaining what consumer shape
+  the layer targets and what's being demonstrated.
+- Prints labelled per-step output so the reader can follow what
+  happened.
+- Asserts its own invariants at the end of `main()` — the script
+  exits non-zero if behavioural drift occurred.
+- Ends with the closing-marker line `✓ <layer> walkthrough
+  complete. Contract validated.` (the test rig matches on this).
+
+### Added — walkthrough CI smoke pins
+
+- `tests/test_example_walkthroughs.py`: `_WALKTHROUGHS` tuple
+  extended from 4 → 8. Each new script now has a subprocess-mode
+  exit-zero pin + closing-marker pin + README-indexing pin (the
+  drift detector that catches "added a walkthrough but forgot to
+  document it"). 17/17 walkthrough tests pass.
+
+### Updated — `examples/README.md`
+
+- "Concept walkthroughs" section restructured into two
+  sub-sections: **Foundational phase walkthroughs** (the original
+  E1 / E2 / E4 / E8 four) and **Interop layer walkthroughs (E9.3 –
+  E9.6)** (the new four). Header count "Three walkthrough scripts"
+  → "Eight walkthrough scripts". One-line summary added describing
+  what the interop walkthroughs cover collectively.
+
+### Verified
+
+- All 8 walkthroughs run end-to-end (exit 0, closing-marker emitted).
+- 17/17 `tests/test_example_walkthroughs.py` pass.
+- `mkdocs build --strict` clean, exit 0.
 
 ## [0.24.3] — 2026-05-18
 
