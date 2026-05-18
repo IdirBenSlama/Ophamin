@@ -19,6 +19,14 @@ from pathlib import Path
 
 import pytest
 
+# Skip this entire test module gracefully when the `mcp` package
+# isn't installed (e.g. ``pip install ophamin`` without the
+# ``[mcp]`` extra). The MCP server is opt-in functionality; tests
+# track its availability.
+pytest.importorskip(
+    "mcp", reason="requires the [mcp] extra; install via pip install 'ophamin[mcp]'"
+)
+
 from ophamin import __version__
 from ophamin.mcp import build_server
 from ophamin.mcp.server import (

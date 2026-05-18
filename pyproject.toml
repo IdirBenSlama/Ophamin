@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ophamin"
-version = "0.17.0"
+version = "0.17.1"
 description = "An empirical observatory wrapped around a substrate under test — six wheels, signed proofs, falsifiable claims."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -187,6 +187,9 @@ infotheory = [                     # measuring/ — information theory
     "pyitlib>=0.2",                # MI + entropy
     "ennemi>=1.4",                 # easy-API non-linear MI
 ]
+mcp = [                            # interop wheel — MCP server (`ophamin mcp serve`)
+    "mcp>=1.20",                   # Anthropic-spec Model Context Protocol Python SDK
+]
 all = [                            # convenience: everything optional, for full local install
     "matplotlib>=3.6",
     "hydra-core>=1.3",
@@ -243,6 +246,7 @@ all = [                            # convenience: everything optional, for full 
     # puncc intentionally omitted — see [conformal] for the reasoning
     "pyitlib>=0.2",
     "ennemi>=1.4",
+    "mcp>=1.20",                   # MCP server (0.17.0) — agent-callable interface
 ]
 dev = ["pytest>=7.0"]
 # `release` brings the build + verify tooling the .github/workflows/release.yml
@@ -371,5 +375,16 @@ module = [
     "dowhy.*",
     "econml.*",
     "causalml.*",
+    "mcp.*",
 ]
 ignore_missing_imports = true
+
+# The MCP server module uses ``@mcp.tool()`` decorators from the
+# ``mcp`` package, which has no type stubs (above override makes
+# the import ``Any``-typed). Under ``disallow_untyped_decorators
+# = true`` mypy would then flag every decorated function as
+# untyped. Permit untyped decorators in just this subpackage —
+# the rest of the codebase stays strict.
+[[tool.mypy.overrides]]
+module = ["ophamin.mcp.*"]
+disallow_untyped_decorators = false

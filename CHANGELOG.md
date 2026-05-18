@@ -7,7 +7,54 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.17.0] below for the latest cut.)
+(empty — see [0.17.1] below for the latest cut.)
+
+## [0.17.1] — 2026-05-18
+
+**Patch:** package `mcp` as a proper Ophamin extra + fix mypy/strict
+issues the 0.17.0 ship surfaced on CI.
+
+The 0.17.0 ship of the MCP server worked locally (the dev venv has
+`mcp` installed) but failed CI on three axes:
+- Tests on Ubuntu 3.12 / 3.13 + macOS 3.12: `ModuleNotFoundError:
+  No module named 'mcp'` at test collection — because `mcp` was a
+  dev-venv-only dep, not declared in pyproject.toml.
+- `mypy --strict`: couldn't find type stubs for `mcp.server.fastmcp`,
+  AND flagged every `@mcp.tool()` decorator as "untyped decorator
+  makes function untyped".
+
+### Changed — packaging
+
+- **`pyproject.toml`** — added two ways to install the MCP server:
+  - New `[mcp]` opt-in extra: `pip install 'ophamin[mcp]'` →
+    pulls `mcp >= 1.20`.
+  - `[all]` extra now includes `mcp >= 1.20` so the convenience
+    install + CI's `[all,dev,property_test]` get it without a
+    separate flag.
+- **`tests/test_mcp_server.py`** — module-level `pytest.importorskip("mcp", ...)`
+  so consumers without the `[mcp]` extra installed get a clean skip
+  instead of a collection error.
+- **`src/ophamin/cli.py`** — `cmd_mcp_serve` gates the
+  `ophamin.mcp` import and prints a structured install hint
+  (`pip install 'ophamin[mcp]'`) plus exit code 1 if the extra
+  isn't installed.
+
+### Changed — mypy strict
+
+- **`pyproject.toml`** — added two overrides:
+  - `mcp.*` to the `ignore_missing_imports = true` block (no
+    stubs ship in the `mcp` package).
+  - New per-module block for `ophamin.mcp.*` with
+    `disallow_untyped_decorators = false` (the `@mcp.tool()`
+    decorator is `Any` once the stub-less import is `Any`-typed;
+    the rest of the codebase stays strict).
+
+### Verification
+
+- `mypy --strict` clean on all 155 source files.
+- MCP test suite: 30/30 pass locally.
+- CLI tests (37 across 3 files) still pass.
+- CI should land green on this commit.
 
 ## [0.17.0] — 2026-05-18
 

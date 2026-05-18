@@ -919,8 +919,20 @@ def cmd_mcp_serve(args: argparse.Namespace) -> int:
     streamable-http are available via ``--transport``. Returns
     exit code 0 on clean shutdown; the function blocks until the
     transport closes.
+
+    Requires the ``[mcp]`` extra (``pip install 'ophamin[mcp]'``).
+    Raises a structured error if the ``mcp`` package isn't installed.
     """
-    from ophamin.mcp import build_server
+    try:
+        from ophamin.mcp import build_server
+    except ImportError as exc:
+        print(
+            "ophamin mcp serve requires the [mcp] extra; install via "
+            "`pip install 'ophamin[mcp]'`. The underlying import failed: "
+            f"{exc}",
+            file=__import__("sys").stderr,
+        )
+        return 1
 
     server = build_server()
     transport = args.transport
