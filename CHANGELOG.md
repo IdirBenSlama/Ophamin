@@ -7,7 +7,54 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.25.1] below for the latest cut.)
+(empty — see [0.25.2] below for the latest cut.)
+
+## [0.25.2] — 2026-05-18
+
+**Headline:** Docs-only patch that closes two onboarding-surface
+gaps surfaced after the 0.25.1 STABILITY absorption. The getting-
+started pages now point new consumers at every interop path on
+first contact rather than burying that information in
+INTEROP_OVERVIEW.md.
+
+### Added — `docs/getting-started/reading-a-proof.md` non-Python paths
+
+New "Verifying from outside Python" section with four concrete
+recipes:
+
+- **Rust** — `cargo add ophamin-proof@0.21.2` →
+  `parse_proof(&text)` + `verify_signature(&proof, key)`.
+- **JS/TS** — `npm install @ophamin/proof@0.21.2` →
+  `parseProof(text)` + `verifySignature(proof, key)`.
+- **HTTP** — `ophamin http serve` + `curl -X POST /verify`.
+- **MCP** — wire `ophamin mcp serve` into Claude Code / Cursor /
+  Cline; agent gets a `verify_proof` tool.
+
+Plus a closing paragraph naming the canonical-form contract
+([`SCHEMAS.md`](../reference/schemas.md) §R1–R11) as the
+load-bearing primitive making cross-host byte-equality possible.
+
+### Added — `docs/getting-started/install.md` interop install paths
+
+- **Two new extras rows** in the optional-extras table:
+  - `mcp` — adds the `mcp` package needed by `ophamin mcp serve`.
+  - `telemetry` — opentelemetry + prometheus_client (the canonical
+    `setup_otel()` in core works without this; the extra is for
+    richer probes).
+- **New "Non-Python ports" section** with the `cargo add` +
+  `npm install` commands for the Rust crate + JS package.
+- **Canonical-extras pointer** to `pyproject.toml` for the
+  full enumerated list (12+ extras; documenting all here would
+  drift faster than the source-of-truth).
+- Example `pip install -e ".[all,dev,property_test,docs,mcp]"`
+  showing how to install the MCP extra alongside the dev stack.
+
+### Verified
+
+- `mkdocs build --strict` clean, exit 0.
+
+No substrate or wire-format changes. Rust + JS package versions
+remain at 0.21.2.
 
 ## [0.25.1] — 2026-05-18
 

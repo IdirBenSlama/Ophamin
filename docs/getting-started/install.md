@@ -24,7 +24,11 @@ ophamin verify        # checks every required dep is importable
 
 ## Optional extras
 
-Ophamin's pyproject ships a layered extras model:
+Ophamin's pyproject ships a layered extras model. The canonical
+list lives in
+[`pyproject.toml`](https://github.com/IdirBenSlama/Ophamin/blob/main/pyproject.toml)
+under `[project.optional-dependencies]` — what follows is the
+high-level orientation:
 
 | Extra | Adds | Use when |
 |---|---|---|
@@ -38,12 +42,33 @@ Ophamin's pyproject ships a layered extras model:
 | `tda` | ripser, scikit-tda | topological-data-analysis pillars |
 | `crdt` | pycrdt, y-py | CRDT-laws scenario |
 | `viz` | matplotlib | reporting + meta-analysis charts |
+| `mcp` | mcp | running `ophamin mcp serve` (E9.3 interop layer; AI-agent clients like Claude Code / Cursor / Cline) |
+| `telemetry` | opentelemetry-api, opentelemetry-sdk, prometheus_client | richer instrumentation pillar (the canonical `setup_otel()` in core works without this; the extra adds richer probes) |
 
 Install several at once:
 
 ```bash
-pip install -e ".[all,dev,property_test,docs]"
+pip install -e ".[all,dev,property_test,docs,mcp]"
 ```
+
+## Non-Python ports
+
+Two cross-language ports of the wire-format read + write API are
+available as standalone packages for consumers that don't need
+the full Python framework:
+
+```bash
+# Rust crate (read + write)
+cargo add ophamin-proof@0.21.2
+
+# JavaScript / TypeScript package (read + write)
+npm install @ophamin/proof@0.21.2
+```
+
+Both ports verify byte-equivalent signatures against Python-emitted
+proofs — see
+[`docs/INTEROP_OVERVIEW.md`](../INTEROP_OVERVIEW.md) for the full
+cross-host interop catalogue.
 
 ## Notes on the macOS lockfile
 

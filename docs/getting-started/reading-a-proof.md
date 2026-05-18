@@ -173,8 +173,82 @@ Outputs `OK` / `FAIL` per file plus a summary. Useful for verifying a
 whole campaign output, or for forensic re-validation of a historical
 proof archive.
 
+## Verifying from outside Python
+
+Ophamin ships **four non-Python paths** for verifying a signed proof.
+Every path produces the same `verified=True` for a valid signature
+because they all rest on the same canonical-form contract
+([`SCHEMAS.md`](../reference/schemas.md) §"Canonical-form determinism
+(normative)" R1–R11):
+
+### Rust — for systems integration
+
+```rust
+use ophamin_proof::{parse_proof, verify_signature};
+use std::fs;
+
+let text = fs::read_to_string("proof.json")?;
+let proof = parse_proof(&text)?;
+let key = b"ophamin-scenario-proof-key";  // or your deployment key
+let ok = verify_signature(&proof, key)?;
+assert!(ok);
+```
+
+`cargo add ophamin-proof@0.21.2`. Read-side + write-side both
+shipped. See
+[`crates/ophamin-proof/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/crates/ophamin-proof/README.md).
+
+### JavaScript / TypeScript — for web + Node
+
+```typescript
+import { readFileSync } from "node:fs";
+import { parseProof, verifySignature } from "@ophamin/proof";
+
+const text = readFileSync("proof.json", "utf-8");
+const proof = parseProof(text);
+const key = new TextEncoder().encode("ophamin-scenario-proof-key");
+const ok = await verifySignature(proof, key);
+console.log(ok ? "✓ verified" : "✗ FAILED");
+```
+
+`npm install @ophamin/proof@0.21.2`. Read-side + write-side both
+shipped. See
+[`packages/ophamin-proof-js/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/packages/ophamin-proof-js/README.md).
+
+### HTTP REST API — for service-style consumers
+
+```bash
+ophamin http serve --host 0.0.0.0 --port 8000 &
+curl -X POST http://localhost:8000/verify \
+    -H "Content-Type: application/json" \
+    --data "{\"proof_json\": $(cat proof.json | jq -Rs .)}"
+```
+
+Returns `{"verified": true, "verdict": {"outcome": "..."}, "proof_id": "..."}`.
+Auto-generated OpenAPI spec at `/openapi.json`; Swagger UI at `/docs`.
+
+### MCP — for AI agents
+
+Wire `ophamin mcp serve` into your MCP client (Claude Code, Cursor,
+Cline). The agent gets a `verify_proof` tool with the same return
+shape as the HTTP endpoint. See
+[`docs/INTEROP_OVERVIEW.md`](../INTEROP_OVERVIEW.md) for client recipes.
+
+### Cross-host: same bytes verify everywhere
+
+The wire-format contract is the load-bearing primitive. A proof
+verified by the Rust crate verifies bit-identically under JS, under
+the HTTP endpoint, and under MCP — they all canonicalize the same
+bytes and compute the same HMAC. Cross-language fixture conformance
+tests under [`tests/canonical_form/`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/canonical_form/)
+pin the byte-equality across every release.
+
 ## See also
 
 - [`SCHEMAS.md`](../reference/schemas.md) — the versioning policy
 - [`docs/SCENARIO_AUTHORING.md`](../SCENARIO_AUTHORING.md) — write your
   own scenarios
+- [`docs/INTEROP_OVERVIEW.md`](../INTEROP_OVERVIEW.md) — the full
+  5-layer consumer-shape catalogue
+- [`docs/REPRODUCING.md`](../REPRODUCING.md) — external-reviewer
+  rebuild guide (10-minute reproducer)
