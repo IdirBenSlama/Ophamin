@@ -1,6 +1,6 @@
 [package]
 name = "ophamin-proof"
-version = "0.21.0"
+version = "0.21.1"
 edition = "2021"
 description = "Read-only verifier for Ophamin signed empirical-proof records. Byte-equivalent to the Python reference canonical form per SCHEMAS.md."
 license = "MIT"

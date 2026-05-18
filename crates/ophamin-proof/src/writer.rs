@@ -436,14 +436,20 @@ mod tests {
 
     #[test]
     fn canonical_string_escapes_non_ascii() {
+        // Under ``ensure_ascii=True`` (R6), "café" emits as
+        // "café" (the ASCII bytes spelling that escape sequence).
+        // Note: byte string literals cannot contain non-ASCII chars
+        // directly, so we assert against the escaped form.
         let v = CanonicalValue::String("café".to_string());
-        assert_eq!(canonicalize_bytes(&v).unwrap(), br#""café""#);
+        assert_eq!(canonicalize_bytes(&v).unwrap(), b"\"caf\\u00e9\"");
     }
 
     #[test]
     fn canonical_string_escapes_supplementary_plane() {
+        // Under R6's supplementary-plane rule, U+1F680 (🚀) emits as
+        // the UTF-16 surrogate pair 🚀.
         let v = CanonicalValue::String("🚀".to_string());
-        assert_eq!(canonicalize_bytes(&v).unwrap(), br#""🚀""#);
+        assert_eq!(canonicalize_bytes(&v).unwrap(), b"\"\\ud83d\\ude80\"");
     }
 
     #[test]

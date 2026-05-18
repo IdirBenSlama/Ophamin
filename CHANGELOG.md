@@ -7,7 +7,42 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.21.0] below for the latest cut.)
+(empty — see [0.21.1] below for the latest cut.)
+
+## [0.21.1] — 2026-05-18
+
+**Patch:** Rust `writer.rs` unit-test fix — two byte-string
+literal assertions used non-ASCII source characters that Rust
+forbids in raw byte strings (`br#"..."#`). Replaced with proper
+escaped byte strings (`b"\\u00e9"` form) that match the canonical
+output Python emits under `ensure_ascii=True`.
+
+The two failing tests were:
+- `canonical_string_escapes_non_ascii` — wrote `br#""café""#`
+  (raw byte string with é). The actual canonical output for
+  "café" is `"café"` (per R6 `ensure_ascii=True`); the
+  expected-output literal needed to spell the escape sequence,
+  not the raw character.
+- `canonical_string_escapes_supplementary_plane` — same issue
+  with the 🚀 emoji. Fixed to `b"\"\\ud83d\\ude80\""`.
+
+The shipped 0.21.0 Rust writer module functional code was correct;
+only the test asserts were malformed. Locally the issue didn't
+surface because I have no `cargo` toolchain available to compile
+Rust; CI is the validation gate.
+
+Version bump in lockstep:
+- `pyproject.toml` + `src/ophamin/__init__.py`: 0.21.0 → 0.21.1
+- `crates/ophamin-proof/Cargo.toml`: 0.21.0 → 0.21.1
+- `packages/ophamin-proof-js/package.json`: 0.21.0 → 0.21.1
+
+### Verification
+
+- JS: 55/55 still pass under Node 24 (no JS changes).
+- Python: no source changes.
+- Rust: CI is the validation gate; the two test asserts now use
+  pure ASCII byte literals + escape sequences. `cargo build` and
+  `cargo test` should succeed on both stable + MSRV 1.75.
 
 ## [0.21.0] — 2026-05-18
 
