@@ -7,7 +7,114 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.16.2] below for the latest cut.)
+(empty — see [0.17.0] below for the latest cut.)
+
+## [0.17.0] — 2026-05-18
+
+**Headline:** Ophamin now ships a **Model Context Protocol (MCP)
+server**. Any MCP client — Claude Code, Claude Desktop, Cursor,
+Cline, custom agents — can discover scenarios, inspect their
+falsifiable claims, verify signed proofs, canonicalize values,
+index proof corpora, and drive scenario execution without writing
+a Python integration.
+
+This is the **interop-platform counterpart** to RFC 0002 Phase E9:
+- E9 ports (Rust `ophamin-proof`, JS `@ophamin/proof`) let
+  non-Python **systems** verify Python-emitted records.
+- The MCP server (0.17.0) lets non-Python **agents** drive Python
+  scenario execution + signature operations.
+
+Together: Ophamin is now reachable from any language that can verify
+a signed record AND from any agent that speaks MCP — regardless of
+its host language. The "interoperable platform" reframe has its
+agent-facing surface.
+
+This is the **ninth minor-version bump** in the 0.x line.
+
+### Added — `ophamin.mcp` subpackage
+
+- **`src/ophamin/mcp/server.py`** — `FastMCP`-backed server exposing
+  six tools:
+  - `list_scenarios()` — enumerate registry: name / family / tier /
+    target / goal / method. Read-only and fast.
+  - `get_scenario_claim(name)` — return the falsifiable-claim
+    five-tuple (statement / operationalization / threshold / H0 / H1).
+    Read-only and fast.
+  - `verify_proof(proof_json, sign_key_b64="")` — parse + HMAC-verify
+    a wire-form record. Returns `{verified, proof_id, schema_version,
+    verdict, claim_statement, framework_versions}`. Does NOT raise on
+    signature mismatch — surfaces the result. Default sign key is the
+    framework-wide `DEFAULT_SIGN_KEY`; pass base64-encoded
+    `sign_key_b64` for deployment-specific keys.
+  - `canonicalize_value(value_json, sign_key_b64="")` — produce
+    canonical UTF-8 bytes + HMAC-SHA256 for any JSON value. Implements
+    `SCHEMAS.md` R1–R11 byte-for-byte (it goes through the same
+    Python reference encoder the Rust + JS ports test against).
+  - `read_proof_index(directory)` — walk a directory tree and return
+    per-scenario counts + verdict distributions. Does NOT verify
+    signatures (use `verify_proof` per record).
+  - `run_scenario(name, kwargs_json="{}")` — **WARNING: heavyweight.**
+    Construct + run a scenario, return a summary of the resulting
+    signed proof. May take seconds to minutes.
+- **`src/ophamin/mcp/__init__.py`** — public API: `build_server()`,
+  `SERVER_NAME`, `SERVER_TITLE`, `SERVER_VERSION`.
+- **`src/ophamin/mcp/README.md`** — tool catalogue, CLI usage,
+  client-wiring recipes for Claude Code / Claude Desktop / Cursor /
+  Cline, example tool invocations, and the interop framing.
+
+### Added — `ophamin mcp serve` CLI subcommand
+
+- **`src/ophamin/cli.py`** — new `mcp` subcommand with a single
+  `serve` action.
+  - `ophamin mcp serve` — stdio (default; what Claude Code expects).
+  - `ophamin mcp serve --transport sse` — SSE over HTTP.
+  - `ophamin mcp serve --transport streamable-http` — streamable HTTP.
+  - `--mount-path` optional for the HTTP transports.
+
+### Added — pinning tests
+
+- **`tests/test_mcp_server.py`** — **30 new tests** covering:
+  - Server identity (name / title / version).
+  - Tool catalogue: exactly six tools registered, each with a
+    meaningful description (>30 chars).
+  - `_decode_sign_key`: empty → default key; valid base64 →
+    decoded bytes; invalid base64 → `ValueError`.
+  - Per-tool contract for all six tools, including:
+    - Tamper-resistance: `verify_proof` returns `verified: False` on
+      a single-bit-flipped signature (does NOT raise — surfaces the
+      failure).
+    - Real Python-emitted shipped-proof verification under the
+      framework's default key.
+    - Custom-key path via base64-encoded `sign_key_b64` produces a
+      different HMAC on the same canonical bytes.
+  - End-to-end exercise via the FastMCP `call_tool` API (not just
+    the underlying `_impl` functions).
+
+### Why this matters (interop reframe)
+
+The user's reframe — "it's an interoperable platform" — produced
+two distinct interop deliverables across the 0.14.x–0.17.0 arc:
+
+1. **0.14.0–0.16.x**: cross-language wire-format. Normative spec
+   (`SCHEMAS.md` R1–R11) + 3 fixtures + Rust + JS read-only
+   verifiers, all CI-gated.
+2. **0.17.0**: cross-host-system agent-callable interface. Any MCP
+   client now drives Ophamin without speaking Python.
+
+A Claude Code agent investigating a research-software validity
+question can reach for Ophamin tools as naturally as it reaches for
+`Read` or `Grep`. Same for any future MCP-speaking agent — Cursor,
+Cline, custom orchestrators.
+
+### Verification
+
+- New MCP test suite: 30/30 pass in 1.76s (local).
+- CLI subcommand wired and visible via `ophamin mcp serve --help`.
+- Full Python test suite (incl. the new MCP tests): expected ~1623
+  passed, 2 skipped, 0 failed at HEAD.
+- The MCP server's `verify_proof` tool successfully verifies all 7
+  shipped Python-emitted signed proofs under the framework's
+  default key.
 
 ## [0.16.2] — 2026-05-18
 

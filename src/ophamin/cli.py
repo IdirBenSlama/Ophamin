@@ -912,6 +912,27 @@ def cmd_verify(args: argparse.Namespace) -> int:
     return 1 if has_required_failure(results) else 0
 
 
+def cmd_mcp_serve(args: argparse.Namespace) -> int:
+    """Start the Ophamin MCP server.
+
+    Default transport is stdio (what Claude Code expects); SSE +
+    streamable-http are available via ``--transport``. Returns
+    exit code 0 on clean shutdown; the function blocks until the
+    transport closes.
+    """
+    from ophamin.mcp import build_server
+
+    server = build_server()
+    transport = args.transport
+    if transport == "stdio":
+        # FastMCP.run signature is run(transport, mount_path=None)
+        # mount_path is ignored for stdio
+        server.run(transport="stdio")
+    else:
+        server.run(transport=transport, mount_path=args.mount_path)
+    return 0
+
+
 def cmd_wiring(args: argparse.Namespace) -> int:
     """Run the wiring probe against a Kimera repo, write a signed completeness report.
 
@@ -2613,6 +2634,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit Markdown report instead of compact text",
     )
     p_verify.set_defaults(func=cmd_verify)
+
+    p_mcp = sub.add_parser(
+        "mcp",
+        help="run the Ophamin Model Context Protocol server "
+             "(exposes scenarios + signature operations to any MCP "
+             "client — Claude Code, Claude Desktop, Cursor, custom agents)",
+    )
+    p_mcp_sub = p_mcp.add_subparsers(dest="mcp_cmd", required=True)
+    p_mcp_serve = p_mcp_sub.add_parser(
+        "serve",
+        help="start the MCP server (stdio by default)",
+    )
+    p_mcp_serve.add_argument(
+        "--transport",
+        default="stdio",
+        choices=["stdio", "sse", "streamable-http"],
+        help="transport (default: stdio — what Claude Code expects)",
+    )
+    p_mcp_serve.add_argument(
+        "--mount-path",
+        default=None,
+        help="optional mount path for sse / streamable-http transports",
+    )
+    p_mcp_serve.set_defaults(func=cmd_mcp_serve)
 
     p_drift = sub.add_parser(
         "drift-detect",
