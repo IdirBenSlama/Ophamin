@@ -7,7 +7,36 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.24.0] below for the latest cut.)
+(empty — see [0.24.1] below for the latest cut.)
+
+## [0.24.1] — 2026-05-18
+
+**Headline:** Docs-CI fix only — no substrate or wire-format changes.
+The 0.24.0 docs build failed under `mkdocs --strict` because two
+docs pages (`docs/INTEROP_OVERVIEW.md` and `docs/REPRODUCING.md`)
+referenced repository files outside the docs tree via relative
+`../path` links. `--strict` mode rejects those because the target
+isn't part of the documentation tree.
+
+### Fixed — mkdocs strict-mode link rewrites
+
+- **`docs/INTEROP_OVERVIEW.md`**: 15 external `../` links rewritten
+  to absolute `https://github.com/IdirBenSlama/Ophamin/blob/main/...`
+  URLs (the per-layer README pointers in "Choosing your layer" +
+  "See also", plus the `SCHEMAS.md` + `paper/paper.md` references).
+- **`docs/REPRODUCING.md`**: 7 external `../` links rewritten to
+  the same absolute form (`tests/test_build_reproducibility.py` +
+  `tests/canonical_form/` + `SCHEMAS.md` + `CITATION.cff` +
+  `.zenodo.json` + `paper/paper.md`).
+
+Local navigation within `docs/` (e.g. `STABILITY.md`,
+`ELEVATION_ROADMAP_2026_05_16.md`) is unchanged — `mkdocs --strict`
+accepts those because the targets are inside the docs tree.
+
+No code changes. No version-pin changes. No behavioural changes
+in the framework, the wire format, the cross-language ports, the
+MCP server, the HTTP API, the CloudEvents wrapper, or the OTel
+instrumentation. The Rust + JS package versions remain at 0.21.2.
 
 ## [0.24.0] — 2026-05-18
 

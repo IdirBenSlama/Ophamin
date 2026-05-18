@@ -23,7 +23,7 @@ The framework makes two distinct reproducibility claims:
    - Wheel + sdist content under `SOURCE_DATE_EPOCH` (wheel
      byte-equal across rebuilds; sdist content byte-equal, gzip
      wrapper may drift — see
-     [`tests/test_build_reproducibility.py`](../tests/test_build_reproducibility.py)).
+     [`tests/test_build_reproducibility.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_build_reproducibility.py)).
 
 2. **Across languages, on the same canonical-form input**, the
    following are bit-stable:
@@ -31,7 +31,7 @@ The framework makes two distinct reproducibility claims:
      Rust `ophamin-proof` writer, and the JS `@ophamin/proof` encoder.
    - HMAC-SHA256 digests over those bytes under the same key.
    - Cross-language fixture conformance at
-     [`tests/canonical_form/`](../tests/canonical_form/) locks both
+     [`tests/canonical_form/`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/canonical_form/) locks both
      directions (Python emit → Rust/JS verify; Rust/JS emit →
      Python verify).
 
@@ -167,7 +167,7 @@ sha256sum dist/ophamin-*.whl  # should match the prior digest
 
 The wheel SHA-256 digest is bit-stable across rebuilds on the same
 machine when `SOURCE_DATE_EPOCH` is pinned (per
-[`tests/test_build_reproducibility.py`](../tests/test_build_reproducibility.py)).
+[`tests/test_build_reproducibility.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_build_reproducibility.py)).
 Cross-machine diffoscope-clean build is the owner-side gate for
 E4 closeout (requires multiple reviewer rigs).
 
@@ -244,8 +244,8 @@ These remain owner-driven per RFC 0002:
 
 ## See also
 
-- [`SCHEMAS.md`](../SCHEMAS.md) — normative wire-format spec.
+- [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md) — normative wire-format spec.
 - [`docs/STABILITY.md`](STABILITY.md) — API stability contract.
 - [`docs/ELEVATION_ROADMAP_2026_05_16.md`](ELEVATION_ROADMAP_2026_05_16.md) §8.5 — RFC 0002 phase status table.
-- [`paper/paper.md`](../paper/paper.md) — methods paper draft.
-- [`CITATION.cff`](../CITATION.cff) + [`.zenodo.json`](../.zenodo.json) — citation + Zenodo deposit metadata.
+- [`paper/paper.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/paper/paper.md) — methods paper draft.
+- [`CITATION.cff`](https://github.com/IdirBenSlama/Ophamin/blob/main/CITATION.cff) + [`.zenodo.json`](https://github.com/IdirBenSlama/Ophamin/blob/main/zenodo.json) — citation + Zenodo deposit metadata.

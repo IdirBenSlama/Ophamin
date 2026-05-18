@@ -26,10 +26,10 @@ Use the wire-format port for your language:
 
 - **Rust**: `cargo add ophamin-proof@0.21.2` →
   `ophamin_proof::parse_proof(text)` + `ophamin_proof::verify_signature(&record, key)`.
-  See [`crates/ophamin-proof/README.md`](../crates/ophamin-proof/README.md).
+  See [`crates/ophamin-proof/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/crates/ophamin-proof/README.md).
 - **JS/TS**: `npm install @ophamin/proof@0.21.2` →
   `parseProof(text)` + `verifySignature(record, key)`. See
-  [`packages/ophamin-proof-js/README.md`](../packages/ophamin-proof-js/README.md).
+  [`packages/ophamin-proof-js/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/packages/ophamin-proof-js/README.md).
 
 Conformance against the cross-language fixtures is locked: a
 record verifying under any port verifies under every port.
@@ -81,7 +81,7 @@ Wire it into your MCP client. For Claude Code:
 Six tools become available to the agent: `list_scenarios`,
 `get_scenario_claim`, `verify_proof`, `canonicalize_value`,
 `read_proof_index`, `run_scenario`. See
-[`src/ophamin/mcp/README.md`](../src/ophamin/mcp/README.md) for
+[`src/ophamin/mcp/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/mcp/README.md) for
 client recipes (Claude Desktop, Cursor, Cline, generic stdio
 clients).
 
@@ -95,7 +95,7 @@ ophamin http serve --host 0.0.0.0 --port 8000 --workers 4
 
 The eight endpoints mirror the MCP surface plus `/health` and
 `/version`. OpenAPI 3 spec at `/openapi.json`; Swagger UI at
-`/docs`. See [`src/ophamin/http_api/README.md`](../src/ophamin/http_api/README.md)
+`/docs`. See [`src/ophamin/http_api/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/http_api/README.md)
 for curl examples + Docker / Kubernetes / systemd deployment
 recipes.
 
@@ -122,7 +122,7 @@ result = verify_proof_impl(json.dumps(proof))
 assert result["verified"]
 ```
 
-See [`src/ophamin/cloudevents/README.md`](../src/ophamin/cloudevents/README.md)
+See [`src/ophamin/cloudevents/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/cloudevents/README.md)
 for the full attribute catalogue + Kafka / EventBridge recipes.
 
 ### "I want Ophamin spans in Jaeger / metrics in Prometheus."
@@ -148,7 +148,7 @@ metrics (`ophamin_scenarios_run_total`,
 `ophamin_proofs_verified_total`,
 `ophamin_canonical_bytes_encoded`).
 
-See [`src/ophamin/observability/README.md`](../src/ophamin/observability/README.md)
+See [`src/ophamin/observability/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/observability/README.md)
 for the full attribute catalogue + sidecar wiring with HTTP /
 MCP / CloudEvents.
 
@@ -189,7 +189,7 @@ The interop layers follow Ophamin's
   layout under `packages/ophamin-proof-js/src/`, OTel metric
   internals).
 - **`@Deprecated`** — none currently. Backward-compat policy
-  matches [`SCHEMAS.md`](../SCHEMAS.md): one-minor-version
+  matches [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md): one-minor-version
   deprecation window before removal.
 
 A drift in any `@Stable` surface is a major-version bump with a
@@ -197,17 +197,17 @@ documented migration path.
 
 ## See also
 
-- [`SCHEMAS.md`](../SCHEMAS.md) — the normative wire-format spec.
+- [`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md) — the normative wire-format spec.
 - [`docs/REPRODUCING.md`](REPRODUCING.md) — external-rebuild
   guide for verifying the framework's claims on your own
   infrastructure.
 - [`docs/STABILITY.md`](STABILITY.md) — API stability policy.
 - Per-layer READMEs:
-  - [`crates/ophamin-proof/README.md`](../crates/ophamin-proof/README.md)
-  - [`packages/ophamin-proof-js/README.md`](../packages/ophamin-proof-js/README.md)
-  - [`src/ophamin/mcp/README.md`](../src/ophamin/mcp/README.md)
-  - [`src/ophamin/http_api/README.md`](../src/ophamin/http_api/README.md)
-  - [`src/ophamin/cloudevents/README.md`](../src/ophamin/cloudevents/README.md)
-  - [`src/ophamin/observability/README.md`](../src/ophamin/observability/README.md)
-- [`paper/paper.md`](../paper/paper.md) — methods paper covering
+  - [`crates/ophamin-proof/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/crates/ophamin-proof/README.md)
+  - [`packages/ophamin-proof-js/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/packages/ophamin-proof-js/README.md)
+  - [`src/ophamin/mcp/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/mcp/README.md)
+  - [`src/ophamin/http_api/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/http_api/README.md)
+  - [`src/ophamin/cloudevents/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/cloudevents/README.md)
+  - [`src/ophamin/observability/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/observability/README.md)
+- [`paper/paper.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/paper/paper.md) — methods paper covering
   the framework's empirical claims.
