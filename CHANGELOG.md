@@ -7,7 +7,103 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.11.4] below for the latest cut.)
+(empty — see [0.12.0] below for the latest cut.)
+
+## [0.12.0] — 2026-05-18
+
+**Headline:** Phase E1 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md)
+opens with the **first cross-framework validation scenario** —
+`bayesian-phi-posterior-crosscheck` runs the same NormalMean model
+through PyMC and NumPyro and asserts the two posteriors agree
+within tolerance. RFC-0002 names this acceptance criterion: "≥ 3
+cross-framework validation proofs published under
+`proofs/measurement_machinery/`; each is a VALIDATED record with a
+documented agreement threshold." This is the first of those three.
+
+This is the **fourth minor-version bump** in the 0.x line:
+- 0.9.0 — wire-format stability contract (E2)
+- 0.10.0 — Python-API stability contract (E8)
+- 0.11.0 — reproducibility contract empirically validated (E4)
+- **0.12.0** — first cross-framework validation (E1)
+
+### Added
+
+- **`src/ophamin/measuring/scenarios/bayesian_phi_posterior_crosscheck.py`**
+  — new measurement-machinery scenario.
+    - `BayesianPhiPosteriorCrosscheckScenario`: generates synthetic
+      Normal data with fixed seed; fits the **same** model under
+      both PyMC (NUTS via PyTensor) and NumPyro (NUTS via JAX);
+      computes `mean_difference = |mu_pymc − mu_numpyro|` and
+      `hdi_width_ratio = width_pymc / width_numpyro`; VALIDATED iff
+      both stay inside documented tolerance.
+    - Default tolerance: `mean_tolerance=0.1` (~10× sampler MC error
+      at N=200) + `width_tolerance=0.5` (HDI widths within ±50 %).
+    - Empirical agreement on this host: **mean_diff = 0.0017**
+      (60× tighter than tolerance), **width_ratio = 1.02**
+      (4 % from unity). Two independent samplers agree at the 3rd
+      decimal place.
+    - `@Stable`-tagged per Phase E8 contract.
+- **`proofs/measurement_machinery/bayesian_cross_framework/bayesian_pymc_vs_numpyro_aae6cf83833b7c05.json`**
+  — first canonical signed proof of cross-framework agreement.
+  Schema-validated; pinned by `test_validate_schema_passes_for_every_shipped_proof`.
+- **`tests/test_bayesian_phi_posterior_crosscheck.py`** — 16
+  pinning tests:
+    - 7 construction invariants (n_samples / tolerance ranges /
+      score-unreachable / etc.)
+    - 7 end-to-end VALIDATED assertions (per-backend posterior
+      recorded, mean agreement at 3rd decimal, signed proof
+      validates)
+    - 1 falsifiability test (absurdly tight tolerance MUST REFUTE
+      — proves the threshold logic isn't a no-op)
+    - 1 scenario-registration smoke
+- **`tests/test_framework_wide_reproducibility.py` `_AUDIT_KWARGS`**
+  extended to include the new scenario. The framework-wide audit
+  gate now covers 4 seed-taking scenarios (was 3 in 0.11.x).
+
+### Why NumPyro first (not Stan)
+
+RFC-0002 §3.1 E1 mentions Stan as the canonical "different
+language, different sampler" Bayesian cross-check. We ship NumPyro
+first because:
+1. **Already in the `[bayesian]` extra** — no new dependency, no
+   ~100 MB cmdstan compile step on CI.
+2. **Truly independent sampler** — NumPyro's NUTS runs on JAX
+   (JIT-compiled HMC), PyMC's NUTS runs on PyTensor. Different
+   numerical backends, different RNG, different gradient
+   evaluation. Disagreement would be a real defect.
+3. **CI-friendly** — full scenario completes in ~3-4 s wall time on
+   Apple Silicon, ~10 s on CI runners.
+
+Stan support remains queued as a follow-on under a new
+`[bayesian_stan]` extra; landing it would give the framework
+**three** Bayesian backends (PyMC + NumPyro + Stan), satisfying
+the "two independent oracles" rule the methods literature
+requires for cross-framework verification claims.
+
+### Validated
+
+- `mypy --strict src/ophamin tests/test_bayesian_phi_posterior_crosscheck.py` clean (148/148).
+- `mkdocs build --strict` passes.
+- 16/16 scenario tests pass in 4.43 s wall.
+- 6/6 framework-wide reproducibility audits pass (now covering
+  the new scenario too).
+- 1 canonical signed proof shipped under
+  `proofs/measurement_machinery/bayesian_cross_framework/`.
+- `test_validate_schema_passes_for_every_shipped_proof` validates
+  the new proof.
+
+### What this closes vs leaves open
+
+**Closed:** the first concrete step of E1 (NumPyro cross-check
+shipped + signed proof published).
+
+**Open** (per RFC-0002 acceptance criterion of ≥ 3 cross-framework
+proofs under `proofs/measurement_machinery/`):
+- `[bayesian_stan]` extra + a PyMC↔Stan crosscheck scenario
+  (next E1 sub-task)
+- A GWF↔Garak cross-check (offensive-security oracle)
+- A CRDT↔Yjs-JS cross-check (already cross-checks pycrdt↔y_py;
+  needs a JS Yjs runtime to count as "different language")
 
 ## [0.11.4] — 2026-05-17
 

@@ -56,6 +56,14 @@ _AUDIT_KWARGS: dict[str, dict[str, Any]] = {
         "draws": 100,
         "tune": 50,
     },
+    "bayesian-phi-posterior-crosscheck": {
+        "seed": 20260517,
+        "n_samples": 80,
+        "pymc_draws": 300,
+        "pymc_tune": 100,
+        "numpyro_samples": 300,
+        "numpyro_warmup": 100,
+    },
 }
 
 
