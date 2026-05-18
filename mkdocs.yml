@@ -128,6 +128,8 @@ nav:
       - Tier-2 telemetry proposal: TIER_2_TELEMETRY_PROPOSAL.md
       - API stability policy: STABILITY.md
   - Project:
+      - Status (2026-05-19): STATUS_2026_05_19.md
+      - Tool & standards landscape (2026-05-19): TOOL_LANDSCAPE_2026_05_19.md
       - Changelog: changelog.md
       - Contributing: contributing.md
       - Code of conduct: code_of_conduct.md

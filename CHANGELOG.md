@@ -7,7 +7,78 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.31.0] below for the latest cut.)
+(empty — see [0.32.0] below for the latest cut.)
+
+## [0.32.0] — 2026-05-19
+
+**Headline:** Two durable session-handoff docs landing together —
+a session-state pin for what was just plugged and what's still
+open, plus a research-grounded landscape map of the OSS tools and
+standards Ophamin's signed-proof discipline can compose with or
+conform to across criticality tiers (civil → military-grade).
+
+Doc-only release. No substrate or wire-format changes.
+
+### Added — `docs/STATUS_2026_05_19.md`
+
+Pinned session-state record for the close of the 0.16.0 → 0.31.0
+autonomous-loop campaign. Audience: the owner + any future Claude
+session resuming work. Sections:
+
+- **In one paragraph** — what Ophamin lets Kimera do; what just
+  shipped; what's left.
+- **What Ophamin is for** — anchored in primary sources.
+- **What we plugged** — chronological table per release.
+- **What this is for in plain terms** — the 6 load-bearing Kimera
+  empirical findings the framework has already surfaced (3
+  VALIDATED + 3 REFUTED including the load-bearing Rosetta 0/20).
+- **What's pinned for future sessions** — owner-physical (ORCID /
+  Zenodo / paper submission / PyPI / etc.) vs autonomous-doable
+  (Windows CI / Docker GHCR / pre-commit / streaming proof writes
+  / etc.).
+- **Bootstrap for a fresh Claude** — 5-step read order.
+
+### Added — `docs/TOOL_LANDSCAPE_2026_05_19.md`
+
+Research-grounded landscape map (~500 lines) of OSS tools and
+standards relevant to Ophamin's positioning across criticality
+tiers. Anchored in 2026 OSS-ecosystem web research + Ophamin's
+own primary sources. Eight categorical surveys:
+
+1. **Signed records + supply-chain attestation** (in-toto / SLSA /
+   Sigstore / Rekor / SCITT / DSSE / PEP 740).
+2. **Reproducibility, workflow, lineage** (DVC / MLflow /
+   Snakemake / Nextflow / Airflow / OpenLineage / ReproZip / CWL).
+3. **Provenance + FAIR** (W3C PROV-O / RO-Crate / CodeMeta).
+4. **Safety-critical certification** (DO-178C / ISO 26262 /
+   IEC 62304 / Frama-C / SPARK / TLA+).
+5. **Compliance + regulated environments** (NIST 800-53 / FedRAMP /
+   CMMC / ISO 27001 / Common Criteria / STIG).
+6. **Multimodal scientific data** (HDF5 / Zarr / Apache Arrow /
+   Parquet / DICOM / NWB / BIDS / OMOP CDM).
+7. **Statistical methodology** (scipy / statsmodels / PyMC /
+   NumPyro / pingouin / MAPIE / DoWhy / tigramite / river / …).
+8. **Publication + citation** (JOSS / SoftwareX / JMLR-OSS /
+   Zenodo / Software Heritage / CITATION.cff).
+
+Plus per-category mapping of where Ophamin already touches each
+landscape + a Tier 1-4 ranking of next-direction candidates ranked
+by leverage (in-toto wrapper, RO-Crate output, OpenLineage emitter,
+streaming proof writes, Snakemake/Nextflow adapters, R port,
+DO-178C conformance dossier, Windows CI matrix, etc.).
+
+Section §V explicitly names what was high-confidence vs
+lower-confidence in the research, per Ophamin's honesty-about-
+uncertainty rule. 18 web-sourced citations listed.
+
+### Verified
+
+- `mkdocs build --strict` clean, exit 0; both new docs render in
+  the Project nav section.
+- All internal links resolve.
+
+No substrate or wire-format changes. Rust + JS package versions
+remain at 0.21.2.
 
 ## [0.31.0] — 2026-05-19
 
