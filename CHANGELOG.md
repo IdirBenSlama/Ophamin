@@ -7,7 +7,51 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.27.0] below for the latest cut.)
+(empty — see [0.27.1] below for the latest cut.)
+
+## [0.27.1] — 2026-05-18
+
+**Headline:** Paper-build CI smoke test + README badge durability
+patch. Both are owner-facing: they catch paper-build regressions
+at commit time rather than at submission time, and they remove
+the manual-bump maintenance burden on the README version badge.
+
+No substrate or wire-format changes.
+
+### Added — `.github/workflows/paper.yml`
+
+New path-gated CI workflow that fires only on changes to `paper/**`
+or the workflow itself. Uses the Open Journals
+[`openjournals-draft-action`](https://github.com/openjournals/openjournals-draft-action)
+to render `paper/paper.md` + `paper/paper.bib` through the same
+`inara` container JOSS uses for its review pipeline, validates
+the PDF renders, and uploads it as a `paper` artifact (retention
+30 days).
+
+Catches at commit time: broken BibTeX references, missing
+citations, LaTeX render errors, front-matter mismatches with
+JOSS metadata expectations.
+
+The PDF is NOT committed to the repo (per `paper/README.md`'s
+existing policy — source-of-truth artefacts are `paper.md` +
+`paper.bib`).
+
+### Fixed — `README.md` badges
+
+Two badges were drifting and a third was missing:
+
+- **Version badge** was hardcoded to `0.13.0` (the framework is
+  at `0.27.x`). Replaced with `shields.io/github/v/tag/IdirBenSlama/Ophamin`
+  which auto-updates from the GitHub tag — no more manual bumps.
+- **Tests badge** ("1223+ passing") was stale and would require
+  constant maintenance to track the growing test count. Removed.
+- **cross-language workflow badge** added (this load-bearing
+  workflow validates the Rust + JS read + write side; it was
+  previously invisible on the README).
+
+### Verified
+
+- `mkdocs build --strict` clean, exit 0.
 
 ## [0.27.0] — 2026-05-18
 

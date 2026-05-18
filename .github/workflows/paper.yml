@@ -1,0 +1,50 @@
+name: paper
+
+# Build the JOSS-style methods paper (paper/paper.md + paper/paper.bib)
+# via the Open Journals `inara` action. Runs only when paper files
+# change, so most pushes don't trigger it.
+#
+# Catches regressions at commit time rather than submission time:
+# broken BibTeX references, missing citations, LaTeX render errors,
+# JOSS metadata front-matter mismatches.
+#
+# The rendered PDF is uploaded as an artifact named `paper`, downloadable
+# from the workflow-run page. It is NOT committed to the repo (per
+# `paper/README.md` — source-of-truth artefacts are `paper.md` + `paper.bib`).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "paper/**"
+      - ".github/workflows/paper.yml"
+  pull_request:
+    paths:
+      - "paper/**"
+      - ".github/workflows/paper.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build paper.pdf via openjournals/inara
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build draft paper (JOSS format)
+        uses: openjournals/openjournals-draft-action@master
+        with:
+          journal: joss
+          paper-path: paper/paper.md
+
+      - name: Upload paper PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper
+          path: paper/paper.pdf
+          if-no-files-found: error
+          retention-days: 30
