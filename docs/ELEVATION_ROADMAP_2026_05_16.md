@@ -355,6 +355,35 @@ benchmarks) on owner go-ahead.*
 
 ---
 
+## 8.5. Stage 5 + 6 — execution status (refreshed 2026-05-18)
+
+This table tracks per-phase shipped state. Phases land as one or more
+patch/minor releases; the canonical record is the CHANGELOG.
+
+| Phase | Theme | Status | Releases |
+|---|---|---|---|
+| **E2** | FWER correction at campaign level + CampaignRecord/2.0 schema bump | ✅ shipped | `0.9.0` |
+| **E6** | PyPI Trusted Publishing release workflow + advisory-until-PyPI-enabled | ✅ shipped (one owner step pending) | `0.9.1`, `0.9.2` |
+| **E7** | SLSA 3 build provenance + sigstore signing + PEP 740 attestations | ✅ shipped | `0.9.3` |
+| **E8** | Python-API stability contract (`@Stable` / `@Provisional` / `@Internal` / `@Deprecated` decorators + regression suite + `ophamin api-stability` CLI) | ✅ shipped | `0.10.0`, `0.10.1` |
+| **E10** | Community infrastructure (GOVERNANCE / ROADMAP / SUPPORT / FUNDING / CoC link) | ✅ shipped | `0.10.2` |
+| **E4** | Research-grade reproducibility — deterministic-seed audit scenario + framework-wide audit gate + `SOURCE_DATE_EPOCH` build reproducibility | ✅ shipped (per-OS lockfiles + cross-machine diffoscope remain owner-side) | `0.11.0`–`0.11.2`, `0.11.4` |
+| **E3.1** | Concept walkthroughs (E2 + E4 + E8 + E1 demos under `examples/walkthrough_*.py`) | ✅ shipped | `0.11.3`, `0.12.1` |
+| **E1.1** | First cross-framework validation — PyMC↔NumPyro Bayesian posterior agreement + signed proof published under `proofs/measurement_machinery/bayesian_cross_framework/` | ✅ shipped | `0.12.0` |
+| **E1.2** | Second cross-framework validation (Stan via `[bayesian_stan]` extra, OR GWF↔Garak, OR Yjs-JS-runtime) | open | — |
+| **E1.3** | Third cross-framework validation (the remaining of the three) | open | — |
+| **E3** owner-side | Zenodo benchmark deposit + DOI + reproducer notebooks for ≥ 6 scenarios + methods paper draft | open (owner) | — |
+| **E4** owner-side | External reviewer rebuild verification (byte-equal SBOM + signed-record output) | open (owner) | — |
+| **E5** | Methods paper submission (JOSS / SoftwareX / JMLR-OSS) + reviewer-time feedback | open (owner) | — |
+| **E9** | Cross-language read APIs (Rust `crates/ophamin-proof` + TS `packages/ophamin-proof-js`) | open | — |
+
+**Both 1.0.0 prerequisites met:** wire-format stability contract (E2 — `0.9.0`)
+and Python-API stability contract (E8 — `0.10.0`). What separates the
+current `0.12.x` line from `1.0.0` is **external validation under real
+upgrade pressure** — RFC 0002 §3.2 names "third party rebuilds a tagged
+release and verifies byte-equal SBOM + signed-record output" (E4
+owner-side) and "methods paper passes review" (E5) as the two doors.
+
 ## 9. Stage 5 — state-of-the-art scientific tier
 
 Stage 5 raises Ophamin from "internally rigorous + publicly browsable"

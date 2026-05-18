@@ -45,6 +45,7 @@ primitives shipped in the 0.9.x / 0.10.x / 0.11.x line. Each:
 | [`walkthrough_fwer_correction.py`](walkthrough_fwer_correction.py) | E2 | Holm-Bonferroni + Benjamini-Hochberg on a hand-crafted family of 10 p-values; pins the Holm ⊆ BH rejection-set invariant; shows `CampaignRecord/2.0`'s `corrected_verdicts` integration. |
 | [`walkthrough_reproducibility_audit.py`](walkthrough_reproducibility_audit.py) | E4 | `DeterministicSeedAuditScenario` against `crdt-laws`; demonstrates the exclusion list of `reproducibility_hash`; explains what the framework-wide audit gate in `tests/test_framework_wide_reproducibility.py` covers. |
 | [`walkthrough_api_stability.py`](walkthrough_api_stability.py) | E8 | `@Stable` / `@Provisional` / `@Internal` / `@Deprecated` decorators on synthetic targets; shows the predicates (`is_stable`, `is_deprecated`); demonstrates `@Deprecated`'s `DeprecationWarning` at call site; surfaces the `StabilityInfo` invariants enforced at construction time. |
+| [`walkthrough_cross_framework.py`](walkthrough_cross_framework.py) | E1 | Runs `BayesianPhiPosteriorCrosscheckScenario` — same NormalMean model under PyMC + NumPyro on the same synthetic data; prints per-backend posteriors side by side + agreement metrics; asserts means agree to ≤ 0.05. Demonstrates the cross-framework validation primitive RFC 0002 §3.1 E1 names as load-bearing. |
 
 ## Discovery commands (no code reading required)
 

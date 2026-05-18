@@ -32,6 +32,7 @@ _WALKTHROUGHS = (
     "walkthrough_fwer_correction.py",
     "walkthrough_reproducibility_audit.py",
     "walkthrough_api_stability.py",
+    "walkthrough_cross_framework.py",
 )
 
 

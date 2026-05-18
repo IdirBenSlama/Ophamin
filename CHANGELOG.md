@@ -7,7 +7,44 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.12.0] below for the latest cut.)
+(empty — see [0.12.1] below for the latest cut.)
+
+## [0.12.1] — 2026-05-18
+
+Documentation-currency catch-up: 23 releases of campaign progress
+have outpaced the roadmap's per-phase status tracking + left the
+E3.1 walkthrough set incomplete (no cross-framework demo yet).
+
+### Added
+
+- **`examples/walkthrough_cross_framework.py`** — Phase E1 demo
+  (the missing fourth walkthrough). Runs the
+  `BayesianPhiPosteriorCrosscheckScenario` shipped in 0.12.0;
+  prints PyMC + NumPyro posteriors side by side; surfaces the
+  agreement metrics (mean difference, HDI width ratio); asserts
+  means agree to ≤ 0.05. Walkthrough exits with the closing-success
+  marker; pinned by `tests/test_example_walkthroughs.py`.
+- **`tests/test_example_walkthroughs.py`** — `_WALKTHROUGHS`
+  list extended; now 9 tests (3 parametrized smokes ×3 walkthroughs
+  → 12 sub-tests; plus 1 README-drift detector). 9/9 pass in 19.89 s.
+
+### Changed
+
+- **`docs/ELEVATION_ROADMAP_2026_05_16.md`** gains §8.5
+  "Stage 5 + 6 — execution status (refreshed 2026-05-18)" —
+  per-phase shipped-state table mapping every E-phase to its
+  release(s). Documents the explicit 1.0.0 prerequisite state
+  (wire-format + Python-API contracts both met) and the two open
+  doors to 1.0 (external rebuild verification + methods paper).
+- **`examples/README.md`** gains a row for the new walkthrough
+  under "Concept walkthroughs".
+
+### Validated
+
+- `mypy --strict src/ophamin tests/test_example_walkthroughs.py` clean (148/148).
+- `mkdocs build --strict` passes with the roadmap update.
+- 9/9 walkthrough tests pass (4 walkthroughs × 2 parametrized smokes + 1 README-drift detector).
+- All four walkthroughs run end-to-end + emit closing success.
 
 ## [0.12.0] — 2026-05-18
 
