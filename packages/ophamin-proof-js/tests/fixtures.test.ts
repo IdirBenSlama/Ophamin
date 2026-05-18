@@ -33,7 +33,13 @@ const TEST_KEY = new TextEncoder().encode(
   "ophamin-canonical-test-key-v1",
 );
 
-const FIXTURE_STEMS = ["numerical_edge", "simple", "unicode"] as const;
+const FIXTURE_STEMS = [
+  "boundary_cases",
+  "deeply_nested",
+  "numerical_edge",
+  "simple",
+  "unicode",
+] as const;
 
 function readFixtureInput(stem: string): unknown {
   // Use the int-preserving parser so integers in fixture inputs

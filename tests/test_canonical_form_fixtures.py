@@ -41,7 +41,13 @@ _FIXTURES_DIR = Path(__file__).parent / "canonical_form"
 # Stems pinned explicitly so accidentally-added artefacts don't silently
 # become part of the contract. To add a new fixture, append the stem
 # here and regenerate.
-_FIXTURE_STEMS = ("numerical_edge", "simple", "unicode")
+_FIXTURE_STEMS = (
+    "boundary_cases",
+    "deeply_nested",
+    "numerical_edge",
+    "simple",
+    "unicode",
+)
 
 
 def _read_input(stem: str) -> dict:

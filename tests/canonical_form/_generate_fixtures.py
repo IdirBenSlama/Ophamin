@@ -82,6 +82,55 @@ _FIXTURES: dict[str, dict[str, Any]] = {
         # Negative
         "neg_value": -2.5,
     },
+    # ------------------------------------------------------------------
+    # deeply_nested — exercises recursive key sort + deep nesting +
+    # arrays-of-objects-of-arrays. Each level adds an indirection a
+    # cross-language port has to traverse correctly.
+    # ------------------------------------------------------------------
+    "deeply_nested": {
+        "level1": {
+            "level2": {
+                "level3": {
+                    "level4": {
+                        "list": [1, 2, [3, 4, [5, 6]]],
+                        "value": 42,
+                    },
+                },
+            },
+        },
+        "siblings": [
+            {"a": 1, "b": {"c": 2, "d": {"e": 3}}},
+            {"a": 4, "b": {"c": 5, "d": {"e": 6}}},
+        ],
+        "mixed_array_levels": [
+            [],
+            [[]],
+            [[[]]],
+            [[[[]]]],
+        ],
+    },
+    # ------------------------------------------------------------------
+    # boundary_cases — empty containers, control chars in strings,
+    # special characters that need escape under R6, and a 200-char
+    # ASCII string. Targets the corners of R6 + R8 + R9 a cross-
+    # language port is most likely to under-handle.
+    # ------------------------------------------------------------------
+    "boundary_cases": {
+        # Empty containers
+        "empty_object": {},
+        "empty_array": [],
+        "nested_empty": {"empty_inner_array": []},
+        # Long ASCII string (200 'a' chars)
+        "long_ascii": "a" * 200,
+        # JSON special-character escapes per R6
+        "json_special_escapes": "\"\\/\b\f\n\r\t",
+        # Control characters U+0000..U+001F that need \uXXXX (R6)
+        "control_chars": "\x00\x01\x02\x05\x1f",
+        # Edge: a key that's a single space (printable ASCII)
+        " ": "key-with-single-space",
+        # Edge: empty string as a value
+        "empty_string_value": "",
+    },
 }
 
 

@@ -23,7 +23,13 @@ use std::path::{Path, PathBuf};
 
 type HmacSha256 = Hmac<Sha256>;
 
-const FIXTURE_STEMS: &[&str] = &["numerical_edge", "simple", "unicode"];
+const FIXTURE_STEMS: &[&str] = &[
+    "boundary_cases",
+    "deeply_nested",
+    "numerical_edge",
+    "simple",
+    "unicode",
+];
 const TEST_KEY: &[u8] = b"ophamin-canonical-test-key-v1";
 const DEFAULT_SIGN_KEY: &[u8] = b"ophamin-scenario-proof-key";
 

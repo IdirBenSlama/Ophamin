@@ -7,7 +7,98 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.23.0] below for the latest cut.)
+(empty — see [0.24.0] below for the latest cut.)
+
+## [0.24.0] — 2026-05-18
+
+**Headline:** Hardens the spec corpus + locks the layer
+composition. Two new canonical-form fixtures (`boundary_cases`,
+`deeply_nested`) extend the cross-language conformance suite from
+3 fixtures to 5 — targeting the corners of R6 (empty containers,
+control chars, JSON escape specials) and the recursive-sort
+guarantees of R3 (deep nesting, arrays-of-objects-of-arrays).
+A new end-to-end test pins the "all five layers compose" promise
+with a single round-trip.
+
+This is the **sixteenth minor-version bump** in the 0.x line.
+Python framework version only — no Rust / JS package bump in this
+release (the Rust + JS ports automatically gain the new fixtures
+via their existing fixture-discovery code).
+
+### Added — two new cross-language fixtures
+
+- **`deeply_nested`** — exercises recursive key sort + deep
+  nesting + arrays-of-objects-of-arrays:
+  - 4-level nested object tree (level1 → level2 → level3 → level4).
+  - Sibling array of objects each containing nested objects with
+    differently-keyed values.
+  - `mixed_array_levels`: empty-array-in-array-in-array... up to 4
+    levels deep, all empty.
+- **`boundary_cases`** — empty containers + control chars + JSON
+  escape specials:
+  - `empty_object` / `empty_array` / `nested_empty` (empty
+    container at every depth).
+  - 200-char ASCII string (long-string serialization).
+  - JSON special-character escape coverage (`"\\/\b\f\n\r\t`).
+  - Control characters U+0000 .. U+001F that need `\u00XX`
+    (`\x00\x01\x02\x05\x1f`).
+  - Edge: a key that's a single space (`" "`); a value that's
+    the empty string.
+
+Each fixture ships as three files (`<stem>.input.json`,
+`<stem>.canonical.bytes`, `<stem>.hmac_sha256.hex`) per the
+existing convention. The cross-language test corpus now locks
+**5 fixtures × 3 ports = 15 byte-equivalence pins** (read side)
+plus **5 × 3 = 15 HMAC-equivalence pins** plus **5 × Rust write +
+5 × JS write = 10 write-side pins**.
+
+### Added — `tests/test_interop_endtoend.py`
+
+**11 new tests** pinning the cross-layer composition promise.
+Two test classes:
+
+- **`TestLayerComposition`** — exercises the actual chain on a
+  single small scenario run:
+  1. Run `spearman-crosscheck` via the shared impl → VALIDATED.
+  2. Reconstruct the full signed proof and re-verify under Python.
+  3. Wrap the proof in CloudEvents → unwrap → byte-equal to input.
+  4. CloudEvents-routed proof verifies via HTTP `POST /verify`.
+  5. Same proof verifies via MCP `verify_proof` tool through
+     FastMCP's `call_tool` path.
+  6. HTTP `POST /canonicalize` produces byte-equivalent output
+     to the Python reference's `canonicalize_value_impl`.
+
+- **`TestAllLayersVisible`** — sanity-pin each layer is
+  importable + constructable. Catches dependency / packaging
+  regressions where a layer becomes unreachable (e.g. import
+  cycle, missing extra, etc).
+
+Together these pins document + verify that "the layers
+compose" — the promise the v0.23.0 INTEROP_OVERVIEW.md page
+makes about Ophamin's interop architecture.
+
+### Updated — fixture stem lists
+
+- `tests/test_canonical_form_fixtures.py` `_FIXTURE_STEMS` from
+  `("numerical_edge", "simple", "unicode")` to a five-element
+  alphabetically-sorted tuple including the two new fixtures.
+- `packages/ophamin-proof-js/tests/fixtures.test.ts` same.
+- `crates/ophamin-proof/tests/fixture_conformance.rs` same.
+
+The Rust + JS ports' tests parameterize over the same stem
+constant, so they automatically gain the two new fixtures with
+just the stem-list update.
+
+### Verification
+
+- Python canonical-form fixture suite: **27/27 pass** (was 21
+  + 6 from the two new fixtures × 3 tests each).
+- JS canonical-form fixture suite: **61/61 pass** (was 55 + 6).
+- Rust canonical-form fixture suite: gated by CI; expected
+  + 6 new tests (3 byte + 3 HMAC) on top of the existing
+  conformance coverage.
+- End-to-end interop test: **11/11 pass** in 2.16s. Locally
+  exercises the full Python → CloudEvents → HTTP → MCP chain.
 
 ## [0.23.0] — 2026-05-18
 
