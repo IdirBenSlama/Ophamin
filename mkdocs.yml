@@ -115,6 +115,7 @@ nav:
   - Interop:
       - Interop overview (5 layers): INTEROP_OVERVIEW.md
       - Reproducing the framework: REPRODUCING.md
+      - Zenodo deposit workflow: ZENODO_DEPOSIT_WORKFLOW.md
   - Reference:
       - Schemas (signed records): reference/schemas.md
       - Public API: reference/api.md

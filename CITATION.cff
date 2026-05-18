@@ -8,7 +8,7 @@ authors:
   - family-names: "Ben Slama"
     given-names: "Idir"
     orcid: "https://orcid.org/0000-0000-0000-0000"  # replace with your real ORCID
-version: 0.21.2
+version: 0.26.1
 date-released: "2026-05-18"
 url: "https://github.com/IdirBenSlama/Ophamin"
 repository-code: "https://github.com/IdirBenSlama/Ophamin"
@@ -61,6 +61,6 @@ preferred-citation:
     - family-names: "Ben Slama"
       given-names: "Idir"
   title: "Ophamin: a falsifiability-first experimentation framework with signed, cross-language-verifiable empirical proof records"
-  version: 0.21.2
+  version: 0.26.1
   year: 2026
   url: "https://github.com/IdirBenSlama/Ophamin"

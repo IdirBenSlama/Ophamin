@@ -7,7 +7,75 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.26.1] below for the latest cut.)
+(empty — see [0.27.0] below for the latest cut.)
+
+## [0.27.0] — 2026-05-18
+
+**Headline:** Lowers the activation energy for the two
+remaining owner-physical RFC 0002 phases — E3 Zenodo deposit
++ E5 paper submission. Both depend on owner action (ORCID
+registration, Zenodo account, JOSS submission form), but
+the framework-internal scaffolding now ships every step in
+concrete dependency order with checked-in metadata.
+
+This is the **nineteenth minor-version bump** in the 0.x line.
+Python framework version only — no Rust / JS package bump in
+this release. No substrate or wire-format changes.
+
+### Added — `docs/ZENODO_DEPOSIT_WORKFLOW.md`
+
+New owner-facing workflow doc covering RFC 0002 Phase E3
+closeout. Four-step concrete sequence:
+
+1. Get an ORCID iD (~5 min, links three files to update post-mint).
+2. Link Zenodo to the GitHub repo (~3 min, OAuth + toggle).
+3. Push a release tag (~30 seconds via `gh release create`);
+   Zenodo auto-mints a DOI from the shipped `.zenodo.json`.
+4. Record the DOI in `CITATION.cff` + `paper/paper.md` + a
+   README badge.
+
+Plus a "What happens on every subsequent release" section
+(concept-DOI vs version-DOI distinction; both auto-mint after
+Step 2) and a troubleshooting table for common deposit failures.
+
+Linked from the docs nav under "Interop" alongside
+`INTEROP_OVERVIEW.md` and `REPRODUCING.md`.
+
+### Updated — `paper/README.md`
+
+Restructured into an owner-actionable submission-readiness
+table + ordered action sequence:
+
+- **Submission readiness status** table (9 rows: 5 shipped ✅, 4
+  owner-physical 🔴) replaces the older free-form prose section
+  about owner-side items.
+- **Owner-side action sequence** — 4 numbered steps with the
+  dependency order (ORCID → venue → Zenodo DOI → submission
+  form), each with a concrete link and time estimate.
+- Falsifiable-claims-table version-pin bumped `v0.24.0` → `v0.26.1`.
+
+### Updated — `CITATION.cff`
+
+- `version: 0.21.2` → `version: 0.26.1` (top-level + preferred-
+  citation block).
+
+### Updated — `paper/paper.md`
+
+- Removed the implicit-cliff phrasing "As of `0.15.0`" in the
+  cross-framework validation section. Reworded "Since `0.15.0`"
+  so the claim doesn't read as version-current as releases pass
+  through.
+
+### Verified
+
+- `mkdocs build --strict` clean, exit 0; new ZENODO_DEPOSIT_WORKFLOW
+  page renders in nav under Interop.
+- `.zenodo.json` validated as structurally complete: title,
+  description (comprehensive), upload_type=software, 1 creator,
+  20 keywords, Apache-2.0 license, 3 related_identifiers (repo +
+  SCHEMAS.md + paper/paper.md), access_right=open. Only
+  owner-physical fields (creator.orcid) deliberately absent
+  until the owner mints an ORCID per Step 1 of the workflow.
 
 ## [0.26.1] — 2026-05-18
 

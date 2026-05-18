@@ -38,7 +38,7 @@ measurement-machinery) and a registry of ready-to-run scenarios
 that emit such records. The measurement-machinery tier in
 particular contains cross-framework validation scenarios that
 verify the upstream statistical primitives Ophamin itself depends
-on. As of `0.15.0`, seven such scenarios ship as signed `VALIDATED`
+on. Since `0.15.0`, seven such scenarios ship as signed `VALIDATED`
 proofs spanning six statistical-primitive families: proportion
 confidence intervals (scipy ↔ statsmodels Wilson), rank correlation
 (scipy ↔ pingouin Spearman), product-moment correlation
