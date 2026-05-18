@@ -7,7 +7,122 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.12.1] below for the latest cut.)
+(empty — see [0.13.0] below for the latest cut.)
+
+## [0.13.0] — 2026-05-18
+
+**Headline:** Phase E1 of [RFC 0002](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/rfc/0002-sota-elevation-stages-5-and-6.md)
+**fully closed**. The RFC's acceptance criterion was "≥ 3
+cross-framework validation proofs published under
+`proofs/measurement_machinery/`"; 0.12.0 shipped the first, 0.13.0
+ships the remaining two. Plus E9 (cross-language read APIs)
+honest scaffolding — the design is documented, the implementation
+is queued for a cargo/node-equipped session.
+
+This is the **fifth minor-version bump** in the 0.x line.
+
+### Added — two new cross-framework cross-checks
+
+- **`src/ophamin/measuring/scenarios/wilson_ci_crosscheck.py`** —
+  `WilsonCICrosscheckScenario`. Computes the 95 % Wilson CI for
+  100 random `(k, n)` binomial pairs under both scipy
+  (`binomtest(...).proportion_ci`) and statsmodels
+  (`proportion_confint`). Asserts every pair agrees within
+  `tolerance` (default 1e-9) on both bounds. **Empirical agreement:
+  1.110e-16 (machine epsilon for float64) — 7 orders of magnitude
+  tighter than the tolerance.**
+- **`src/ophamin/measuring/scenarios/spearman_crosscheck.py`** —
+  `SpearmanCrosscheckScenario`. Computes Spearman ρ on 30 (x, y)
+  pairs with target correlations sweeping [-0.9, 0.9] under both
+  scipy (`spearmanr`) and pingouin (`corr(method='spearman')`).
+  **Empirical agreement: 0.000e+00 (exact)** — pingouin delegates
+  Spearman to scipy internally, the cross-check validates the
+  wrapper is bit-faithful.
+- **2 new canonical signed proofs** under `proofs/measurement_machinery/`:
+  - `wilson_ci_cross_framework/wilson_scipy_vs_statsmodels_80d5b9f33fbaf6d7.json`
+  - `spearman_cross_framework/spearman_scipy_vs_pingouin_f65319cb2ab7eb3d.json`
+  Together with the 0.12.0 Bayesian proof, the
+  `proofs/measurement_machinery/` directory now holds **3 VALIDATED
+  cross-framework signed proofs** — meeting the RFC-0002 §3.1 E1
+  acceptance criterion exactly.
+- **22 new pinning tests** across:
+  - `tests/test_wilson_ci_crosscheck.py` — 11 tests covering
+    construction invariants, machine-epsilon agreement,
+    signed-proof validation, absurd-tolerance falsifiability,
+    scenario registration.
+  - `tests/test_spearman_crosscheck.py` — 11 tests covering same
+    shape; exact-zero-difference invariant (catches the day
+    pingouin forks its Spearman implementation).
+- **Framework-wide audit gate extended** (`_AUDIT_KWARGS`):
+  the new scenarios are auto-audited per the 0.11.x reproducibility
+  contract. Audit set is now **6 scenarios** (was 4 in 0.12.0):
+  crdt-laws, rosetta-scaling, bayesian-phi-posterior,
+  bayesian-phi-posterior-crosscheck, wilson-ci-crosscheck,
+  spearman-crosscheck.
+
+### Added — E9 scaffolding (honest deferral)
+
+- **`crates/README.md`** — documents the future home of the
+  `ophamin-proof` Rust crate (RFC-0002 §3.1 E9). The dev env this
+  session ran in has no `cargo` installed; shipping untested Rust
+  source would be unsafe. The README explains the planned API
+  shape, the canonical-body byte-representation problem that a
+  second implementation must solve, and the remaining work to
+  ship Phase E9.1.
+- **Roadmap status table** (in `docs/ELEVATION_ROADMAP_2026_05_16.md`
+  §8.5) updated to reflect E1 fully closed + E9 marked as
+  "scaffolding only".
+
+### Significance
+
+The cross-framework validation property — RFC-0002 §3.1 E1's
+acceptance criterion — is now an **empirical, signed-proof-attested,
+schema-validated property of the framework**. Three independent
+cross-checks at three different layers:
+
+| Cross-check | Layer | Backends | Agreement |
+|---|---|---|---|
+| `bayesian-phi-posterior-crosscheck` | High-level (Bayesian inference) | PyMC + NumPyro | 0.0017 mean diff (60× tighter than tolerance) |
+| `wilson-ci-crosscheck` | Statistical primitive (proportion CI) | scipy + statsmodels | 1.110e-16 (machine epsilon) |
+| `spearman-crosscheck` | Statistical primitive (rank correlation) | scipy + pingouin | 0.000 (exact) |
+
+What makes this rigorous: each cross-check is structurally
+falsifiable (the test suite includes an absurd-tolerance
+falsifiability test where applicable), the proofs are
+content-addressed + HMAC-signed, and the framework-wide audit
+gate runs each scenario twice with the same seed to prove
+reproducibility (E4) as well as cross-framework agreement (E1).
+
+The combination — **reproducible AND cross-framework-validated** —
+is what RFC-0002 named as the scientific-tier maturity bar.
+
+### Validated
+
+- `mypy --strict src/ophamin tests/test_*_crosscheck.py` clean (151/151).
+- `mkdocs build --strict` passes.
+- 37 cross-framework test pass:
+  - 11 Wilson CI tests
+  - 11 Spearman tests
+  - 16 Bayesian cross-check tests (pre-existing from 0.12.0; re-run for regression)
+- 8 framework-wide reproducibility audit tests pass
+  (6 scenarios × audit smokes + sanity + drift-detector).
+- 3 canonical signed proofs schema-validate cleanly.
+- 4 walkthroughs run end-to-end (from 0.12.1).
+
+### What remains framework-internal
+
+- **E9** — Rust + JS read-only codecs. Documented in
+  `crates/README.md` as queued. Needs cargo (Rust) + node (JS)
+  installed in CI before the source can be authored safely.
+
+### What remains owner-driven
+
+- **E6 closeout** — register PyPI Trusted Publisher; the
+  `release.yml` workflow then publishes on every tag push.
+- **E3 closeout** — Zenodo benchmark deposit + DOI.
+- **E4 closeout** — external rebuild verification (byte-equal
+  SBOM + signed-record output).
+- **E5** — methods paper submission.
 
 ## [0.12.1] — 2026-05-18
 

@@ -64,6 +64,16 @@ _AUDIT_KWARGS: dict[str, dict[str, Any]] = {
         "numpyro_samples": 300,
         "numpyro_warmup": 100,
     },
+    "wilson-ci-crosscheck": {
+        "seed": 20260517,
+        "n_pairs": 20,
+        "max_n": 200,
+    },
+    "spearman-crosscheck": {
+        "seed": 20260517,
+        "n_pairs": 8,
+        "sample_size": 40,
+    },
 }
 
 

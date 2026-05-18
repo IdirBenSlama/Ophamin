@@ -370,12 +370,13 @@ patch/minor releases; the canonical record is the CHANGELOG.
 | **E4** | Research-grade reproducibility — deterministic-seed audit scenario + framework-wide audit gate + `SOURCE_DATE_EPOCH` build reproducibility | ✅ shipped (per-OS lockfiles + cross-machine diffoscope remain owner-side) | `0.11.0`–`0.11.2`, `0.11.4` |
 | **E3.1** | Concept walkthroughs (E2 + E4 + E8 + E1 demos under `examples/walkthrough_*.py`) | ✅ shipped | `0.11.3`, `0.12.1` |
 | **E1.1** | First cross-framework validation — PyMC↔NumPyro Bayesian posterior agreement + signed proof published under `proofs/measurement_machinery/bayesian_cross_framework/` | ✅ shipped | `0.12.0` |
-| **E1.2** | Second cross-framework validation (Stan via `[bayesian_stan]` extra, OR GWF↔Garak, OR Yjs-JS-runtime) | open | — |
-| **E1.3** | Third cross-framework validation (the remaining of the three) | open | — |
+| **E1.2** | Second cross-framework validation — Wilson CI scipy↔statsmodels (machine-epsilon agreement, signed proof under `proofs/measurement_machinery/wilson_ci_cross_framework/`) | ✅ shipped | `0.13.0` |
+| **E1.3** | Third cross-framework validation — Spearman ρ scipy↔pingouin (exact 0.000 agreement, signed proof under `proofs/measurement_machinery/spearman_cross_framework/`) | ✅ shipped | `0.13.0` |
+| **E1 acceptance** | ≥ 3 cross-framework VALIDATED proofs under `proofs/measurement_machinery/` | ✅ met | `0.13.0` |
 | **E3** owner-side | Zenodo benchmark deposit + DOI + reproducer notebooks for ≥ 6 scenarios + methods paper draft | open (owner) | — |
 | **E4** owner-side | External reviewer rebuild verification (byte-equal SBOM + signed-record output) | open (owner) | — |
 | **E5** | Methods paper submission (JOSS / SoftwareX / JMLR-OSS) + reviewer-time feedback | open (owner) | — |
-| **E9** | Cross-language read APIs (Rust `crates/ophamin-proof` + TS `packages/ophamin-proof-js`) | open | — |
+| **E9** | Cross-language read APIs (Rust `crates/ophamin-proof` + TS `packages/ophamin-proof-js`) | scaffolding only (no cargo/node in dev env); see [`crates/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/crates/README.md) for the design + queued work | — |
 
 **Both 1.0.0 prerequisites met:** wire-format stability contract (E2 — `0.9.0`)
 and Python-API stability contract (E8 — `0.10.0`). What separates the
