@@ -7,7 +7,36 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.25.2] below for the latest cut.)
+(empty — see [0.25.3] below for the latest cut.)
+
+## [0.25.3] — 2026-05-18
+
+**Headline:** Docs CI fix — the 0.25.2 CHANGELOG entry contained
+a relative link `../reference/schemas.md` to point at SCHEMAS.md.
+That link resolves correctly when CHANGELOG.md is read in the
+repo browser, but mkdocs-include-markdown copies the CHANGELOG
+into `docs/changelog.md` and then the relative link evaluates
+from the docs-tree root, where `../reference/schemas.md` is not
+a valid target. Strict mode rejected the build.
+
+Replaced with the absolute GitHub URL
+`https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md`,
+matching the pattern established by the 0.24.1 link rewrites and
+other CHANGELOG entries that need to point at out-of-docs-tree
+files.
+
+The reading-a-proof page itself (where the same link lives) does
+NOT need the rewrite — `docs/getting-started/reading-a-proof.md`
+sits two levels deep, so `../reference/schemas.md` resolves to
+`docs/reference/schemas.md` which is in the nav. The breakage was
+specifically in the CHANGELOG-include path.
+
+### Verified
+
+- `mkdocs build --strict` clean, exit 0.
+
+No substrate or wire-format changes. Rust + JS package versions
+remain at 0.21.2.
 
 ## [0.25.2] — 2026-05-18
 
@@ -31,8 +60,9 @@ recipes:
   Cline; agent gets a `verify_proof` tool.
 
 Plus a closing paragraph naming the canonical-form contract
-([`SCHEMAS.md`](../reference/schemas.md) §R1–R11) as the
-load-bearing primitive making cross-host byte-equality possible.
+([`SCHEMAS.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md)
+§R1–R11) as the load-bearing primitive making cross-host byte-
+equality possible.
 
 ### Added — `docs/getting-started/install.md` interop install paths
 
