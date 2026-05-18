@@ -45,6 +45,25 @@ assert!(verify_signature(&proof, key)?);
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
+## Runnable examples
+
+Two `cargo run --example` demos under [`examples/`](examples/):
+
+```bash
+# Read side: verify any shipped proof
+cargo run --example verify_proof
+# Or with an explicit path:
+cargo run --example verify_proof -- path/to/proof.json
+
+# Write side: build a CanonicalValue tree in Rust, canonicalize,
+# and sign with HMAC-SHA256
+cargo run --example sign_value
+```
+
+Each example is heavily annotated and exits non-zero on any
+contract drift — they double as smoke tests for the consumer-facing
+surface.
+
 ## What's in the crate
 
 **Read side** (parse + verify Python-emitted records):

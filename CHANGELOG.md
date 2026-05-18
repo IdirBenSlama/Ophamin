@@ -7,7 +7,78 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.25.3] below for the latest cut.)
+(empty — see [0.26.0] below for the latest cut.)
+
+## [0.26.0] — 2026-05-18
+
+**Headline:** Ships **runnable examples** for the cross-language
+wire-format ports (Rust crate `ophamin-proof` + JS package
+`@ophamin/proof`). Both ports already shipped READMEs covering
+the consumer-facing API, but the only runnable demos were buried
+inside conformance test files. This release adds one read-side +
+one write-side example per port, plus README pointers and (JS)
+npm-script aliases.
+
+This is the **eighteenth minor-version bump** in the 0.x line.
+Python framework version only — the Rust + JS package versions
+remain at 0.21.2 (the examples sit in the source tree but are
+excluded from published artefacts per `Cargo.toml`'s default
+exclusion of `examples/` and `package.json`'s `files: ["dist",
+"src", "README.md"]` whitelist).
+
+### Added — Rust crate examples
+
+Two `cargo run --example` demos under
+[`crates/ophamin-proof/examples/`](https://github.com/IdirBenSlama/Ophamin/blob/main/crates/ophamin-proof/examples/):
+
+- **`verify_proof.rs`** — read-side: load any shipped proof JSON,
+  `parse_proof` + `verify_signature` under `DEFAULT_SIGN_KEY`,
+  exit 0 on verified / 1 on mismatch. Auto-discovers a proof under
+  `proofs/measurement_machinery/` if no path is given.
+- **`sign_value.rs`** — write-side: build a `CanonicalValue` tree
+  using the typed enum (`Float` / `Int` / `Bool` / `String` /
+  `Array` / `Object`), canonicalize to bytes, sign with HMAC-SHA256.
+  Prints byte count + canonical text + signature.
+
+Run with `cargo run --example verify_proof` /
+`cargo run --example sign_value`. Examples are linted by
+`cargo clippy --all-features --all-targets` in CI.
+
+### Added — JS package examples
+
+Two `node` scripts under
+[`packages/ophamin-proof-js/examples/`](https://github.com/IdirBenSlama/Ophamin/blob/main/packages/ophamin-proof-js/examples/):
+
+- **`verify_proof.mjs`** — read-side: same shape as the Rust
+  example, using `parseProof` + `verifySignature` from
+  `@ophamin/proof`. Auto-discovers a shipped proof.
+- **`sign_value.mjs`** — write-side: builds a value tree using
+  `PyInt` for integer-typed fields (preserves the int/float
+  distinction in canonical bytes), `canonicalBytes` + `signCanonical`.
+
+Run with `npm run example:verify` / `npm run example:sign` (new
+script aliases added to `packages/ophamin-proof-js/package.json`).
+
+### Updated — port READMEs
+
+Both port READMEs (`crates/ophamin-proof/README.md` +
+`packages/ophamin-proof-js/README.md`) gain a "Runnable examples"
+section pointing at the new directories with the run-commands.
+
+### Verified
+
+- JS examples both run end-to-end against shipped proofs on the
+  host: `verify_proof.mjs` confirms a Wilson-CI cross-framework
+  proof verifies; `sign_value.mjs` produces canonical bytes +
+  HMAC matching the documented pattern.
+- Rust examples will be validated by `cargo build --all-features`
+  + `cargo clippy --all-features --all-targets` in the
+  `cross-language` CI workflow (this release touches
+  `crates/ophamin-proof/**` and therefore triggers it).
+- `mkdocs build --strict` clean, exit 0.
+
+No substrate or wire-format changes. No published-artefact
+changes for Rust + JS (examples are dev-tree-only).
 
 ## [0.25.3] — 2026-05-18
 

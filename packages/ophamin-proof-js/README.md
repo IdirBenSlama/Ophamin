@@ -50,6 +50,22 @@ if (verifySignature(proof, key)) {
 }
 ```
 
+## Runnable examples
+
+Two demos under [`examples/`](examples/) (run after `npm run build`):
+
+```bash
+# Read side: verify any shipped proof from the repo
+npm run example:verify
+
+# Write side: build a value tree, canonicalize, and sign with HMAC-SHA256
+npm run example:sign
+```
+
+Each example is heavily annotated and exits non-zero on any
+contract drift — they double as smoke tests for the consumer-facing
+surface.
+
 ## What's in the package
 
 | Module | Purpose |

@@ -27,6 +27,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "tsc -p tsconfig.json && node --test --test-reporter=spec dist/tests/*.test.js",
+    "example:verify": "node examples/verify_proof.mjs",
+    "example:sign": "node examples/sign_value.mjs",
     "clean": "rm -rf dist"
   },
   "keywords": [
