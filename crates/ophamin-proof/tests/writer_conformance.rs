@@ -1,3 +1,9 @@
+#![allow(clippy::approx_constant)]
+// ^ The fixture values include ``3.14159`` (the Python fixture's
+// "pi" key) — clippy's ``approx_constant`` lint would flag it as
+// "approximate PI". Allow locally; the value must match the Python
+// fixture exactly for the conformance assertions to hold.
+
 //! Write-side conformance — Rust-produced canonical bytes match
 //! Python's reference output byte-for-byte (RFC 0002 Phase E9 write-side).
 //!

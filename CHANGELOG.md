@@ -7,7 +7,43 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.21.1] below for the latest cut.)
+(empty — see [0.21.2] below for the latest cut.)
+
+## [0.21.2] — 2026-05-18
+
+**Patch:** Allow `clippy::approx_constant` lint inside the Rust
+writer modules. The fixture value `3.14159` (the Python fixture's
+"pi" key) trips the lint on Rust stable's newer clippy; the value
+MUST match the Python fixture exactly for the conformance
+assertions to hold, so the lint is allowed locally rather than
+the fixture diverging.
+
+Affected files (both gain a `#![allow(clippy::approx_constant)]`
+inner attribute at module top):
+
+- `crates/ophamin-proof/src/writer.rs` (the unit-test
+  `python_repr_fixed_point_simple` uses 3.14159).
+- `crates/ophamin-proof/tests/writer_conformance.rs` (both
+  `build_simple_fixture` and `build_numerical_edge_fixture` use
+  3.14159 — the Python fixture's value).
+
+The shipped writer code is unchanged. The Rust 1.75 MSRV CI run
+of 0.21.1 passed (its older clippy didn't flag); only the stable
+toolchain run failed. With this allow in place, both toolchains
+should land green.
+
+Version bump in lockstep:
+- `pyproject.toml` + `src/ophamin/__init__.py`: 0.21.1 → 0.21.2
+- `crates/ophamin-proof/Cargo.toml`: 0.21.1 → 0.21.2
+- `packages/ophamin-proof-js/package.json`: 0.21.1 → 0.21.2
+
+### Verification
+
+- JS: 55/55 still pass under Node 24 (no JS changes).
+- Python: no source changes.
+- Rust: CI gates the fix. Both 1.75 MSRV and stable should now
+  compile + run all 21 writer tests (13 unit + 7 conformance + 1
+  HMAC parity).
 
 ## [0.21.1] — 2026-05-18
 

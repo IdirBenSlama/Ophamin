@@ -1,3 +1,9 @@
+#![allow(clippy::approx_constant)]
+// ^ ``3.14159`` appears in tests below as a deliberate near-PI
+// fixture value matching the Python cross-language fixture exactly.
+// Clippy's ``approx_constant`` lint would flag it; allow locally
+// rather than diverge from the fixture.
+
 //! Canonical-form WRITER (RFC 0002 Phase E9 write-side).
 //!
 //! Where the rest of the crate is a read-only verifier of

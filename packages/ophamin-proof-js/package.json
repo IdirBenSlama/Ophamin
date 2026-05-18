@@ -1,6 +1,6 @@
 {
   "name": "@ophamin/proof",
-  "version": "0.21.1",
+  "version": "0.21.2",
   "description": "Read-only verifier for Ophamin signed empirical-proof records. Byte-equivalent to the Python reference canonical form per SCHEMAS.md §Canonical-form determinism (normative).",
   "type": "module",
   "main": "./dist/index.js",
