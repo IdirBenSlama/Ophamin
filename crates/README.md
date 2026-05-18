@@ -1,9 +1,13 @@
 # `crates/` — Rust read-only signed-record codecs (RFC 0002 Phase E9)
 
-> **Status:** queued / scaffolding only. The Rust crate hasn't been
-> authored yet — this directory holds the future home of
-> `ophamin-proof`, the Rust read-only verifier for Ophamin's signed
-> `EmpiricalProofRecord` schema.
+> **Status (0.16.0):** `ophamin-proof` ships as inspection-clean Rust
+> source under [`ophamin-proof/`](ophamin-proof/), with integration
+> tests that verify byte-equivalence against the canonical-form
+> fixtures plus signature verification on every shipped Python-emitted
+> proof. CI installs the Rust toolchain via `dtolnay/rust-toolchain@master`
+> and runs the suite ([`.github/workflows/cross-language.yml`](https://github.com/IdirBenSlama/Ophamin/blob/main/.github/workflows/cross-language.yml)).
+> Local validation requires `cargo`; on the development environment
+> without it, CI is the authoritative gate.
 
 ## Why a Rust crate
 

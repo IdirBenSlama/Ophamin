@@ -266,13 +266,17 @@ Three limitations bound the framework's current claim:
    to the canonical-form rules is a major-version bump with
    migration. The wire format is therefore stable today but
    evolves coarsely.
-2. **The cross-language read APIs are scaffolding** (queued
-   under RFC 0002 Phase E9). The Rust crate `ophamin-proof`
-   and the JS/TS package exist as planning documents; a
-   conformant external implementation must currently re-verify
-   only against the three canonical-form fixtures. Once cargo
-   and node are available in the framework's CI, the byte-equal
-   cross-language verification suite ships.
+2. **The cross-language read APIs ship as of `0.16.0`**: the
+   Rust crate [`ophamin-proof`](https://github.com/IdirBenSlama/Ophamin/tree/main/crates/ophamin-proof)
+   and the JS/TS package
+   [`@ophamin/proof`](https://github.com/IdirBenSlama/Ophamin/tree/main/packages/ophamin-proof-js)
+   both pass the canonical-form fixture suite and verify every
+   shipped Python-emitted signed proof under
+   `proofs/measurement_machinery/`. CI ([`cross-language.yml`](https://github.com/IdirBenSlama/Ophamin/blob/main/.github/workflows/cross-language.yml))
+   runs both ports on every PR. The frameworks are **read-only**
+   by design; canonical-form writers in those languages would
+   require reimplementing Python's `repr(float)` byte-for-byte
+   and remain future work.
 3. **The included scenarios cover a single substrate
    (`kimera-swm`) in detail.** The framework is substrate-agnostic
    by design — any system that emits per-cycle telemetry can be

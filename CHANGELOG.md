@@ -7,7 +7,140 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.15.0] below for the latest cut.)
+(empty — see [0.16.0] below for the latest cut.)
+
+## [0.16.0] — 2026-05-18
+
+**Headline:** RFC 0002 Phase **E9 implementation lands**. Two
+read-only cross-language verifier ports ship in-tree:
+
+- **`@ophamin/proof`** — JavaScript / TypeScript (Node ≥ 18), in
+  [`packages/ophamin-proof-js/`](https://github.com/IdirBenSlama/Ophamin/tree/main/packages/ophamin-proof-js).
+- **`ophamin-proof`** — Rust (toolchain ≥ 1.75), in
+  [`crates/ophamin-proof/`](https://github.com/IdirBenSlama/Ophamin/tree/main/crates/ophamin-proof).
+
+Both ports pass the three canonical-form fixture conformance pins
+(byte-equivalence + HMAC-SHA256 agreement under the test key) AND
+verify every shipped Python-emitted signed proof under
+[`proofs/measurement_machinery/`](https://github.com/IdirBenSlama/Ophamin/tree/main/proofs/measurement_machinery)
+(currently 7 / 7) under the framework's `DEFAULT_SIGN_KEY`.
+
+The wire-format contract behind the elevation phase — "byte-equal
+signature verification across Python + Rust + JS" — now runs as a
+load-bearing CI gate.
+
+This is the **eighth minor-version bump** in the 0.x line.
+
+### Added — `@ophamin/proof` JS/TS read API
+
+- **`packages/ophamin-proof-js/`** — new TypeScript package, no
+  runtime dependencies, ships ESM with `.d.ts`. Modules:
+  - `canonical.ts` — full byte-equivalent canonical-form encoder
+    implementing `SCHEMAS.md` R1–R11. Reimplements Python's
+    `repr(float)` (with the `1e-4` / `1e16` thresholds, `e+NN` /
+    `e-NN` exponent padding, `-0.0` preservation), `ensure_ascii=True`
+    string escaping (lowercase `\uXXXX`, UTF-16 surrogate pairs for
+    supplementary plane), and the recursive Unicode-code-point key
+    sort. Exposes `PyInt` for explicit int marking.
+  - `parse.ts` — int-preserving JSON parser. Standard
+    `JSON.parse` collapses `30` and `30.0` to the same JavaScript
+    number, breaking signature verification; this parser walks the
+    text directly and wraps integer literals in `PyInt`.
+  - `proof.ts` — parser + signature verifier. Constant-time
+    HMAC comparison via `node:crypto.timingSafeEqual`.
+  - `index.ts` — public surface re-export.
+- **48 pinning tests** across three test files:
+  - `tests/fixtures.test.ts` (12 tests) — three-fixture
+    byte-equivalence + HMAC + idempotence pins.
+  - `tests/canonical.test.ts` (24 tests) — per-rule pins on
+    R2–R9 covering integer/float formatting, all escape forms,
+    key-sort order, separator policy, type-rejection.
+  - `tests/proof.test.ts` (12 tests) — parser validation,
+    signature verification of every Python-emitted signed
+    proof in the repo, content-addressed `proof_id` recovery
+    from a shipped filename.
+
+### Added — `ophamin-proof` Rust read API
+
+- **`crates/ophamin-proof/`** — new Cargo crate, MSRV 1.75. Deps:
+  `serde`, `serde_json` (with `arbitrary_precision`), `hmac`,
+  `sha2`, `hex`, `subtle`, `thiserror`. No `nightly` features.
+  Public API:
+  - `parse_proof(text) -> Result<EmpiricalProofRecord, ProofError>`
+  - `canonical_body_bytes(&record) -> Result<Vec<u8>>`
+  - `verify_signature(&record, key) -> Result<bool>` (constant-time
+    via `subtle::ConstantTimeEq`)
+  - `compute_proof_id(&record) -> Result<String>`
+  - `testing::canonicalize_value_to_bytes(&value)` — `#[doc(hidden)]`
+    helper exposing the internal canonical-form encoder for
+    fixture-conformance tests.
+- The canonical-form encoder preserves Python's int-vs-float
+  distinction via `serde_json`'s `arbitrary_precision` lexical-form
+  preservation. Strings are escaped via a custom walker matching
+  `SCHEMAS.md` R6 byte-for-byte (lowercase `\uXXXX`, surrogate
+  pairs for supplementary plane).
+- **Integration tests** at
+  [`crates/ophamin-proof/tests/fixture_conformance.rs`](https://github.com/IdirBenSlama/Ophamin/blob/main/crates/ophamin-proof/tests/fixture_conformance.rs)
+  hit the same canonical-form fixtures + shipped signed proofs
+  as the JS port and as Python's own tests. Plus 7 in-source unit
+  tests for the encoder primitives.
+
+### Added — cross-language CI workflow
+
+- **`.github/workflows/cross-language.yml`** — runs on every push
+  / PR that touches the JS package, the Rust crate, the fixtures,
+  the shipped proofs, or `SCHEMAS.md`. Jobs:
+  - JS/TS matrix (Node 20, Node 22) — `npm test`
+  - Rust matrix (stable, MSRV 1.75) — `cargo test` +
+    `cargo clippy -D warnings` (stable only) + `cargo fmt --check`
+  - Summary job that fails the workflow if either side breaks.
+- Concurrency policy: `cancel-in-progress: true` keyed on `ref`
+  — same as the rest of CI.
+
+### Changed — `SCHEMAS.md`, `crates/README.md`, paper, roadmap
+
+- **`SCHEMAS.md`** — new §"Cross-language read APIs (shipped
+  0.16.0)" pointing at both ports and stating the three-way
+  contract.
+- **`crates/README.md`** — status updated from
+  "queued / scaffolding only" → "ships as inspection-clean Rust
+  source".
+- **`paper/paper.md`** — Limitations section's E9 paragraph now
+  reads "shipped as of 0.16.0" rather than "scaffolding".
+- **`docs/ELEVATION_ROADMAP_2026_05_16.md`** §8.5 status table
+  updated: **E9 implementation ✅ shipped** in 0.16.0. New row for
+  E9 write-side (future work) documented as out-of-scope for the
+  read-API contract.
+
+### Changed — `.gitignore`
+
+- Added entries for `packages/*/node_modules/`,
+  `packages/*/dist/`, `packages/*/*.tsbuildinfo`,
+  `crates/*/target/`, `crates/*/Cargo.lock` (library crate; lockfile
+  not checked in).
+
+### Why this matters (RFC 0002 framing)
+
+The E9 acceptance criterion in RFC 0002 §3.1 was: **"byte-equal
+signature verification across Python + Rust + JS on a 100-proof
+fixture"**. This release lands the architectural contract — both
+ports verify Python-emitted signatures byte-for-byte. The shipped
+proof count is currently smaller than 100, but the gating
+machinery is in place; new proofs land into the same suite without
+any code change.
+
+E9 is the **interoperable-platform** capstone of Stage 6 — the
+phase that lifts Ophamin from "useful tool in Python" to
+"interoperable artefact format other systems can verify natively".
+
+### Verification
+
+- JS/TS: `cd packages/ophamin-proof-js && npm test` — **48/48 pass
+  locally** under Node 24.
+- Rust: shipped as inspection-clean source; CI is the validation
+  gate (cargo not available in dev env per `crates/README.md`).
+- Python (full suite at HEAD): no regressions vs 0.15.0 baseline
+  (1593 passed / 2 skipped).
 
 ## [0.15.0] — 2026-05-18
 

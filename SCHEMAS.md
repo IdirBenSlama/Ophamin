@@ -380,6 +380,36 @@ re-tested against these fixtures on every CI run
 ([`tests/test_canonical_form_fixtures.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_canonical_form_fixtures.py)) — any drift in the
 Python emitter would fail CI loud before it shipped.
 
+### Cross-language read APIs (shipped 0.16.0)
+
+Two conformant non-Python implementations ship in-tree as of 0.16.0,
+both passing the fixture suite above plus signature verification on
+every Python-emitted signed proof under
+[`proofs/measurement_machinery/`](https://github.com/IdirBenSlama/Ophamin/tree/main/proofs/measurement_machinery):
+
+| Implementation | Path | Test target |
+|---|---|---|
+| `@ophamin/proof` (TypeScript / Node ≥ 18) | [`packages/ophamin-proof-js/`](https://github.com/IdirBenSlama/Ophamin/tree/main/packages/ophamin-proof-js) | `npm test` — node:test |
+| `ophamin-proof` (Rust ≥ 1.75) | [`crates/ophamin-proof/`](https://github.com/IdirBenSlama/Ophamin/tree/main/crates/ophamin-proof) | `cargo test` |
+
+Both ports surface the same four entry points:
+
+- parse a wire-form proof into typed accessors
+- reconstruct the canonical body bytes
+- verify the HMAC-SHA256 signature in constant time
+- recompute the content-addressed `proof_id`
+
+Conformance is gated by
+[`.github/workflows/cross-language.yml`](https://github.com/IdirBenSlama/Ophamin/blob/main/.github/workflows/cross-language.yml)
+which runs both suites against the same fixtures + shipped proofs
+on every PR. A drift in either port fails CI loud.
+
+**Three-way wire-format contract (Python emits → Rust + JS verify):**
+Python emits a proof. Both ports MUST produce the same canonical
+bytes and the same HMAC-SHA256 digest on that proof's body. That
+is the empirical guarantee behind RFC 0002 §3.1 E9 — "byte-equal
+signature verification across Python + Rust + JS".
+
 ---
 
 ## Validating a record

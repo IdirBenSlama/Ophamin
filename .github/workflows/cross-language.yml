@@ -1,0 +1,113 @@
+name: cross-language
+
+# Validates the JS/TS package (@ophamin/proof) and Rust crate
+# (ophamin-proof) against the same canonical-form fixtures and the
+# same shipped signed proofs the Python reference is tested against.
+#
+# This workflow IS the empirical gate behind RFC 0002 §3.1 E9
+# acceptance criteria: "byte-equal signature verification across
+# Python + Rust + JS on a 100-proof fixture". The fixtures + proofs
+# count is currently smaller than 100, but the framework is in
+# place; new fixtures and proofs land into the same suite without
+# code change.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/ophamin-proof-js/**"
+      - "crates/ophamin-proof/**"
+      - "tests/canonical_form/**"
+      - "proofs/measurement_machinery/**"
+      - "SCHEMAS.md"
+      - ".github/workflows/cross-language.yml"
+  pull_request:
+    paths:
+      - "packages/ophamin-proof-js/**"
+      - "crates/ophamin-proof/**"
+      - "tests/canonical_form/**"
+      - "proofs/measurement_machinery/**"
+      - "SCHEMAS.md"
+      - ".github/workflows/cross-language.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: cross-language-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  js-typescript:
+    name: "JS/TS @ophamin/proof (node ${{ matrix.node }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: install dev deps
+        working-directory: packages/ophamin-proof-js
+        run: npm install --no-audit --no-fund
+      - name: build (tsc --strict)
+        working-directory: packages/ophamin-proof-js
+        run: npm run build
+      - name: test (canonical-form fixtures + shipped proof verification)
+        working-directory: packages/ophamin-proof-js
+        run: npm test
+
+  rust:
+    name: "Rust ophamin-proof (toolchain ${{ matrix.toolchain }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: ["stable", "1.75"]  # 1.75 is the documented MSRV
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy, rustfmt
+      - name: cargo fetch
+        working-directory: crates/ophamin-proof
+        run: cargo fetch --locked || cargo fetch
+      - name: cargo build
+        working-directory: crates/ophamin-proof
+        run: cargo build --all-features
+      - name: cargo test (canonical-form fixtures + shipped proof verification)
+        working-directory: crates/ophamin-proof
+        run: cargo test --all-features -- --nocapture
+      - name: cargo clippy (deny warnings)
+        if: matrix.toolchain == 'stable'
+        working-directory: crates/ophamin-proof
+        run: cargo clippy --all-features --all-targets -- -D warnings
+      - name: cargo fmt --check
+        if: matrix.toolchain == 'stable'
+        working-directory: crates/ophamin-proof
+        run: cargo fmt --all -- --check
+
+  cross-language-summary:
+    name: "Cross-language conformance summary"
+    runs-on: ubuntu-latest
+    needs: [js-typescript, rust]
+    if: always()
+    steps:
+      - name: Report
+        run: |
+          echo "JS/TS jobs: ${{ needs.js-typescript.result }}"
+          echo "Rust jobs:  ${{ needs.rust.result }}"
+          if [ "${{ needs.js-typescript.result }}" != "success" ] || [ "${{ needs.rust.result }}" != "success" ]; then
+            echo "Cross-language conformance FAILED — RFC-0002 E9 implementation contract is broken."
+            exit 1
+          fi
+          echo "Cross-language conformance ✓ — JS + Rust both verify Python-emitted records."

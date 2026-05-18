@@ -1,0 +1,29 @@
+[package]
+name = "ophamin-proof"
+version = "0.16.0"
+edition = "2021"
+description = "Read-only verifier for Ophamin signed empirical-proof records. Byte-equivalent to the Python reference canonical form per SCHEMAS.md."
+license = "MIT"
+authors = ["Idir Ben Slama"]
+repository = "https://github.com/IdirBenSlama/Ophamin"
+homepage = "https://github.com/IdirBenSlama/Ophamin"
+documentation = "https://github.com/IdirBenSlama/Ophamin/blob/main/crates/ophamin-proof/README.md"
+keywords = ["ophamin", "signed-record", "canonical-form", "hmac", "reproducibility"]
+categories = ["cryptography", "encoding", "parser-implementations"]
+readme = "README.md"
+rust-version = "1.75"
+
+[dependencies]
+# `arbitrary_precision` keeps every parsed number as its original
+# lexical string. That preserves Python's int-vs-float distinction
+# (`30` stays distinct from `30.0`) — load-bearing for byte-equivalent
+# signature verification on Python-emitted records.
+serde_json = { version = "1.0", features = ["arbitrary_precision"] }
+serde = { version = "1.0", features = ["derive"] }
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+subtle = "2.5"        # constant-time byte comparison
+thiserror = "1.0"
+
+[dev-dependencies]
