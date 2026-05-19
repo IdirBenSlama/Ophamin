@@ -16,19 +16,23 @@ Phase 1 exports (built):
                                           CircleCI / Jenkins / TeamCity /
                                           Bitrise / any CI's test-result
                                           aggregator
+  CycloneDX SBOM   dependency lists → security tooling
+  MLflow runs      proof records → MLflow tracking server
+  in-toto / DSSE   signed proofs → Sigstore / SLSA / Rekor / cosign /
+                                    policy-controller / slsa-verifier — the
+                                    entire supply-chain attestation ecosystem
 
-Both formats are well-specified industry standards (SARIF 2.1.0 OASIS spec;
-JUnit XML the de-facto Jenkins schema). The exports preserve provenance —
-the original record's hash + signature land in the SARIF tool's
-``invocations`` block / JUnit's ``properties`` block so downstream consumers
-can trace back to the signed Ophamin artefact.
+All formats are well-specified industry standards (SARIF 2.1.0 OASIS spec;
+JUnit XML the de-facto Jenkins schema; in-toto Attestation Framework v1
+[ITE-6]; DSSE secure-systems-lab spec). Exports preserve provenance — the
+original record's hash + signature land in the SARIF tool's ``invocations``
+block, JUnit's ``properties`` block, or in-toto's ``predicate.signature``
+field, so downstream consumers can trace back to the signed Ophamin artefact.
 
 Phase 2 exports (deferred):
 
   OpenTelemetry    instrumenting profiles → Jaeger / Tempo / Honeycomb
   Prometheus       cross-run drift / scenario rates → Grafana dashboards
-  CycloneDX SBOM   dependency lists → security tooling
-  MLflow runs      proof records → MLflow tracking server
 
 CLI:
 
@@ -41,6 +45,14 @@ from ophamin.interop.cyclonedx import (
     CycloneDXExporter,
     build_cyclonedx_sbom_from_env,
     build_cyclonedx_sbom_from_record,
+)
+from ophamin.interop.in_toto import (
+    DSSE_INTOTO_PAYLOAD_TYPE,
+    IN_TOTO_STATEMENT_V1_TYPE,
+    OPHAMIN_PREDICATE_TYPE_V1,
+    to_dsse_envelope,
+    to_in_toto_statement,
+    verify_dsse_envelope,
 )
 from ophamin.interop.junit_xml import (
     JUnitXMLExporter,
@@ -58,8 +70,11 @@ from ophamin.interop.sarif import (
 
 __all__ = [
     "CycloneDXExporter",
+    "DSSE_INTOTO_PAYLOAD_TYPE",
+    "IN_TOTO_STATEMENT_V1_TYPE",
     "JUnitXMLExporter",
     "MLflowExporter",
+    "OPHAMIN_PREDICATE_TYPE_V1",
     "SARIFExporter",
     "audit_record_to_sarif",
     "build_cyclonedx_sbom_from_env",
@@ -67,4 +82,7 @@ __all__ = [
     "export_audit_record",
     "export_proof_record",
     "proof_record_to_junit_xml",
+    "to_dsse_envelope",
+    "to_in_toto_statement",
+    "verify_dsse_envelope",
 ]

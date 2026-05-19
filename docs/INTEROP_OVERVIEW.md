@@ -1,7 +1,7 @@
 # Ophamin interop overview
 
 > One page covering every way to drive, consume, or observe
-> Ophamin from outside Python. Five interop layers stacked so a
+> Ophamin from outside Python. Six interop layers stacked so a
 > consumer picks the one that fits their shape.
 
 ## At a glance
@@ -13,8 +13,9 @@
 | HTTP / service-style consumers | HTTP REST API | `ophamin http serve` (FastAPI; OpenAPI 3 at `/openapi.json`) | same as MCP | `0.18.0` |
 | Event-stream routing infrastructure | CloudEvents 1.0 envelope | `ophamin.cloudevents.wrap` / `unwrap` (Python) | no — wrap is opt-in; routing is read | `0.19.0` |
 | Observability backends (Jaeger / Datadog / etc.) | OpenTelemetry instrumentation | `ophamin.observability.setup_otel()` + ambient OTel SDK | n/a (telemetry is one-way) | `0.20.0` |
+| Supply-chain attestation (Sigstore / SLSA / Rekor / cosign) | in-toto Attestation Framework v1 (ITE-6) + DSSE envelope | `ophamin.interop.to_in_toto_statement` / `to_dsse_envelope` (Python) | n/a (export only) | `0.35.0` |
 
-All five layers wrap the **same shared implementations**
+All six layers wrap the **same shared implementations**
 (`src/ophamin/interfaces/_impls.py`), so behavioural drift between
 them is structurally impossible.
 
@@ -152,6 +153,60 @@ See [`src/ophamin/observability/README.md`](https://github.com/IdirBenSlama/Opha
 for the full attribute catalogue + sidecar wiring with HTTP /
 MCP / CloudEvents.
 
+### "I want my proof on Sigstore / Rekor / SLSA infrastructure."
+
+Wrap the proof as an in-toto Statement v1 (ITE-6), optionally
+sealed inside a DSSE envelope:
+
+```python
+from ophamin.interop import to_in_toto_statement, to_dsse_envelope
+
+# 1. Bare Statement — for in-process inspection or custom signing
+stmt = to_in_toto_statement(signed_proof)
+# {
+#   "_type": "https://in-toto.io/Statement/v1",
+#   "predicateType": "https://github.com/IdirBenSlama/Ophamin/.../SCHEMAS.md#empirical-proof-record-v1",
+#   "subject": [{"name": "...", "digest": {"sha256": "<proof_id>"}}],
+#   "predicate": {"body": {...}, "signature": "<hmac>"}
+# }
+
+# 2. DSSE-sealed envelope — for upload to Rekor or storage in an
+#    attestation archive
+envelope = to_dsse_envelope(signed_proof, key=b"my-dsse-key", keyid="rsa-2026")
+# {
+#   "payloadType": "application/vnd.in-toto+json",
+#   "payload": "<base64 of canonical Statement JSON>",
+#   "signatures": [{"keyid": "rsa-2026", "sig": "<base64 HMAC>"}]
+# }
+```
+
+The Statement's subject digest IS the proof's content-addressed
+`proof_id` (SHA-256 over sections 1–8), so the in-toto subject
+is structurally tied to Ophamin's own canonical form. Downstream
+verifiers can:
+
+- Run `cosign verify-attestation --type custom` against the
+  envelope using `OPHAMIN_PREDICATE_TYPE_V1` as the type-filter.
+- Upload to Rekor: `rekor-cli upload --type intoto --artifact envelope.json`.
+- Plug into a `policy-controller` admission webhook to gate
+  Kubernetes deployments on the presence of a VALIDATED Ophamin
+  proof matching the cluster's expected subject digest.
+
+The DSSE PAE (Pre-Authentication Encoding) prevents
+signature-substitution across `payloadType`s, per the
+secure-systems-lab DSSE spec. `verify_dsse_envelope(env, key)`
+checks the outer envelope; the inner Ophamin HMAC over
+`predicate.body` is verified separately with the original
+Ophamin signing key — two-layer cryptographic trust where the
+outer (DSSE) and inner (Ophamin) keys may differ.
+
+See [`src/ophamin/interop/in_toto.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/interop/in_toto.py)
+for the full API. References:
+
+- [in-toto Statement v1 spec](https://github.com/in-toto/attestation/blob/main/spec/v1/statement.md)
+- [DSSE spec](https://github.com/secure-systems-lab/dsse)
+- [SLSA in-toto integration](https://slsa.dev/blog/2023/05/in-toto-and-slsa)
+
 ## Cross-layer composition
 
 The layers are designed to compose. A typical pipeline:
@@ -183,7 +238,9 @@ The interop layers follow Ophamin's
   tool function signatures in `ophamin.interfaces._impls`, MCP
   tool names + arg shapes, HTTP endpoint paths + body shapes,
   CloudEvents attribute names emitted, OTel span names and
-  attribute names.
+  attribute names, in-toto Statement / DSSE constants
+  (`IN_TOTO_STATEMENT_V1_TYPE`, `OPHAMIN_PREDICATE_TYPE_V1`,
+  `DSSE_INTOTO_PAYLOAD_TYPE`).
 - **`@Provisional`** — implementation-internal details (Rust
   module layout under `crates/ophamin-proof/src/`, JS module
   layout under `packages/ophamin-proof-js/src/`, OTel metric

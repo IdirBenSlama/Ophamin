@@ -7,7 +7,174 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.34.0] below for the latest cut.)
+(empty — see [0.35.0] below for the latest cut.)
+
+## [0.35.0] — 2026-05-19
+
+**Headline:** Tier-1 strategic interop #1 — in-toto Attestation
+Framework v1 (ITE-6) wrapper for `EmpiricalProofRecord`, with
+optional DSSE envelope sealing. Ophamin's signed empirical
+claims now flow into the entire SLSA / Sigstore / Rekor /
+cosign / policy-controller toolchain unchanged.
+
+This is the **sixth** interop layer. Five existed at 0.34.0
+(wire-format ports, MCP, HTTP, CloudEvents, OpenTelemetry); the
+in-toto layer covers consumers in the supply-chain attestation
+ecosystem — by far the largest gap to existing infrastructure.
+
+### Added — `src/ophamin/interop/in_toto.py` (~370 LOC)
+
+Three public functions + three pinned constants:
+
+- **`to_in_toto_statement(proof, *, subject_name=None) -> dict`**
+  Wraps a signed `EmpiricalProofRecord` as an in-toto Statement
+  v1 (per `spec/v1/statement.md`). The Statement's subject
+  digest IS the proof's content-addressed `proof_id` (SHA-256
+  over sections 1–8 of the canonical body), so the in-toto
+  layer is structurally tied to Ophamin's own wire format. The
+  full proof body lands in `predicate.body`; the inner HMAC
+  signature lands in `predicate.signature`.
+
+- **`to_dsse_envelope(proof, key, *, keyid="", subject_name=None) -> dict`**
+  Wraps the Statement inside a DSSE (Dead Simple Signing
+  Envelope) per the secure-systems-lab spec. The envelope
+  carries the canonical Statement bytes (base64) + one HMAC-
+  SHA256 signature over the Pre-Authentication Encoding (PAE).
+  PAE format: `DSSEv1 <len(type)> <type> <len(payload)> <payload>` —
+  prevents signature substitution across `payloadType`s.
+
+- **`verify_dsse_envelope(envelope, key) -> bool`**
+  Verifies the outer DSSE signature. Does NOT recurse into the
+  inner Ophamin HMAC — that uses Ophamin's canonical-form
+  encoding (per `SCHEMAS.md` R1–R11), not DSSE PAE, and may use
+  a different signing key. Two-layer trust model: outer DSSE
+  key (transport authenticator) + inner Ophamin key (claim
+  authenticator).
+
+Pinned constants (all `@Stable`):
+
+- `IN_TOTO_STATEMENT_V1_TYPE = "https://in-toto.io/Statement/v1"`
+- `OPHAMIN_PREDICATE_TYPE_V1 = "https://github.com/IdirBenSlama/Ophamin/blob/main/SCHEMAS.md#empirical-proof-record-v1"`
+- `DSSE_INTOTO_PAYLOAD_TYPE = "application/vnd.in-toto+json"`
+
+### What this unlocks (downstream consumers)
+
+Anything that consumes in-toto Statements or DSSE envelopes
+now consumes Ophamin proofs directly:
+
+- **cosign**: `cosign verify-attestation --type custom` against
+  the envelope, filtered by `OPHAMIN_PREDICATE_TYPE_V1`.
+- **Rekor (Sigstore's transparency log)**:
+  `rekor-cli upload --type intoto --artifact envelope.json` — the
+  Ophamin proof becomes a permanently-discoverable signed claim.
+- **policy-controller** (Kubernetes admission webhook): gate
+  Pod admission on the presence of a VALIDATED Ophamin proof
+  matching the cluster's expected predicate type + subject
+  digest.
+- **slsa-verifier**: chain-of-custody verification on Ophamin
+  proofs that propagate through SLSA-compliant pipelines.
+- **In-toto layout**: the Statement plugs into in-toto's
+  multi-step supply-chain verification model.
+
+### Added — exports
+
+`ophamin.interop` now re-exports the three functions + three
+constants. Consumers can write:
+
+```python
+from ophamin.interop import to_in_toto_statement, to_dsse_envelope
+
+envelope = to_dsse_envelope(signed_proof, key=b"...", keyid="rsa-2026")
+```
+
+### Hardening pins — `tests/test_in_toto_interop.py` (44 tests)
+
+Every load-bearing property of the export contract pinned:
+
+- Statement v1 shape: exactly 4 top-level keys, `_type` URI,
+  `predicateType` URI, single-element subject list, digest is
+  64-char lowercase hex SHA-256 matching `proof_id`.
+- Custom + default subject names.
+- Predicate carries `ophamin_version`, `schema_version`, `body`
+  (matches `proof._body()`), `signature` (matches
+  `proof.signature`).
+- Statement is JSON-serializable in canonical form (idempotent
+  re-canonicalization).
+- Unsigned proof → `ValueError`; empty/non-hex proof_id →
+  `ValueError`.
+- DSSE envelope: exactly 3 top-level keys (`payloadType`,
+  `payload`, `signatures`); payload is base64 of canonical
+  Statement bytes; one signature per envelope by default;
+  signature is valid base64 of 32 HMAC-SHA256 bytes; `keyid`
+  preserved verbatim.
+- Empty signing key → `ValueError`.
+- DSSE round-trip: sign with K, verify with K → True; wrong
+  key → False; tampered payload → False; tampered signature →
+  False; empty envelope → False (no crash); invalid-base64
+  payload → False; multi-signature envelope where ANY one
+  signature verifies → True.
+- PAE encoding: exact format match against spec ("DSSEv1
+  <len> <type> <len> <body>" with single-space separators);
+  empty payload handled; UTF-8 payload type with non-ASCII
+  bytes lengths correctly.
+- Canonical JSON bytes: `sort_keys=True`, tight separators (no
+  `, ` or `: `), `ensure_ascii=True` (non-ASCII escaped
+  `\\uXXXX`).
+- End-to-end: inner Ophamin HMAC over `predicate.body` still
+  verifies under the original Ophamin key after wrapping
+  (preservation guarantee).
+- End-to-end: inner Ophamin HMAC survives the full
+  Ophamin-sign → DSSE-sign → DSSE-verify → unwrap-Statement →
+  re-verify-inner round-trip with two different keys.
+
+All 44 tests pass locally; full interop suite (82 tests)
+unchanged passing.
+
+### Documentation — `docs/INTEROP_OVERVIEW.md`
+
+- "At a glance" table extended from 5 → 6 layers.
+- New section: "I want my proof on Sigstore / Rekor / SLSA
+  infrastructure." — runnable Python example, three downstream
+  consumer recipes (cosign / Rekor / policy-controller), DSSE
+  two-layer trust model explained, links to the in-toto spec
+  + DSSE spec + SLSA + in-toto integration blog.
+- `@Stable` surface inventory extended with the three pinned
+  constants.
+
+### What this does NOT include (out of scope for 0.35.0)
+
+- ed25519 / RSA signatures on DSSE — current implementation
+  is HMAC-SHA256-only. Adding asymmetric crypto is straight-
+  forward (DSSE supports it natively) but requires a key-pair
+  story Ophamin doesn't have yet. Tracked as Tier-1 #1.1 for a
+  future cut.
+- Sigstore Fulcio identity-based signing — same blocker as
+  above + requires OIDC integration.
+- Automatic Rekor upload — left to the operator's CI;
+  in-toto envelopes are the wire-format, not the transport.
+- in-toto layout-based multi-step pipeline verification — a
+  separate primitive (layouts encode pipeline-step
+  dependencies). Out of scope for the single-Statement wrapper.
+
+### Verification
+
+- `pytest tests/test_in_toto_interop.py` → 44/44 pass.
+- `pytest tests/test_interop.py` → 38/38 pass (no regression
+  in existing exporters).
+- `pytest tests/test_interop_endtoend.py` → unchanged.
+- `mkdocs build --strict` → clean (no broken links from the
+  new docs section).
+- Module re-exports from `ophamin.interop` parse cleanly via
+  `python -c "from ophamin.interop import ..."`.
+
+### What this opens for next-direction work
+
+Per `docs/TOOL_LANDSCAPE_2026_05_19.md` Tier-1 #2 + #3: with
+in-toto landing, the natural next layers are **RO-Crate**
+(self-contained packaged-research-artifacts; complements the
+provenance graph already in section 8) and **OpenLineage**
+(real-time data-pipeline lineage events — Ophamin proofs as
+lineage facets). Both remain autonomous-doable.
 
 ## [0.34.0] — 2026-05-19
 
