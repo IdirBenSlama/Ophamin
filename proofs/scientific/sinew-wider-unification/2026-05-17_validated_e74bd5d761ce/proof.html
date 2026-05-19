@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>e74bd5d761ce5e48f2e0745713ea4f72b19bd578d00f04ae14a518360766c409</code><br><strong>Created:</strong> 2026-05-17T16:45:54.126957+00:00</p><h2>1. Claim</h2><blockquote><p>For each of 12 of Kimera&#x27;s physics-named primitives (11 energy-field OrchestratorResult fields + prime_log_energy), test whether adding the primitive as a normalized 4th term to (P + T + CW_seed) at Walker M4 events is COMPATIBLE with the conservation framework (best-sign 4-term ratio ≤ 3-term baseline + 0.01). At least 8 of 12 candidates must be compatible — measurable physics-grade coherence at the conservation layer.</p></blockquote><ul><li><strong>Operationalisation:</strong> Compute 3-term baseline ratio (P + T + CW_seed) at walker_m4 events. For each physics candidate X, test (P + T + CW_seed + sign · X) with sign ∈ {+1, -1}; record best-sign 4-term ratio. Classify each candidate: EXTENDS if ratio &lt; baseline - noise_floor; COMPATIBLE if within ±noise_floor; BREAKS if &gt; baseline + noise_floor. Headline metric = count of EXTENDS + COMPATIBLE candidates.</li><li><strong>Threshold:</strong> <code>compatible_or_extends_count &gt;= 8.0 of_12</code></li><li><strong>H0:</strong> compatible_or_extends_count &lt; 8 — Kimera&#x27;s physics-named primitives mostly DON&#x27;T fit the SEED conservation framework; Pattern-P at the primitive-name level; conservation is local to (P + T + CW_seed) rather than substrate-wide</li><li><strong>H1:</strong> compatible_or_extends_count &gt;= 8 — substrate&#x27;s physics-named primitives DO fit; physics-grade coherence is measurable at the conservation layer; Phase 5 of the Sinew campaign produces positive evidence</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>8.0</code></p><p>Wider-unification analysis (500 cycles, 105 walker_m4 events): 3-term baseline ratio = 0.0873. Per-candidate (out of 12): 4 EXTENDS, 4 COMPATIBLE, 4 BREAKS, 0 INSUFFICIENT. compatible_or_extends_count = 8. Details: quantum_energy=BREAKS(0.0992), spde_ground_energy=COMPATIBLE(0.0851), entanglement_entropy=BREAKS(0.0993), riemann_zeta_entropy=EXTENDS(0.0663), riemann_zeta_free_energy=EXTENDS(0.0663), crystal_binding_energy=COMPATIBLE(0.0805), quantum_interference_entropy=EXTENDS(0.0753), quantum_prime_basis_entropy=BREAKS(0.0994), rosetta_composition_entropy=EXTENDS(0.0767), voronoi_neighbourhood_entropy=COMPATIBLE(0.0824), turing_pattern_entropy=COMPATIBLE(0.0778), prime_log_energy=BREAKS(0.1064).</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-17T16:45:53.939625+00:00</code></li><li>Config hash: <code>c385cceb8c3ab1f0879134c7c3b01134ca634bebbc4a0edf136b174c0bafd727</code></li><li>Data hash: <code>5ca01594634b70ff8f5d176efc4e27ca605f0dc5040df136e88072707b1b8db8</code></li></ul><p><em>Plan:</em> Read captured Sinew Phase 4-extended trajectory. Compute 3-term baseline (P + T + CW_seed) conservation ratio at Walker M4 events. For each of 11 energy fields + prime_log_energy (12 candidates total), compute best-sign 4-term ratio (P + T + CW_seed ± candidate). Classify per-candidate as EXTENDS (ratio &lt; baseline - noise_floor), COMPATIBLE (within ±noise_floor), or BREAKS (&gt; baseline + noise_floor). Headline = count of compatible+extends candidates &gt;= 8 / 12.</p><h2>4. Data</h2><ul><li>Substrate: <code>kimera-swm</code> @ <code>4552de7ee80c</code></li><li>Dataset: <code>kimera-sinew-trajectory</code> (takwin-sinew-extended-trajectory, 500 records, hash <code>5ca01594634b…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>sinew_wider_unification</code></td><td><code>compatible_or_extends_count</code></td><td><code>8.0</code></td><td>—</td><td>ophamin.measuring.scenarios.sinew_wider_unification 0.9.0</td></tr></tbody></table><h2>6. Signature</h2><p><code>7c2730c6e3d6689339783ff340820a20519fddd693346e499d13f40068974b91</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.9.0 @ <code>266439da70a5</code></footer></body></html>

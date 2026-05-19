@@ -553,3 +553,60 @@ class Scenario(abc.ABC):
         )
         record.sign(sign_key)
         return record
+
+    def run_and_persist(
+        self,
+        substrate: SubstrateUnderTest,
+        *,
+        proofs_root: str | "Path" = "proofs",
+        data_root: str | "Path" | None = None,
+        sign_key: bytes = DEFAULT_SIGN_KEY,
+        formats: "frozenset | None" = None,
+    ) -> "PersistedBundle":
+        """Run the scenario AND persist the signed proof as a bundle dir.
+
+        Convenience wrapper combining :meth:`run` + :func:`persist_proof`.
+        Writes the canonical bundle layout (0.59.0+):
+
+            <proofs_root>/<tier>/<scenario>/<YYYY-MM-DD>_<verdict>_<short>/
+            ├── proof.json   ← signed
+            ├── proof.md     ← markdown
+            ├── proof.html   ← HTML
+            ├── proof.tex    ← LaTeX
+            └── proof.pdf    ← PDF (skipped LOUDLY when latexmk missing)
+
+        Parameters
+        ----------
+        substrate, data_root, sign_key:
+            Passed through to :meth:`run`.
+        proofs_root:
+            The on-disk ``proofs/`` root. Defaults to ``"proofs"`` (relative
+            to current working directory) — matches the legacy CLI's
+            convention so tests + examples work without configuration.
+        formats:
+            Optional subset of :class:`BundleFormat` to emit (defaults
+            to all five). Pass :meth:`BundleFormat.json_only` to skip
+            renders entirely for fast-emission scenarios.
+
+        Returns
+        -------
+        PersistedBundle
+            Carries the bundle dir + per-format written paths + per-format
+            skip reasons (e.g. PDF when TeX is absent).
+        """
+        # Imports are local to keep the base-class footprint light;
+        # callers that only want `.run()` don't pay any import cost.
+        from ophamin.measuring.proof.persistence import (
+            BundleFormat,
+            persist_proof,
+        )
+
+        record = self.run(substrate=substrate, data_root=data_root, sign_key=sign_key)
+        tier_value = self.tier.value if hasattr(self.tier, "value") else str(self.tier)
+        return persist_proof(
+            record,
+            root=Path(proofs_root),
+            tier=tier_value,
+            scenario_name=self.name,
+            formats=formats if formats is not None else BundleFormat.all(),
+        )

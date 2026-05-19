@@ -1,0 +1,106 @@
+{
+  "proof_id": "67391e7dfeae971f377d64f616feb17940ad8c62a49726c7796a7e7f5c4d2d28",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.24.3",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-18T14:17:34.559743+00:00"
+  },
+  "claim": {
+    "statement": "Cross-cycle temporal pair source (concepts within window=3 cycles from real BGE substrate emit stream) produces downstream trainability \u2265 +0.10 separation on a 3-cluster (physics/memory/language) synthetic held-out test corpus.",
+    "operationalization": "Build pairs from Phase 1c capture: for each pair of cycles (i, j) with |i-j| \u2264 3, pair every canonical from cycle i with every canonical from cycle j (deduplicated). Cap at 5000 pairs. Train RealtimeContrastiveTrainer for 10 epochs. Encode 24 test words (3 clusters \u00d7 8 words). Compute within-cluster vs cross-cluster mean cosine.",
+    "threshold": {
+      "metric": "separation",
+      "comparator": ">=",
+      "value": 0.1,
+      "units": "cosine_units"
+    },
+    "h0": "cross-cycle pair source produces sep < 0.10 OR < 0 (no signal / collapse)",
+    "h1": "cross-cycle pair source produces sep \u2265 0.10"
+  },
+  "preregistration": {
+    "config_hash": "phase3_cross_cycle_faf534ff",
+    "data_hash": "phase1c_emits_60c_283canonicals",
+    "analysis_plan": "Pre-registered per ROADMAP_2026_05_18.md Phase 3. Cross-cycle pair source extracted from Phase 1c capture with window=3, max 5000 pairs. Trained 10 epochs. Tested on 3-cluster synthetic (physics/memory/language).",
+    "sweep_grid": {
+      "window": 3,
+      "max_pairs": 5000,
+      "epochs": 10,
+      "model_d": 256
+    },
+    "preregistered_at": "2026-05-18T14:17:33.257606+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "faf534ff4de5f9e248456d20c1b49edb38df8e9c",
+    "datasets": [
+      {
+        "name": "phase1c_emits_60c_bge",
+        "content_hash": "bge_60c_default_prompts",
+        "n_records": 283,
+        "source": "phase-1c-emit-capture",
+        "kind": "substrate_emission_canonicals_with_cycle_id"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "cross_cycle_trainability",
+      "statistic_name": "within_minus_cross_separation",
+      "statistic_value": -5.474934975380208e-06,
+      "library": "numpy",
+      "library_version": "2.4.4",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "failed",
+      "detail": {
+        "within_mean": 0.9999251166979471,
+        "cross_mean": 0.9999305916329225,
+        "n_within_pairs": 84,
+        "n_cross_pairs": 192,
+        "interpretation": "REFUTED at strict threshold; native sep = -0.0000 indicates representation collapse on held-out 3-cluster test corpus. Same collapse pattern as Family DD Path A v1/v2/v3 (combined L2+L3+Alex). Cross-cycle pair source has 5000 pairs / 283 unique canonicals = ~18 pairs per canonical \u2014 high pair-redundancy on narrow vocabulary drives NT-Xent to trivial collapsed solution."
+      }
+    },
+    {
+      "pillar": "consistency_with_family_DD",
+      "statistic_name": "matches_path_a_collapse_pattern",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "family_dd_pattern": "REFUTED at -0.2052 (Path A v1, v2, v3 all same delta)",
+        "phase_3_pattern": "REFUTED at -0.0000 (collapse on cluster test)",
+        "interpretation": "Both share the same architectural failure mode: NT-Xent trainer on substrate-derived pairs with narrow vocabulary collapses. Phase 3 is consistent with Family DD's empirically-binding constraint: pair-volume + vocabulary-breadth are needed together; either alone produces collapse on held-out test."
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "REFUTED",
+    "observed_value": -5.474934975380208e-06,
+    "threshold": {
+      "metric": "separation",
+      "comparator": ">=",
+      "value": 0.1,
+      "units": "cosine_units"
+    },
+    "reasoning": "separation=-0.0000 < 0.10 threshold AND collapsed to ~0. Cross-cycle pair source alone is insufficient for held-out trainability. Consistent with Family DD Path A v1/v2/v3 collapse pattern."
+  },
+  "reproduction": {
+    "command": "python experiments/observatory/probes/roadmap_phase3_cross_cycle_pairs.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "faf534ff4de5f9e248456d20c1b49edb38df8e9c",
+      "encoder": "bge-m3"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

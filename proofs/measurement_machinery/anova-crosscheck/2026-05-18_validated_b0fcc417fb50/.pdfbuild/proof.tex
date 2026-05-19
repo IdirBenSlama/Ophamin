@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: VALIDATED}
+\date{2026-05-18T02:18:48.138808+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{validated}{\textbf{VALIDATED}}}
+\textbf{Proof ID:} \texttt{b0fcc417fb50541067d1c9476b4dbde0\dots}\\
+\textbf{Created:} 2026-05-18T02:18:48.138808+00:00
+\subsection*{1. Claim}
+\begin{quote}Across 30 synthetic three-group datasets of size 30 per group sweeping effect size from null to strong (seed=20260518), ``scipy.stats.f\_oneway``, ``statsmodels.stats.anova.anova\_lm`` (via OLS), and ``pingouin.anova`` produce F-statistics AND two-sided p-values that agree to ≤ 1e-09 across all pairwise comparisons. (RFC 0002 Phase E1: cross-framework validation; three-way ANOVA variant.)\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} Generate N three-group datasets where each group has size n and is drawn from Normal(μ\_g, σ²) for a sweep of (μ\_0, μ\_1, μ\_2) configurations including null (all μ equal) and alternatives. Compute F and two-sided p under scipy.stats.f\_oneway, statsmodels OLS+anova\_lm, and pingouin.anova. Compute max\_abs\_diff = max over (dataset, statistic ∈ \{F, p\}, backend-pair) of |stat\_a - stat\_b|. VALIDATED iff max\_abs\_diff ≤ tolerance.
+\item \textbf{Threshold:} \texttt{max\_absolute\_anova\_difference <= 1e-09 F\_or\_p}
+\item \textbf{H0:} At least one backend pair disagrees on the ANOVA F statistic OR the two-sided p value by more than the floating-point tolerance.
+\item \textbf{H1:} All three backends compute identical F AND p to floating-point tolerance across every dataset.
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{validated}{\textbf{VALIDATED}} --- observed \texttt{7.105427357601002e-14}\\
+30 datasets × 3 backends × 2 statistics; max pairwise |Δ| = 7.105e-14 on (F, scipy\_vs\_statsmodels) (≤ 1e-09 tol)
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{anova\_scipy\_vs\_statsmodels\_vs\_pingouin} & \texttt{max\_absolute\_anova\_difference} & \texttt{7.105427357601002e-14} & --- & scipy 1.17.1 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-18T02:18:47.929072+00:00}
+\item Config hash: \texttt{c8e368fe8b61be3829c27bb61d9b3208\dots}
+\item Data hash: \texttt{c8e368fe8b61be3829c27bb61d9b3208\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{7ca718c1ede980ccfbc3c78674fcea599fbaa1df35c0106a07b93b6ae533ce25}\\
+
+\end{document}

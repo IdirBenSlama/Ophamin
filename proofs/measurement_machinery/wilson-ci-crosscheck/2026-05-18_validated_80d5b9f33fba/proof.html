@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>80d5b9f33fbaf6d7fabd58c913067e98528686f01fe0172cfcc0e1ed2110679a</code><br><strong>Created:</strong> 2026-05-18T01:17:09.791746+00:00</p><h2>1. Claim</h2><blockquote><p>Across 100 random (k, n) binomial pairs (seed=20260518, max_n=1000), scipy&#x27;s ``binomtest.proportion_ci(method=&#x27;wilson&#x27;)`` and statsmodels&#x27;s ``proportion_confint(method=&#x27;wilson&#x27;)`` produce 95% CI bounds that agree to ≤ 1e-09 on both lower and upper endpoints. (RFC 0002 Phase E1: cross-framework validation at the statistical-primitive layer.)</p></blockquote><ul><li><strong>Operationalisation:</strong> Generate N pairs (k, n) with k ~ Uniform(0, n), n ~ Uniform(2, max_n). For each pair, compute the Wilson CI at the configured confidence under both backends. Compute max_abs_diff = max over pairs of max(|low_scipy - low_sm|, |high_scipy - high_sm|). VALIDATED iff max_abs_diff ≤ tolerance.</li><li><strong>Threshold:</strong> <code>max_absolute_ci_difference &lt;= 1e-09 proportion</code></li><li><strong>H0:</strong> scipy and statsmodels disagree on the Wilson CI by more than the floating-point tolerance — at least one implementation has a defect.</li><li><strong>H1:</strong> Both libraries evaluate the same closed-form Wilson CI and produce identical bounds to floating-point tolerance.</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>3.3306690738754696e-16</code></p><p>100 pairs checked; max |low_scipy - low_sm| = 1.110e-16; max |high_scipy - high_sm| = 3.331e-16; max overall = 3.331e-16 (≤ 1e-09 tol)</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-18T01:17:09.581755+00:00</code></li><li>Config hash: <code>ab8fb015887c4a2ac85c8b2ffe1e676a730cb4a473e1993bc272b9a0e2bf10bc</code></li><li>Data hash: <code>ab8fb015887c4a2ac85c8b2ffe1e676a730cb4a473e1993bc272b9a0e2bf10bc</code></li></ul><p><em>Plan:</em> Generate 100 random (k, n) binomial pairs with seed=20260518, n ∈ [2, 1000]. For each compute the 95% Wilson CI under scipy (binomtest.proportion_ci) AND statsmodels (proportion_confint). Track the maximum absolute difference on both CI bounds across pairs. VALIDATED iff max_abs_diff ≤ 1e-09.</p><h2>4. Data</h2><ul><li>Substrate: <code>scipy+statsmodels-cross-framework</code> @ <code>352718907b02</code></li><li>Dataset: <code>synthetic-binomial-pairs</code> (synthetic-binomial-pairs, 100 records, hash <code>ab8fb015887c…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>wilson_ci_scipy_vs_statsmodels</code></td><td><code>max_absolute_ci_difference</code></td><td><code>3.3306690738754696e-16</code></td><td>—</td><td>scipy 1.17.1</td></tr></tbody></table><h2>6. Signature</h2><p><code>b41472097b95c3706beb31c251cdae416275dfaec44f25e2be8883112ae90889</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.12.1 @ <code>352718907b02</code></footer></body></html>

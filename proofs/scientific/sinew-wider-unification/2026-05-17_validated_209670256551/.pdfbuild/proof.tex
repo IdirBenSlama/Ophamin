@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: VALIDATED}
+\date{2026-05-17T17:32:46.125420+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{validated}{\textbf{VALIDATED}}}
+\textbf{Proof ID:} \texttt{20967025655105a56981848617eaf60c\dots}\\
+\textbf{Created:} 2026-05-17T17:32:46.125420+00:00
+\subsection*{1. Claim}
+\begin{quote}For each of 12 of Kimera's physics-named primitives (11 energy-field OrchestratorResult fields + prime\_log\_energy), test whether adding the primitive as a normalized 4th term to (P + T + CW\_seed) at Walker M4 events is COMPATIBLE with the conservation framework (best-sign 4-term ratio ≤ 3-term baseline + 0.01). At least 8 of 12 candidates must be compatible — measurable physics-grade coherence at the conservation layer.\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} Compute 3-term baseline ratio (P + T + CW\_seed) at walker\_m4 events. For each physics candidate X, test (P + T + CW\_seed + sign · X) with sign ∈ \{+1, -1\}; record best-sign 4-term ratio. Classify each candidate: EXTENDS if ratio < baseline - noise\_floor; COMPATIBLE if within ±noise\_floor; BREAKS if > baseline + noise\_floor. Headline metric = count of EXTENDS + COMPATIBLE candidates.
+\item \textbf{Threshold:} \texttt{compatible\_or\_extends\_count >= 8.0 of\_12}
+\item \textbf{H0:} compatible\_or\_extends\_count < 8 — Kimera's physics-named primitives mostly DON'T fit the SEED conservation framework; Pattern-P at the primitive-name level; conservation is local to (P + T + CW\_seed) rather than substrate-wide
+\item \textbf{H1:} compatible\_or\_extends\_count >= 8 — substrate's physics-named primitives DO fit; physics-grade coherence is measurable at the conservation layer; Phase 5 of the Sinew campaign produces positive evidence
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{validated}{\textbf{VALIDATED}} --- observed \texttt{10.0}\\
+Wider-unification analysis (500 cycles, 102 walker\_m4 events): 3-term baseline ratio = 0.0873. Per-candidate (out of 12): 4 EXTENDS, 6 COMPATIBLE, 2 BREAKS, 0 INSUFFICIENT. compatible\_or\_extends\_count = 10. Details: quantum\_energy=COMPATIBLE(0.0881), spde\_ground\_energy=BREAKS(0.0998), entanglement\_entropy=COMPATIBLE(0.0908), riemann\_zeta\_entropy=EXTENDS(0.0717), riemann\_zeta\_free\_energy=EXTENDS(0.0717), crystal\_binding\_energy=COMPATIBLE(0.0960), quantum\_interference\_entropy=EXTENDS(0.0719), quantum\_prime\_basis\_entropy=COMPATIBLE(0.0908), rosetta\_composition\_entropy=EXTENDS(0.0709), voronoi\_neighbourhood\_entropy=COMPATIBLE(0.0959), turing\_pattern\_entropy=COMPATIBLE(0.0849), prime\_log\_energy=BREAKS(0.1173).
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{sinew\_wider\_unification} & \texttt{compatible\_or\_extends\_count} & \texttt{10.0} & --- & ophamin.measuring.scenarios.sinew\_wider\_unification 0.9.0 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-17T17:32:45.962254+00:00}
+\item Config hash: \texttt{f2f7f6dc542eb407b8c6bc30af3d643e\dots}
+\item Data hash: \texttt{17afe2fa7c74a0dcb3159f9e2a88b840\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{217a8183cc35f63a014c81b8c13fcccd7f86698d1126b3ffd8cd5ab979acdec9}\\
+
+\end{document}

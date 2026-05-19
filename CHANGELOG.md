@@ -7,7 +7,85 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.58.0] below for the latest cut.)
+(empty — see [0.59.0] below for the latest cut.)
+
+## [0.59.0] — 2026-05-19
+
+**Headline:** Proof bundles. Every signed proof now lands in a
+self-describing directory: `proofs/<tier>/<scenario>/<YYYY-MM-DD>_<verdict>_<short>/`
+with five sibling files (`proof.json` + `proof.md` + `proof.html` +
+`proof.tex` + `proof.pdf`). An `ls` of any tier subdir tells you
+what ran when, with what outcome, before opening anything. Existing
+33 tracked proofs migrated in place via the same persistence path
+(signed bytes unchanged — signatures still verify).
+
+Closes the "directories not organized, results not labeled, no
+LaTeX / PDF / etc." pain. Trailing parallel-session proofs at
+`proofs/scientific/{roadmap_2026_05_18,shadow_encoder}/` left in
+place untouched — they remain untracked, and the migration script
+is opt-in for them via `--include-untracked`.
+
+Added:
+
+- **`src/ophamin/reporting/pdf_renderer.py`** (~180 LOC) —
+  `PDFReporter` delegates to `LaTeXReporter` then shells out to
+  `latexmk -pdf` (preferred) or `pdflatex`. Loud-fails at
+  construction with `PDFToolchainMissingError` when no TeX is on
+  PATH — the caller asked for a PDF; missing toolchain is a
+  config error surfaced at boundary, not a silent skip.
+  Wired into `DEFAULT_RENDERERS` so `ophamin report ... --format pdf`
+  works out of the box on TeX-bearing machines. 13 hardening
+  pins in `tests/test_pdf_renderer.py`.
+
+- **`src/ophamin/measuring/proof/persistence.py`** (~210 LOC) —
+  `persist_proof(record, *, root, tier, scenario_name, formats)`
+  writes the bundle directory. `BundleFormat` enum carries the
+  five formats; `BundleFormat.JSON` is mandatory (refusing to
+  write it would silently strip the signed source of truth).
+  `bundle_dir_for(record, ...)` is the pure path-computation
+  helper. `PersistedBundle` (frozen) carries the per-format
+  written paths + per-format skip reasons (e.g. PDF when TeX
+  is absent — loud-skipped, not silently absent). 16 hardening
+  pins in `tests/test_persist_proof.py`.
+
+- **`Scenario.run_and_persist()`** on `measuring/scenarios/base.py`
+  — convenience wrapper that runs the scenario and persists the
+  bundle in one call. Defaults to all five formats. Uses the
+  scenario's `tier` value to partition under `proofs/`.
+
+- **`scripts/proofs_migrate_layout.py`** (~250 LOC) — one-shot
+  migration walker over `proofs/`. Heuristic scenario detection
+  via filename prefix + manual aliases (e.g. `immune_siege` →
+  `concentrated-immune-siege`, `throughput` → `throughput-ceiling`,
+  the 7 `<stat>_<libA>_vs_<libB>` crosscheck patterns). Idempotent
+  on re-run. Tracked-only by default per parallel-session hygiene
+  rule; `--include-untracked` opt-in for the operator-driven
+  case.
+
+Migrated:
+
+- 33 tracked proofs reorganized into 11 scenario subdirs across 4
+  tiers:
+  * `engineering/throughput-ceiling/` (3)
+  * `philosophical/philosophical-self-reference/` (1)
+  * `scientific/concentrated-immune-siege/` (8) — verdicts span
+    inconclusive / refuted / validated
+  * `scientific/logic-topology-siege/` (2)
+  * `scientific/organizational-dissonance/` (2)
+  * `scientific/proprio-self-discovery/` (2)
+  * `scientific/rosetta-scaling/` (1)
+  * `scientific/sinew-{conservation,modulation-disruption,wider-unification}/` (6)
+  * `scientific/tonus-conservation-discovery/` (1)
+  * `measurement_machinery/{anova,bayesian-phi-posterior,mann-whitney,pearson,
+     spearman,welch-t,wilson-ci}-crosscheck/` (7)
+- Each old `.json` → bundle dir's `proof.json`; sibling `.md` was
+  replaced by the bundle's regenerated `proof.md`.
+- Each new bundle dir carries 5 files: `proof.{json,md,html,tex,pdf}`.
+
+Operator note: the original signed bytes were preserved
+(signatures verify post-migration — the HMAC is over the body,
+not the filename). The 11 stale empty subdirs (`scientific/sinew/`
+etc., per-stat `cross_framework/` dirs) were also removed.
 
 ## [0.58.0] — 2026-05-19
 

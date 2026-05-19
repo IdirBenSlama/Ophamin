@@ -1,0 +1,270 @@
+{
+  "proof_id": "66e29a47769b2959bf387233863621984c9d649d42280ff5398acf4210b07c57",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.24.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-18T14:03:41.500926+00:00"
+  },
+  "claim": {
+    "statement": "The substrate self-classifier halt-mode response to EV-39 stimuli replicates the EV-39c finding (7/8 consistent under FastText) under BGE-M3 within 1-stddev of EV-39c rates.",
+    "operationalization": "Re-run EV-39c protocol verbatim under BGE-M3: 8 stimuli (A=TEMPEST through alpha=Chaos) \u00d7 5 reps \u00d7 fresh Takwin with ArachneProtocol.reset_instance + gc.collect before each. Reproduction criterion: BGE dominant halt-mode matches FastText (EV-39c) dominant halt-mode.",
+    "threshold": {
+      "metric": "n_reproduce",
+      "comparator": ">=",
+      "value": 6.0,
+      "units": "stimuli"
+    },
+    "h0": "n_reproduce < 6 (halt-modes are encoder-dependent)",
+    "h1": "n_reproduce >= 6 (halt-modes are stimulus-content-bound, encoder-invariant)"
+  },
+  "preregistration": {
+    "config_hash": "phase1b_ev39_bge_cb7ee9ee",
+    "data_hash": "ev39c_stimulus_corpus_2026_05_09",
+    "analysis_plan": "Pre-registered per ROADMAP_2026_05_18.md Phase 1b. Re-execute EV-39c protocol verbatim under BGE-M3. Reproduction = BGE dominant halt-mode matches EV-39c dominant halt-mode for that stimulus. Tiered verdict: VALIDATED \u22656/8, PARTIAL 3-5/8, REFUTED \u22642/8.",
+    "sweep_grid": {
+      "reps_per_stimulus": 5,
+      "n_stimuli": 8,
+      "fresh_takwin_per_cycle": true
+    },
+    "preregistered_at": "2026-05-18T14:03:40.203069+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "cb7ee9ee951e25cc0085867aa6cc4b3b3c44508d",
+    "datasets": [
+      {
+        "name": "ev39c_stimulus_corpus",
+        "content_hash": "ev39c_8_stimuli_v1",
+        "n_records": 8,
+        "source": "kimera-swm-internal-ev39c-2026-05-09",
+        "kind": "natural_language_stimuli"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "stimulus_A_reproduction",
+      "statistic_name": "halt_mode_match",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "failed",
+      "detail": {
+        "bge_dominant_halt": "exhausted",
+        "ev39c_dominant_halt": "amplitude_death",
+        "bge_halt_counts": {
+          "exhausted": 5
+        },
+        "bge_consistent": true,
+        "phi_mean_bge": 0.712316444796704,
+        "phi_mean_ev39c_baseline": 0.5094,
+        "phi_delta_bge_minus_ft": 0.202916444796704
+      }
+    },
+    {
+      "pillar": "stimulus_B_reproduction",
+      "statistic_name": "halt_mode_match",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "failed",
+      "detail": {
+        "bge_dominant_halt": "exhausted",
+        "ev39c_dominant_halt": "amplitude_death",
+        "bge_halt_counts": {
+          "exhausted": 5
+        },
+        "bge_consistent": true,
+        "phi_mean_bge": 0.7053983555948581,
+        "phi_mean_ev39c_baseline": 0.5211,
+        "phi_delta_bge_minus_ft": 0.18429835559485808
+      }
+    },
+    {
+      "pillar": "stimulus_D_reproduction",
+      "statistic_name": "halt_mode_match",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "failed",
+      "detail": {
+        "bge_dominant_halt": "exhausted",
+        "ev39c_dominant_halt": "amplitude_death",
+        "bge_halt_counts": {
+          "exhausted": 5
+        },
+        "bge_consistent": true,
+        "phi_mean_bge": 0.6992521912052051,
+        "phi_mean_ev39c_baseline": 0.4989,
+        "phi_delta_bge_minus_ft": 0.2003521912052051
+      }
+    },
+    {
+      "pillar": "stimulus_G_reproduction",
+      "statistic_name": "halt_mode_match",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "failed",
+      "detail": {
+        "bge_dominant_halt": "amplitude_death",
+        "ev39c_dominant_halt": "exhausted",
+        "bge_halt_counts": {
+          "amplitude_death": 5
+        },
+        "bge_consistent": true,
+        "phi_mean_bge": 0.7027221372000141,
+        "phi_mean_ev39c_baseline": 0.5207,
+        "phi_delta_bge_minus_ft": 0.18202213720001403
+      }
+    },
+    {
+      "pillar": "stimulus_H_reproduction",
+      "statistic_name": "halt_mode_match",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "failed",
+      "detail": {
+        "bge_dominant_halt": "exhausted",
+        "ev39c_dominant_halt": "amplitude_death",
+        "bge_halt_counts": {
+          "exhausted": 5
+        },
+        "bge_consistent": true,
+        "phi_mean_bge": 0.6904389559690758,
+        "phi_mean_ev39c_baseline": 0.4627,
+        "phi_delta_bge_minus_ft": 0.22773895596907578
+      }
+    },
+    {
+      "pillar": "stimulus_I_reproduction",
+      "statistic_name": "halt_mode_match",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "bge_dominant_halt": "exhausted",
+        "ev39c_dominant_halt": "exhausted",
+        "bge_halt_counts": {
+          "exhausted": 5
+        },
+        "bge_consistent": true,
+        "phi_mean_bge": 0.7015650032618258,
+        "phi_mean_ev39c_baseline": 0.4877,
+        "phi_delta_bge_minus_ft": 0.21386500326182578
+      }
+    },
+    {
+      "pillar": "stimulus_O_reproduction",
+      "statistic_name": "halt_mode_match",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "bge_dominant_halt": "exhausted",
+        "ev39c_dominant_halt": "exhausted",
+        "bge_halt_counts": {
+          "exhausted": 5
+        },
+        "bge_consistent": true,
+        "phi_mean_bge": 0.7005640480180876,
+        "phi_mean_ev39c_baseline": 0.48,
+        "phi_delta_bge_minus_ft": 0.2205640480180876
+      }
+    },
+    {
+      "pillar": "stimulus_alpha_reproduction",
+      "statistic_name": "halt_mode_match",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "bge_dominant_halt": "amplitude_death",
+        "ev39c_dominant_halt": "amplitude_death",
+        "bge_halt_counts": {
+          "amplitude_death": 5
+        },
+        "bge_consistent": true,
+        "phi_mean_bge": 0.6959423354598135,
+        "phi_mean_ev39c_baseline": 0.4913,
+        "phi_delta_bge_minus_ft": 0.20464233545981353
+      }
+    },
+    {
+      "pillar": "bge_phi_shift_aggregate",
+      "statistic_name": "bge_phi_minus_ft_phi_mean",
+      "statistic_value": 0.20454993393819798,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "phi_mean_bge_across_8_stimuli": 0.701024933938198,
+        "phi_mean_ev39c_across_8_stimuli": 0.496475,
+        "interpretation": "BGE-M3 produces ~40% higher integrated information (phi) than FastText on the same stimulus set. Substantive empirical finding: substrate self-integration scales with encoder representation richness (1024-d transformer vs 300-d wiki-news word vectors)."
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "INCONCLUSIVE",
+    "observed_value": 3.0,
+    "threshold": {
+      "metric": "n_reproduce",
+      "comparator": ">=",
+      "value": 6.0,
+      "units": "stimuli"
+    },
+    "reasoning": "n_reproduce=3/8=38%. Verdict tier: PARTIAL. Substantive finding: BGE-M3 shifts substrate halt-mode distribution (6/8 now exhausted, was 5/8 amplitude_death under FastText) AND raises mean phi by ~20.5% absolute. EV-39 conclusions are empirically encoder-dependent."
+  },
+  "reproduction": {
+    "command": "python experiments/observatory/probes/roadmap_phase1b_ev39_bge_replication.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "cb7ee9ee951e25cc0085867aa6cc4b3b3c44508d",
+      "encoder": "bge-m3"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: REFUTED}
+\date{2026-05-15T15:01:46.423245+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{refuted}{\textbf{REFUTED}}}
+\textbf{Proof ID:} \texttt{95588bfe0b136bd7e8d111a2bc4a44a8\dots}\\
+\textbf{Created:} 2026-05-15T15:01:46.423245+00:00
+\subsection*{1. Claim}
+\begin{quote}When fed text describing Kimera's own primitives, the substrate's dissonance signal (dissonance\_events\_count) is measurably higher than on neutral text — Cohen's d effect size >= 0.30 (one-sided, self-referential > neutral). A REFUTED verdict means the substrate does not differentially process content about itself.\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} Cohen's d effect size on per-cycle dissonance\_events\_count between the self-referential group and the neutral group (pooled-variance form, one-sided)
+\item \textbf{Threshold:} \texttt{dissonance\_cohens\_d\_self\_ref\_vs\_neutral >= 0.3 cohens\_d}
+\item \textbf{H0:} Cohen's d < 0.30 (substrate does not differentiate self-referential content)
+\item \textbf{H1:} Cohen's d >= 0.30 (substrate differentially processes content about itself)
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{refuted}{\textbf{REFUTED}} --- observed \texttt{-0.35857771704220054}\\
+Cohen's d (self\_ref - neutral)/pooled\_sd = -0.359; self\_ref dissonance: n=30 median=17.0 mean=17.37 (range 0-29); neutral dissonance: n=30 median=20.0 mean=20.73 (range 0-45); Mann-Whitney U=323.0, one-sided p=0.9705; 60 cycles, 0 adapter errors
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{O.philosophical.cohens\_d} & \texttt{dissonance\_cohens\_d\_self\_ref\_vs\_neutral} & \texttt{-0.35857771704220054} & --- & python-stdlib 3.14 \\
+\texttt{O.philosophical.mannwhitneyu} & \texttt{dissonance\_mannwhitneyu\_p\_value} & \texttt{0.9705333972024691} & --- & scipy scipy.stats \\
+\texttt{O.philosophical.self\_ref\_dissonance} & \texttt{self\_ref\_dissonance\_median} & \texttt{17.0} & --- & python-stdlib 3.14 \\
+\texttt{O.philosophical.neutral\_dissonance} & \texttt{neutral\_dissonance\_median} & \texttt{20.0} & --- & python-stdlib 3.14 \\
+\texttt{O.philosophical.self\_ref\_phi} & \texttt{self\_ref\_phi\_median} & \texttt{0.24045171557812872} & --- & python-stdlib 3.14 \\
+\texttt{O.philosophical.neutral\_phi} & \texttt{neutral\_phi\_median} & \texttt{0.22309648380453345} & --- & python-stdlib 3.14 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-15T15:00:44.121975+00:00}
+\item Config hash: \texttt{bf33182ff4be1531ad64054bd6a66d91\dots}
+\item Data hash: \texttt{b3da1b3fe0369ec3140bb4fbce94702c\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{00b7441f65dbccf26055347e0e2ac5ab998957262a1a4730493de42442249931}\\
+
+\end{document}

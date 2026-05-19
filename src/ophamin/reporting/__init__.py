@@ -46,12 +46,20 @@ from ophamin.reporting.chart_helpers import (
 from ophamin.reporting.html_renderer import HTMLReporter
 from ophamin.reporting.latex_renderer import LaTeXReporter
 from ophamin.reporting.markdown_renderer import MarkdownReporter
+from ophamin.reporting.pdf_renderer import (
+    PDFCompileError,
+    PDFReporter,
+    PDFToolchainMissingError,
+)
 from ophamin.reporting.runner import ReportRunner
 
 __all__ = [
     "HTMLReporter",
     "LaTeXReporter",
     "MarkdownReporter",
+    "PDFCompileError",
+    "PDFReporter",
+    "PDFToolchainMissingError",
     "RecordKind",
     "ReportFormat",
     "ReportRenderer",

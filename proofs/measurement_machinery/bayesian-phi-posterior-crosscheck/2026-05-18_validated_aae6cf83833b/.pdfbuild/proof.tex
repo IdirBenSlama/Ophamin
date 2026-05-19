@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: VALIDATED}
+\date{2026-05-18T00:35:49.188818+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{validated}{\textbf{VALIDATED}}}
+\textbf{Proof ID:} \texttt{aae6cf83833b7c058602499d96048a0d\dots}\\
+\textbf{Created:} 2026-05-18T00:35:49.188818+00:00
+\subsection*{1. Claim}
+\begin{quote}PyMC and NumPyro fit the same NormalMean model on the same synthetic Normal(mu=0.5, sigma=0.2) data (N=200, seed=20260518) and produce posteriors that agree within tolerance: |mu\_pymc − mu\_numpyro| ≤ 0.1 AND |width\_ratio − 1| ≤ 0.5. (RFC 0002 Phase E1: cross-framework validation.)\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} Generate N samples from Normal(true\_mu, true\_sigma) with fixed seed. Fit the same model (mu \textasciitilde{} Normal(0, 10); sigma \textasciitilde{} HalfNormal(1); y \textasciitilde{} Normal(mu, sigma)) under both backends. Extract posterior\_mean(mu) + 94\% HDI(mu). Compute mean\_diff = |mu\_pymc - mu\_numpyro| and width\_ratio = hdi\_width\_pymc / hdi\_width\_numpyro. VALIDATED iff both tolerances are satisfied (binary; 1.0 / 0.0). REFUTED if either bound is breached.
+\item \textbf{Threshold:} \texttt{cross\_framework\_agreement >= 1.0 proportion}
+\item \textbf{H0:} PyMC and NumPyro disagree on posterior mean and/or HDI width beyond the documented sampler-noise tolerance — at least one backend is broken or the model is mis-specified.
+\item \textbf{H1:} Both backends produce statistically equivalent posteriors on the same data + model — corroborates the framework's Bayesian inference machinery.
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{validated}{\textbf{VALIDATED}} --- observed \texttt{1.0}\\
+PyMC mu=0.5185, HDI=[0.4922, 0.5437]; NumPyro mu=0.5182, HDI=[0.4920, 0.5459]. mean\_diff=0.0003 (≤ 0.1 tol); width\_ratio=0.9556 (within ±0.5).
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{bayesian\_cross\_framework\_pymc\_numpyro} & \texttt{cross\_framework\_agreement} & \texttt{1.0} & --- & pymc 6.0.0 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-18T00:35:48.960256+00:00}
+\item Config hash: \texttt{75c3fe823fd3ccbe4e6c87576bc3b1a0\dots}
+\item Data hash: \texttt{75c3fe823fd3ccbe4e6c87576bc3b1a0\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{03f48806f9d52d57fdf3cb65b91989e85e93e8978c4864accdac11df07225ed6}\\
+
+\end{document}

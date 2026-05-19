@@ -1,0 +1,47 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: VALIDATED}
+\date{2026-05-14T20:39:41.476793+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{validated}{\textbf{VALIDATED}}}
+\textbf{Proof ID:} \texttt{9989f42bc8f2b0d230ddc9b61a2d6ff7\dots}\\
+\textbf{Created:} 2026-05-14T20:39:41.476793+00:00
+\subsection*{1. Claim}
+\begin{quote}A 50,000-cycle component-level catastrophic run against Kimera-SWM completes within 4.0 hours on this vessel.\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} measured steady-state cycles/sec (construction excluded) of the fastest component target, projected to 50000 cycles
+\item \textbf{Threshold:} \texttt{projected\_50k\_component\_run\_hours <= 4.0 hours}
+\item \textbf{H0:} projected run time > 4.0h — in-session density testing impractical
+\item \textbf{H1:} projected run time <= 4.0h — in-session density testing is practical
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{validated}{\textbf{VALIDATED}} --- observed \texttt{0.5681984997257435}\\
+observed 0.568198 satisfies the pre-registered threshold (projected\_50k\_component\_run\_hours <= 4.0 hours)
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{throughput.entity\_cpu} & \texttt{steady\_state\_cycles\_per\_sec} & \texttt{4.2772529758101285} & --- & ophamin 0.1.0 \\
+\texttt{throughput.entity\_gpu} & \texttt{steady\_state\_cycles\_per\_sec} & \texttt{4.306903481687651} & --- & ophamin 0.1.0 \\
+\texttt{throughput.arachne\_cpu} & \texttt{steady\_state\_cycles\_per\_sec} & \texttt{24.205516857317008} & --- & ophamin 0.1.0 \\
+\texttt{throughput.arachne\_gpu} & \texttt{steady\_state\_cycles\_per\_sec} & \texttt{24.443726788424712} & --- & ophamin 0.1.0 \\
+\texttt{throughput.rosetta\_cpu} & \texttt{steady\_state\_cycles\_per\_sec} & \texttt{24.0279083175282} & --- & ophamin 0.1.0 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-14T20:38:58.421081+00:00}
+\item Config hash: \texttt{8d26f6573f75b50b4f74150a9a35aec6\dots}
+\item Data hash: \texttt{83109a27c3df2a45b912398b969fa8f7\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{3f745dee3a523f4e83c4277c527c51c791d130de2961ef7d713d7c6c90937f5e}\\
+
+\end{document}

@@ -1,0 +1,152 @@
+{
+  "proof_id": "6514e51ee1221789c60dd414960e7c66a065788167c8efdbd549a4803662ff9a",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.24.3",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-18T14:27:03.003192+00:00"
+  },
+  "claim": {
+    "statement": "BGE-native concept expansion (BGENativeConceptExpander with ~473-word curated candidate corpus encoded once via BGE-M3) produces \u2265 6 concepts on each of 8 _DIVERSE_PROMPTS while substrate runs cleanly.",
+    "operationalization": "Wire BGENativeConceptExpander into Takwin._extract_concepts() Phase 219.2 slot, replacing the FastText vocab-iteration block (178 lines deleted). Encode 473-word candidate corpus via BGE-M3 on first call (cached to disk). For each diverse prompt, run Takwin and check concept count \u2265 6.",
+    "threshold": {
+      "metric": "prompts_passing_min_6_concepts",
+      "comparator": ">=",
+      "value": 8.0,
+      "units": "prompts"
+    },
+    "h0": "At least one prompt produces < 6 concepts OR substrate crashes",
+    "h1": "All 8 prompts produce \u2265 6 concepts AND 0 crashes"
+  },
+  "preregistration": {
+    "config_hash": "phase4_bge_expansion_faf534ff",
+    "data_hash": "diverse_prompts_8_canonical",
+    "analysis_plan": "Pre-registered per ROADMAP_2026_05_18.md Phase 4. Build BGENativeConceptExpander, wire into Takwin._extract_concepts(). Test on 8 diverse prompts. VALIDATED if all 8 produce \u22656 concepts AND 0 crashes; PARTIAL if 5-7/8; REFUTED otherwise.",
+    "sweep_grid": {
+      "n_prompts": 8,
+      "min_concepts": 6
+    },
+    "preregistered_at": "2026-05-18T14:27:01.202981+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "faf534ff4de5f9e248456d20c1b49edb38df8e9c",
+    "datasets": [
+      {
+        "name": "diverse_prompts_8",
+        "content_hash": "diverse_prompts_v1_2026_05_18",
+        "n_records": 8,
+        "source": "kimera-swm-test-zetetic-pipeline-output",
+        "kind": "natural_language_prompts"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "prompts_passing_6_concepts",
+      "statistic_name": "n_passing",
+      "statistic_value": 8.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n_total": 8,
+        "min_concepts_threshold": 6,
+        "concept_counts_per_prompt": [
+          {
+            "prompt": "What is consciousness?",
+            "n_concepts": 9
+          },
+          {
+            "prompt": "Explain how photosynthesis works in plants",
+            "n_concepts": 10
+          },
+          {
+            "prompt": "How do birds fly through the air?",
+            "n_concepts": 11
+          },
+          {
+            "prompt": "The meaning of justice in modern society",
+            "n_concepts": 12
+          },
+          {
+            "prompt": "Why does water boil when heated?",
+            "n_concepts": 11
+          },
+          {
+            "prompt": "Describe the relationship between gravity and time",
+            "n_concepts": 11
+          },
+          {
+            "prompt": "How do neural networks learn from data?",
+            "n_concepts": 12
+          },
+          {
+            "prompt": "What causes economic recessions?",
+            "n_concepts": 11
+          }
+        ]
+      }
+    },
+    {
+      "pillar": "substrate_stability",
+      "statistic_name": "crash_count",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "interpretation": "BGE-native expansion substrate change introduces no crashes on 8 diverse prompts."
+      }
+    },
+    {
+      "pillar": "phase_219_2_replacement_architecture",
+      "statistic_name": "loc_delta_vs_fasttext_implementation",
+      "statistic_value": -178.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "fasttext_lines_deleted": 217,
+        "bge_native_lines_added": 39,
+        "net_simplification": 178,
+        "interpretation": "FastText vocab-iteration + ad-hoc morphological/prefix/centroid dedup (~200 lines) replaced by ~40 lines using BGE-M3 cosine search over a curated candidate corpus. Architectural simplification + Phase 219.2 dormancy from FastText removal: FIXED."
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 8.0,
+    "threshold": {
+      "metric": "prompts_passing_min_6_concepts",
+      "comparator": ">=",
+      "value": 8.0,
+      "units": "prompts"
+    },
+    "reasoning": "n_passing=8/8 prompts produce \u22656 concepts; crashes=0. Verdict: VALIDATED. BGE-native expansion successfully restores Phase 219.2 functionality after FastText removal."
+  },
+  "reproduction": {
+    "command": "python experiments/observatory/probes/roadmap_phase4_bge_expansion.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "faf534ff4de5f9e248456d20c1b49edb38df8e9c",
+      "encoder": "bge-m3",
+      "expander_corpus_size": "473"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

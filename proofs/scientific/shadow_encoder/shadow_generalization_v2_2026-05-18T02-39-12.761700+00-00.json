@@ -1,0 +1,151 @@
+{
+  "proof_id": "22fab2ff515c2cd26c4a7da3fc7b319b8baf9e4ea315f3bd1180bafeb5e368a0",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.15.0",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-18T02:39:14.040178+00:00"
+  },
+  "claim": {
+    "statement": "The 4-bridge wired Tier-5 realtime encoder training (Alexandria fusion + MetaLearner experience stream + Substrate-event smart fire + Curiosity-weighted gating + fusion-pair training drain) closes the held-out semantic discrimination gap that the bare Tier-5 training failed to close (v1 BB1 REFUTED at separation_delta=+0.0045 if v1 exists).",
+    "operationalization": "At the latest available checkpoint (cycle 500 of the v2 training stopped mid-run at ~cycle 540), measure shadow-augmented vs base FastText separation on a 5-group \u00d7 4-word held-out test corpus verified disjoint from training prompts. Separation = mean(within_cos) - mean(cross_cos). 30 within-pairs + 160 cross-pairs. Mean across 10 randomly-sampled stamps. Bootstrap 95% CI via stratified resampling (1000 resamples).",
+    "threshold": {
+      "metric": "separation_delta",
+      "comparator": ">=",
+      "value": 0.05,
+      "units": "cosine_units"
+    },
+    "h0": "separation_delta < 0.05 OR CI lower bound <= 0",
+    "h1": "separation_delta >= 0.05 AND CI lower bound > 0"
+  },
+  "preregistration": {
+    "config_hash": "o1_v2_4bridge_wired_threshold_0.05_50pct_ci_exclude_zero",
+    "data_hash": "held_out_5x4_word_groups_2026_05_18",
+    "analysis_plan": "Per-checkpoint shadow-augmented separation on snapshots_v2/ (5 cycles: 100/200/300/400/500). Mean across 10 stamps. Bootstrap 1000 stratified resamples. Threshold: separation_delta >= 0.05 AND CI lower > 0. Threshold 0.05 chosen because it is conservatively below EV-34's published +0.34 baseline \u2014 any meaningful generalization should clear this bar.",
+    "sweep_grid": {
+      "snapshot_cycles": [
+        100,
+        200,
+        300,
+        400,
+        500
+      ],
+      "n_stamps_per_cycle": 10,
+      "bootstrap_resamples": 1000
+    },
+    "preregistered_at": "2026-05-18T02:39:12.761700+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "4d73f5a99df66d48c2ae1beeb86b868ed4a5e974",
+    "datasets": [
+      {
+        "name": "o1_held_out_semantic_groups",
+        "content_hash": "held_out_5x4_word_groups_2026_05_18",
+        "n_records": 20,
+        "source": "kimera-swm-internal-pre-registered",
+        "kind": "word_pairs"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "separation_delta_at_cycle_500",
+      "statistic_name": "separation_delta",
+      "statistic_value": 0.001388790200939627,
+      "library": "numpy+pingouin",
+      "library_version": "numpy=2.4.4 pingouin=0.6.1",
+      "effect_size": null,
+      "ci_low": -0.01326782552974462,
+      "ci_high": 0.015114957403430745,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n_within_pairs": 30,
+        "n_cross_pairs": 160,
+        "n_stamps_sampled": 10,
+        "bootstrap_resamples": 1000,
+        "threshold_pass_delta_value": false,
+        "threshold_pass_ci_lower_positive": false
+      }
+    },
+    {
+      "pillar": "v2_minus_v1_improvement",
+      "statistic_name": "separation_delta_improvement",
+      "statistic_value": -0.0031198257459117366,
+      "library": "custom_post_hoc",
+      "library_version": "kimera-swm-internal",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "v1_delta": 0.0045086159468513635,
+        "v1_ci": [
+          -0.009523389500282975,
+          0.018975931861957368
+        ],
+        "v2_delta": 0.001388790200939627,
+        "v2_ci": [
+          -0.01326782552974462,
+          0.015114957403430745
+        ],
+        "direction": "negative_wiring_hurt"
+      }
+    },
+    {
+      "pillar": "learning_curve_monotonicity",
+      "statistic_name": "curve_range_max_minus_min",
+      "statistic_value": 0.0421229513811546,
+      "library": "statistics",
+      "library_version": "python-3.12",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "cycles_observed": [
+          100,
+          200,
+          300,
+          400,
+          500
+        ],
+        "deltas": [
+          -0.02294545321532601,
+          -0.021782134441313633,
+          0.019177498165828588,
+          -0.022313508506913132,
+          0.001388790200939627
+        ],
+        "monotonic_increasing": false,
+        "interpretation": "flat_no_learning"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "REFUTED",
+    "observed_value": 0.001388790200939627,
+    "threshold": {
+      "metric": "separation_delta",
+      "comparator": ">=",
+      "value": 0.05,
+      "units": "cosine_units"
+    },
+    "reasoning": "separation_delta=+0.0014 < 0.05 threshold; 95% CI [-0.0133, +0.0151] includes zero. v1 baseline delta = 0.0045086159468513635; improvement = -0.0031."
+  },
+  "reproduction": {
+    "command": "python experiments/observatory/probes/o1_shadow_learning_measurement_v2.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "torch_mps_available": "True",
+      "git_commit": "4d73f5a99df66d48c2ae1beeb86b868ed4a5e974",
+      "seed_base": "20260518"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

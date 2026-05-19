@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: VALIDATED}
+\date{2026-05-16T18:15:01.849021+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{validated}{\textbf{VALIDATED}}}
+\textbf{Proof ID:} \texttt{2b851750908b068f8827b6c26bec872d\dots}\\
+\textbf{Created:} 2026-05-16T18:15:01.849021+00:00
+\subsection*{1. Claim}
+\begin{quote}On routine organizational email that clears Kimera's GWF, the dissonance machinery fires (dissonance\_events\_count >= 1) in >= 90\% of cycles (the architectural active-dissonance floor).\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} fraction of GWF-cleared Enron-email cycles for which raw['dissonance\_events'] is a non-empty list
+\item \textbf{Threshold:} \texttt{dissonance\_active\_rate\_on\_cleared >= 0.9 fraction}
+\item \textbf{H0:} P(dissonance fires | gwf cleared) < 0.9
+\item \textbf{H1:} P(dissonance fires | gwf cleared) >= 0.9
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{validated}{\textbf{VALIDATED}} --- observed \texttt{0.9643652561247216}\\
+dissonance fired in 866/898 GWF-cleared cycles (96.4\%); GWF blocked 102/1000 (10.2\%); manipulation\_detected in 3/1000 (0.3\%); dissonance\_events median=22 (range 0-53); 1000 cycles, 0 adapter errors
+\begin{figure}[h!]\centering
+\includegraphics[width=0.8\linewidth]{assets/ci_dissonance_active_rate_on_cleared}
+\caption{dissonance\_active\_rate\_on\_cleared -- observed value with Wilson 95\% CI.}
+\end{figure}
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{O.dissonance.active\_on\_cleared} & \texttt{dissonance\_active\_rate\_on\_cleared} & \texttt{0.9643652561247216} & (0.9501, 0.9746) & statsmodels 0.14.6 \\
+\texttt{O.dissonance.intensity\_distribution} & \texttt{dissonance\_events\_count\_median} & \texttt{22.0} & --- & python-stdlib 3.14 \\
+\texttt{O.dissonance.productive\_score} & \texttt{productive\_dissonance\_score\_median} & \texttt{0.5714} & --- & python-stdlib 3.14 \\
+\texttt{O.organizational.gwf\_block\_rate} & \texttt{gwf\_block\_rate\_on\_enron} & \texttt{0.102} & --- & ophamin 0.1.0 \\
+\texttt{O.organizational.manipulation\_rate} & \texttt{manipulation\_detected\_rate\_on\_enron} & \texttt{0.003} & --- & ophamin 0.1.0 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-16T17:33:23.939201+00:00}
+\item Config hash: \texttt{634a7fa908610f797105b46eb48c7819\dots}
+\item Data hash: \texttt{b3da1b3fe0369ec3140bb4fbce94702c\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{103b0d0f593f93ad5f201a050c2d352b2365a8050e96390cb049d4e74508ecdb}\\
+
+\end{document}

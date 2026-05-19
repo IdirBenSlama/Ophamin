@@ -1,0 +1,127 @@
+{
+  "proof_id": "872403cc1e868a251079f48e00e146ea851fe2ac5d54ff8301fb51284d8d63fe",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.24.3",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-18T14:07:18.553903+00:00"
+  },
+  "claim": {
+    "statement": "The substrate's emission distribution under BGE-M3 has \u2265250 unique canonicals AND \u2265150 English-words AND \u22654 of 5 internal-event kinds firing on a 60-cycle default-prompt run.",
+    "operationalization": "60-cycle Kimera run on 12 default prompts; capture all Arachne emit events to JSONL; categorize each unique canonical by source signature regex (english_word_natural, internal_event:<kind>, alexandria_fused, etc.).",
+    "threshold": {
+      "metric": "composite_emission_health",
+      "comparator": ">=",
+      "value": 3.0,
+      "units": "conditions_met"
+    },
+    "h0": "At least one of (unique\u2265250, english\u2265150, internal_kinds\u22654) fails",
+    "h1": "All three conditions met"
+  },
+  "preregistration": {
+    "config_hash": "phase1c_emission_bge_cb7ee9ee",
+    "data_hash": "default_12_prompts_substrate_60_cycles",
+    "analysis_plan": "Pre-registered per ROADMAP_2026_05_18.md Phase 1c. 60-cycle Kimera default-prompt run with emit JSONL capture. Three independent thresholds checked: n_unique\u2265250, english_words\u2265150, internal_kinds\u22654. VALIDATED if all 3 met; PARTIAL if some; REFUTED if internal_kinds\u22642.",
+    "sweep_grid": {
+      "n_cycles": 60
+    },
+    "preregistered_at": "2026-05-18T14:07:17.252355+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "cb7ee9ee951e25cc0085867aa6cc4b3b3c44508d",
+    "datasets": [
+      {
+        "name": "default_12_prompts_substrate_60_cycles",
+        "content_hash": "emits_60c_unique283",
+        "n_records": 283,
+        "source": "kimera-swm-runner-default-prompts",
+        "kind": "substrate_emission_canonicals"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "unique_canonicals_count",
+      "statistic_name": "n_unique",
+      "statistic_value": 283.0,
+      "library": "python-regex-categorization",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "threshold_validated": 250,
+        "threshold_partial": 200
+      }
+    },
+    {
+      "pillar": "english_word_count",
+      "statistic_name": "english_natural_words",
+      "statistic_value": 130.0,
+      "library": "python-regex-categorization",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "failed",
+      "detail": {
+        "threshold_validated": 150,
+        "fasttext_era_baseline": 216,
+        "delta_vs_fasttext_era": -86,
+        "interpretation": "English-word count under BGE is 60% of FastText era (130 vs 216). Diagnosis: Phase 219.2 semantic expansion (FastText-vocab iteration) is dormant under BGE-M3 because BGE has no precomputed vocab table. Roadmap Phase 4 will introduce BGE-native expansion to restore this."
+      }
+    },
+    {
+      "pillar": "internal_event_kind_coverage",
+      "statistic_name": "n_internal_event_kinds_firing",
+      "statistic_value": 4.0,
+      "library": "python-regex-categorization",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "kinds_firing": [
+          "ouroboros_tick",
+          "quantum_amplitude_burst",
+          "spde_pressure_peak",
+          "thermodynamic_transition"
+        ],
+        "kinds_absent": [
+          "cronos_drift"
+        ],
+        "quantum_amplitude_burst_count": 60,
+        "fasttext_era_quantum_count": 5,
+        "interpretation": "4 of 5 internal-event kinds fire (cronos_drift dormant by design per EV-37 \u2014 rare-event detector). Quantum amplitude bursts fire 12\u00d7 more under BGE than under FastText (60 vs 5) \u2014 consistent with BGE's higher phi values (Phase 1b finding)."
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "INCONCLUSIVE",
+    "observed_value": 2.0,
+    "threshold": {
+      "metric": "composite_emission_health",
+      "comparator": ">=",
+      "value": 3.0,
+      "units": "conditions_met"
+    },
+    "reasoning": "Conditions met: 2/3. unique=283, english=130, internal=4/5. Verdict tier: PARTIAL. English shortfall traced to dormant Phase 219.2 expansion (FastText-removal consequence); roadmap Phase 4 fixes."
+  },
+  "reproduction": {
+    "command": "python experiments/observatory/probes/roadmap_phase1c_emission_distribution_bge.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "cb7ee9ee951e25cc0085867aa6cc4b3b3c44508d",
+      "encoder": "bge-m3"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

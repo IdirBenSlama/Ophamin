@@ -1,0 +1,177 @@
+{
+  "proof_id": "fb71c50756d7fe133270808f4527ea463e3c1a476a4cfd698f4111b3c182d172",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.24.1",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-18T13:56:05.186954+00:00"
+  },
+  "claim": {
+    "statement": "ROADMAP Phase 0 pre-flight: Ophamin + BGE-M3 + Arachne-on-BGE + 5-cycle Kimera smoke + hardening + broad-except baseline all PASS",
+    "operationalization": "Executes a deterministic suite of N=6 binary checks, each with a pre-registered pass/fail condition. ALL must PASS to unblock the next roadmap phase. Any single FAIL is a binding halt.",
+    "threshold": {
+      "metric": "checks_all_passed",
+      "comparator": ">=",
+      "value": 6.0,
+      "units": "passing_checks"
+    },
+    "h0": "At least one check fails (n_passed < 6)",
+    "h1": "All checks pass (n_passed == 6)"
+  },
+  "preregistration": {
+    "config_hash": "roadmap_phase0_cb7ee9ee",
+    "data_hash": "phase_phase0_checks_6",
+    "analysis_plan": "Pre-registered per ROADMAP_2026_05_18.md Phase phase0. Each check has a binary pass/fail condition documented in the probe source. No threshold adjustment post-hoc.",
+    "sweep_grid": {
+      "n_checks": 6
+    },
+    "preregistered_at": "2026-05-18T13:56:03.887832+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "cb7ee9ee951e25cc0085867aa6cc4b3b3c44508d",
+    "datasets": [
+      {
+        "name": "roadmap_phase0_checks",
+        "content_hash": "phase_phase0_v1",
+        "n_records": 6,
+        "source": "kimera-swm-roadmap-2026-05-18",
+        "kind": "binary_check_results"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "ophamin_reachable",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "ophamin_version": "0.24.1"
+      }
+    },
+    {
+      "pillar": "bge_m3_loads",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "dim": 1024,
+        "model_id": "BAAI/bge-m3",
+        "device": "mps",
+        "cos_king_queen": 0.7121059894561768,
+        "cos_king_electron": 0.47894489765167236,
+        "king_norm": 1.0
+      }
+    },
+    {
+      "pillar": "arachne_uses_bge",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "encoder_kind": "bge-m3",
+        "encoder_dim": 1024
+      }
+    },
+    {
+      "pillar": "kimera_smoke",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "exit_code": 0,
+        "stdout_tail": "\n"
+      }
+    },
+    {
+      "pillar": "hardening_green",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "summary": "(no summary)"
+      }
+    },
+    {
+      "pillar": "preexisting_failures",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "broad_except_count": 4,
+        "expected_broad_except_sites": [
+          "kimera_swm/infrastructure/gpu/compute_backend.py:56",
+          "kimera_swm/infrastructure/gpu/compute_backend.py:154",
+          "kimera_swm/infrastructure/gpu/compute_backend.py:260",
+          "kimera_swm/domain/geoid/discovery/system_laws_discovery.py:261"
+        ],
+        "expected_unrelated_failures": [
+          "test_scar_integration_invariants.py (3 tests)",
+          "test_security_middleware_hardening.py::test_graphql_introspection_unblocked_in_development",
+          "test_sparse_distributed_vault_invariants.py::TestWireCandidateAnnotation::test_phase_284_annotation_present",
+          "test_semantic_memory_network.py::test_encoder_input_output_dims (torch device mismatch)",
+          "test_substrate_boot_noise_fixes_round8_2026_05_09.py (api/main.py parametrize)"
+        ],
+        "note": "These 4+6 are pre-existing on origin/KIMERA-SWM; not caused by recent work."
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 6.0,
+    "threshold": {
+      "metric": "checks_all_passed",
+      "comparator": ">=",
+      "value": 6.0,
+      "units": "passing_checks"
+    },
+    "reasoning": "n_passed=6 / n_total=6. All checks PASS."
+  },
+  "reproduction": {
+    "command": "python experiments/observatory/probes/roadmap_phase0_bootstrap.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "cb7ee9ee951e25cc0085867aa6cc4b3b3c44508d"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: VALIDATED}
+\date{2026-05-18T02:18:48.338377+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{validated}{\textbf{VALIDATED}}}
+\textbf{Proof ID:} \texttt{e71be64487df9f56fa4de2636f605a02\dots}\\
+\textbf{Created:} 2026-05-18T02:18:48.338377+00:00
+\subsection*{1. Claim}
+\begin{quote}Across 30 synthetic (x, y) sample pairs of size 50 per group drawn from a rotation of normal, log-normal, and Cauchy distributions with varying shift parameters (seed=20260518), ``scipy.stats.mannwhitneyu(use\_continuity=True)`` and ``pingouin.mwu`` produce Mann-Whitney U statistics AND two-sided p-values that agree to ≤ 1e-09 across every pair. (RFC 0002 Phase E1: cross-framework validation; first non-parametric variant.)\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} Generate N (x, y) pairs cycling through three distribution shapes (Normal(0,1), LogNormal(0,1), Cauchy(0,1)) with a sweep of location shifts. For each pair, compute Mann-Whitney U + two-sided p under both backends with use\_continuity=True. Compute max\_abs\_diff = max over (pair, statistic ∈ \{U, p\}) of |stat\_scipy - stat\_pingouin|. VALIDATED iff max\_abs\_diff ≤ tolerance.
+\item \textbf{Threshold:} \texttt{max\_absolute\_mannwhitneyu\_difference <= 1e-09 U\_or\_p}
+\item \textbf{H0:} scipy and pingouin disagree on Mann-Whitney U OR the two-sided p-value by more than the floating-point tolerance under matched continuity settings.
+\item \textbf{H1:} Both backends compute identical U AND p to floating-point tolerance across every pair.
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{validated}{\textbf{VALIDATED}} --- observed \texttt{0.0}\\
+30 pairs × 2 backends × 2 statistics; max pairwise |Δ| = 0.000e+00 on none (≤ 1e-09 tol)
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{mann\_whitney\_u\_scipy\_vs\_pingouin} & \texttt{max\_absolute\_mannwhitneyu\_difference} & \texttt{0.0} & --- & scipy 1.17.1 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-18T02:18:48.157657+00:00}
+\item Config hash: \texttt{ad3e15120cc852c18795179166db8f78\dots}
+\item Data hash: \texttt{ad3e15120cc852c18795179166db8f78\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{dffbbb06a016e1c35ecd1bfb2cdfb247fac3e6852b6197e4c4d40d01bd0a85b9}\\
+
+\end{document}

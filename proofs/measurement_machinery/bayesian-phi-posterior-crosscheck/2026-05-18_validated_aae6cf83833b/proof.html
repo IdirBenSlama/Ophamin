@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>aae6cf83833b7c058602499d96048a0decbccc96ab55b1cfe578067d4ab033da</code><br><strong>Created:</strong> 2026-05-18T00:35:49.188818+00:00</p><h2>1. Claim</h2><blockquote><p>PyMC and NumPyro fit the same NormalMean model on the same synthetic Normal(mu=0.5, sigma=0.2) data (N=200, seed=20260518) and produce posteriors that agree within tolerance: |mu_pymc − mu_numpyro| ≤ 0.1 AND |width_ratio − 1| ≤ 0.5. (RFC 0002 Phase E1: cross-framework validation.)</p></blockquote><ul><li><strong>Operationalisation:</strong> Generate N samples from Normal(true_mu, true_sigma) with fixed seed. Fit the same model (mu ~ Normal(0, 10); sigma ~ HalfNormal(1); y ~ Normal(mu, sigma)) under both backends. Extract posterior_mean(mu) + 94% HDI(mu). Compute mean_diff = |mu_pymc - mu_numpyro| and width_ratio = hdi_width_pymc / hdi_width_numpyro. VALIDATED iff both tolerances are satisfied (binary; 1.0 / 0.0). REFUTED if either bound is breached.</li><li><strong>Threshold:</strong> <code>cross_framework_agreement &gt;= 1.0 proportion</code></li><li><strong>H0:</strong> PyMC and NumPyro disagree on posterior mean and/or HDI width beyond the documented sampler-noise tolerance — at least one backend is broken or the model is mis-specified.</li><li><strong>H1:</strong> Both backends produce statistically equivalent posteriors on the same data + model — corroborates the framework&#x27;s Bayesian inference machinery.</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>1.0</code></p><p>PyMC mu=0.5185, HDI=[0.4922, 0.5437]; NumPyro mu=0.5182, HDI=[0.4920, 0.5459]. mean_diff=0.0003 (≤ 0.1 tol); width_ratio=0.9556 (within ±0.5).</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-18T00:35:48.960256+00:00</code></li><li>Config hash: <code>75c3fe823fd3ccbe4e6c87576bc3b1a03148cf4f5979eeb92ad59e9581040535</code></li><li>Data hash: <code>75c3fe823fd3ccbe4e6c87576bc3b1a03148cf4f5979eeb92ad59e9581040535</code></li></ul><p><em>Plan:</em> Generate 200 samples from Normal(0.5, 0.2) with seed=20260518. Fit NormalMean model under PyMC (1000 draws × 2 chains) AND NumPyro (1000 samples × 1 chain). Compute mean_difference + hdi_width_ratio. VALIDATED iff mean_difference ≤ 0.1 AND |width_ratio − 1| ≤ 0.5.</p><h2>4. Data</h2><ul><li>Substrate: <code>pymc+numpyro-cross-framework</code> @ <code>f489b7dd0da7</code></li><li>Dataset: <code>synthetic-normal</code> (synthetic-normal, 200 records, hash <code>75c3fe823fd3…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>bayesian_cross_framework_pymc_numpyro</code></td><td><code>cross_framework_agreement</code></td><td><code>1.0</code></td><td>—</td><td>pymc 6.0.0</td></tr></tbody></table><h2>6. Signature</h2><p><code>03f48806f9d52d57fdf3cb65b91989e85e93e8978c4864accdac11df07225ed6</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.11.4 @ <code>f489b7dd0da7</code></footer></body></html>

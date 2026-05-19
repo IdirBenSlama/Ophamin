@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: INCONCLUSIVE}
+\date{2026-05-15T14:50:43.901320+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{inconclusive}{\textbf{INCONCLUSIVE}}}
+\textbf{Proof ID:} \texttt{bb5e9af1dd08a55f3685d9fbefbfc053\dots}\\
+\textbf{Created:} 2026-05-15T14:50:43.901320+00:00
+\subsection*{1. Claim}
+\begin{quote}Under sustained load on a balanced text corpus, Kimera's entity target completes each cycle in under 4.00 seconds at the 95th percentile (the architectural throughput ceiling).\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} 95th-percentile of per-cycle wall-time (raw['cycle\_seconds']) across the streamed batch; cycles that failed to record a cycle\_seconds are excluded from the denominator
+\item \textbf{Threshold:} \texttt{p95\_cycle\_wall\_time\_s <= 4.0 seconds}
+\item \textbf{H0:} p95 wall-time > 4.00s
+\item \textbf{H1:} p95 wall-time <= 4.00s
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{inconclusive}{\textbf{INCONCLUSIVE}} --- observed \texttt{0.0}\\
+measured per-cycle wall-time on 0/200 cycles (0 adapter errors); distribution: median 0.00s, p95 0.00s, p99 0.00s (range 0.00-0.00s); batch totals: wall 222.04s, cpu 243.85s (periodic\_subprocess\_sampler), rss\_peak 4593.2MB, max threads 80, max procs 2; too few cycles measured to decide
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{O.engineering.p95\_wall\_time} & \texttt{p95\_cycle\_wall\_time\_s} & \texttt{0.0} & --- & python-stdlib 3.14 \\
+\texttt{O.engineering.wall\_time\_distribution} & \texttt{cycle\_wall\_time\_distribution} & \texttt{0.0} & --- & python-stdlib 3.14 \\
+\texttt{O.engineering.batch\_cpu} & \texttt{batch\_cpu\_total\_s} & \texttt{243.846142208} & --- & psutil 7.x \\
+\texttt{O.engineering.rss\_peak} & \texttt{rss\_peak\_bytes} & \texttt{4593188864.0} & --- & psutil 7.x \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-15T14:47:01.715915+00:00}
+\item Config hash: \texttt{1bfc2c127c850b1a04fdff3622986f3f\dots}
+\item Data hash: \texttt{83109a27c3df2a45b912398b969fa8f7\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{33560f56a35dd98e4fee503d8d89aa18118799ca794582091f3856c25cd2d207}\\
+
+\end{document}

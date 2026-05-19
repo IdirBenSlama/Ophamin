@@ -1,0 +1,102 @@
+{
+  "proof_id": "df5a482e25b5046979d9dfe0065c6db3e08f0ea7033d4d1584486bec94cbaabb",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.24.1",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-18T13:57:52.779620+00:00"
+  },
+  "claim": {
+    "statement": "The BGE-M3 canonical encoder produces measurable within-group vs cross-group separation on the BB1 held-out test corpus (20 words across 5 semantic groups).",
+    "operationalization": "Encode 20 BB1 test words via BGE-M3 (1024-d, L2-norm). Compute separation = mean(within-pair cos) - mean(cross-pair cos) across 30 within-pairs + 160 cross-pairs. Bootstrap 95% CI with 1000 resamples.",
+    "threshold": {
+      "metric": "separation",
+      "comparator": ">=",
+      "value": 0.1,
+      "units": "cosine_units"
+    },
+    "h0": "separation < 0.10 OR CI lower <= 0",
+    "h1": "separation >= 0.10 AND CI lower > 0"
+  },
+  "preregistration": {
+    "config_hash": "phase1a_bb1_bge_cb7ee9ee",
+    "data_hash": "o1_held_out_5x4_word_groups",
+    "analysis_plan": "Pre-registered per ROADMAP_2026_05_18.md Phase 1a. Threshold VALIDATED at separation >= 0.10 with CI lower > 0 (NEW threshold for BGE-M3; FastText era used different value). Tiered verdict with WEAK_PASS at 0 < sep < 0.10 to capture real-but-below-strict signal.",
+    "sweep_grid": {
+      "bootstrap_resamples": 1000
+    },
+    "preregistered_at": "2026-05-18T13:57:51.441877+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "cb7ee9ee951e25cc0085867aa6cc4b3b3c44508d",
+    "datasets": [
+      {
+        "name": "bb1_held_out_5x4_word_groups",
+        "content_hash": "bb1_v1_canonical",
+        "n_records": 20,
+        "source": "kimera-swm-internal-o1-probe",
+        "kind": "word_pairs"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "separation_measurement",
+      "statistic_name": "separation",
+      "statistic_value": 0.0817022956286868,
+      "library": "numpy",
+      "library_version": "2.4.4",
+      "effect_size": null,
+      "ci_low": 0.0629200881766156,
+      "ci_high": 0.09968946077860898,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "within_mean": 0.6103293796380361,
+        "cross_mean": 0.5286270840093493,
+        "bootstrap_resamples": 1000,
+        "threshold_validated_at": 0.1,
+        "weak_pass_zone": "0 < sep < 0.10 AND CI lower > 0"
+      }
+    },
+    {
+      "pillar": "historical_fasttext_baseline_comparison",
+      "statistic_name": "bge_minus_fasttext_separation",
+      "statistic_value": -0.12349770437131319,
+      "library": "kimera-swm-internal",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "fasttext_era_separation": 0.2052,
+        "bge_separation": 0.0817022956286868,
+        "interpretation": "BGE has higher absolute within+cross cosines (transformer embeddings cluster tighter); separation is structurally smaller than FastText's. Both encoders discriminate (CI excludes 0); BGE's discrimination is below the +0.10 strict threshold."
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "INCONCLUSIVE",
+    "observed_value": 0.0817022956286868,
+    "threshold": {
+      "metric": "separation",
+      "comparator": ">=",
+      "value": 0.1,
+      "units": "cosine_units"
+    },
+    "reasoning": "separation=+0.0817 <  0.10 threshold; 95% CI [+0.0629, +0.0997] excludes zero. Verdict tier: WEAK_PASS. Outcome: INCONCLUSIVE."
+  },
+  "reproduction": {
+    "command": "python experiments/observatory/probes/roadmap_phase1a_bb1_bge_baseline.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "cb7ee9ee951e25cc0085867aa6cc4b3b3c44508d"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

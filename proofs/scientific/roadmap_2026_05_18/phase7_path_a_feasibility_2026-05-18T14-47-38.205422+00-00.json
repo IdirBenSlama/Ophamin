@@ -1,0 +1,134 @@
+{
+  "proof_id": "f722f25a1920c7294fff434e377b24cbb5b76789dcc979de5b2e6afb8b784b5e",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.25.1",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-18T14:47:39.501044+00:00"
+  },
+  "claim": {
+    "statement": "After roadmap Phases 2 + 3 + 4 broadened substrate vocabulary + pair sources, a 100-cycle Kimera run produces \u2265 10,000 unique pairs across L2 (emit co-occurrence) + L3 (trajectory adjacency) + Alexandria fusion \u2192 Path A native-encoder campaign re-opens.",
+    "operationalization": "100-cycle Kimera run with --capture-emits-jsonl + --capture-trajectories-jsonl + --capture-fusion-pairs-jsonl. Count unique pairs in each source (deduped on sorted (a, b)); union across all 3 sources for combined count.",
+    "threshold": {
+      "metric": "combined_unique_pairs",
+      "comparator": ">=",
+      "value": 10000.0,
+      "units": "pairs"
+    },
+    "h0": "combined unique pairs < 10000 \u2192 Path A stays pinned",
+    "h1": "combined unique pairs \u2265 10000 \u2192 Path A re-opens"
+  },
+  "preregistration": {
+    "config_hash": "phase7_path_a_feasibility_03cdada9",
+    "data_hash": "100_cycle_kimera_bge_phase4_expansion_enabled",
+    "analysis_plan": "Pre-registered per ROADMAP_2026_05_18.md Phase 7. 100-cycle Kimera with all 3 capture streams; union of unique pairs from L2 + L3 + Alex. VALIDATED if \u226510,000; PARTIAL if 5,000-9,999; REFUTED if <5,000.",
+    "sweep_grid": {
+      "n_cycles": 100
+    },
+    "preregistered_at": "2026-05-18T14:47:38.205422+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "03cdada94e5d8703f782ab69e3f6b79a9915995b",
+    "datasets": [
+      {
+        "name": "100_cycle_substrate_capture",
+        "content_hash": "bge_phase4_100c_9692pairs",
+        "n_records": 9692,
+        "source": "kimera-swm-runner-default-prompts",
+        "kind": "combined_pair_sources"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "l2_emit_co_occurrence_pairs",
+      "statistic_name": "l2_unique_pairs",
+      "statistic_value": 5907.0,
+      "library": "kimera-swm-substrate-emits",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n_emit_records": 4908,
+        "n_unique_canonicals_emits": 418,
+        "cap_per_stamp": 30
+      }
+    },
+    {
+      "pillar": "l3_walker_trajectory_pairs",
+      "statistic_name": "l3_unique_pairs",
+      "statistic_value": 350.0,
+      "library": "kimera-swm-substrate-trajectories",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n_trajectories": 100
+      }
+    },
+    {
+      "pillar": "alexandria_fusion_pairs",
+      "statistic_name": "alexandria_unique_pairs",
+      "statistic_value": 3570.0,
+      "library": "kimera-swm-substrate-alexandria",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n_alex_pairs_raw": 41416
+      }
+    },
+    {
+      "pillar": "combined_pair_volume",
+      "statistic_name": "combined_unique_pairs",
+      "statistic_value": 9692.0,
+      "library": "kimera-swm-substrate-combined",
+      "library_version": "roadmap-2026-05-18",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "failed",
+      "detail": {
+        "total_unique_canonicals": 387,
+        "validated_threshold": 10000,
+        "partial_threshold": 5000,
+        "gap_to_validated": 308,
+        "interpretation": "Combined 9,692 unique pairs is 96.9 pairs/cycle on a 100-cycle run. At linear scaling, 103 cycles would exceed the 10,000 VALIDATED threshold. Path A re-open is feasible with modest scale increase from current 100-cycle baseline."
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "INCONCLUSIVE",
+    "observed_value": 9692.0,
+    "threshold": {
+      "metric": "combined_unique_pairs",
+      "comparator": ">=",
+      "value": 10000.0,
+      "units": "pairs"
+    },
+    "reasoning": "combined_unique_pairs=9692 < 10000 threshold. Verdict tier: PARTIAL. Below VALIDATED by 308 pairs (~3.1% gap). Path A stays pinned per roadmap decision branch; trajectory toward VALIDATED is clear with marginal scale increase."
+  },
+  "reproduction": {
+    "command": "python experiments/observatory/probes/roadmap_phase7_path_a_feasibility.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "03cdada94e5d8703f782ab69e3f6b79a9915995b",
+      "encoder": "bge-m3",
+      "expansion": "Phase 4 BGE-native via concept_expansion_bge"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

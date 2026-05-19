@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: REFUTED}
+\date{2026-05-15T11:42:19.202367+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{refuted}{\textbf{REFUTED}}}
+\textbf{Proof ID:} \texttt{12e97ceb0f762964b6a667bc2512db62\dots}\\
+\textbf{Created:} 2026-05-15T11:42:19.202367+00:00
+\subsection*{1. Claim}
+\begin{quote}On sentence-aligned parallel text, Kimera's Rosetta layer maps the same sentence content to the same canonical address in >= 80\% of sentence groups when 10 languages are sampled per group (the universal-semantic-address promise).\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} fraction of FLORES-200 sentence groups for which Kimera's Rosetta returns a single distinct canonical value across 10 randomly-sampled language translations of the same sentence
+\item \textbf{Threshold:} \texttt{rosetta\_canonical\_agreement\_at\_k10 >= 0.8 fraction}
+\item \textbf{H0:} canonical agreement at K=10 < 0.8
+\item \textbf{H1:} canonical agreement at K=10 >= 0.8
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{refuted}{\textbf{REFUTED}} --- observed \texttt{0.0}\\
+Rosetta canonical agreement at K=10: 0/20 groups all-agree (0.0\%); prime agreement at K=10: 0/20 (0.0\%); 1000 cycles, 0 adapter errors
+\begin{figure}[h!]\centering
+\includegraphics[width=0.8\linewidth]{assets/ci_rosetta_canonical_agreement_at_k10}
+\caption{rosetta\_canonical\_agreement\_at\_k10 -- observed value with Wilson 95\% CI.}
+\end{figure}
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{O.rosetta.canonical\_agreement} & \texttt{rosetta\_canonical\_agreement\_at\_k10} & \texttt{0.0} & (0.0000, 0.1611) & statsmodels 0.14.6 \\
+\texttt{O.rosetta.prime\_agreement} & \texttt{rosetta\_prime\_agreement\_at\_k10} & \texttt{0.0} & (0.0000, 0.1611) & statsmodels 0.14.6 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-15T11:42:10.452568+00:00}
+\item Config hash: \texttt{5a35c1f0d77c80f222103d23086c3730\dots}
+\item Data hash: \texttt{bf4196403365897ad95dbcc18fc5116a\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{ef32842d9e94b91eefe0b52cb993d2bdc74324d0b0852c0c69bcaf09affce56e}\\
+
+\end{document}

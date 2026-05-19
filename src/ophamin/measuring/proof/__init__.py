@@ -56,6 +56,14 @@ from ophamin.measuring.proof.record import (
 #: absolute path to the official JSON Schema for proof.json
 SCHEMA_PATH = Path(__file__).with_name("schema.json")
 
+from ophamin.measuring.proof.persistence import (
+    BundleFormat,
+    PersistedBundle,
+    bundle_dir_for,
+    persist_proof,
+)
+
+
 __all__ = [
     "EmpiricalProofRecord",
     "Claim",
@@ -91,4 +99,9 @@ __all__ = [
     "validate",
     "validate_schema",
     "verify_signature",
+    # persistence surface
+    "BundleFormat",
+    "PersistedBundle",
+    "bundle_dir_for",
+    "persist_proof",
 ]

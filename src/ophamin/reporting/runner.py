@@ -21,12 +21,19 @@ from ophamin.reporting.base import RecordKind, ReportFormat, ReportRenderer, loa
 from ophamin.reporting.html_renderer import HTMLReporter
 from ophamin.reporting.latex_renderer import LaTeXReporter
 from ophamin.reporting.markdown_renderer import MarkdownReporter
+from ophamin.reporting.pdf_renderer import PDFReporter
 
 
 DEFAULT_RENDERERS: dict[ReportFormat, type[ReportRenderer]] = {
     ReportFormat.HTML: HTMLReporter,
     ReportFormat.MARKDOWN: MarkdownReporter,
     ReportFormat.LATEX: LaTeXReporter,
+    # PDFReporter detects its TeX toolchain at construction. Including
+    # it here means `ReportRunner.render(..., format=ReportFormat.PDF)`
+    # works out of the box on machines with MacTeX / TeX Live; on
+    # machines without, it raises PDFToolchainMissingError at the
+    # request site (loud-fail at API boundary, not silent skip).
+    ReportFormat.PDF: PDFReporter,
 }
 
 
