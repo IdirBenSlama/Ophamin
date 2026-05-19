@@ -62,6 +62,76 @@ the Quick Start above, or wire a self-hosted runner that
 replaces `services:` with `SONAR_HOST_URL` pointing at a
 long-lived SonarQube.
 
+## Security scanning (0.52.0)
+
+Phase #2 of the 4-phase integration roadmap pairs SonarQube
+SAST with **Software Composition Analysis (SCA)** via two
+complementary tools:
+
+### Trivy — container + repository CVE scanner
+
+`.github/workflows/trivy.yml` runs two scan jobs:
+
+- **`fs-scan`** — repository scan on every push + PR + weekly
+  schedule. Covers source-tree deps + Dockerfile +
+  IaC manifests against the public CVE database.
+- **`image-scan`** — scans the PUBLISHED GHCR image
+  (`ghcr.io/idirbenslama/ophamin:<tag>`) for OS-package + Python-
+  package CVEs. Runs on main push + tag push + weekly schedule.
+  (PRs skip image-scan because the PR's image isn't published yet.)
+
+Both jobs emit SARIF reports + upload them to GitHub Code
+Scanning so findings appear in the Security tab alongside
+SonarQube-surface issues. Severity gate: HIGH + CRITICAL
+only (MEDIUM + LOW are advisory). **Warn-only** in 0.52.0
+(exit-code: "0"); future ship can flip to hard-fail once
+operators have history.
+
+Trivy is Apache-2.0 (Aqua Security) — no auth required for the
+public CVE database.
+
+### OWASP Dependency-Check — CVE ingest into SonarQube
+
+A new step in `.github/workflows/sonar.yml` runs OWASP
+Dependency-Check + ingests its SARIF report alongside the
+SonarQube SAST findings:
+
+```yaml
+- name: Run OWASP Dependency-Check (best-effort, ingests into SonarQube)
+  continue-on-error: true
+  env:
+    NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+  # ... docker run owasp/dependency-check:latest --scan ... --format SARIF
+```
+
+**NVD API key**: OWASP DC downloads the National Vulnerability
+Database (NVD) on first run. Without an API key, downloads can
+be rate-limited. Register one at
+<https://nvd.nist.gov/developers/request-an-api-key> + add it
+to the repo's Settings → Secrets → Actions as `NVD_API_KEY`.
+The workflow uses it when present, falls back to rate-limited
+download when absent.
+
+**NVD cache**: the workflow uses `actions/cache@v4` to persist
+the `dependency-check-data/` directory across runs. Cold cache
+runs take ~10 min; warm cache runs take ~30s.
+
+### Together with SonarQube + supply-chain trilogy
+
+After 0.52.0 the security claim is:
+
+| Layer | Tool | What it catches |
+|---|---|---|
+| SAST | SonarQube + Sonar's Python analyzer | bugs, code smells, hot-spot review, vulnerabilities in code |
+| SCA (deps) | OWASP Dependency-Check | declared + transitive CVEs |
+| SCA (image) | Trivy fs-scan + image-scan | OS-package + lib CVEs in the deployed surface |
+| Image signature | cosign keyless (0.42.0) | tampering / wrong-source detection |
+| SBOM attestation | CycloneDX via cosign (0.48.0) | "what's inside" cryptographic claim |
+| SLSA provenance | actions/attest-build-provenance (0.49.x) | "how it was built" cryptographic claim |
+
+Six independent layers, all verifiable, all surfaced either in
+SonarQube's dashboard or GitHub's Security tab.
+
 ## Why "mandatory"
 
 Ophamin's value proposition is **measured + signed claims about

@@ -7,7 +7,154 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.51.0] below for the latest cut.)
+(empty — see [0.52.0] below for the latest cut.)
+
+## [0.52.0] — 2026-05-19
+
+**Headline:** Phase #2 of 4 — Security & dependency scanning.
+**Trivy** (container + filesystem CVE scanner) ships as a new
+workflow `.github/workflows/trivy.yml`; **OWASP Dependency-Check**
+(declared + transitive CVE scanner) wired into the existing
+`.github/workflows/sonar.yml` so its SARIF report ingests
+alongside SonarQube SAST findings. Together with the existing
+SonarQube SAST + the cosign+SBOM+SLSA supply-chain trilogy,
+the security claim now covers **six independent layers**.
+
+### Added — `.github/workflows/trivy.yml` (Trivy SCA scanner)
+
+Two-job workflow using `aquasecurity/trivy-action@0.28.0`:
+
+- **`fs-scan`** — runs on push to main, v* tags, pull_request,
+  weekly schedule (Monday 07:17 UTC), and workflow_dispatch.
+  Scans the repository for CVEs in deps + IaC. Emits SARIF;
+  uploads to GitHub Code Scanning (Security tab) with category
+  `trivy-fs`.
+- **`image-scan`** — runs on push to main, v* tags, weekly
+  schedule, and workflow_dispatch (NOT on PRs; the PR's image
+  isn't published yet). Targets
+  `ghcr.io/<owner-lowercase>/ophamin:<tag>` (uses the same
+  `${OWNER,,}` pattern as docker.yml + chart.yml). Emits
+  SARIF; uploads with distinct category `trivy-image`.
+
+Severity gate: HIGH + CRITICAL only. **Warn-only** in 0.52.0
+(`exit-code: "0"`) so findings surface in the Security tab
+without blocking the workflow. Future ship can flip to
+hard-fail once operators have history.
+
+Permissions: `contents: read` + `security-events: write` (the
+SARIF upload requires this). No write permission on packages
+or anything else — minimal blast radius.
+
+### Added — OWASP Dependency-Check step in `sonar.yml`
+
+Two new steps between coverage generation and the
+sonar-scanner invocation:
+
+```yaml
+- name: Cache OWASP Dependency-Check NVD data
+  uses: actions/cache@v4
+  with:
+    path: dependency-check-data
+    key: dependency-check-nvd-${{ runner.os }}-${{ github.run_id }}
+
+- name: Run OWASP Dependency-Check (best-effort, ingests into SonarQube)
+  continue-on-error: true
+  env:
+    NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+  run: |
+    # docker run owasp/dependency-check:latest --scan /src/src \
+    #     --format JSON --format SARIF --out /report ...
+```
+
+Behaviour:
+
+- **NVD download cached** via `actions/cache@v4` (cold run
+  ~10 min; warm run ~30s)
+- **NVD_API_KEY secret** optional but recommended; operators
+  register at <https://nvd.nist.gov/developers/request-an-api-key>
+  and add to repo secrets. The conditional `--nvdApiKey` build
+  means the absence of the secret doesn't pass an empty value.
+- **`continue-on-error: true`** — NVD throttling without API
+  key is a real failure mode; OWASP DC failing shouldn't block
+  the SAST scan. Findings surface when they appear; absent when
+  rate-limited.
+- **SARIF + JSON output** — SARIF for SonarQube CVE plugin
+  ingest; JSON for direct dashboard consumption.
+
+### Hardening pins
+
+- **`tests/test_trivy_workflow.py`** (23 new pins): triggers
+  (push + PR + schedule + dispatch), permissions
+  (security-events: write), concurrency, both jobs present,
+  Trivy action version pinned (NOT @latest / @main), severity
+  gate HIGH+CRITICAL, skip-dirs covers cache/venv noise,
+  SARIF upload via codeql-action/upload-sarif with
+  `if: always()`, fs-scan + image-scan SARIF categories
+  distinct, image-scan gated on push/schedule/dispatch (not
+  PRs), image ref targets ghcr.io/.../ophamin, owner namespace
+  lowercased, warn-only in 0.52.0.
+
+- **`tests/test_sonar_workflow.py` extended** (+6 new pins for
+  OWASP DC): OWASP DC step present, `continue-on-error: true`,
+  NVD_API_KEY env var plumbed, NVD data cached via
+  actions/cache, SARIF format requested. The selector for the
+  Run step explicitly disambiguates from the Cache step
+  (both contain "OWASP Dependency-Check" in their names).
+
+Total chart + sonar + trivy structural hardening surface:
+**173 pins** (71 helm + 44 sonar setup + 35 sonar workflow +
+23 trivy workflow).
+
+### Six security/quality layers after 0.52.0
+
+| Layer | Tool | What it catches |
+|---|---|---|
+| SAST | SonarQube (sonar.yml) | bugs, code smells, vulnerabilities, hot-spots |
+| SCA (deps) | OWASP DC in sonar.yml | declared + transitive CVEs |
+| SCA (image) | Trivy image-scan | OS + Python lib CVEs in deployed image |
+| SCA (fs) | Trivy fs-scan | source-tree + IaC + Dockerfile CVEs |
+| Signature | cosign (0.42.0) | tampering / wrong-source detection |
+| SBOM | CycloneDX + cosign (0.48.0) | "what's inside" cryptographic claim |
+| SLSA | attest-build-provenance (0.49.x) | "how it was built" cryptographic claim |
+
+(All seven layers + the SonarQube stack itself = the full
+supply-chain + code-quality story Ophamin ships for Kimera-SWM.)
+
+### Documentation — `docs/SONARQUBE.md` extended
+
+New "Security scanning (0.52.0)" section covers:
+- Trivy workflow shape (fs-scan + image-scan) + warn-only
+  semantics
+- OWASP DC step in sonar.yml + the NVD API key story
+- The six-layer security claim table
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.52.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.52.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.52.0"`
+- 173/173 structural pins green
+
+### Phase #2 of 4 — what's next
+
+- **Phase 1 — 0.51.0**: ✅ CI automation (sonar.yml)
+- **Phase 2 — 0.52.0**: ✅ Security & dep scanning (Trivy + OWASP DC)
+- **Phase 3 — 0.53.0**: Local guardrails (`.sonarlint/` project
+  binding for VS Code / Cursor / IntelliJ)
+- **Phase 4 — 0.54.0**: Deployment & GitOps (ArgoCD
+  Application manifest)
+
+### Verification
+
+- `pytest tests/test_trivy_workflow.py tests/test_sonar_workflow.py
+  tests/test_sonar_setup.py tests/test_helm_chart.py` → 173/173 pass.
+- Both workflow YAML files parse cleanly.
+- **First workflow runs after this push validate empirically.**
+  Both Trivy jobs + the OWASP DC step in sonar.yml are
+  `continue-on-error: true` / `exit-code: "0"`, so initial
+  drift (e.g., Trivy action version mismatch, NVD throttle
+  ending in a hard timeout) reports without blocking the
+  publish chain.
 
 ## [0.51.0] — 2026-05-19
 

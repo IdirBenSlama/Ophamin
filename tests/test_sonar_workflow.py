@@ -327,3 +327,79 @@ def test_workflow_jdbc_url_matches_compose(workflow, compose):
     ci_jdbc = workflow["jobs"]["scan"]["services"]["sonarqube"]["env"]["SONAR_JDBC_URL"]
     compose_jdbc = compose["services"]["sonarqube"]["environment"]["SONAR_JDBC_URL"]
     assert ci_jdbc == compose_jdbc
+
+
+# --------------------------------------------------------------------------
+# OWASP Dependency-Check integration (0.52.0)
+# --------------------------------------------------------------------------
+
+
+def test_workflow_has_owasp_dc_step(workflow):
+    """Phase #2 of 4 shipped in 0.52.0 wires OWASP Dependency-Check
+    into the sonar.yml pipeline. The Sonar dashboard ingests its
+    SARIF output via the CVE plugin."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    found = any(
+        "OWASP Dependency-Check" in s.get("name", "")
+        or "owasp/dependency-check" in s.get("run", "")
+        for s in steps
+    )
+    assert found
+
+
+def test_workflow_owasp_dc_is_best_effort(workflow):
+    """OWASP DC has known NVD-throttling issues without an NVD API
+    key. The step is `continue-on-error: true` so SonarQube SAST
+    still passes even when NVD is rate-limiting us."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    # Selector must hit the RUN step (not the Cache step which also has
+    # "OWASP Dependency-Check" in its name)
+    dc_step = next(
+        s for s in steps
+        if "owasp/dependency-check" in s.get("run", "")
+    )
+    assert dc_step.get("continue-on-error") is True
+
+
+def test_workflow_owasp_dc_supports_nvd_api_key_secret(workflow):
+    """The step MUST plumb the NVD_API_KEY secret through env so
+    operators who set it get the un-throttled flow. The conditional
+    arg-building pattern keeps the absence-of-secret path working
+    too."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    # Selector must hit the RUN step (not the Cache step which also has
+    # "OWASP Dependency-Check" in its name)
+    dc_step = next(
+        s for s in steps
+        if "owasp/dependency-check" in s.get("run", "")
+    )
+    env = dc_step.get("env", {})
+    assert "NVD_API_KEY" in env
+    # The run block should mention the secret + the conditional shape
+    run = dc_step.get("run", "")
+    assert "NVD_API_KEY" in run
+
+
+def test_workflow_caches_dependency_check_nvd_data(workflow):
+    """NVD download is slow on cold cache (~10 min) but stable across
+    runs. Caching cuts subsequent runs to ~30s — load-bearing for the
+    workflow staying under timeout-minutes."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    found = any(
+        "actions/cache" in str(s.get("uses", ""))
+        and "dependency-check" in str(s.get("with", {}).get("path", ""))
+        for s in steps
+    )
+    assert found, "workflow should cache the OWASP DC NVD data dir"
+
+
+def test_workflow_owasp_dc_emits_sarif(workflow):
+    """SARIF is the format SonarQube + Code Scanning both ingest.
+    JSON is also produced for direct Sonar-plugin consumption."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    dc_step = next(
+        s for s in steps
+        if "owasp/dependency-check" in s.get("run", "")
+    )
+    run = dc_step.get("run", "")
+    assert "SARIF" in run or "sarif" in run.lower()

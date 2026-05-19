@@ -1,0 +1,158 @@
+name: trivy
+
+# Trivy container + repository scanner — complements SonarQube's SAST
+# (sonar.yml) with Software Composition Analysis (SCA).
+#
+# Two scopes:
+#   - Repository scan (fs): scans source-tree dependencies + IaC files
+#                            (Dockerfile, K8s manifests, etc.) for
+#                            known CVEs. Runs on every push + PR.
+#   - Image scan (image):   scans the PUBLISHED GHCR image
+#                            (ghcr.io/idirbenslama/ophamin:main) for
+#                            OS-package + Python-package CVEs. Runs
+#                            AFTER docker.yml lands on main + on tags.
+#
+# Both scopes emit SARIF reports + upload them to GitHub's Code Scanning
+# tab (free for public repos) so findings appear next to the
+# SonarQube-surface findings in the same UI.
+#
+# Together with sonar.yml (SAST) + audit.yml (pip-audit + bandit) +
+# docker.yml's cosign+SBOM+SLSA attestations, the supply-chain claim
+# is now: signed identity + signed dependency manifest + signed build
+# provenance + per-CVE SCA scan.
+#
+# Trivy is Apache-2.0 licensed (Aqua Security) — no auth required for
+# the public CVE database.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  # Run weekly on main against the latest image to catch newly-
+  # disclosed CVEs against the previously-published artifact.
+  schedule:
+    - cron: "17 7 * * 1"   # Monday 07:17 UTC — off-peak slot
+  workflow_dispatch:
+
+concurrency:
+  group: trivy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write   # upload SARIF to Code Scanning
+
+jobs:
+  # ── Repository scan (file-system / IaC / source-tree deps) ──────────
+  fs-scan:
+    name: Trivy filesystem scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          # Use the action's built-in SARIF output mode — gets ingested
+          # by github/codeql-action/upload-sarif below + visible in
+          # Security tab.
+          format: sarif
+          output: trivy-fs.sarif
+          # Severity gate: only fail the workflow on HIGH or CRITICAL
+          # findings (MEDIUM + LOW are advisory, surfaced in dashboard).
+          severity: "HIGH,CRITICAL"
+          exit-code: "0"   # warn-only in 0.52.0; flip to "1" later
+          # Skip known-noise paths (caches + archives + generated content).
+          skip-dirs: ".venv,venv,.mypy_cache,.ruff_cache,.pytest_cache,.hypothesis,build,dist,node_modules,site,sbom,proofs"
+
+      - name: Upload Trivy fs scan results to Code Scanning
+        # Always upload — even on a "fail" we want the report in the
+        # Security tab so operators can investigate.
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs
+
+      - name: Step summary
+        if: always()
+        run: |
+          echo "## Trivy filesystem scan" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f trivy-fs.sarif ]; then
+              # SARIF results array length = total findings count
+              COUNT=$(jq '[.runs[].results[]] | length' trivy-fs.sarif)
+              echo "**Findings:** ${COUNT} (HIGH/CRITICAL only; see Security tab for full list)" >> "$GITHUB_STEP_SUMMARY"
+          else
+              echo "(no SARIF output; scan may have failed before report)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # ── Image scan (published GHCR image) ───────────────────────────────
+  # Runs ONLY on main + tag pushes because PRs haven't yet produced a
+  # published image to scan. The image lives at
+  # ghcr.io/idirbenslama/ophamin:<tag> per docker.yml.
+  image-scan:
+    name: Trivy image scan
+    if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Compute lowercase image namespace
+        id: image
+        # Same lesson as docker.yml + chart.yml — registry refs must be
+        # lowercase; ${{ github.repository_owner }} is mixed-case.
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          echo "namespace=${OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Determine image tag to scan
+        id: tag
+        # Tag pushes scan the version tag; main branch pushes scan :main;
+        # scheduled/dispatch run scan :main (the rolling latest).
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            echo "tag=${VERSION#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=main" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Trivy image scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: "ghcr.io/${{ steps.image.outputs.namespace }}/ophamin:${{ steps.tag.outputs.tag }}"
+          format: sarif
+          output: trivy-image.sarif
+          severity: "HIGH,CRITICAL"
+          # warn-only in 0.52.0. Image scan results inform the
+          # next-image-build's base-layer choice; failing the scan
+          # before operators can react would be too aggressive.
+          exit-code: "0"
+
+      - name: Upload Trivy image scan results to Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image
+
+      - name: Step summary
+        if: always()
+        run: |
+          echo "## Trivy image scan" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Image:** \`ghcr.io/${{ steps.image.outputs.namespace }}/ophamin:${{ steps.tag.outputs.tag }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f trivy-image.sarif ]; then
+              COUNT=$(jq '[.runs[].results[]] | length' trivy-image.sarif)
+              echo "**Findings:** ${COUNT} (HIGH/CRITICAL only)" >> "$GITHUB_STEP_SUMMARY"
+          else
+              echo "(no SARIF output; scan may have failed)" >> "$GITHUB_STEP_SUMMARY"
+          fi
