@@ -1,7 +1,7 @@
 # Ophamin interop overview
 
 > One page covering every way to drive, consume, or observe
-> Ophamin from outside Python. Seven interop layers stacked so a
+> Ophamin from outside Python. Eight interop layers stacked so a
 > consumer picks the one that fits their shape.
 
 ## At a glance
@@ -15,8 +15,9 @@
 | Observability backends (Jaeger / Datadog / etc.) | OpenTelemetry instrumentation | `ophamin.observability.setup_otel()` + ambient OTel SDK | n/a (telemetry is one-way) | `0.20.0` |
 | Supply-chain attestation (Sigstore / SLSA / Rekor / cosign) | in-toto Attestation Framework v1 (ITE-6) + DSSE envelope | `ophamin.interop.to_in_toto_statement` / `to_dsse_envelope` (Python) | n/a (export only) | `0.35.0` |
 | FAIR research-data infrastructure (Zenodo / Galaxy / WorkflowHub) | RO-Crate 1.2 (Research Object Crate, JSON-LD + schema.org) | `ophamin.interop.to_ro_crate_metadata` (Python) | n/a (export only) | `0.36.0` |
+| Data-pipeline lineage backends (Airflow / dbt / Spark / Marquez) | OpenLineage 2.0 RunEvent | `ophamin.interop.to_openlineage_event` (Python) | n/a (export only) | `0.37.0` |
 
-All seven layers wrap the **same shared implementations**
+All eight layers wrap the **same shared implementations**
 (`src/ophamin/interfaces/_impls.py`), so behavioural drift between
 them is structurally impossible.
 
@@ -276,6 +277,59 @@ for the full API. References:
 - [Schema.org vocabulary](https://schema.org/)
 - [FAIR data principles](https://www.go-fair.org/fair-principles/)
 
+### "I want Ophamin scenarios in my Airflow / dbt / Spark lineage."
+
+Emit one OpenLineage 2.0 RunEvent per signed proof, then POST it
+to a Marquez backend (or any OpenLineage-aware collector):
+
+```python
+import requests
+from ophamin.interop import to_openlineage_event
+
+event = to_openlineage_event(signed_proof)
+requests.post(
+    "http://marquez:5000/api/v1/lineage",
+    json=event,
+    timeout=5,
+)
+```
+
+The mapping is shaped for live pipeline integration:
+
+- `eventType` — `COMPLETE` for VALIDATED **and** REFUTED outcomes;
+  `FAIL` for INCONCLUSIVE. The REFUTED-vs-FAIL distinction matters:
+  REFUTED is a real empirical result and MUST NOT trip "job
+  failure" alerts; INCONCLUSIVE means the run didn't produce a
+  deciding observation.
+- `run.runId` — deterministic UUIDv5 derived from `proof_id` via
+  the pinned namespace `ec1e6b1c-…-000000000001`. Same proof →
+  same runId on any machine, so Marquez dedupes re-emits for free.
+- `job.namespace` — defaults to `"ophamin"`; override per
+  deployment.
+- `job.name` — defaults to the first PillarEvidence's `pillar`
+  field (e.g. `"I.cma"`), overridable via `job_name=`.
+- `inputs` — one per §4 DatasetRef, with `dataSource` facet
+  (URL) + custom `ophamin_dataset` facet (content_hash, n_records).
+- `outputs` — exactly one, namespaced `ophamin.proofs`, named with
+  the content-addressed `proof_id`, with a `schema` facet
+  describing the proof's column shape.
+- Custom facets `ophamin_claim` + `ophamin_verdict` carry the §2
+  claim + §6 verdict structured payload, plus the §9 HMAC
+  signature for cross-attribution.
+
+The deterministic runId is the killer feature: a downstream
+pipeline operator can join lineage on proof_id ↔ runId without
+maintaining any separate mapping table. Marquez consumers see
+each Ophamin scenario as a first-class job in their lineage graph.
+
+See [`src/ophamin/interop/openlineage.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/interop/openlineage.py)
+for the full API. References:
+
+- [OpenLineage 2.0 spec](https://openlineage.io/docs/spec/object-model)
+- [Marquez backend](https://github.com/MarquezProject/marquez)
+- [Airflow OpenLineage provider](https://airflow.apache.org/docs/apache-airflow-providers-openlineage/)
+- [dbt OpenLineage integration](https://openlineage.io/docs/integrations/dbt)
+
 ## Cross-layer composition
 
 The layers are designed to compose. A typical pipeline:
@@ -311,7 +365,9 @@ The interop layers follow Ophamin's
   (`IN_TOTO_STATEMENT_V1_TYPE`, `OPHAMIN_PREDICATE_TYPE_V1`,
   `DSSE_INTOTO_PAYLOAD_TYPE`), RO-Crate constants
   (`RO_CRATE_CONTEXT_V1_2`, `RO_CRATE_CONFORMS_TO_V1_2`,
-  `DEFAULT_PROOF_FILENAME`).
+  `DEFAULT_PROOF_FILENAME`), OpenLineage constants
+  (`OPENLINEAGE_SCHEMA_URL`, `OPENLINEAGE_PRODUCER_URL_BASE`,
+  `DEFAULT_NAMESPACE`, `OPHAMIN_RUNID_NAMESPACE`).
 - **`@Provisional`** — implementation-internal details (Rust
   module layout under `crates/ophamin-proof/src/`, JS module
   layout under `packages/ophamin-proof-js/src/`, OTel metric

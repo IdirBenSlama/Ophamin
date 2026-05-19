@@ -25,6 +25,9 @@ Phase 1 exports (built):
                                     packaging; FAIR data principles;
                                     research-data infrastructure (Galaxy,
                                     Zenodo, WorkflowHub)
+  OpenLineage 2.0  signed proofs → data-pipeline lineage events
+                                    (Airflow, dbt, Spark, Flink, Marquez,
+                                    Astronomer; CNCF-incubating spec)
 
 All formats are well-specified industry standards (SARIF 2.1.0 OASIS spec;
 JUnit XML the de-facto Jenkins schema; in-toto Attestation Framework v1
@@ -67,6 +70,13 @@ from ophamin.interop.mlflow_export import (
     export_audit_record,
     export_proof_record,
 )
+from ophamin.interop.openlineage import (
+    DEFAULT_NAMESPACE,
+    OPENLINEAGE_PRODUCER_URL_BASE,
+    OPENLINEAGE_SCHEMA_URL,
+    OPHAMIN_RUNID_NAMESPACE,
+    to_openlineage_event,
+)
 from ophamin.interop.ro_crate import (
     DEFAULT_PROOF_FILENAME,
     RO_CRATE_CONFORMS_TO_V1_2,
@@ -80,12 +90,16 @@ from ophamin.interop.sarif import (
 
 __all__ = [
     "CycloneDXExporter",
+    "DEFAULT_NAMESPACE",
     "DEFAULT_PROOF_FILENAME",
     "DSSE_INTOTO_PAYLOAD_TYPE",
     "IN_TOTO_STATEMENT_V1_TYPE",
     "JUnitXMLExporter",
     "MLflowExporter",
+    "OPENLINEAGE_PRODUCER_URL_BASE",
+    "OPENLINEAGE_SCHEMA_URL",
     "OPHAMIN_PREDICATE_TYPE_V1",
+    "OPHAMIN_RUNID_NAMESPACE",
     "RO_CRATE_CONFORMS_TO_V1_2",
     "RO_CRATE_CONTEXT_V1_2",
     "SARIFExporter",
@@ -97,6 +111,7 @@ __all__ = [
     "proof_record_to_junit_xml",
     "to_dsse_envelope",
     "to_in_toto_statement",
+    "to_openlineage_event",
     "to_ro_crate_metadata",
     "verify_dsse_envelope",
 ]

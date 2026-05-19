@@ -7,7 +7,233 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.36.0] below for the latest cut.)
+(empty — see [0.37.0] below for the latest cut.)
+
+## [0.37.0] — 2026-05-19
+
+**Headline:** Tier-1 strategic interop #3 — OpenLineage 2.0
+RunEvent emitter for `EmpiricalProofRecord`. Closes the
+**Tier-1 interop trilogy** (in-toto + RO-Crate + OpenLineage)
+in a single session: Ophamin proofs now flow into supply-chain
+attestation, FAIR research-data packaging, AND real-time
+data-pipeline lineage infrastructure.
+
+This is the **eighth** interop layer. OpenLineage is the
+CNCF-incubating spec for data-pipeline lineage events; major
+consumers include Apache Airflow (native listener), dbt (via
+Marquez), Apache Spark (spark-app plugin), Apache Flink, and
+the Marquez metadata backend itself.
+
+### Added — `src/ophamin/interop/openlineage.py` (~290 LOC)
+
+One public function + four pinned constants:
+
+- **`to_openlineage_event(proof, *, job_name, namespace, extra_facets) -> dict`**
+  Builds an OpenLineage 2.0 RunEvent dict for a signed proof.
+  POST the dict to `http://marquez:5000/api/v1/lineage` (or any
+  OpenLineage-aware collector) and the scenario becomes a
+  first-class job in the lineage graph.
+
+Pinned constants (all `@Stable`):
+
+- `OPENLINEAGE_SCHEMA_URL` — schema URI for OpenLineage 2.0.2
+- `OPENLINEAGE_PRODUCER_URL_BASE` — `https://github.com/IdirBenSlama/Ophamin`
+- `DEFAULT_NAMESPACE` — `"ophamin"`
+- `OPHAMIN_RUNID_NAMESPACE` — pinned UUID `ec1e6b1c-…-000000000001`
+  for deterministic UUIDv5 derivation of runIds from proof_ids
+
+### Mapping into OpenLineage RunEvent shape
+
+- **eventType** — `COMPLETE` for VALIDATED / REFUTED outcomes;
+  `FAIL` only for INCONCLUSIVE. The REFUTED-vs-FAIL distinction
+  is load-bearing: REFUTED is a real empirical result and
+  MUST NOT trip downstream "job failure" alerts. INCONCLUSIVE
+  means the run completed but didn't produce a deciding
+  observation — that's a genuine pipeline failure.
+- **run.runId** — `uuid5(OPHAMIN_RUNID_NAMESPACE, proof.proof_id)`.
+  Same proof → same runId on any machine. Marquez dedupes
+  re-emits without needing any separate mapping table.
+- **eventTime** — `proof.created_at` (RFC 3339 UTC).
+- **job.namespace** — defaults to `"ophamin"`; override per
+  deployment by passing `namespace=` kwarg.
+- **job.name** — defaults to the first PillarEvidence's
+  `pillar` field (e.g. `"I.cma"`, `"O.x.rate"`); override
+  via `job_name=` kwarg. Falls back to `"empirical-claim"` if
+  there's no §5 evidence.
+- **job.facets.documentation** — carries the §3 analysis_plan
+  as the job's documentation facet (standard OpenLineage facet).
+- **inputs** — one per §4 DatasetRef; each carries a `dataSource`
+  facet (with `uri` = the dataset's source URL) + a custom
+  `ophamin_dataset` facet (with `content_hash`, `n_records`,
+  `kind`).
+- **outputs** — exactly one, namespaced `ophamin.proofs`, named
+  with the content-addressed `proof_id`; carries a `schema`
+  facet describing the proof's column shape.
+- **run.facets.ophamin_claim** — the §2 claim (statement,
+  operationalization, h0/h1, threshold).
+- **run.facets.ophamin_verdict** — the §6 verdict (outcome,
+  observed_value, reasoning, threshold). When the proof is
+  signed, also carries `ophamin_signature` + algorithm name
+  for cross-attribution.
+- **producer** — `https://github.com/IdirBenSlama/Ophamin@<version>`
+  so consumers can attribute event-shape variations to a
+  specific Ophamin release.
+
+### What this unlocks (downstream consumers)
+
+Anything that consumes OpenLineage now consumes Ophamin proofs
+directly:
+
+- **Marquez**: every signed proof becomes a node in the metadata
+  graph, linked to its input datasets + output proof artifact.
+  Cross-pipeline lineage queries surface Ophamin observations
+  automatically.
+- **Apache Airflow**: install the `apache-airflow-providers-openlineage`
+  package and emit Ophamin events from Python operators. Airflow's
+  lineage UI renders them next to native task lineage.
+- **dbt**: the OpenLineage integration runs dbt models alongside
+  Ophamin scenario observations in the same lineage graph.
+- **Apache Spark**: spark-app plugin → Ophamin events from a
+  PySpark pipeline that consumes the proof datasets and re-emits
+  measurements as new proofs.
+- **Apache Flink** / **Astronomer** / any custom OpenLineage
+  collector: same shape applies.
+
+### Added — exports
+
+`ophamin.interop` now re-exports `to_openlineage_event` + the
+four OpenLineage constants. Consumers write:
+
+```python
+from ophamin.interop import to_openlineage_event
+event = to_openlineage_event(signed_proof, namespace="prod.kimera")
+```
+
+### Hardening pins — `tests/test_openlineage_interop.py` (42 tests)
+
+Every load-bearing property of the emitter contract pinned:
+
+- Constants stability: schema URL, producer URL base, default
+  namespace, UUIDv5 namespace (the pinned UUID MUST NOT drift —
+  changing it breaks every existing downstream consumer).
+- Top-level shape: all 8 required RunEvent keys present
+  (eventType, eventTime, run, job, inputs, outputs, producer,
+  schemaURL).
+- producer URL includes version suffix; schemaURL points to
+  2.0.2 spec.
+- eventType mapping:
+  - VALIDATED → COMPLETE (canonical happy path).
+  - **REFUTED → COMPLETE** (NOT FAIL — this is the load-bearing
+    distinction; pinned to prevent regression that would trip
+    downstream "job failure" alerts on every refuted claim).
+  - INCONCLUSIVE → FAIL.
+- runId is valid UUID; deterministic for same proof; different
+  for different proofs; derivable as
+  `uuid5(OPHAMIN_RUNID_NAMESPACE, proof_id)` (so a consumer can
+  independently compute expected runId).
+- job.namespace defaults + custom; empty namespace → `ValueError`.
+- job.name defaults to first pillar; custom override works;
+  no-evidence fallback to `"empirical-claim"`.
+- documentation facet carries analysis_plan; empty plan omits
+  the facet.
+- inputs length matches dataset count (incl. zero-dataset case);
+  each input carries name, namespace, dataSource facet with
+  URL, ophamin_dataset facet with content_hash + n_records.
+- exactly one output per proof; name = proof_id; namespace =
+  `"ophamin.proofs"`; schema facet describes proof shape.
+- run.facets.ophamin_claim carries statement, h0, h1, threshold.
+- run.facets.ophamin_verdict carries outcome, observed_value,
+  signature (when signed), HMAC-SHA256 algorithm name.
+- Unsigned proof: signature fields absent from verdict facet
+  (descriptive lineage works without crypto).
+- extra_facets merge into run.facets without overwriting
+  ophamin_claim / ophamin_verdict.
+- Every Ophamin facet carries the OpenLineage-required
+  `_producer` + `_schemaURL` metadata.
+- Event round-trips through `json.dumps`/`json.loads` losslessly.
+
+All 42 tests pass locally. Full interop suite at this commit:
+172 tests across SARIF + JUnit + MLflow + CycloneDX + in-toto +
+RO-Crate + OpenLineage.
+
+### Documentation — `docs/INTEROP_OVERVIEW.md`
+
+- "At a glance" table extended 7 → 8 layers.
+- New section: "I want Ophamin scenarios in my Airflow / dbt /
+  Spark lineage." — runnable Python example showing the POST
+  to Marquez, full eventType-mapping table including the
+  REFUTED-vs-FAIL distinction, deterministic-runId explanation,
+  links to OpenLineage spec + Marquez + Airflow + dbt
+  integrations.
+- `@Stable` surface inventory extended with the four
+  OpenLineage constants.
+
+### Tier-1 interop trilogy — closure summary
+
+With 0.37.0 landing, the **Tier-1 strategic interop trilogy**
+shipped in a single 2026-05-19 session:
+
+| Tier-1 # | Layer | Ships in | Covers |
+|---|---|---|---|
+| #1 | in-toto Attestation + DSSE | 0.35.0 | Cryptographic supply-chain claims (Sigstore / SLSA / Rekor / cosign / policy-controller) |
+| #2 | RO-Crate 1.2 | 0.36.0 | Self-describing research-artifact packaging (Zenodo / Galaxy / WorkflowHub) |
+| #3 | OpenLineage 2.0 | 0.37.0 | Real-time data-pipeline lineage (Airflow / dbt / Spark / Marquez) |
+
+Together with the pre-existing five layers (wire-format Rust+JS,
+MCP, HTTP, CloudEvents, OpenTelemetry), Ophamin now ships
+**eight interop layers** — covering supply-chain, packaging,
+lineage, telemetry, AND multi-language verification in one
+framework. No additional Ophamin client code is required for
+consumers in any of these ecosystems.
+
+### What this does NOT include (out of scope for 0.37.0)
+
+- Streaming START + RUNNING + COMPLETE event sequences — current
+  emitter produces a single terminal event per proof. A future
+  ship can add `to_openlineage_start_event` / `to_openlineage_running_event`
+  for live integration with long-running Ophamin campaigns.
+- Direct Marquez HTTP client — the function returns the event
+  dict; the caller composes the POST. A future ship can add a
+  thin wrapper that handles auth + retries against a known
+  Marquez endpoint.
+- Per-PillarEvidence sub-events — current emitter wraps the
+  full proof as one event. A future ship can emit one event
+  per pillar for finer-grained lineage at the cost of more
+  Marquez writes.
+- Airflow / dbt / Spark *listener* integrations — those live in
+  the respective tools' codebases, not in Ophamin. Ophamin
+  ships the event-emission primitive; the listener wiring is
+  per-deployment.
+
+### Verification
+
+- `pytest tests/test_openlineage_interop.py` → 42/42 pass.
+- `pytest tests/test_interop.py tests/test_in_toto_interop.py
+  tests/test_ro_crate_interop.py tests/test_openlineage_interop.py`
+  → 172/172 pass (no regression).
+- `mkdocs build --strict` → clean (pending CI confirmation).
+- Module re-exports parse cleanly via
+  `python -c "from ophamin.interop import to_openlineage_event"`.
+
+### What this opens for next-direction work
+
+With the Tier-1 trilogy closed, the natural next-direction
+campaigns:
+
+- **Tier-1 #4 — RO-Crate directory writer** (convenience: takes
+  a proof + output dir → physical crate directory ready for
+  Zenodo upload). Closes the static-packaging side.
+- **Tier-1 #5 — OpenLineage START + RUNNING + COMPLETE event
+  sequencing** (for live integration with long-running
+  campaigns). Closes the streaming-lineage side.
+- **Tier-4 — slim `ophamin-client` package** (carve out just
+  the wire-format + interop modules without the heavy
+  measuring/auditing tree, for embedded consumers).
+- **Tier-4 — Helm chart / K8s manifests** for `ophamin http
+  serve` + `ophamin mcp serve` on the Docker image shipped in
+  0.34.0/0.35.1.
+
+All remain autonomous-doable.
 
 ## [0.36.0] — 2026-05-19
 
