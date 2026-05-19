@@ -1,0 +1,137 @@
+---
+# Ophamin — ArgoCD Application manifest (0.54.0, phase #4 of 4)
+#
+# Closes the CI → GitOps loop:
+#
+#   docker.yml + chart.yml + sonar.yml + trivy.yml pass
+#     → image cosign + SBOM + SLSA attestations land in GHCR
+#     → Helm chart cosign-signed published to oci://ghcr.io/idirbenslama/ophamin
+#     → ArgoCD auto-syncs THIS Application to a target K8s cluster
+#       → Ophamin running in production with the full
+#         supply-chain trilogy enforced at admission via
+#         policy-controller (per docs/SUPPLY_CHAIN.md)
+#
+# Reference for the Application resource schema:
+#   https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#applications
+#
+# Apply directly via kubectl (assumes argocd namespace + ArgoCD
+# installed already):
+#
+#   kubectl apply -f argocd/ophamin-application.yaml -n argocd
+#
+# Or via the ArgoCD CLI:
+#
+#   argocd app create -f argocd/ophamin-application.yaml
+#
+# Or commit this file to a separate "argocd-config" repo that ArgoCD
+# itself watches (app-of-apps pattern).
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ophamin
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: ophamin
+    app.kubernetes.io/managed-by: argocd
+  # Finalizer ensures K8s resources get cleaned up when the
+  # Application is deleted (otherwise the workload is orphaned).
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+
+spec:
+  # ──────────────────────────────────────────────────────────────────
+  # SOURCE — Ophamin Helm chart on GHCR (cosign-signed since 0.42.0)
+  # ──────────────────────────────────────────────────────────────────
+  source:
+    # OCI registry path. ArgoCD 2.6+ supports `oci://` chart sources
+    # natively; older versions need the helm-oci-experimental flag.
+    repoURL: ghcr.io/idirbenslama/ophamin
+    chart: ophamin
+    # Chart version — pin a specific tag in production. Operators
+    # can use `kubectl argo rollouts get` (or argocd app set) to
+    # bump this after a chart publish.
+    targetRevision: 0.1.0
+    helm:
+      releaseName: ophamin
+      # Override values for production. Mirrors the structure in
+      # charts/ophamin/values.yaml. Most operators add per-cluster
+      # overrides via a sibling values.yaml referenced from the
+      # `helm.valueFiles:` block instead of inline.
+      values: |
+        image:
+          repository: ghcr.io/idirbenslama/ophamin
+          # Pin a specific image tag in production. Operators
+          # update this alongside the chart targetRevision.
+          tag: "0.54.0"
+        http:
+          enabled: true
+          replicas: 2
+        # Opt-in production hardening:
+        podDisruptionBudget:
+          enabled: true
+          http:
+            minAvailable: "50%"
+        networkPolicy:
+          enabled: false  # operators tune cluster-specific ingress/egress
+        autoscaling:
+          enabled: true
+          minReplicas: 2
+          maxReplicas: 10
+          targetCPUUtilizationPercentage: 75
+
+  # ──────────────────────────────────────────────────────────────────
+  # DESTINATION — target K8s cluster + namespace
+  # ──────────────────────────────────────────────────────────────────
+  destination:
+    server: https://kubernetes.default.svc   # in-cluster default
+    namespace: ophamin
+
+  # The "project" gates which clusters + repos this Application can
+  # use. `default` is permissive; production deployments scope this
+  # to a dedicated AppProject with explicit allow-lists.
+  project: default
+
+  # ──────────────────────────────────────────────────────────────────
+  # SYNC POLICY — automated reconciliation
+  # ──────────────────────────────────────────────────────────────────
+  syncPolicy:
+    automated:
+      # `prune: true` removes K8s resources that disappear from the
+      # chart. Without this, deletes accumulate as orphaned objects.
+      prune: true
+      # `selfHeal: true` rolls back drift in the cluster (someone
+      # kubectl-edits a resource → ArgoCD undoes it on the next
+      # reconcile). Load-bearing for the "git is the source of truth"
+      # promise.
+      selfHeal: true
+      # Don't reconcile on every poll if the desired state hasn't
+      # changed. ArgoCD's default is to compare every refresh; this
+      # toggle is a noise reducer.
+      allowEmpty: false
+    syncOptions:
+      # Create the destination namespace if it doesn't exist.
+      - CreateNamespace=true
+      # `Validate=true` runs `kubectl apply --validate=true` —
+      # rejects manifests that fail server-side schema validation
+      # before applying. Defense in depth.
+      - Validate=true
+      # `Prune=true` reinforces the automated.prune setting (some
+      # ArgoCD versions need both).
+      - Prune=true
+      # `ApplyOutOfSyncOnly=true` only applies resources that drift
+      # — minimizes API-server churn on large charts.
+      - ApplyOutOfSyncOnly=true
+    # Retry on sync failure (network blip, transient API-server
+    # error). 5 retries with exponential backoff before giving up.
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  # ──────────────────────────────────────────────────────────────────
+  # REVISION HISTORY — for `argocd app rollback`
+  # ──────────────────────────────────────────────────────────────────
+  revisionHistoryLimit: 10

@@ -163,6 +163,63 @@ See [`.sonarlint/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/.
 for the 4-step quick-start + the standalone-vs-connected
 mode distinction.
 
+## Deployment & GitOps (0.54.0)
+
+Phase #4 of the 4-phase integration roadmap closes the
+CI → GitOps loop with an ArgoCD Application manifest at
+`argocd/ophamin-application.yaml`:
+
+```bash
+# Pre-req: K8s cluster with ArgoCD installed
+kubectl apply -f argocd/ophamin-application.yaml -n argocd
+```
+
+The Application watches `oci://ghcr.io/idirbenslama/ophamin`
+(the cosign-signed Helm chart from 0.41.0+) + auto-syncs to a
+target K8s cluster. Sync policy:
+
+- **`automated.prune: true`** — removes orphaned K8s resources
+  on chart-version bumps
+- **`automated.selfHeal: true`** — rolls back drift in the
+  cluster (a kubectl-edit gets undone on next reconcile)
+- **`CreateNamespace=true`** — bootstraps the target namespace
+- **Retry with exponential backoff** (5 attempts, factor 2,
+  max 3 min) — resilient to transient API-server errors
+
+Pairs with Sigstore `policy-controller` ClusterImagePolicy for
+**admission-time enforcement** of the supply-chain trilogy:
+signature + SBOM + SLSA attestation all checked BEFORE the
+Pod can start. See [`argocd/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/argocd/README.md)
+for the ClusterImagePolicy example + the full deployment-pipeline
+ASCII diagram.
+
+After 0.54.0 the full pipeline is:
+
+```text
+Edit (with SonarLint guardrail) → Push → GH Actions CI
+  (sonar.yml + trivy.yml + docker.yml + chart.yml)
+  → cosign-signed GHCR artifacts with SBOM + SLSA
+  → ArgoCD auto-sync
+  → policy-controller admission-gate
+  → Ophamin running in production with full provenance
+```
+
+## All four integration phases — complete
+
+| Phase | Release | What landed |
+|---|---|---|
+| #1 — CI automation | `0.51.0` | `sonar.yml` workflow: ephemeral SonarQube in CI services; per-PR + per-main scans; Quality Gate visible (warn-only) |
+| #2 — Security & deps | `0.52.0` | `trivy.yml` workflow (fs-scan + image-scan); OWASP DC step in `sonar.yml`; all SARIF in Code Scanning |
+| #3 — Local guardrails | `0.53.0` | `.sonarlint/connectedMode.json` for VS Code / Cursor / IntelliJ / Eclipse |
+| #4 — Deployment & GitOps | `0.54.0` | `argocd/ophamin-application.yaml` for K8s auto-sync of the cosign-signed Helm chart |
+
+**Six independent security + quality layers** after 0.54.0:
+SAST (SonarQube) + SCA deps (OWASP DC) + SCA image (Trivy) +
+signature (cosign) + SBOM (CycloneDX attestation) + SLSA
+provenance. All verifiable, all surfaced in either the
+SonarQube dashboard, GitHub Security tab, or via
+`cosign verify` / `gh attestation verify`.
+
 ## Why "mandatory"
 
 Ophamin's value proposition is **measured + signed claims about

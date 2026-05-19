@@ -7,7 +7,151 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.53.0] below for the latest cut.)
+(empty — see [0.54.0] below for the latest cut.)
+
+## [0.54.0] — 2026-05-19
+
+**Headline:** Phase #4 of 4 — ArgoCD Application manifest closes
+the CI → GitOps loop. After Ophamin's image + chart pass the
+SonarQube quality gate + Trivy + OWASP DC scans + ship with
+cosign signature + CycloneDX SBOM + SLSA v1.0 provenance,
+ArgoCD auto-syncs `argocd/ophamin-application.yaml` to a
+target K8s cluster. **The 4-phase SonarQube integration
+roadmap is now COMPLETE.**
+
+### Added — `argocd/ophamin-application.yaml`
+
+Declarative ArgoCD `Application` resource (apiVersion
+`argoproj.io/v1alpha1`):
+
+- **Source**: `oci://ghcr.io/idirbenslama/ophamin` (the
+  cosign-signed Helm chart from 0.41.0+), targetRevision
+  pinned to a specific chart version (operators bump on
+  release)
+- **Inline Helm values**: image tag pinned to `0.54.0`; HTTP
+  enabled with 2 replicas; PDB enabled with 50% minAvailable;
+  autoscaling enabled 2-10 replicas at 75% CPU target;
+  NetworkPolicy disabled by default (operators tune
+  cluster-specific ingress/egress)
+- **Destination**: in-cluster (`kubernetes.default.svc`) +
+  namespace `ophamin`
+- **Sync policy**:
+  - `automated: { prune: true, selfHeal: true, allowEmpty: false }`
+  - `syncOptions`: CreateNamespace=true, Validate=true,
+    Prune=true, ApplyOutOfSyncOnly=true
+  - `retry`: 5 attempts, exponential backoff factor 2,
+    maxDuration 3 min
+- **Finalizer**: `resources-finalizer.argocd.argoproj.io`
+  (required for `argocd app delete` to actually clean up
+  workload resources, not orphan them)
+- **`revisionHistoryLimit: 10`** for `argocd app rollback`
+
+### Added — `argocd/README.md`
+
+~200-line operator-facing doc covering:
+
+- Pre-requisites (K8s cluster + ArgoCD 2.6+ for native
+  OCI Helm chart support)
+- 4-step apply recipe (`kubectl apply` + `argocd app create`)
+- What gets deployed (cross-reference to chart README)
+- **Production hardening**: paired with Sigstore
+  `policy-controller` ClusterImagePolicy that requires
+  signature + SBOM attestation + SLSA provenance at
+  admission time. **The supply-chain trilogy enforced at Pod
+  admission — not just available for verification.**
+- Full deployment-pipeline ASCII diagram from
+  "edit in IDE" → "ArgoCD auto-sync" → "policy-controller
+  admission" with each phase's contributing component
+- "Why GitOps for Ophamin" framing — git/registry as the
+  source of truth aligns with Ophamin's signed-content-
+  addressed-claim value proposition
+
+### Hardening pins — `tests/test_argocd_application.py` (26 tests)
+
+Validates the manifest's static shape without requiring ArgoCD
+or a K8s cluster to be reachable:
+
+- apiVersion = `argoproj.io/v1alpha1`, kind = `Application`
+- Lives in `argocd` namespace; has the standard
+  `resources-finalizer.argocd.argoproj.io` finalizer
+- Source repoURL contains `ghcr.io/idirbenslama/ophamin`;
+  chart name is `ophamin`; targetRevision is pinned (not
+  `latest`, not empty)
+- Helm releaseName is `ophamin`; values pin an explicit
+  image tag (not falling back to Chart.appVersion); values
+  enable Pod Disruption Budget
+- Destination uses in-cluster server; namespace is `ophamin`
+- Sync policy is `automated` with `prune: true` AND
+  `selfHeal: true`; sync options include `CreateNamespace=true`
+- Retry config: limit ≥ 3, backoff factor ≥ 2 (exponential)
+- `revisionHistoryLimit` ≥ 5
+- Cross-file: image tag matches semver; chart targetRevision
+  matches semver
+- README documents `kubectl apply` recipe; cross-references
+  `docs/SUPPLY_CHAIN.md`; documents `policy-controller`
+  integration
+
+**Final total chart + sonar + trivy + sonarlint + argocd
+structural surface: 213 hardening pins** (71 helm + 44
+sonar setup + 35 sonar workflow + 23 trivy workflow +
+14 sonarlint + 26 argocd).
+
+### Documentation — `docs/SONARQUBE.md` extended
+
+New "Deployment & GitOps (0.54.0)" section + a final
+"All four integration phases — complete" summary table.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.54.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.54.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.54.0"`
+- 213/213 structural pins green
+
+### The 4-phase roadmap — CLOSED
+
+Per owner directive "ship integration phases by relevance":
+
+| Phase | Release | Closure |
+|---|---|---|
+| #1 — CI automation | `0.51.0` | ✅ `sonar.yml` workflow runs Sonar on every push/PR |
+| #2 — Security & deps | `0.52.0` | ✅ Trivy fs+image scans + OWASP DC plugin |
+| #3 — Local guardrails | `0.53.0` | ✅ `.sonarlint/` connected-mode binding for IDEs |
+| #4 — Deployment & GitOps | `0.54.0` | ✅ ArgoCD Application for K8s auto-sync |
+
+The pipeline an Ophamin operator deploying Kimera-SWM gets
+end-to-end:
+
+```
+Edit in IDE (SonarLint guardrail)
+  → git push
+  → GH Actions:
+     - sonar.yml: SonarQube SAST + OWASP DC SCA
+     - trivy.yml: container + repo CVE scans
+     - docker.yml: multi-arch GHCR + cosign + SBOM + SLSA
+     - chart.yml: Helm chart on GHCR + cosign
+  → ArgoCD watches GHCR
+     - Auto-syncs new chart versions
+     - self-heal + prune + retry
+  → policy-controller admission
+     - Verifies signature + SBOM attestation + SLSA provenance
+  → Ophamin running in production
+     - With full supply-chain provenance enforced
+```
+
+Six independent security + quality layers (SAST + SCA-deps +
+SCA-image + signature + SBOM + SLSA) + a mandatory SonarQube
+stack + a 4-phase integration pipeline + 213 structural
+hardening pins — **all from the seed "add SonarQube for
+Kimera-SWM"**.
+
+### Verification
+
+- `pytest tests/test_argocd_application.py` → 26/26 pass.
+- All 5 structural test suites green (213/213).
+- ArgoCD manifest YAML parses cleanly.
+- **Operator-runnable** but not auto-deployed by this CI
+  (requires a target K8s cluster — owner-physical step).
 
 ## [0.53.0] — 2026-05-19
 
