@@ -7,7 +7,67 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.61.0] below for the latest cut.)
+(empty — see [0.61.1] below for the latest cut.)
+
+## [0.61.1] — 2026-05-19
+
+**Headline:** Three review-findings closed from a second-tired-eye
+pass over the 0.56→0.61 autonomous run.
+
+Fixed:
+
+1. **89 stale `.pdfbuild/*` files leaked into the 0.59.0 commit.**
+   Root cause: the 0.59.0 migration's first run errored mid-flight
+   on 17 bundles before PDFReporter could clean up its temp
+   build dir; second run cleaned up legacy files but didn't touch
+   the leaked `.pdfbuild/` cruft. `.gitignore` only covered
+   `*.log`, so the other latexmk intermediates (`proof.aux`,
+   `proof.fdb_latexmk`, `proof.fls`, `proof.out`, `proof.tex`)
+   landed in commit `be57584`. Now removed (89 files / ~85KB).
+
+2. **`.gitignore` extended with `**/.pdfbuild/`** so future partial
+   runs can't repeat the leak. Defensive — the PDFReporter cleanup
+   below is the primary fix; this is the belt-and-braces.
+
+3. **Silent-fallback in `PDFReporter._render`'s cleanup.** The
+   previous code did `shutil.rmtree(build_dir, ignore_errors=True)`
+   — exactly the pattern CLAUDE.md's no-fallback rule forbids: a
+   cleanup failure (held file descriptors, permission issues,
+   stuck latexmk subprocess) would silently leave temp dirs on
+   disk. Flipped to `ignore_errors=False` so future failures
+   surface as real errors at the caller. 13/13 PDFReporter tests
+   still pass under the stricter cleanup.
+
+What was investigated and turned out to be a false alarm:
+
+- **`record.verify_signature(DEFAULT_SIGN_KEY)` returns False on
+  the throughput-ceiling proofs.** First suspicion: migration
+  broke the HMAC. Actually: those proofs were originally signed
+  with a non-default key; signature bytes survived the migration
+  intact (proof_id still matches the filename hash). 3 other
+  migrated bundle types verify under default key fine. Migration
+  preserved signatures correctly — operators need the original
+  sign-key the scenario used.
+
+What was deferred (flagged in the review, not yet fixed):
+
+- `bundle_tree()` rebuild on every /metrics scrape is O(n) — fine
+  at 33 bundles (~7-10ms) but worth caching at 10k+. TTL or
+  invalidation hook would be the right shape.
+- `ophamin_substrate_cycle_duration_seconds` divides batch
+  duration by n_cycles uniformly — misleads if cycles vary
+  wildly. A per-cycle wrapper at the substrate adapter level
+  would fix it; out of scope.
+- `PDFReporter` invokes `LaTeXReporter` twice per bundle (once
+  in `persist_proof`, once inside PDFReporter for the
+  `.pdfbuild/` workdir). Content is identical so the overwrite
+  is invisible; optimization opportunity.
+- No auth on any HTTP surface — local-dev posture, documented
+  in the chart README.
+
+Full Ophamin suite at this commit: **2313 passed / 2 skipped /
+0 failed** in 7m50s — confirmed zero regression across all six
+0.56→0.61 ships.
 
 ## [0.61.0] — 2026-05-19
 

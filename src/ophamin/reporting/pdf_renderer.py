@@ -170,10 +170,14 @@ class PDFReporter(ReportRenderer):
         shutil.move(str(built_pdf), str(out_path))
 
         if not self._keep_artifacts:
-            # Keep the .tex; drop the rest.
+            # Keep the .tex; drop the rest. ignore_errors=False so any
+            # leftover that survives surfaces as a real error (per the
+            # framework's no-fallback rule). Common failure mode: the
+            # build_dir contains an open file held by a hung subprocess —
+            # better to know than to silently leak.
             tex_dst = out_path.parent / (out_path.stem + ".tex")
             shutil.move(str(tex_path), str(tex_dst))
-            shutil.rmtree(build_dir, ignore_errors=True)
+            shutil.rmtree(build_dir, ignore_errors=False)
         return out_path
 
     @staticmethod

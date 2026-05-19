@@ -54,6 +54,14 @@ logs/
 pyphi.log
 *.log
 
+# --- LaTeX / PDF build intermediates (Phase 0.59.0+) ---
+# PDFReporter writes proof.pdf into bundle dirs by running latexmk in
+# a sibling `.pdfbuild/` subdir; that subdir is supposed to be cleaned
+# up on success, but if anything (signal / partial run / Ctrl-C)
+# interrupts cleanup, the latexmk intermediate files leak. Ignore them
+# at the source so a half-run never pollutes the commit history.
+**/.pdfbuild/
+
 # --- Bench storage (pytest-benchmark output) ---
 # Each run produces a JSON file under tests/bench/output or under
 # bench_storage/. They're per-machine, per-build noise; the BASELINE
