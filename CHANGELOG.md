@@ -7,7 +7,121 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.32.0] below for the latest cut.)
+(empty — see [0.33.0] below for the latest cut.)
+
+## [0.33.0] — 2026-05-19
+
+**Headline:** First Tier-4 dev-tool from
+[`TOOL_LANDSCAPE_2026_05_19.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/docs/TOOL_LANDSCAPE_2026_05_19.md)
+landing: `.pre-commit-config.yaml` for fast file-shape hygiene
+at commit time. The hooks are carefully scoped to NEVER touch
+byte-precise files (canonical-form fixtures, signed proofs,
+SBOM artefacts, generated catalogues) so that adoption is a
+pure dev-experience improvement, not a stealth style sweep.
+
+Plus a cross-project journal entry pinning Ophamin 0.32.0's
+state on the Kimera-SWM side so future Kimera sessions
+inherit the context.
+
+Doc + dev-experience release. No substrate, wire-format,
+runtime-API, or generated-artefact changes.
+
+### Added — `.pre-commit-config.yaml`
+
+Standard-format pre-commit config that complements (does NOT
+duplicate) the existing pre-push gate at
+[`.githooks/pre-push`](https://github.com/IdirBenSlama/Ophamin/blob/main/.githooks/pre-push).
+The split:
+
+- **pre-commit** (new): fast file-shape hygiene. Runs on every
+  commit, ~1-3 seconds. Catches trailing whitespace, EOL
+  drift, invalid YAML / TOML / JSON, merge-conflict markers,
+  accidentally-large files, case-conflicts on macOS / Windows
+  filesystems, broken symlinks, non-permalink GitHub URLs.
+- **pre-push** (existing): slow full-suite gate. Runs before
+  push, ~1-3 minutes. pytest + coverage + mypy --strict + ruff.
+
+Install (opt-in per contributor):
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+13 standard hooks from `pre-commit/pre-commit-hooks` v5.0.0:
+trailing-whitespace, end-of-file-fixer, check-yaml (with
+`--unsafe` for mkdocs.yml's PyYAML custom tags), check-toml,
+check-json, check-merge-conflict, check-added-large-files (2 MB
+cap), check-case-conflict, check-symlinks, check-vcs-permalinks,
+mixed-line-ending (LF-only), check-executables-have-shebangs
+(excludes Rust files to avoid `#![allow(...)]` inner-attribute
+false-positives).
+
+### Critical — repo-wide exclusion patterns
+
+The config carries a top-level `exclude:` block protecting
+**byte-precise + generated** files from being touched by auto-
+fix hygiene hooks. Surfaced during testing — `end-of-file-fixer`
+was adding a trailing newline to
+`tests/canonical_form/simple.canonical.bytes`, which would have
+broken cross-language signature verification (the Rust + JS ports
+test byte-equality against those fixtures).
+
+Excluded paths:
+
+- `tests/canonical_form/*.canonical.bytes` + `*.hmac_sha256.hex`
+  — cross-language fixtures.
+- `proofs/**`, `audits/**` — signed records (HMAC over canonical
+  body bytes; any whitespace change invalidates the signature).
+- `sbom/**`, `reports/**`, `primitives/**`, `comparisons/**`,
+  `discovery/**` — framework-generated outputs.
+- `docs/*_YYYY_MM_DD.md` — dated snapshot docs (filename carries
+  the capture date; content pins to that date).
+- `data/**`, `models/**` — raw fixtures + frozen model state.
+
+Result: `pre-commit run --all-files` exits clean against the
+current repo. Zero source-of-truth files touched by the hooks.
+
+### Surfaced (NOT acted on) — pre-existing ruff baseline
+
+While testing the config, a repo-wide ruff scan with v0.15.13
+surfaced **213 lint warnings + 231 ruff-format diffs** across
+`src/` + `tests/`. These are pre-existing and **deliberately
+advisory** per `.github/workflows/ci.yml` which runs
+`ruff check src tests` with `continue-on-error: true` (the
+embedded CI comment says baseline-ratchet is owner-territory).
+
+The pre-commit config **deliberately does NOT include the ruff
+hook** — adding it would regress that decision and break every
+contributor's `git commit` until the baseline is closed. The
+config file documents this explicitly + carries the commented-
+out ruff hook block ready for activation when the owner
+ratchets.
+
+### Added — Kimera-side journal entry (cross-project pin)
+
+Wrote `Docs_v2/00_journal/entries/2026-05-19-997-ophamin-0_32_0-session-handoff.md`
+on the Kimera-SWM side. Future Kimera sessions reading the
+journal will see what's available on the framework side — the
+0.16.0 → 0.32.0 arc summary + the 9 Ophamin proofs Kimera
+emitted (Wild + Wild II campaigns) + the §7-staleness fix
+status + the BGE-M3 encoder-swap context.
+
+The Wild II campaign (Kimera journal entry 998) and the Wild
+Ophamin campaign (entry 999) demonstrated the framework's
+value proposition empirically: load-bearing Kimera findings
+(Φ-attractor invariance, bimodal substrate response space)
+are now signed, cross-language-verifiable artefacts.
+
+### Verified
+
+- `pre-commit run --all-files` exits clean (12 hooks pass /
+  1 skipped due to no symlinks in repo). Zero side-effect
+  modifications to source-of-truth or generated files.
+- `mkdocs build --strict` clean.
+
+No substrate / wire-format / runtime-API / generated-artefact
+changes. Rust + JS package versions remain at 0.21.2.
 
 ## [0.32.0] — 2026-05-19
 

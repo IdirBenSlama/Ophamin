@@ -1,0 +1,170 @@
+# pre-commit configuration — fast hooks that run at git-commit time.
+#
+# Complements (does NOT duplicate) the existing pre-push gate at
+# .githooks/pre-push. The split is:
+#
+#   - pre-commit (this file): fast, file-shape hygiene + ruff. Runs
+#     on every commit. ~1-3 seconds total. Catches typos / trailing
+#     whitespace / invalid YAML / TOML / unfixed ruff lints before
+#     they hit history.
+#
+#   - pre-push (.githooks/pre-push): slow, full-suite gate. Runs
+#     before push. ~1-3 minutes total. pytest + coverage + mypy
+#     --strict + ruff. The real quality gate.
+#
+# Install (opt-in, per contributor):
+#
+#     pip install pre-commit         # or: pipx install pre-commit
+#     pre-commit install
+#
+# After install, every `git commit` runs the hooks below; the
+# pre-push hook still fires separately if you've enabled it via
+# `git config core.hooksPath .githooks`.
+#
+# Skip a one-off commit's hooks (e.g. WIP):
+#
+#     git commit --no-verify
+#
+# Update hook versions periodically:
+#
+#     pre-commit autoupdate
+
+# Repo-wide exclusion: hygiene hooks must NEVER modify files
+# whose byte-shape is load-bearing (signatures, canonical
+# fixtures) or files that are generated outputs (renders of
+# signed records, SBOMs, dated catalogues).
+#
+# Auto-adding a trailing newline / fixing line-endings /
+# trimming whitespace on these would either invalidate a
+# signature OR drift a generated artifact away from what its
+# source-of-truth produces on re-run.
+exclude: |
+  (?x)^(
+    # === Byte-precise fixtures + signed records ===
+    # Cross-language canonical-form fixtures: Rust + JS ports
+    # test byte-equality against these. Python's json.dumps
+    # emits NO trailing newline; adding one breaks the
+    # .hmac_sha256.hex pin and every port's fixture test.
+    tests/canonical_form/.*\.canonical\.bytes|
+    tests/canonical_form/.*\.hmac_sha256\.hex|
+    # Signed proof records (HMAC over canonical body bytes —
+    # any whitespace/EOL change invalidates the signature).
+    proofs/.*|
+    # Signed audit records (same shape as proofs).
+    audits/.*|
+
+    # === Generated outputs ===
+    # The framework's own reporting / SBOM / catalog renderers
+    # produce these on every run. They drift across versions
+    # but the FRAMEWORK is the source of truth, not whatever
+    # pre-commit's hygiene hooks would normalize them to.
+    sbom/.*|
+    reports/.*|
+    primitives/.*|
+    comparisons/.*|
+    discovery/.*|
+    # Discovery + catalog snapshots are dated artifacts
+    # (filename carries the date); their bytes pin to the
+    # date of capture, not to current style preferences.
+    docs/.*_\d{4}_\d{2}_\d{2}\.md|
+
+    # === Frozen models + raw data ===
+    data/.*|
+    models/.*
+  )$
+
+repos:
+  # File-shape hygiene — catches noisy diffs / accidental commits.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        # Preserve trailing-whitespace inside markdown line-break syntax
+        # (two trailing spaces) so docs render correctly.
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents, --unsafe]
+        # --unsafe tolerates non-standard YAML tags that strict
+        # parsing rejects. Required because mkdocs.yml uses
+        # mkdocs-material's `!!python/name:pymdownx.superfences.
+        # fence_code_format` custom tag (valid in PyYAML's full-load
+        # mode but rejected in safe-load).
+        # CITATION.cff + .github/workflows/*.yml parse cleanly
+        # without --unsafe; the flag only widens what we accept.
+      - id: check-toml
+        # Catches pyproject.toml / Cargo.toml syntax errors before
+        # they break the build.
+      - id: check-json
+        # tsconfig.json and similar.
+      - id: check-merge-conflict
+        # Catches forgotten <<<<<<< / ======= markers.
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+        # 2 MB — small enough to flag accidental large files, large
+        # enough to allow trace JSONs + signed proofs to land.
+      - id: check-case-conflict
+        # Catches files that differ only in case (breaks on macOS /
+        # Windows case-insensitive filesystems).
+      - id: check-symlinks
+        # Catches broken symlinks before they land.
+      - id: check-vcs-permalinks
+        # GitHub URLs to source code should use commit SHAs, not
+        # branch names, for stability.
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        # Enforce LF line-endings (this repo is LF-only).
+      - id: check-executables-have-shebangs
+        exclude: '\.rs$'
+      # check-shebang-scripts-are-executable is intentionally not
+      # enabled — it false-positives on Rust files that start with
+      # `#![allow(...)]` (a valid Rust inner attribute, not a
+      # shebang). The check-executables-have-shebangs direction
+      # above catches the meaningful case (executable Python
+      # scripts that forgot a shebang).
+
+# Configuration notes:
+#
+# Why ruff is NOT a pre-commit hook (despite being in the audit pillar)
+# ---------------------------------------------------------------------
+# CI's ruff invocation in `.github/workflows/ci.yml` runs with
+# `continue-on-error: true` — the 213 lint warnings currently in
+# `src/` + `tests/` are a known unratched baseline that the owner
+# has explicitly decided NOT to gate on (per the embedded comment
+# at ci.yml:158-160). Adding ruff to pre-commit hooks would
+# regress that decision — every contributor's `git commit` would
+# fail until the baseline is ratcheted.
+#
+# When the baseline IS ratcheted (CI's `continue-on-error: true`
+# flipped to gating), uncomment the ruff hook block below.
+#
+# - repo: https://github.com/astral-sh/ruff-pre-commit
+#   rev: v0.13.0
+#   hooks:
+#     - id: ruff
+#       files: '^(src|tests)/.*\.py$'
+#
+# Similarly, ruff-format adoption (which would reformat ~231 files
+# at install time) is its own owner-territory decision.
+#
+# Why mypy is NOT a pre-commit hook
+# ---------------------------------
+# mypy --strict on the full ophamin package takes 30-60s on a warm
+# venv. That's too slow for every commit. It runs in the pre-push
+# gate (.githooks/pre-push, step 3) where the cost amortizes over a
+# whole feature branch's commits. Same reasoning for pytest +
+# coverage — push-time only.
+#
+# Why bandit / pip-audit are NOT pre-commit hooks
+# -----------------------------------------------
+# bandit (security linter) and pip-audit (CVE scanner) run in CI via
+# the `audit` workflow (audit.yml). At commit time they would slow
+# every commit without catching anything pre-push wouldn't catch.
+#
+# Default stages
+# --------------
+# All hooks run at `commit` stage by default — see
+# https://pre-commit.com/#confining-hooks-to-run-at-certain-stages
+# if you ever need to differentiate.
+
+default_stages: [pre-commit]
