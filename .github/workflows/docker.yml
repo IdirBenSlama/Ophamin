@@ -181,8 +181,11 @@ jobs:
           echo "Verify output bytes: $(wc -c < /tmp/cosign-verify-output.json)"
           # Sanity-check the verify output has the expected shape — cosign
           # exits non-zero on verify failure, so reaching this means the
-          # signature was found AND the cert identity matched.
-          jq -e '.[] | .critical.identity.docker-reference' /tmp/cosign-verify-output.json \
+          # signature was found AND the cert identity matched. The bracket
+          # syntax for "docker-reference" is required because the hyphen
+          # makes the dot-syntax form parse as the `reference/0` operator
+          # (jq language quirk).
+          jq -e '.[] | .critical.identity["docker-reference"]' /tmp/cosign-verify-output.json \
               > /dev/null \
               || { echo "::error::cosign verify output unexpected shape"; cat /tmp/cosign-verify-output.json; exit 1; }
           echo "OK — signature verifies against this workflow's identity"

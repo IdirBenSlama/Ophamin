@@ -243,7 +243,9 @@ jobs:
             --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
             > /tmp/cosign-verify-chart.json
           echo "Verify output bytes: $(wc -c < /tmp/cosign-verify-chart.json)"
-          jq -e '.[] | .critical.identity.docker-reference' /tmp/cosign-verify-chart.json \
+          # Bracket syntax for "docker-reference" — the hyphen makes the
+          # dot form parse as the `reference/0` operator (jq language quirk).
+          jq -e '.[] | .critical.identity["docker-reference"]' /tmp/cosign-verify-chart.json \
               > /dev/null \
               || { echo "::error::cosign verify output unexpected shape"; cat /tmp/cosign-verify-chart.json; exit 1; }
           echo "OK — chart signature verifies against this workflow's identity"

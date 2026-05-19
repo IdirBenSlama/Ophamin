@@ -7,7 +7,76 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.46.0] below for the latest cut.)
+(empty — see [0.46.1] below for the latest cut.)
+
+## [0.46.1] — 2026-05-19
+
+**Headline:** Fix the cosign self-verify sanity-check's `jq`
+syntax (0.46.0 regression caught by 0.46.0's own self-verify
+run). The signature itself verified correctly; the bug was in
+the sanity-check post-processor.
+
+### What happened
+
+0.46.0's first chart workflow run (commit `d195a2f`) failed at
+the "Self-verify the chart signature" step. The cosign verify
+SUCCEEDED — full Subject + Issuer + digest all confirmed in the
+verify output JSON:
+
+```
+Subject: https://github.com/IdirBenSlama/Ophamin/.github/workflows/chart.yml@refs/heads/main
+docker-reference: ghcr.io/idirbenslama/ophamin
+docker-manifest-digest: sha256:af1aba75...
+```
+
+But the post-verify `jq` sanity check failed:
+
+```
+jq: error: reference/0 is not defined at <top-level>, line 1:
+.[] | .critical.identity.docker-reference
+```
+
+The hyphen in `docker-reference` made `jq` parse the dot
+expression as `.critical.identity.docker - reference`, where
+`reference` is interpreted as a function call (with arity 0)
+and `docker` is the operand — a known jq syntax quirk with
+hyphens in object keys.
+
+### Fix in both workflows
+
+`jq -e '.[] | .critical.identity.docker-reference'`
+→ `jq -e '.[] | .critical.identity["docker-reference"]'`
+
+The bracket-string syntax bypasses the operator-parsing for
+hyphenated keys. Comment added in both workflow files
+explaining the quirk so future maintainers don't re-introduce
+the bug.
+
+### What this confirms
+
+The self-verify mechanism shipped in 0.46.0 works exactly as
+intended — it caught a real defect at signing time in the
+SAME run rather than waiting for an external consumer.
+
+The "defect" turned out to be in my sanity-check post-processor
+(jq syntax bug), NOT in the actual cosign signature. But the
+mechanism's value is proven: had this been a real cert-identity
+regex drift or Fulcio signing-config issue, the same step would
+have caught it.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.46.1`
+- `src/ophamin/__init__.py` `__version__` → `"0.46.1"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.46.1"` (59/59
+  helm tests pass)
+
+### Verification
+
+- Next chart workflow + docker workflow runs after this push
+  validate empirically. If both self-verify steps land green,
+  the chain is operational and produces the consumer-equivalent
+  verify output.
 
 ## [0.46.0] — 2026-05-19
 
