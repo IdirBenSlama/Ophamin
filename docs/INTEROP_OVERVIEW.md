@@ -1,7 +1,7 @@
 # Ophamin interop overview
 
 > One page covering every way to drive, consume, or observe
-> Ophamin from outside Python. Six interop layers stacked so a
+> Ophamin from outside Python. Seven interop layers stacked so a
 > consumer picks the one that fits their shape.
 
 ## At a glance
@@ -14,8 +14,9 @@
 | Event-stream routing infrastructure | CloudEvents 1.0 envelope | `ophamin.cloudevents.wrap` / `unwrap` (Python) | no — wrap is opt-in; routing is read | `0.19.0` |
 | Observability backends (Jaeger / Datadog / etc.) | OpenTelemetry instrumentation | `ophamin.observability.setup_otel()` + ambient OTel SDK | n/a (telemetry is one-way) | `0.20.0` |
 | Supply-chain attestation (Sigstore / SLSA / Rekor / cosign) | in-toto Attestation Framework v1 (ITE-6) + DSSE envelope | `ophamin.interop.to_in_toto_statement` / `to_dsse_envelope` (Python) | n/a (export only) | `0.35.0` |
+| FAIR research-data infrastructure (Zenodo / Galaxy / WorkflowHub) | RO-Crate 1.2 (Research Object Crate, JSON-LD + schema.org) | `ophamin.interop.to_ro_crate_metadata` (Python) | n/a (export only) | `0.36.0` |
 
-All six layers wrap the **same shared implementations**
+All seven layers wrap the **same shared implementations**
 (`src/ophamin/interfaces/_impls.py`), so behavioural drift between
 them is structurally impossible.
 
@@ -207,6 +208,74 @@ for the full API. References:
 - [DSSE spec](https://github.com/secure-systems-lab/dsse)
 - [SLSA in-toto integration](https://slsa.dev/blog/2023/05/in-toto-and-slsa)
 
+### "I want my proof packaged for Zenodo / Galaxy / WorkflowHub."
+
+Wrap the proof as an RO-Crate 1.2 (Research Object Crate). The
+function returns the `ro-crate-metadata.json` content as a dict;
+the caller writes it alongside the proof JSON to produce a
+self-describing crate directory:
+
+```python
+import json
+from pathlib import Path
+from ophamin.interop import to_ro_crate_metadata
+
+crate = Path("./my-empirical-attestation")
+crate.mkdir(parents=True, exist_ok=True)
+
+# 1. The proof file (file name MUST match what the metadata
+#    references — default is "proof.json", overridable via the
+#    proof_filename kwarg)
+(crate / "proof.json").write_text(
+    json.dumps(signed_proof.to_dict(), indent=2, sort_keys=True)
+)
+
+# 2. The ro-crate-metadata.json — the heart of the spec
+metadata = to_ro_crate_metadata(
+    signed_proof,
+    extra_root_metadata={
+        "creator": {"@id": "https://orcid.org/0000-0000-0000-0000"},
+        "license": {"@id": "https://spdx.org/licenses/Apache-2.0"},
+    },
+)
+(crate / "ro-crate-metadata.json").write_text(
+    json.dumps(metadata, indent=2, sort_keys=True)
+)
+```
+
+The resulting `./my-empirical-attestation/` directory is a
+complete RO-Crate. Upload it to Zenodo (mint a DOI), submit it
+to WorkflowHub, or ingest it into Galaxy — the JSON-LD
+metadata is self-describing and tools that consume RO-Crate
+will pick out the principal artifact (the signed proof),
+data references, substrate, verdict, and reproduction command
+automatically.
+
+The exporter maps Ophamin's nine sections into schema.org
+vocabulary:
+
+- Root `Dataset` (`@id: "./"`) — the crate itself, name +
+  datePublished + identifier (the proof's content-addressed
+  `proof_id`)
+- `File` (`@id: "proof.json"`) — the signed proof JSON
+- `Dataset` (one per §4 DatasetRef) — content-addressed,
+  carries `url` (source) + `size` (n_records)
+- `SoftwareApplication` (`@id: "#substrate-<name>@<commit>"`) —
+  the substrate under test
+- `AssessAction` (`@id: "#verdict"`) — the §6 verdict, with
+  `result` as a `PropertyValue` carrying the observed metric
+- `SoftwareSourceCode` (`@id: "#reproduction"`) — the §7
+  reproduction command
+- `SoftwareApplication` (`@id: "#ophamin"`) — Ophamin itself,
+  with `softwareVersion` + `identifier` (git commit)
+
+See [`src/ophamin/interop/ro_crate.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/interop/ro_crate.py)
+for the full API. References:
+
+- [RO-Crate 1.2 specification](https://www.researchobject.org/ro-crate/specification/1.2/)
+- [Schema.org vocabulary](https://schema.org/)
+- [FAIR data principles](https://www.go-fair.org/fair-principles/)
+
 ## Cross-layer composition
 
 The layers are designed to compose. A typical pipeline:
@@ -240,7 +309,9 @@ The interop layers follow Ophamin's
   CloudEvents attribute names emitted, OTel span names and
   attribute names, in-toto Statement / DSSE constants
   (`IN_TOTO_STATEMENT_V1_TYPE`, `OPHAMIN_PREDICATE_TYPE_V1`,
-  `DSSE_INTOTO_PAYLOAD_TYPE`).
+  `DSSE_INTOTO_PAYLOAD_TYPE`), RO-Crate constants
+  (`RO_CRATE_CONTEXT_V1_2`, `RO_CRATE_CONFORMS_TO_V1_2`,
+  `DEFAULT_PROOF_FILENAME`).
 - **`@Provisional`** — implementation-internal details (Rust
   module layout under `crates/ophamin-proof/src/`, JS module
   layout under `packages/ophamin-proof-js/src/`, OTel metric

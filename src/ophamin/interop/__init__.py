@@ -21,6 +21,10 @@ Phase 1 exports (built):
   in-toto / DSSE   signed proofs → Sigstore / SLSA / Rekor / cosign /
                                     policy-controller / slsa-verifier — the
                                     entire supply-chain attestation ecosystem
+  RO-Crate 1.2     signed proofs → self-describing research-artifact
+                                    packaging; FAIR data principles;
+                                    research-data infrastructure (Galaxy,
+                                    Zenodo, WorkflowHub)
 
 All formats are well-specified industry standards (SARIF 2.1.0 OASIS spec;
 JUnit XML the de-facto Jenkins schema; in-toto Attestation Framework v1
@@ -63,6 +67,12 @@ from ophamin.interop.mlflow_export import (
     export_audit_record,
     export_proof_record,
 )
+from ophamin.interop.ro_crate import (
+    DEFAULT_PROOF_FILENAME,
+    RO_CRATE_CONFORMS_TO_V1_2,
+    RO_CRATE_CONTEXT_V1_2,
+    to_ro_crate_metadata,
+)
 from ophamin.interop.sarif import (
     SARIFExporter,
     audit_record_to_sarif,
@@ -70,11 +80,14 @@ from ophamin.interop.sarif import (
 
 __all__ = [
     "CycloneDXExporter",
+    "DEFAULT_PROOF_FILENAME",
     "DSSE_INTOTO_PAYLOAD_TYPE",
     "IN_TOTO_STATEMENT_V1_TYPE",
     "JUnitXMLExporter",
     "MLflowExporter",
     "OPHAMIN_PREDICATE_TYPE_V1",
+    "RO_CRATE_CONFORMS_TO_V1_2",
+    "RO_CRATE_CONTEXT_V1_2",
     "SARIFExporter",
     "audit_record_to_sarif",
     "build_cyclonedx_sbom_from_env",
@@ -84,5 +97,6 @@ __all__ = [
     "proof_record_to_junit_xml",
     "to_dsse_envelope",
     "to_in_toto_statement",
+    "to_ro_crate_metadata",
     "verify_dsse_envelope",
 ]

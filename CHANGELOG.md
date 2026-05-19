@@ -7,7 +7,195 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.35.1] below for the latest cut.)
+(empty — see [0.36.0] below for the latest cut.)
+
+## [0.36.0] — 2026-05-19
+
+**Headline:** Tier-1 strategic interop #2 — RO-Crate 1.2
+(Research Object Crate) wrapper for `EmpiricalProofRecord`.
+Ophamin proofs now package as self-describing JSON-LD
+artifacts ready for Zenodo deposit (DOI minting),
+WorkflowHub submission, Galaxy ingestion, or any other
+FAIR-data-aware infrastructure.
+
+This is the **seventh** interop layer. Where in-toto (0.35.0)
+provides cryptographic claims about a digest, RO-Crate
+provides self-describing package metadata about the artifact
+itself + its data + its provenance — the two layers are
+strictly complementary.
+
+### Added — `src/ophamin/interop/ro_crate.py` (~310 LOC)
+
+One public function + three pinned constants:
+
+- **`to_ro_crate_metadata(proof, *, proof_filename, extra_root_metadata) -> dict`**
+  Builds an RO-Crate 1.2 `ro-crate-metadata.json` content dict
+  for a signed `EmpiricalProofRecord`. The caller writes this
+  dict to a file alongside the proof JSON to produce a
+  complete self-describing RO-Crate directory.
+
+Pinned constants (all `@Stable`):
+
+- `RO_CRATE_CONTEXT_V1_2 = "https://w3id.org/ro/crate/1.2/context"`
+- `RO_CRATE_CONFORMS_TO_V1_2 = "https://w3id.org/ro/crate/1.2"`
+- `DEFAULT_PROOF_FILENAME = "proof.json"`
+
+### Mapping into RO-Crate / schema.org vocabulary
+
+Ophamin's nine sections map into schema.org entities for the
+`@graph`:
+
+- Root descriptor (`ro-crate-metadata.json`) → `CreativeWork`
+  conforming to RO-Crate 1.2
+- Root data entity (`./`) → `Dataset` with `name`,
+  `datePublished`, `identifier` (the proof's content-addressed
+  `proof_id`), `mainEntity` pointing to the proof file,
+  `hasPart` listing the proof + each §4 dataset
+- Proof JSON (`proof.json`) → `File` with
+  `encodingFormat: "application/json"`, `identifier` = the
+  signature (or `proof_id` for unsigned proofs)
+- Each §4 `DatasetRef` → `Dataset` (`@id: "#dataset-<hash>"`)
+  with `identifier` = full content_hash, `url` = source,
+  `size` = QuantitativeValue carrying n_records
+- §4 substrate → `SoftwareApplication`
+  (`@id: "#substrate-<name>@<commit>"`)
+- §6 verdict → `AssessAction` (`@id: "#verdict"`) with `result`
+  as a `PropertyValue` carrying the observed metric + units;
+  the structured outcome (VALIDATED / REFUTED / INCONCLUSIVE)
+  lands in `additionalType`
+- §7 reproduction command → `SoftwareSourceCode`
+  (`@id: "#reproduction"`)
+- §1 ophamin_version + git_commit → `SoftwareApplication`
+  (`@id: "#ophamin"`)
+
+### What this unlocks (downstream consumers)
+
+Anything that consumes RO-Crate now consumes Ophamin proofs
+directly:
+
+- **Zenodo**: upload the crate directory → Zenodo mints a DOI,
+  the proof becomes a permanently-citable research artifact
+  with all metadata indexed.
+- **WorkflowHub**: register the crate as a Workflow Object —
+  reproduction command + substrate version land as the
+  workflow's runnable component.
+- **Galaxy** / **Lifemonitor** / **ROCrate Player**: standard
+  consumers of RO-Crate render the metadata graph natively
+  with no Ophamin-specific code path required.
+- **Custom JSON-LD ingest** (Neo4j / Stardog / Apache Jena):
+  the `@context` + `@graph` is fully spec-compliant JSON-LD;
+  loaders index every entity into the RDF triple store.
+
+### Added — exports
+
+`ophamin.interop` now re-exports `to_ro_crate_metadata` + the
+three RO-Crate constants. Consumers can write:
+
+```python
+from ophamin.interop import to_ro_crate_metadata
+metadata = to_ro_crate_metadata(signed_proof, extra_root_metadata={...})
+```
+
+### Hardening pins — `tests/test_ro_crate_interop.py` (48 tests)
+
+Every load-bearing property of the export contract pinned:
+
+- Constants stability: `@context` URI, `conformsTo` URI,
+  default filename.
+- Top-level shape: exactly `@context` + `@graph` keys; graph
+  is a list; entities have `@id` + `@type`; all `@id`s unique.
+- Root descriptor: `@id == "ro-crate-metadata.json"`,
+  `@type == "CreativeWork"`, `about == {"@id": "./"}`,
+  `conformsTo == RO_CRATE_CONFORMS_TO_V1_2`.
+- Root Dataset: `@id == "./"`, `@type == "Dataset"`, has
+  name + datePublished + identifier (= proof_id),
+  conforms to RO-Crate 1.2 + Ophamin schema URI,
+  mainEntity points to proof file.
+- Proof file entity: `@type == "File"`,
+  `encodingFormat == "application/json"`, `identifier == signature`
+  when signed and `== proof_id` when unsigned (fallback path).
+- Custom `proof_filename` propagates to mainEntity AND the
+  file entity's `@id`.
+- §4 dataset mapping: each DatasetRef → `#dataset-<short>`
+  with content_hash as `identifier`, source as `url`,
+  n_records as `size.value` (QuantitativeValue with
+  `unitText: "records"`).
+- Datasets all appear in root `hasPart` alongside proof file.
+- Substrate: SoftwareApplication with name + softwareVersion =
+  git_commit; commit-less substrate still emits cleanly.
+- Verdict: AssessAction with `actionStatus = CompletedActionStatus`,
+  `result` is PropertyValue with `propertyID` = metric +
+  `value` = observed + `unitText` = units, and `additionalType`
+  carries the structured VALIDATED/REFUTED/INCONCLUSIVE token.
+- Reproduction: SoftwareSourceCode with
+  `programmingLanguage = "shell"`, `text` = the command.
+- Ophamin entity: identifier = git_commit, url = the GitHub
+  repo URL.
+- Security: empty / absolute / path-traversal / NUL-byte
+  filenames → `ValueError`. Nested-relative filenames
+  (`"data/proofs/proof.json"`) accepted.
+- `extra_root_metadata` merges into root Dataset; the merge
+  semantics permit overwrite (documented contract — a future
+  ship may tighten this to refuse required-field overwrite).
+- Serializability: `json.dumps(metadata, sort_keys=True)`
+  round-trips losslessly. `json.dumps(metadata, indent=2)`
+  produces human-readable output.
+- Graph-shape end-to-end: minimum 6 entities for a zero-dataset
+  proof (root descriptor + root Dataset + proof File + substrate
+  + verdict + reproduction + ophamin); grows linearly with §4
+  dataset count.
+
+All 48 tests pass locally. Full interop suite at this commit:
+130 tests across SARIF + JUnit + MLflow + CycloneDX + in-toto
++ RO-Crate.
+
+### Documentation — `docs/INTEROP_OVERVIEW.md`
+
+- "At a glance" table extended 6 → 7 layers.
+- New section: "I want my proof packaged for Zenodo / Galaxy /
+  WorkflowHub." — runnable Python example showing the
+  full self-describing crate directory build (proof.json +
+  ro-crate-metadata.json), full schema.org entity-mapping
+  table, links to RO-Crate 1.2 spec + schema.org + FAIR data
+  principles.
+- `@Stable` surface inventory extended with the three
+  RO-Crate constants.
+
+### What this does NOT include (out of scope for 0.36.0)
+
+- Physical crate-directory writer — the function returns the
+  metadata dict; the caller composes the directory. A future
+  ship can add `write_ro_crate(proof, output_dir)` as a
+  convenience wrapper that combines the metadata-build + the
+  file-writes.
+- BagIt packaging (RO-Crate-on-BagIt) — RO-Crate supports
+  being layered onto BagIt for stronger fixity guarantees but
+  the layering is a separate primitive.
+- Per-PillarEvidence `MeasurementValue` entities — current
+  version embeds the evidence inside `proof.json` only. A
+  future ship can expand each `PillarEvidence` to a
+  separate schema.org entity for finer-grained JSON-LD
+  discovery.
+- Direct Zenodo deposit / DOI minting — owner-physical step
+  per Tier-1 STATUS pin. The crate is the input; Zenodo's
+  API requires manual key management out of band.
+
+### Verification
+
+- `pytest tests/test_ro_crate_interop.py` → 48/48 pass.
+- `pytest tests/test_interop.py tests/test_in_toto_interop.py
+  tests/test_ro_crate_interop.py` → 130/130 pass (no regression).
+- `mkdocs build --strict` → clean (pending CI confirmation).
+- Module re-exports from `ophamin.interop` parse cleanly via
+  `python -c "from ophamin.interop import to_ro_crate_metadata"`.
+
+### What this opens for next-direction work
+
+Per `docs/TOOL_LANDSCAPE_2026_05_19.md` Tier-1 #3:
+**OpenLineage emitter** — Ophamin proofs as lineage events on
+real-time data-pipeline infrastructure (Airflow, Spark, dbt,
+Marquez). With RO-Crate landing the static-packaging side,
+OpenLineage covers the streaming side. Autonomous-doable.
 
 ## [0.35.1] — 2026-05-19
 
