@@ -359,3 +359,78 @@ jobs:
           fi
           echo "::warning::Unknown Quality Gate status: $GATE_STATUS"
           exit 0
+
+      - name: Generate Sonar user token for proof signing
+        # The 0.56.0 SonarQubeScanProof scenario authenticates via
+        # HTTP Basic with a user token (token-as-user). Generate one
+        # against the ephemeral instance — admin/admin is the bundled
+        # default (no first-login password change needed since this
+        # instance lives ~30 minutes).
+        id: sonar_token
+        run: |
+          TOKEN_JSON=$(curl -fsS -X POST -u admin:admin \
+              "http://localhost:9000/api/user_tokens/generate?name=ophamin-ci-proof-$$")
+          TOKEN=$(echo "$TOKEN_JSON" | jq -r '.token')
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+              echo "::error::failed to generate Sonar token"
+              echo "$TOKEN_JSON"
+              exit 1
+          fi
+          # Mask in logs so the token doesn't leak in subsequent step
+          # output. GHA masks anything emitted with `::add-mask::`.
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Emit signed SonarQubeScanProof (0.56.0+)
+        # Runs the new SonarQubeScanProof scenario against the
+        # ephemeral instance, captures the signed EmpiricalProofRecord
+        # (qg_passed threshold + 7 canonical measures + dashboard URL),
+        # writes the proof JSON to disk, and prints proof_id + verdict
+        # to the step summary. The artifact upload step below ships it
+        # as a build artefact for downstream consumption.
+        env:
+          SONAR_TOKEN: ${{ steps.sonar_token.outputs.token }}
+        run: |
+          mkdir -p proofs/ci-sonar
+          PROOF_PATH="proofs/ci-sonar/sonar-scan-${{ github.sha }}.json"
+          PYTHONPATH=src python <<'PYEOF'
+          import json
+          import os
+          from pathlib import Path
+          from ophamin.measuring.scenarios.sonarqube_scan import SonarQubeScanProof
+
+          token = os.environ["SONAR_TOKEN"]
+          scenario = SonarQubeScanProof(
+              base_url="http://localhost:9000",
+              project_key="ophamin",
+              token=token,
+          )
+          proof = scenario.run()
+          out = Path("proofs/ci-sonar") / f"sonar-scan-{os.environ['GITHUB_SHA']}.json"
+          out.write_text(json.dumps(proof.to_dict(), indent=2))
+          print(f"PROOF_ID={proof.proof_id}")
+          print(f"VERDICT={proof.verdict.outcome}")
+          print(f"WROTE={out}")
+          # Sanity-check the signature round-trip.
+          assert proof.verify_signature(b"ophamin-scenario-proof-key"), "signature mismatch"
+          PYEOF
+          # Surface the result in the step summary
+          {
+              echo "## SonarQubeScanProof (signed)"
+              echo ""
+              echo "Proof artifact written to: \`$PROOF_PATH\`"
+              echo ""
+              echo "First lines:"
+              echo '```json'
+              head -25 "$PROOF_PATH"
+              echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload signed SonarQubeScanProof artefact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sonar-scan-proof-${{ github.sha }}
+          path: proofs/ci-sonar/sonar-scan-*.json
+          retention-days: 90
+          if-no-files-found: warn

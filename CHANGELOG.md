@@ -7,7 +7,53 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.57.0] below for the latest cut.)
+(empty — see [0.58.0] below for the latest cut.)
+
+## [0.58.0] — 2026-05-19
+
+**Headline:** CI now emits the signed `SonarQubeScanProof` as a
+workflow artefact on every push / PR. Closes the code-quality
+observability loop end-to-end: scan → measure → verdict → SIGN →
+ARTEFACT — the same five-step shape Ophamin uses for cognitive-tier
+scenarios.
+
+What changed in `.github/workflows/sonar.yml`:
+
+1. **New step: `Generate Sonar user token for proof signing`** —
+   runs after the QG check, POSTs to `/api/user_tokens/generate`
+   with `admin:admin` HTTP Basic against the ephemeral instance,
+   masks the token via `::add-mask::` so it doesn't leak in later
+   step output, and writes it to `GITHUB_OUTPUT`.
+
+2. **New step: `Emit signed SonarQubeScanProof (0.56.0+)`** —
+   imports `SonarQubeScanProof` from
+   `ophamin.measuring.scenarios.sonarqube_scan`, runs the scenario
+   against the ephemeral instance (project `ophamin`), writes the
+   proof JSON to `proofs/ci-sonar/sonar-scan-${github.sha}.json`,
+   verifies the signature round-trip (loud-fails on tampering),
+   and prints the first 25 lines into the GHA step summary.
+
+3. **New step: `Upload signed SonarQubeScanProof artefact`** —
+   `actions/upload-artifact@v4`, artifact name carries
+   `${github.sha}` to avoid collision across runs, `if: always()`
+   so the proof uploads even when an earlier step failed (the
+   proof is *most* useful on QG failure — that's when the operator
+   wants tamper-evident evidence), `retention-days: 90`.
+
+Added:
+
+- `.github/workflows/sonar.yml` — three new steps positioned after
+  the existing `Check Quality Gate` step.
+- `tests/test_sonar_workflow.py` — 12 new hardening pins covering
+  the three steps' structure (token endpoint + mask + GITHUB_OUTPUT
+  routing; scenario step env-passing not cmd-line; artifact
+  upload-action version + sha-in-name + if:always + retention).
+
+Operator note: the CI proof captures `project=ophamin` (the CI's
+self-scan), not `project=kimera-swm`. The Kimera-SWM proof from
+0.56.0 is produced separately by the operator running the scenario
+against their local stack post-`bash scripts/sonar_scan.sh
+/path/to/Kimera_SWM`.
 
 ## [0.57.0] — 2026-05-19
 

@@ -403,3 +403,160 @@ def test_workflow_owasp_dc_emits_sarif(workflow):
     )
     run = dc_step.get("run", "")
     assert "SARIF" in run or "sarif" in run.lower()
+
+
+# --------------------------------------------------------------------------
+# 0.58.0 — Signed SonarQubeScanProof artefact emission
+# --------------------------------------------------------------------------
+
+
+def test_workflow_has_token_generation_step(workflow):
+    """The signed-proof scenario authenticates via a Sonar token.
+    CI must generate one against the ephemeral instance before the
+    scenario step runs."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    names = [s.get("name", "") for s in steps]
+    assert any("Generate Sonar user token" in n for n in names), (
+        "missing token-generation step in sonar.yml"
+    )
+
+
+def test_workflow_token_generation_uses_user_tokens_generate_api(workflow):
+    steps = workflow["jobs"]["scan"]["steps"]
+    token_step = next(
+        s for s in steps if "Generate Sonar user token" in s.get("name", "")
+    )
+    run = token_step.get("run", "")
+    # The right API endpoint:
+    assert "/api/user_tokens/generate" in run
+    # HTTP Basic with admin/admin against the ephemeral instance:
+    assert "admin:admin" in run
+    # GHA masking is required so the token doesn't leak in subsequent
+    # step output.
+    assert "::add-mask::" in run
+
+
+def test_workflow_token_generation_writes_to_step_output(workflow):
+    """The token needs to flow to the scenario step via GITHUB_OUTPUT."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    token_step = next(
+        s for s in steps if "Generate Sonar user token" in s.get("name", "")
+    )
+    assert "id" in token_step, "token step needs an id for outputs"
+    assert token_step["id"] == "sonar_token"
+    run = token_step.get("run", "")
+    assert "GITHUB_OUTPUT" in run
+    assert "token=" in run
+
+
+def test_workflow_has_scenario_emit_step(workflow):
+    steps = workflow["jobs"]["scan"]["steps"]
+    names = [s.get("name", "") for s in steps]
+    assert any("SonarQubeScanProof" in n for n in names), (
+        "missing SonarQubeScanProof emit step"
+    )
+
+
+def test_workflow_scenario_step_passes_token_via_env(workflow):
+    """The scenario step receives the token via env (not via command
+    line — that would leak in process listings)."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    emit_step = next(
+        s for s in steps if "SonarQubeScanProof" in s.get("name", "")
+    )
+    env = emit_step.get("env", {})
+    assert "SONAR_TOKEN" in env
+    assert "steps.sonar_token.outputs.token" in env["SONAR_TOKEN"]
+
+
+def test_workflow_scenario_step_imports_real_scenario_class(workflow):
+    """The CI step must import the real class so a future rename
+    surfaces here as a hard failure."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    emit_step = next(
+        s for s in steps if "SonarQubeScanProof" in s.get("name", "")
+    )
+    run = emit_step.get("run", "")
+    assert "from ophamin.measuring.scenarios.sonarqube_scan import" in run
+    assert "SonarQubeScanProof" in run
+
+
+def test_workflow_scenario_step_writes_proof_json_to_disk(workflow):
+    """The proof JSON must land at a stable artifact path so the
+    upload-artifact step can pick it up."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    emit_step = next(
+        s for s in steps if "SonarQubeScanProof" in s.get("name", "")
+    )
+    run = emit_step.get("run", "")
+    assert "proofs/ci-sonar" in run
+    assert "to_dict" in run or "to_json" in run
+    # Sanity-check signature verification before shipping the artifact
+    assert "verify_signature" in run
+
+
+def test_workflow_has_artifact_upload_step(workflow):
+    steps = workflow["jobs"]["scan"]["steps"]
+    found = any(
+        "actions/upload-artifact" in str(s.get("uses", ""))
+        and "sonar-scan-proof" in str(s.get("with", {}).get("name", ""))
+        for s in steps
+    )
+    assert found, "missing upload-artifact step for the signed proof"
+
+
+def test_workflow_artifact_step_uses_v4_or_higher(workflow):
+    """actions/upload-artifact@v3 was deprecated in 2024 — pin to v4+."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    upload_step = next(
+        s for s in steps
+        if "actions/upload-artifact" in str(s.get("uses", ""))
+        and "sonar-scan-proof" in str(s.get("with", {}).get("name", ""))
+    )
+    uses = upload_step["uses"]
+    # uses is like "actions/upload-artifact@v4"
+    version_tag = uses.split("@")[-1]
+    # Either v4 / v5 / ... (semver-major-tag) — refuse v3 or lower.
+    assert version_tag.startswith("v4") or version_tag.startswith("v5"), (
+        f"upload-artifact must be v4+; got {version_tag}"
+    )
+
+
+def test_workflow_artifact_step_includes_sha_in_name(workflow):
+    """The artifact name should carry github.sha so multiple workflow
+    runs don't collide on artifact upload."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    upload_step = next(
+        s for s in steps
+        if "actions/upload-artifact" in str(s.get("uses", ""))
+        and "sonar-scan-proof" in str(s.get("with", {}).get("name", ""))
+    )
+    name = upload_step["with"]["name"]
+    assert "github.sha" in name
+
+
+def test_workflow_artifact_step_uploads_even_on_quality_gate_failure(workflow):
+    """The signed proof is most useful WHEN the gate fails — capture
+    it regardless so the operator has a tamper-evident record."""
+    steps = workflow["jobs"]["scan"]["steps"]
+    upload_step = next(
+        s for s in steps
+        if "actions/upload-artifact" in str(s.get("uses", ""))
+        and "sonar-scan-proof" in str(s.get("with", {}).get("name", ""))
+    )
+    # `if: always()` survives earlier-step failures.
+    assert upload_step.get("if") == "always()"
+
+
+def test_workflow_artifact_step_pins_retention():
+    """Artifacts have storage cost — pin to ≤90 days."""
+    import yaml as _y
+    wf = _y.safe_load(WORKFLOW.read_text())
+    steps = wf["jobs"]["scan"]["steps"]
+    upload_step = next(
+        s for s in steps
+        if "actions/upload-artifact" in str(s.get("uses", ""))
+        and "sonar-scan-proof" in str(s.get("with", {}).get("name", ""))
+    )
+    retention = upload_step["with"].get("retention-days", 90)
+    assert int(retention) <= 90, "retention-days must be ≤ 90"
