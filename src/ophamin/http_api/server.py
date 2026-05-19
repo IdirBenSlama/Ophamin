@@ -14,7 +14,14 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    CollectorRegistry,
+    Gauge,
+    Info,
+    generate_latest,
+)
 from pydantic import BaseModel, Field
 
 from ophamin import __version__
@@ -26,6 +33,7 @@ from ophamin.interfaces._impls import (
     run_scenario_impl,
     verify_proof_impl,
 )
+from ophamin.measuring.scenarios import SCENARIOS
 
 #: Public server identity. Reused by ``ophamin.http_api.__init__`` and the CLI.
 SERVER_NAME: str = "ophamin-http-api"
@@ -162,6 +170,43 @@ def build_app() -> FastAPI:
             "title": SERVER_TITLE,
             "framework_version": SERVER_VERSION,
         }
+
+    @app.get(
+        "/metrics",
+        summary="Prometheus exposition",
+        description=(
+            "Returns Ophamin runtime metrics in the Prometheus text "
+            "exposition format. Each call builds a fresh registry — "
+            "stateless gauges only, no in-process counter accumulation "
+            "(scenario runs are short-lived; cross-pod aggregation "
+            "happens at the Prometheus layer). The Helm chart's "
+            "ServiceMonitor / PodMonitor templates scrape this path."
+        ),
+        tags=["lifecycle"],
+        response_class=PlainTextResponse,
+        responses={
+            200: {
+                "content": {CONTENT_TYPE_LATEST: {}},
+                "description": "Prometheus text exposition.",
+            },
+        },
+    )
+    def metrics() -> PlainTextResponse:
+        registry = CollectorRegistry()
+        Info(
+            "ophamin_build",
+            "Ophamin framework build identity",
+            registry=registry,
+        ).info({"version": SERVER_VERSION, "name": SERVER_NAME})
+        Gauge(
+            "ophamin_scenarios_registered",
+            "Number of scenarios currently in the registry.",
+            registry=registry,
+        ).set(len(SCENARIOS))
+        return PlainTextResponse(
+            generate_latest(registry).decode("utf-8"),
+            media_type=CONTENT_TYPE_LATEST,
+        )
 
     # ------------------------------------------------------------------
     # Read endpoints

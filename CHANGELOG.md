@@ -7,7 +7,90 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.56.0] below for the latest cut.)
+(empty — see [0.57.0] below for the latest cut.)
+
+## [0.57.0] — 2026-05-19
+
+**Headline:** Tier 2 of the post-0.55.0 SonarQube-ecosystem follow-up
+— chart polish bundle that takes the Helm chart from "deployable" to
+"observable + cloud-native". Five additions, all default-OFF so
+existing installs are unaffected:
+
+1. **Prometheus Operator integration** — new `ServiceMonitor` and
+   `PodMonitor` templates (CRD apiVersion `monitoring.coreos.com/v1`).
+   Both are gated on `monitoring.{serviceMonitor,podMonitor}.enabled`
+   AND `http.enabled`; both target the chart's named `http` port via
+   `httpSelectorLabels`. ServiceMonitor scrapes via the Service layer;
+   PodMonitor scrapes Pods directly. Use one or both depending on the
+   operator's Prometheus configuration.
+
+2. **`/metrics` endpoint on `ophamin http serve`** — the chart's
+   monitors point at a real endpoint now (previously: nothing to
+   scrape). The endpoint returns Prometheus text exposition format
+   and surfaces two metrics:
+     - `ophamin_build_info` — version + server-name labels
+     - `ophamin_scenarios_registered` — count of scenarios in the
+       registry
+   Stdlib-only on the runtime side (`prometheus_client` is already a
+   dep via the PrometheusScrapeProbe Kimera-side); per-scrape
+   `CollectorRegistry` so the endpoint stays stateless.
+
+3. **Cloud-managed workload identity** — new `workloadIdentity.{gke,
+   eks, aks}` blocks in `values.yaml` map the per-cloud
+   identity-binding annotation (`iam.gke.io/gcp-service-account`,
+   `eks.amazonaws.com/role-arn`, `azure.workload.identity/client-id`)
+   into the ServiceAccount via a new `ophamin.serviceAccount.annotations`
+   helper. Mutually exclusive — enabling more than one cloud raises a
+   fatal template error at install time. AKS additionally requires
+   `azure.workload.identity/use=true` on the Pod template; the chart
+   auto-injects via the `ophamin.aksPodLabelEnabled` helper on both
+   HTTP and MCP Deployments.
+
+4. **MCP helm-test Pod** — new `tests/test-mcp-tcp.yaml` rendered only
+   when `mcp.enabled=true`. Probes the MCP Service's TCP port via
+   `busybox:1.37` + `nc -z` with five retries. Cheap minimum-viable
+   liveness signal at the network layer; the full MCP handshake is
+   deliberately out of scope (use `examples/walkthrough_mcp_server.py`
+   for that).
+
+5. **Pre-baked Kimera-SWM Quality Gate** — new
+   `sonar/kimera-swm-quality-gate.json` ships a Clean-as-You-Code
+   gate spec (NEW-code: bugs / vulnerabilities / hotspots-reviewed /
+   duplication / coverage; overall ratchet on vulnerabilities +
+   duplication anchored to the 0.55.0 baseline). New
+   `scripts/sonar_apply_quality_gate.sh` applies the spec
+   idempotently via `/api/qualitygates/{create,delete_condition,
+   create_condition,select}`. Safe to wire into CI / GitOps
+   post-deploy hooks.
+
+Added:
+
+- `src/ophamin/http_api/server.py` — `/metrics` route returning
+  Prometheus exposition (build_info + scenarios_registered gauges).
+- `charts/ophamin/templates/servicemonitor.yaml` (~50 LOC).
+- `charts/ophamin/templates/podmonitor.yaml` (~50 LOC).
+- `charts/ophamin/templates/tests/test-mcp-tcp.yaml` (~50 LOC).
+- `charts/ophamin/templates/_helpers.tpl` — two new helpers
+  (`ophamin.serviceAccount.annotations` with mutually-exclusive
+  validation + `ophamin.aksPodLabelEnabled`).
+- `charts/ophamin/templates/serviceaccount.yaml` — switched from
+  static `toYaml .Values.serviceAccount.annotations` to the new
+  merging helper so cloud identity flows through.
+- `charts/ophamin/templates/deployment-http.yaml` +
+  `deployment-mcp.yaml` — Pod-template label injection for AKS.
+- `charts/ophamin/values.yaml` — new `monitoring` block + new
+  `workloadIdentity` block (both default-OFF).
+- `sonar/kimera-swm-quality-gate.json` — 7-condition Clean-as-You-Code
+  spec with baseline rationale comments.
+- `scripts/sonar_apply_quality_gate.sh` — idempotent apply over the
+  Sonar REST API. Executable.
+- `tests/test_helm_chart.py` — 24 new hardening pins covering all
+  of the above.
+- `tests/test_http_api.py` — 4 new hardening pins for `/metrics`.
+
+Total hardening growth this round: +28 pins (158/158 pass on the
+SonarQube-scenario + Helm-chart + HTTP-API focused selection).
+
 
 ## [0.56.0] — 2026-05-19
 

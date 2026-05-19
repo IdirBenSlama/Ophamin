@@ -60,6 +60,40 @@ class TestHealthAndVersion:
         assert body["framework_version"] == __version__
 
 
+class TestMetrics:
+    """Pins on /metrics — the Prometheus exposition endpoint added in
+    0.57.0 to back the chart's ServiceMonitor + PodMonitor templates."""
+
+    def test_metrics_returns_200(self, client: TestClient) -> None:
+        r = client.get("/metrics")
+        assert r.status_code == 200
+
+    def test_metrics_content_type_is_prometheus_text_exposition(
+        self, client: TestClient,
+    ) -> None:
+        r = client.get("/metrics")
+        # The Prometheus text exposition format is
+        # `text/plain; version=0.0.4` or similar; check the prefix.
+        assert r.headers["content-type"].startswith("text/plain")
+        assert "version=" in r.headers["content-type"]
+
+    def test_metrics_surface_carries_build_info(self, client: TestClient) -> None:
+        body = client.get("/metrics").text
+        assert "ophamin_build_info" in body
+        assert f'version="{__version__}"' in body
+
+    def test_metrics_surface_carries_scenarios_registered_gauge(
+        self, client: TestClient,
+    ) -> None:
+        body = client.get("/metrics").text
+        assert "ophamin_scenarios_registered" in body
+        # value line follows the format `metric_name X.0` — count >= 1
+        # because the framework always has scenarios registered.
+        from ophamin.measuring.scenarios import SCENARIOS
+        expected = f"ophamin_scenarios_registered {float(len(SCENARIOS))}"
+        assert expected in body
+
+
 class TestScenariosListing:
     def test_get_scenarios_returns_registry(self, client: TestClient) -> None:
         r = client.get("/scenarios")

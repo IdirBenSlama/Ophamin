@@ -85,3 +85,66 @@ fallback when values.image.tag is empty.
 {{- $tag := .Values.image.tag | default .Chart.AppVersion -}}
 {{- printf "%s:%s" .Values.image.repository $tag -}}
 {{- end -}}
+
+{{/*
+ServiceAccount annotations — merges user-supplied
+.Values.serviceAccount.annotations with the cloud-managed workload-identity
+annotation when one of the workloadIdentity.{gke,eks,aks} blocks is
+enabled. Mutually exclusive: enabling multiple clouds raises a fatal
+template error so the misconfiguration is caught at install time.
+*/}}
+{{- define "ophamin.serviceAccount.annotations" -}}
+{{- $wi := .Values.workloadIdentity | default dict -}}
+{{- $gke := and $wi.gke $wi.gke.enabled -}}
+{{- $eks := and $wi.eks $wi.eks.enabled -}}
+{{- $aks := and $wi.aks $wi.aks.enabled -}}
+{{- $enabled := 0 -}}
+{{- if $gke }}{{- $enabled = add $enabled 1 -}}{{- end -}}
+{{- if $eks }}{{- $enabled = add $enabled 1 -}}{{- end -}}
+{{- if $aks }}{{- $enabled = add $enabled 1 -}}{{- end -}}
+{{- if gt $enabled 1 -}}
+{{- fail "workloadIdentity: only one of gke / eks / aks may be enabled at once" -}}
+{{- end -}}
+{{- $merged := dict -}}
+{{- with .Values.serviceAccount.annotations -}}
+  {{- range $k, $v := . -}}
+    {{- $_ := set $merged $k $v -}}
+  {{- end -}}
+{{- end -}}
+{{- if $gke -}}
+  {{- if not $wi.gke.gcpServiceAccount -}}
+    {{- fail "workloadIdentity.gke.enabled=true requires workloadIdentity.gke.gcpServiceAccount" -}}
+  {{- end -}}
+  {{- $_ := set $merged "iam.gke.io/gcp-service-account" $wi.gke.gcpServiceAccount -}}
+{{- end -}}
+{{- if $eks -}}
+  {{- if not $wi.eks.roleArn -}}
+    {{- fail "workloadIdentity.eks.enabled=true requires workloadIdentity.eks.roleArn" -}}
+  {{- end -}}
+  {{- $_ := set $merged "eks.amazonaws.com/role-arn" $wi.eks.roleArn -}}
+{{- end -}}
+{{- if $aks -}}
+  {{- if not $wi.aks.clientId -}}
+    {{- fail "workloadIdentity.aks.enabled=true requires workloadIdentity.aks.clientId" -}}
+  {{- end -}}
+  {{- $_ := set $merged "azure.workload.identity/client-id" $wi.aks.clientId -}}
+  {{- with $wi.aks.tenantId -}}
+    {{- $_ := set $merged "azure.workload.identity/tenant-id" . -}}
+  {{- end -}}
+{{- end -}}
+{{- if $merged -}}
+{{ toYaml $merged }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+AKS workload-identity Pod label injection — AKS requires the
+`azure.workload.identity/use=true` label on the Pod template (not just
+the SA annotation). Returns "true" when AKS workload-identity is
+enabled, empty otherwise. Callers nest under `metadata.labels` next to
+their user-supplied podLabels.
+*/}}
+{{- define "ophamin.aksPodLabelEnabled" -}}
+{{- $wi := .Values.workloadIdentity | default dict -}}
+{{- if and $wi.aks $wi.aks.enabled -}}true{{- end -}}
+{{- end -}}

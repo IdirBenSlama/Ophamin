@@ -1,0 +1,52 @@
+{{/*
+  Helm-test Pod for the MCP surface — only rendered when mcp.enabled.
+
+  The MCP server runs the streamable-http transport over a TCP port
+  (default 8765) when deployed in K8s; stdio is not reachable across
+  a Pod boundary. The MCP protocol itself uses session-based
+  HTTP+SSE — too rich to fully exercise from a `helm test` Pod — so
+  this test only verifies that the TCP port is open and accepts a
+  connection, which is the minimum viable liveness signal at the
+  network layer.
+
+  For a deeper smoke (actual MCP handshake), use a dedicated
+  integration test outside helm test — examples/walkthrough_mcp_server.py
+  is the reference.
+*/}}
+{{- if .Values.mcp.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "ophamin.fullname" . }}-test-mcp-tcp
+  labels:
+    {{- include "ophamin.labels" . | nindent 4 }}
+    app.kubernetes.io/component: helm-test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: tcp-probe
+      # busybox carries `nc` for TCP-port probes — cheaper than curl
+      # for what we need (just verify the port accepts a connection).
+      image: busybox:1.37
+      command:
+        - sh
+        - -c
+        - |
+          set -e
+          HOST={{ include "ophamin.fullname" . }}-mcp
+          PORT={{ .Values.service.mcp.port }}
+          echo "Probing $HOST:$PORT..."
+          for i in 1 2 3 4 5; do
+              if nc -z -w 5 "$HOST" "$PORT"; then
+                  echo "OK — TCP $HOST:$PORT accepts connections"
+                  exit 0
+              fi
+              echo "Attempt $i failed; sleeping 3s"
+              sleep 3
+          done
+          echo "ERROR: TCP $HOST:$PORT did not accept after 5 attempts"
+          exit 1
+{{- end }}

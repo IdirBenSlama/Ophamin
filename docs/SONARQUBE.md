@@ -339,6 +339,49 @@ Customize at `http://localhost:9000/quality_gates`. Gate applies
 to **new code** (defined by the project's new-code reference);
 historical code is reported but not gated.
 
+### Pre-baked Kimera-SWM gate (0.57.0+)
+
+Ophamin ships an opinionated Kimera-SWM gate spec at
+`sonar/kimera-swm-quality-gate.json` along with an idempotent apply
+script. Run it once per stack lifetime (or whenever the spec
+changes):
+
+```bash
+export SONAR_TOKEN=<your token>      # generated under /account/security
+export SONAR_BASE_URL=http://localhost:9000  # defaults to this
+export SONAR_PROJECT=kimera-swm      # defaults to this
+bash scripts/sonar_apply_quality_gate.sh sonar/kimera-swm-quality-gate.json
+```
+
+The gate has 7 conditions: 5 on NEW code (bugs / vulnerabilities /
+hotspots-reviewed / duplication / coverage) plus 2 overall
+ratchets (vulnerabilities + duplication) anchored to the 0.55.0
+empirical baseline. Re-running the script is a no-op when the
+spec hasn't changed; it tears down + re-adds conditions in place
+when the JSON has drifted, so it's safe to wire into CI / GitOps
+post-deploy hooks.
+
+### Signed gate verdicts (0.56.0+)
+
+The new `SonarQubeScanProof` Ophamin scenario captures the gate
+verdict as a signed `EmpiricalProofRecord` — same five-tuple
+discipline as cognitive-tier scenarios, threshold `qg_passed >= 1.0`
+(QG status == OK). Run it via the CLI or the run_scenario API:
+
+```bash
+PYTHONPATH=src .venv/bin/python -c "
+from ophamin.measuring.scenarios.sonarqube_scan import SonarQubeScanProof
+proof = SonarQubeScanProof(token='<your token>').run()
+print('verdict:', proof.verdict.outcome)
+print('proof_id:', proof.proof_id)
+"
+```
+
+The proof's evidence detail carries the 7 canonical measures
+(bugs / vulnerabilities / security_hotspots / code_smells /
+duplicated_lines_density / ncloc / sqale_index) + the dashboard
+URL + the SonarQube server version.
+
 ## Architecture
 
 ```text

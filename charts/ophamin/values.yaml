@@ -233,6 +233,84 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 75
 
 # ----------------------------------------------------------------------
+# Monitoring — Prometheus Operator integration. Disabled by default;
+# enable on clusters where the Prometheus Operator CRDs are installed.
+#
+# When `monitoring.serviceMonitor.enabled` is true, the chart renders a
+# `monitoring.coreos.com/v1` ServiceMonitor that scrapes the HTTP serve
+# Pod's `/metrics` endpoint via the chart's Service. When
+# `monitoring.podMonitor.enabled` is true, the chart renders a sibling
+# PodMonitor that scrapes Pods directly (use this when the operator's
+# Prometheus instance is configured with Pod-level service discovery).
+# Both can coexist; one-or-the-other is the typical pattern.
+#
+# The `/metrics` endpoint was added in 0.57.0 and surfaces:
+#   * ophamin_build_info — version + server-name labels
+#   * ophamin_scenarios_registered — count of scenarios in the registry
+#
+# ----------------------------------------------------------------------
+monitoring:
+  # Common scrape path / port — both ServiceMonitor + PodMonitor inherit.
+  scrapePath: /metrics
+  scrapeInterval: 30s
+  scrapeTimeout: 10s
+
+  serviceMonitor:
+    enabled: false
+    # Extra labels for Prometheus Operator's namespaceSelector matching.
+    # Many operator installs require a release label to pick the CRD up.
+    additionalLabels: {}
+    # Override the namespace where the ServiceMonitor is created.
+    # Default: same namespace as the chart release.
+    namespace: ""
+    # Relabel/metricsRelabel hooks — passed through verbatim.
+    relabelings: []
+    metricRelabelings: []
+
+  podMonitor:
+    enabled: false
+    additionalLabels: {}
+    namespace: ""
+    relabelings: []
+    metricRelabelings: []
+
+# ----------------------------------------------------------------------
+# Workload identity — convenience block for cloud-managed identity.
+# Sets the right serviceAccount.annotations for each major cloud's
+# workload-identity binding so the operator doesn't have to learn the
+# annotation key per cloud.
+#
+# Only one cloud at a time should be enabled; the chart fails fast at
+# template time when multiple are enabled. See the README for the
+# trust-policy / role-binding setup each cloud requires on the cluster
+# side — this chart's responsibility ends at the pod's SA annotation.
+# ----------------------------------------------------------------------
+workloadIdentity:
+  # GKE (Google) — annotation: iam.gke.io/gcp-service-account
+  gke:
+    enabled: false
+    # The fully-qualified GCP service account this pod impersonates.
+    # Example: "ophamin@my-project.iam.gserviceaccount.com"
+    gcpServiceAccount: ""
+
+  # EKS (AWS) — annotation: eks.amazonaws.com/role-arn
+  eks:
+    enabled: false
+    # The full ARN of the IAM role this pod assumes.
+    # Example: "arn:aws:iam::123456789012:role/OphaminEksWorkload"
+    roleArn: ""
+
+  # AKS (Azure) — annotation: azure.workload.identity/client-id
+  # Also requires `azure.workload.identity/use=true` on the Pod labels
+  # — the chart auto-injects when aks.enabled=true.
+  aks:
+    enabled: false
+    # Azure AD application (client) ID this pod uses.
+    clientId: ""
+    # Optional tenant-id; falls back to the cluster's default when empty.
+    tenantId: ""
+
+# ----------------------------------------------------------------------
 # Node placement (advanced).
 # ----------------------------------------------------------------------
 nodeSelector: {}

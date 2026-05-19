@@ -87,6 +87,63 @@ are set by default. `readOnlyRootFilesystem` is left **false** because
 Ophamin's CLI surface writes proof / audit files to local working
 directories. Set it to `true` if you mount writable volumes explicitly.
 
+## Prometheus Operator integration (0.57.0+)
+
+The chart ships ServiceMonitor + PodMonitor templates for the
+Prometheus Operator CRDs (`monitoring.coreos.com/v1`). Both are
+default-OFF; enable on clusters where the operator's CRDs are
+installed.
+
+```yaml
+monitoring:
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: kube-prometheus-stack   # whatever the operator selects on
+  # OR (or both)
+  podMonitor:
+    enabled: true
+```
+
+Both scrape `/metrics` on the chart's named `http` port. The
+endpoint surfaces `ophamin_build_info` (version + server-name
+labels) and `ophamin_scenarios_registered` (count of scenarios in
+the registry). Default scrape interval 30s / timeout 10s — tune
+under `monitoring.scrapeInterval` / `monitoring.scrapeTimeout`.
+
+## Cloud-managed workload identity (0.57.0+)
+
+For GKE / EKS / AKS deployments, enable the matching block under
+`workloadIdentity.*` to get the per-cloud SA annotation +
+(AKS only) the `azure.workload.identity/use=true` Pod label
+auto-injected:
+
+```yaml
+# GKE
+workloadIdentity:
+  gke:
+    enabled: true
+    gcpServiceAccount: "ophamin@my-project.iam.gserviceaccount.com"
+
+# EKS
+workloadIdentity:
+  eks:
+    enabled: true
+    roleArn: "arn:aws:iam::123456789012:role/OphaminEksWorkload"
+
+# AKS
+workloadIdentity:
+  aks:
+    enabled: true
+    clientId: "<azure-ad-app-client-id>"
+    # tenantId: "<optional-tenant-id>"
+```
+
+Only one cloud may be enabled per release; the chart fails fast
+at template time if more than one is. The cluster-side
+trust-policy / role binding remains the operator's responsibility
+— this chart's contract ends at the Pod's SA annotation.
+
 ## What this chart does NOT do (out of scope)
 
 - **TLS termination** — handled by the Ingress controller / a sidecar
@@ -104,16 +161,25 @@ directories. Set it to `true` if you mount writable volumes explicitly.
 
 ## Verifying the deployment
 
-The chart ships a `helm test` Pod that curls `/health` against the
-deployed Service after install — invoke it explicitly:
+The chart ships two `helm test` Pods:
+
+- **HTTP `/health`** (always rendered when `http.enabled=true`)
+  curls `/health` via the chart's Service.
+- **MCP TCP probe** (rendered only when `mcp.enabled=true`,
+  0.57.0+) uses `busybox` + `nc -z` to verify the MCP Service's
+  TCP port accepts connections. Cheap minimum-viable signal at
+  the network layer; the full MCP handshake is out of scope for
+  helm-test (use `examples/walkthrough_mcp_server.py` for that).
+
+Invoke both:
 
 ```bash
 helm test my-ophamin -n ophamin
 ```
 
-A green test confirms the HTTP surface is reachable + the
-`/health` endpoint responds. The test Pod is auto-cleaned up
-after the run (hook-delete-policy: hook-succeeded).
+A green test confirms each surface is reachable. Test Pods are
+auto-cleaned up after the run (hook-delete-policy:
+hook-succeeded).
 
 For manual verification:
 

@@ -18,6 +18,9 @@ spec:
         {{- with .Values.mcp.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+        {{- if include "ophamin.aksPodLabelEnabled" . }}
+        azure.workload.identity/use: "true"
+        {{- end }}
       {{- with .Values.mcp.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}

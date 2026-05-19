@@ -1,0 +1,48 @@
+{{/*
+  ServiceMonitor — Prometheus Operator CRD (monitoring.coreos.com/v1).
+
+  Scrapes the HTTP serve Pod's /metrics endpoint via the chart's
+  Service. Rendered only when monitoring.serviceMonitor.enabled is
+  true AND http.enabled is true (no point monitoring a disabled
+  surface). The Service's "http" named port is the scrape target.
+
+  Requires the Prometheus Operator's CRDs to be installed on the
+  cluster — see the chart README for the operator install hint. The
+  chart does NOT install the CRDs (that is a cluster-admin concern).
+*/}}
+{{- if and .Values.http.enabled .Values.monitoring.serviceMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "ophamin.fullname" . }}-http
+  {{- with .Values.monitoring.serviceMonitor.namespace }}
+  namespace: {{ . }}
+  {{- end }}
+  labels:
+    {{- include "ophamin.labels" . | nindent 4 }}
+    app.kubernetes.io/component: http-serve
+    {{- with .Values.monitoring.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "ophamin.httpSelectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: http
+      path: {{ .Values.monitoring.scrapePath | quote }}
+      interval: {{ .Values.monitoring.scrapeInterval | quote }}
+      scrapeTimeout: {{ .Values.monitoring.scrapeTimeout | quote }}
+      scheme: http
+      {{- with .Values.monitoring.serviceMonitor.relabelings }}
+      relabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.monitoring.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

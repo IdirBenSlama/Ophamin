@@ -1,0 +1,49 @@
+{{/*
+  PodMonitor — Prometheus Operator CRD (monitoring.coreos.com/v1).
+
+  Scrapes HTTP serve Pods directly via Pod-level service discovery.
+  Use this when the operator's Prometheus instance is configured to
+  watch Pods (rather than Services), e.g. for clusters where the
+  Service layer adds latency or rewriting that interferes with
+  scraping. Rendered only when monitoring.podMonitor.enabled is true
+  AND http.enabled is true.
+
+  Coexists with ServiceMonitor — most deployments enable one or the
+  other; both is acceptable for A/B comparison of discovery shapes.
+*/}}
+{{- if and .Values.http.enabled .Values.monitoring.podMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "ophamin.fullname" . }}-http
+  {{- with .Values.monitoring.podMonitor.namespace }}
+  namespace: {{ . }}
+  {{- end }}
+  labels:
+    {{- include "ophamin.labels" . | nindent 4 }}
+    app.kubernetes.io/component: http-serve
+    {{- with .Values.monitoring.podMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "ophamin.httpSelectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  podMetricsEndpoints:
+    - port: http
+      path: {{ .Values.monitoring.scrapePath | quote }}
+      interval: {{ .Values.monitoring.scrapeInterval | quote }}
+      scrapeTimeout: {{ .Values.monitoring.scrapeTimeout | quote }}
+      scheme: http
+      {{- with .Values.monitoring.podMonitor.relabelings }}
+      relabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.monitoring.podMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

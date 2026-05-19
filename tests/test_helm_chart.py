@@ -544,3 +544,212 @@ def test_pdb_template_defaults_to_min_available_1():
     for tpl in ("pdb-http.yaml", "pdb-mcp.yaml"):
         content = (CHART_DIR / "templates" / tpl).read_text()
         assert "minAvailable: 1" in content
+
+
+# --------------------------------------------------------------------------
+# 0.57.0 — Monitoring (ServiceMonitor + PodMonitor) + workload identity +
+# MCP helm-test
+# --------------------------------------------------------------------------
+
+
+def test_values_carries_monitoring_block(values_yaml):
+    """Values must declare the monitoring block so chart-consumers can
+    discover the flags via `helm show values`."""
+    mon = values_yaml.get("monitoring")
+    assert isinstance(mon, dict), "monitoring block missing"
+    for key in ("scrapePath", "scrapeInterval", "scrapeTimeout"):
+        assert key in mon, f"monitoring.{key} missing"
+    for sub in ("serviceMonitor", "podMonitor"):
+        block = mon.get(sub)
+        assert isinstance(block, dict), f"monitoring.{sub} block missing"
+        assert block["enabled"] is False, (
+            f"monitoring.{sub}.enabled MUST default to False"
+        )
+        assert "additionalLabels" in block
+        assert "namespace" in block
+        assert "relabelings" in block
+        assert "metricRelabelings" in block
+
+
+def test_values_monitoring_defaults_to_metrics_path_and_30s():
+    """Default scrape path /metrics + 30s interval / 10s timeout match
+    the FastAPI endpoint added in 0.57.0."""
+    values = yaml.safe_load((CHART_DIR / "values.yaml").read_text())
+    mon = values["monitoring"]
+    assert mon["scrapePath"] == "/metrics"
+    assert mon["scrapeInterval"] == "30s"
+    assert mon["scrapeTimeout"] == "10s"
+
+
+def test_servicemonitor_template_exists():
+    assert (CHART_DIR / "templates" / "servicemonitor.yaml").is_file()
+
+
+def test_podmonitor_template_exists():
+    assert (CHART_DIR / "templates" / "podmonitor.yaml").is_file()
+
+
+def test_servicemonitor_template_gated_by_http_AND_serviceMonitor_enabled():
+    content = (CHART_DIR / "templates" / "servicemonitor.yaml").read_text()
+    assert "http.enabled" in content
+    assert "monitoring.serviceMonitor.enabled" in content
+    # The gate is an `and` so neither half on its own renders the CRD
+    assert "if and" in content
+
+
+def test_podmonitor_template_gated_by_http_AND_podMonitor_enabled():
+    content = (CHART_DIR / "templates" / "podmonitor.yaml").read_text()
+    assert "http.enabled" in content
+    assert "monitoring.podMonitor.enabled" in content
+    assert "if and" in content
+
+
+def test_servicemonitor_uses_prometheus_operator_apiVersion():
+    content = (CHART_DIR / "templates" / "servicemonitor.yaml").read_text()
+    assert "apiVersion: monitoring.coreos.com/v1" in content
+    assert "kind: ServiceMonitor" in content
+
+
+def test_podmonitor_uses_prometheus_operator_apiVersion():
+    content = (CHART_DIR / "templates" / "podmonitor.yaml").read_text()
+    assert "apiVersion: monitoring.coreos.com/v1" in content
+    assert "kind: PodMonitor" in content
+
+
+def test_servicemonitor_targets_http_pods_via_selector():
+    content = (CHART_DIR / "templates" / "servicemonitor.yaml").read_text()
+    assert "ophamin.httpSelectorLabels" in content
+
+
+def test_podmonitor_targets_http_pods_via_selector():
+    content = (CHART_DIR / "templates" / "podmonitor.yaml").read_text()
+    assert "ophamin.httpSelectorLabels" in content
+
+
+def test_servicemonitor_uses_named_http_port():
+    """Port reference must match the Service's named 'http' port —
+    not a number, so chart-internal port renumbering doesn't break the
+    monitor binding."""
+    content = (CHART_DIR / "templates" / "servicemonitor.yaml").read_text()
+    assert "port: http" in content
+
+
+def test_podmonitor_uses_named_http_port():
+    content = (CHART_DIR / "templates" / "podmonitor.yaml").read_text()
+    assert "port: http" in content
+
+
+def test_values_carries_workloadIdentity_block(values_yaml):
+    wi = values_yaml.get("workloadIdentity")
+    assert isinstance(wi, dict)
+    for cloud in ("gke", "eks", "aks"):
+        block = wi.get(cloud)
+        assert isinstance(block, dict)
+        assert block["enabled"] is False
+
+
+def test_helpers_carries_workload_identity_logic():
+    """The serviceAccount.annotations helper must implement the
+    mutually-exclusive cloud check + the per-cloud annotation key
+    mapping."""
+    content = (CHART_DIR / "templates" / "_helpers.tpl").read_text()
+    assert 'define "ophamin.serviceAccount.annotations"' in content
+    assert "iam.gke.io/gcp-service-account" in content
+    assert "eks.amazonaws.com/role-arn" in content
+    assert "azure.workload.identity/client-id" in content
+    # mutually-exclusive guard
+    assert "only one of gke / eks / aks" in content
+
+
+def test_helpers_carries_aks_pod_label_helper():
+    """AKS additionally requires `azure.workload.identity/use=true` as a
+    Pod label; the helper signals when to inject it."""
+    content = (CHART_DIR / "templates" / "_helpers.tpl").read_text()
+    assert 'define "ophamin.aksPodLabelEnabled"' in content
+
+
+def test_serviceaccount_template_uses_new_annotations_helper():
+    """The SA template must call the new helper rather than the
+    old static toYaml of .Values.serviceAccount.annotations — otherwise
+    workload-identity annotations don't reach the SA."""
+    content = (CHART_DIR / "templates" / "serviceaccount.yaml").read_text()
+    assert 'include "ophamin.serviceAccount.annotations"' in content
+
+
+def test_deployment_http_injects_aks_pod_label_when_enabled():
+    content = (CHART_DIR / "templates" / "deployment-http.yaml").read_text()
+    assert "ophamin.aksPodLabelEnabled" in content
+    assert "azure.workload.identity/use" in content
+
+
+def test_deployment_mcp_injects_aks_pod_label_when_enabled():
+    content = (CHART_DIR / "templates" / "deployment-mcp.yaml").read_text()
+    assert "ophamin.aksPodLabelEnabled" in content
+    assert "azure.workload.identity/use" in content
+
+
+def test_mcp_helm_test_template_exists():
+    assert (CHART_DIR / "templates" / "tests" / "test-mcp-tcp.yaml").is_file()
+
+
+def test_mcp_helm_test_gated_by_mcp_enabled():
+    content = (CHART_DIR / "templates" / "tests" / "test-mcp-tcp.yaml").read_text()
+    assert "mcp.enabled" in content
+    assert 'helm.sh/hook": test' in content
+
+
+def test_mcp_helm_test_uses_busybox_nc_probe():
+    """The MCP test probes TCP connectivity (the minimum viable signal)
+    — full handshake would require a richer client."""
+    content = (CHART_DIR / "templates" / "tests" / "test-mcp-tcp.yaml").read_text()
+    assert "busybox" in content
+    assert "nc -z" in content
+
+
+def test_quality_gate_json_exists_and_parses():
+    """The pre-baked quality gate must ship in the repo at the path
+    docs/SONARQUBE.md will reference."""
+    import json
+    path = CHART_DIR.parent.parent / "sonar" / "kimera-swm-quality-gate.json"
+    assert path.is_file(), f"missing quality-gate spec at {path}"
+    data = json.loads(path.read_text())
+    assert data["name"] == "Kimera-SWM Gate"
+    assert isinstance(data["conditions"], list)
+    assert len(data["conditions"]) >= 5
+    for cond in data["conditions"]:
+        assert "metric" in cond and "op" in cond and "error" in cond
+
+
+def test_quality_gate_carries_new_code_conditions():
+    """Per the Clean-as-You-Code shape, the gate's primary axis is on
+    NEW-code metrics — verify they're present."""
+    import json
+    path = CHART_DIR.parent.parent / "sonar" / "kimera-swm-quality-gate.json"
+    data = json.loads(path.read_text())
+    metrics = {c["metric"] for c in data["conditions"]}
+    for new_metric in ("new_bugs", "new_vulnerabilities",
+                       "new_duplicated_lines_density"):
+        assert new_metric in metrics, f"missing {new_metric} in gate"
+
+
+def test_quality_gate_apply_script_exists_and_executable():
+    """The apply-script must ship + be executable so the operator
+    can run it directly without chmod."""
+    import os, stat
+    path = CHART_DIR.parent.parent / "scripts" / "sonar_apply_quality_gate.sh"
+    assert path.is_file(), f"missing apply script at {path}"
+    mode = path.stat().st_mode
+    assert mode & stat.S_IXUSR, "apply script not executable"
+
+
+def test_quality_gate_apply_script_is_idempotent():
+    """The apply script must handle 'gate already exists' as a no-op
+    (idempotent re-apply) — checked by looking for the existing-name
+    early-out, AND for the delete-condition loop that rewrites the
+    spec on every run."""
+    path = CHART_DIR.parent.parent / "scripts" / "sonar_apply_quality_gate.sh"
+    content = path.read_text()
+    assert "qualitygates/list" in content
+    assert "delete_condition" in content
+    assert "create_condition" in content
+    assert "qualitygates/select" in content  # binds to project
