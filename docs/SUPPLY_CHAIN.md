@@ -11,6 +11,7 @@
 | Artifact | Where | Signing | How to verify |
 |---|---|---|---|
 | Docker image | `ghcr.io/idirbenslama/ophamin` | Sigstore keyless (cosign) | `cosign verify ghcr.io/idirbenslama/ophamin@<digest> --certificate-identity-regexp=...` |
+| Docker image SBOM (CycloneDX) | attached to image as cosign attestation | Sigstore keyless (cosign) | `cosign verify-attestation ... --type cyclonedx` |
 | Helm chart | `oci://ghcr.io/idirbenslama/ophamin/ophamin` | Sigstore keyless (cosign) | `cosign verify ghcr.io/idirbenslama/ophamin/ophamin@<digest> --certificate-identity-regexp=...` |
 | `EmpiricalProofRecord` (proof JSON) | per-deployment | HMAC-SHA256 (own key) | `verify_proof_impl(json)` / Rust + JS ports / HTTP `/verify` endpoint |
 | `EmpiricalProofRecord` (in-toto Statement) | per-deployment | HMAC-SHA256 (own key, double-layer) | `cosign verify-attestation` — see [INTEROP_OVERVIEW.md](INTEROP_OVERVIEW.md) |
@@ -93,6 +94,63 @@ You can also pin verification to a specific commit-driven build:
 cosign verify ghcr.io/idirbenslama/ophamin@sha256:<digest> \
     --certificate-identity-regexp='^https://github\.com/IdirBenSlama/Ophamin/\.github/workflows/docker\.yml@.*' \
     --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+```
+
+## Verifying the Docker image's SBOM (0.48.0)
+
+Every published Docker image carries a **CycloneDX SBOM attestation**
+signed via cosign keyless. The SBOM is an image-level scan
+(Anchore syft) covering the base `python:3.12-slim` layer + pip-
+installed packages — a complete dependency manifest the image
+actually contains.
+
+```bash
+# Verify the SBOM attestation + extract it (one command)
+cosign verify-attestation \
+    ghcr.io/idirbenslama/ophamin@sha256:<digest> \
+    --type cyclonedx \
+    --certificate-identity-regexp='^https://github\.com/IdirBenSlama/Ophamin/\.github/workflows/docker\.yml@.*' \
+    --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+  | jq -r '.payload | @base64d | fromjson | .predicate'
+```
+
+The output is the raw CycloneDX JSON document the workflow
+attested at publish time. The `verify-attestation` command:
+
+1. Confirms a signed attestation exists at the image digest
+2. Verifies the signature was produced by this workflow's
+   OIDC identity (the cert-identity-regexp)
+3. Verifies inclusion in Rekor (the transparency log)
+4. Returns ALL matching attestations (multiple types coexist —
+   `cyclonedx` for the SBOM, `slsaprovenance` if a SLSA
+   attestation is added later, etc.)
+
+The attestation is an **in-toto Statement v1** with the
+`predicateType` set to the CycloneDX URL. Consumers can pipe
+the predicate into any CycloneDX-aware tool (Dependency-Track,
+GitHub dependency-graph upload, internal vulnerability
+scanners).
+
+Use in admission policies:
+
+```yaml
+# policy-controller / ClusterImagePolicy that requires both a
+# signature AND a signed SBOM attestation
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: require-ophamin-signed-with-sbom
+spec:
+  images:
+    - glob: "ghcr.io/idirbenslama/ophamin*"
+  authorities:
+    - keyless:
+        identities:
+          - issuer: https://token.actions.githubusercontent.com
+            subjectRegExp: ^https://github\.com/IdirBenSlama/Ophamin/.*
+        attestations:
+          - name: must-have-sbom
+            predicateType: https://cyclonedx.org/bom
 ```
 
 ## Verifying an Ophamin Helm chart

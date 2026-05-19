@@ -7,7 +7,124 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.47.0] below for the latest cut.)
+(empty — see [0.48.0] below for the latest cut.)
+
+## [0.48.0] — 2026-05-19
+
+**Headline:** CycloneDX SBOM attestation signed via cosign
+keyless for every published Docker image. Closes the
+cross-format provenance loop 0.42.0 + 0.46.0 CHANGELOGs flagged
+as open. The SBOM is image-level (Anchore syft scans the
+actually-published image, covering base layer + pip deps) and
+travels as an in-toto Statement v1 with `predicateType =
+cyclonedx`, signed via Sigstore + recorded in Rekor.
+
+### Why this matters
+
+A signed image proves *who* published it; a signed SBOM proves
+*what's inside*. Consumers gating on Sigstore signatures alone
+can verify provenance; consumers gating on attestations can
+ALSO verify the dependency manifest. Together they close the
+supply-chain claim:
+
+- "this image was published by Ophamin's `docker.yml` workflow
+  at this commit" (image signature; existed since 0.42.0)
+- "this image contains exactly these packages at these
+  versions" (SBOM attestation; new in 0.48.0)
+
+### Added — three new steps in `.github/workflows/docker.yml`
+
+After the existing "Self-verify the signature":
+
+1. **`Generate SBOM via syft`** (`anchore/sbom-action@v0`)
+   scans the just-pushed multi-arch image and writes
+   `cyclonedx-json` to `/tmp/sbom.cdx.json`. syft is the
+   maintained Anchore tool; the action is the maintained
+   wrapper.
+
+2. **`Attest SBOM with cosign (CycloneDX predicate)`** runs:
+   ```
+   cosign attest --yes \
+     --type cyclonedx \
+     --predicate /tmp/sbom.cdx.json \
+     "$IMAGE_REF"
+   ```
+   The attestation is an in-toto Statement v1 with the
+   CycloneDX predicate type — the same Statement shape Ophamin's
+   `to_in_toto_statement` produces from `EmpiricalProofRecord`
+   at 0.35.0. The two are mechanically identical; only the
+   predicate type differs.
+
+3. **`Self-verify the SBOM attestation`** runs `cosign verify-
+   attestation --type cyclonedx ... --certificate-identity-
+   regexp ...` against the same Sigstore endpoints consumers
+   would use. Same shape as 0.46.0's self-verify pattern.
+   Catches attestation-pipeline drift in the same run.
+
+### Added — `docs/SUPPLY_CHAIN.md` extensions
+
+- **At-a-glance table** new row: "Docker image SBOM (CycloneDX)
+  → attached to image as cosign attestation → Sigstore keyless
+  → `cosign verify-attestation ... --type cyclonedx`"
+- **New section "Verifying the Docker image's SBOM"** includes:
+  - Copy-paste `cosign verify-attestation` recipe that extracts
+    the SBOM via `jq -r '.payload | @base64d | fromjson |
+    .predicate'`
+  - What `verify-attestation` actually checks (signature +
+    Rekor inclusion + cert-identity-regex)
+  - Example `policy-controller` ClusterImagePolicy requiring
+    BOTH signature AND SBOM attestation (gates on
+    `predicateType: https://cyclonedx.org/bom`)
+
+### What this does NOT include (out of scope for 0.48.0)
+
+- **SBOM attestation for the Helm chart** — the chart's
+  contents are 9 small templated YAML files; the value-add of
+  an SBOM is marginal vs the Docker image's 200+ packages.
+  Future ship if operators need it.
+- **SBOM signing via the in-toto wrapper directly** — the
+  CycloneDX exporter at `src/ophamin/interop/cyclonedx.py`
+  produces a signed Ophamin proof (HMAC-SHA256). 0.48.0's
+  attestation is the COSIGN-signed image SBOM, NOT the
+  Ophamin-signed source-tree SBOM. The two are complementary
+  (image SBOM for the deployment surface; Ophamin SBOM for
+  the source attestation tree).
+- **SLSA provenance attestation** — `cosign attest --type
+  slsaprovenance` would attest *how the image was built*
+  rather than *what's inside*. Both can coexist (cosign
+  supports multiple attestations per image). SLSA is a future
+  ship; the workflow's `id-token: write` permission is already
+  in place.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.48.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.48.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.48.0"` (71/71
+  helm tests pass)
+
+### Verification
+
+- `mkdocs build --strict` → clean.
+- **First docker workflow run after this push validates
+  empirically.** Three new steps fire in sequence: syft SBOM
+  generation → cosign attest CycloneDX → self-verify-
+  attestation. Any drift in any step fails the workflow loud
+  in the same run.
+
+### What this opens for next-direction work
+
+- **SLSA provenance attestation** — `cosign attest --type
+  slsaprovenance` produces a build-context attestation
+  (workflow run ID, commit SHA, builder info). Closes the
+  "what's inside" + "how was it built" pair.
+- **PyPI trusted-publishing attestations** — PEP 740 +
+  PyPI's modern attestation flow. Owner-physical step (PyPI
+  trusted-publisher activation).
+- **Cosign signing for the source-tree CycloneDX SBOM** —
+  `sbom/ophamin.cdx.json` could also flow through cosign
+  attest. Different surface (source tree vs image) but same
+  attestation mechanics.
 
 ## [0.47.0] — 2026-05-19
 

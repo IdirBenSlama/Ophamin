@@ -190,6 +190,64 @@ jobs:
               || { echo "::error::cosign verify output unexpected shape"; cat /tmp/cosign-verify-output.json; exit 1; }
           echo "OK — signature verifies against this workflow's identity"
 
+      # ── SBOM generation + attestation (0.48.0) ───────────────────────────
+      # Generates a CycloneDX SBOM of the published image's contents via
+      # Anchore syft, then attaches it as a typed in-toto attestation
+      # (predicate-type: cyclonedx) signed via cosign keyless. The
+      # attestation lands in the same OCI registry as the image + Rekor.
+      #
+      # Consumer recipe (see docs/SUPPLY_CHAIN.md):
+      #   cosign verify-attestation ghcr.io/idirbenslama/ophamin@<digest> \
+      #     --type cyclonedx \
+      #     --certificate-identity-regexp='^https://github\.com/IdirBenSlama/Ophamin/.*' \
+      #     --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+      - name: Generate SBOM via syft
+        uses: anchore/sbom-action@v0
+        with:
+          # syft scans the actually-published image (image-level SBOM
+          # — includes the python:3.12-slim base layer + pip-installed
+          # packages). Far more accurate than scanning the source tree.
+          image: ${{ steps.sign.outputs.image_ref }}
+          format: cyclonedx-json
+          output-file: /tmp/sbom.cdx.json
+          # Don't upload as a dependency-graph artifact (separate path);
+          # we attach as a typed attestation below.
+          dependency-snapshot: false
+
+      - name: Attest SBOM with cosign (CycloneDX predicate)
+        # `cosign attest --type cyclonedx` produces an in-toto Statement v1
+        # attestation with the SBOM as the typed predicate. The attestation
+        # is signed via Sigstore keyless (same flow as cosign sign).
+        # Lands in GHCR as a sibling OCI artifact + Rekor entry.
+        run: |
+          IMAGE_REF="${{ steps.sign.outputs.image_ref }}"
+          echo "Attesting CycloneDX SBOM for $IMAGE_REF"
+          cosign attest --yes \
+            --type cyclonedx \
+            --predicate /tmp/sbom.cdx.json \
+            "$IMAGE_REF"
+
+      - name: Self-verify the SBOM attestation
+        # Same pattern as the image-signature self-verify — catch
+        # attestation-pipeline drift in the same run rather than waiting
+        # for an external consumer.
+        run: |
+          IMAGE_REF="${{ steps.sign.outputs.image_ref }}"
+          echo "Self-verifying SBOM attestation on $IMAGE_REF"
+          cosign verify-attestation "$IMAGE_REF" \
+            --type cyclonedx \
+            --certificate-identity-regexp='^https://github\.com/IdirBenSlama/Ophamin/\.github/workflows/docker\.yml@.*' \
+            --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+            > /tmp/cosign-attest-verify.json
+          ATTEST_BYTES=$(wc -c < /tmp/cosign-attest-verify.json)
+          echo "Attestation verify output bytes: $ATTEST_BYTES"
+          if [ "$ATTEST_BYTES" -lt 100 ]; then
+              echo "::error::attestation verify output suspiciously small"
+              cat /tmp/cosign-attest-verify.json
+              exit 1
+          fi
+          echo "OK — SBOM attestation verifies against this workflow's identity"
+
       - name: Report image digest
         if: always()
         run: |
