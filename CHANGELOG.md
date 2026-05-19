@@ -7,7 +7,85 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.49.1] below for the latest cut.)
+(empty — see [0.49.2] below for the latest cut.)
+
+## [0.49.2] — 2026-05-19
+
+**Headline:** Fix the SLSA self-verify step's output handling
+(0.49.1 left a hole — `gh attestation verify` produces no
+stdout/stderr by default when running outside a TTY, so my
+grep-based sanity check failed even though the verify SUCCEEDED).
+
+### What happened
+
+0.49.1 changed the SLSA self-verify tool from cosign to gh CLI
+(correct call — gh is canonical for the attestation format
+attest-build-provenance produces). The first 0.49.1 docker
+run also failed self-verify, but with a different shape:
+
+- `gh attestation verify` ran (4-second invocation; reached
+  exit 0)
+- It produced NO output to /tmp/gh-slsa-verify.txt
+- My subsequent `grep -q -E "..."` over the empty file failed
+- The step exited 1 LOUD
+
+Root cause: `gh` CLI commands have TTY-aware output —
+they're silent by default when not attached to a terminal,
+unless `--json` / `--format json` is passed. The 4-second
+runtime + zero-byte output + zero exit code is the
+TTY-suppressed-success signature.
+
+### Fix
+
+Pass `--format json` to force machine-readable output
+regardless of TTY state:
+
+```yaml
+gh attestation verify "oci://$IMAGE_REF" \
+    --repo "${{ github.repository }}" \
+    --predicate-type=https://slsa.dev/provenance/v1 \
+    --format json \
+    > /tmp/gh-slsa-verify.json
+jq -e 'length > 0' /tmp/gh-slsa-verify.json
+```
+
+`gh attestation verify` exits non-zero on verification
+failure, so under `bash -e` reaching the byte-count + jq
+checks guarantees the attestation verified. The extra checks
+catch the corner case where gh silently produces an empty
+output (would now fire LOUD instead of green-but-wrong).
+
+### What this confirms (again)
+
+The self-verify mechanism has now caught **two distinct real
+defects** in the SLSA chain over three releases (0.49.0 →
+0.49.1 → 0.49.2):
+
+1. 0.49.0: wrong tool (cosign `--type slsaprovenance1`
+   doesn't match attest-build-provenance's bundle format)
+2. 0.49.1: silent-success-with-zero-output (TTY-detection
+   default in gh)
+
+In each case the CI failed loud in the same run as the
+publish. The signing pipeline produced + uploaded the
+attestation correctly both times; only the verify-side
+sanity check had bugs. Iterating these in CHANGELOG-pinned
+patch releases is exactly the pattern the self-verify
+mechanism shipped at 0.46.0 was designed to enable.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.49.2`
+- `src/ophamin/__init__.py` `__version__` → `"0.49.2"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.49.2"`
+
+### Verification
+
+- Next docker workflow run after this push validates: if
+  `gh attestation verify --format json` produces a non-empty
+  JSON document AND jq's `length > 0` confirms at least one
+  attestation was loaded, the SLSA chain is operationally
+  validated end-to-end.
 
 ## [0.49.1] — 2026-05-19
 

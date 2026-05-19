@@ -277,12 +277,21 @@ jobs:
       - name: Self-verify the SLSA provenance attestation
         # Verify via the `gh attestation verify` CLI — the canonical
         # tool for attestations produced by actions/attest-build-
-        # provenance@v2. The 0.49.0 first-run discovered that
-        # cosign verify-attestation --type slsaprovenance1 doesn't find
+        # provenance@v2.
+        #
+        # The 0.49.0 first-run discovered that
+        # `cosign verify-attestation --type slsaprovenance1` doesn't find
         # the attestation because actions/attest-build-provenance writes
         # in sigstore-bundle format (the GitHub-native attestation
         # registry shape) which cosign's --type filter doesn't map to.
-        # `gh attestation verify` is the right tool for this format.
+        #
+        # The 0.49.1 second-run discovered that `gh attestation verify`
+        # produces NO stdout/stderr by default when running outside a
+        # TTY — my grep-based sanity-check failed even though the verify
+        # succeeded. Fix: use `--format json` (forces machine-readable
+        # output regardless of TTY) and trust the exit code (gh exits
+        # non-zero on verification failure, so under bash -e an
+        # unverified attestation kills the step).
         #
         # The cosign verify-attestation path documented in
         # docs/SUPPLY_CHAIN.md remains valid for consumers who prefer it
@@ -292,16 +301,24 @@ jobs:
         run: |
           IMAGE_REF="${{ steps.sign.outputs.image_ref }}"
           echo "Self-verifying SLSA provenance attestation on $IMAGE_REF"
-          # The gh CLI accepts oci://... URIs for OCI artifacts.
+          # `--format json` forces JSON output regardless of TTY state.
+          # gh attestation verify exits non-zero on failure → bash -e
+          # kills the step. Reaching the next line means SUCCESS.
           gh attestation verify "oci://$IMAGE_REF" \
             --repo "${{ github.repository }}" \
             --predicate-type=https://slsa.dev/provenance/v1 \
-            > /tmp/gh-slsa-verify.txt 2>&1
-          echo "--- gh attestation verify output ---"
-          cat /tmp/gh-slsa-verify.txt
-          # Sanity-check the verify output mentions success
-          grep -q -E "Loaded.*attestation|verified" /tmp/gh-slsa-verify.txt \
-              || { echo "::error::gh attestation verify output unexpected shape"; exit 1; }
+            --format json \
+            > /tmp/gh-slsa-verify.json
+          BYTES=$(wc -c < /tmp/gh-slsa-verify.json)
+          echo "gh attestation verify output bytes: $BYTES"
+          if [ "$BYTES" -lt 50 ]; then
+              echo "::error::gh attestation verify output suspiciously small"
+              cat /tmp/gh-slsa-verify.json
+              exit 1
+          fi
+          # Sanity-check the JSON parses + contains an attestation
+          jq -e 'length > 0' /tmp/gh-slsa-verify.json > /dev/null \
+              || { echo "::error::gh attestation verify JSON contains no attestations"; cat /tmp/gh-slsa-verify.json; exit 1; }
           echo "OK — SLSA provenance verifies via gh attestation verify"
 
       - name: Report image digest
