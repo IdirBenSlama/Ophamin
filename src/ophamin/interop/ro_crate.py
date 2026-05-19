@@ -41,6 +41,9 @@ For documentation context see:
 
 from __future__ import annotations
 
+import json
+import shutil
+from pathlib import Path
 from typing import Any
 
 from ophamin import __version__ as OPHAMIN_VERSION
@@ -61,6 +64,11 @@ RO_CRATE_CONFORMS_TO_V1_2 = "https://w3id.org/ro/crate/1.2"
 #: Default file name for the proof referenced from the root Dataset's
 #: ``hasPart``. Consumers may override via ``proof_filename`` kwarg.
 DEFAULT_PROOF_FILENAME = "proof.json"
+
+#: Canonical filename for the RO-Crate metadata descriptor — pinned by
+#: the spec. Consumers of the spec MUST find ``ro-crate-metadata.json``
+#: at the crate's root; changing this would produce an invalid crate.
+RO_CRATE_METADATA_FILENAME = "ro-crate-metadata.json"
 
 
 # --------------------------------------------------------------------------
@@ -285,6 +293,152 @@ def to_ro_crate_metadata(
         "@context": RO_CRATE_CONTEXT_V1_2,
         "@graph": graph,
     }
+
+
+def write_ro_crate(
+    proof: EmpiricalProofRecord,
+    output_dir: str | Path,
+    *,
+    proof_filename: str = DEFAULT_PROOF_FILENAME,
+    extra_root_metadata: dict[str, Any] | None = None,
+    overwrite: bool = False,
+    indent: int = 2,
+) -> Path:
+    """Write a complete RO-Crate directory to disk.
+
+    Produces a self-contained directory with the standard RO-Crate
+    layout::
+
+        <output_dir>/
+          ro-crate-metadata.json   <- from :func:`to_ro_crate_metadata`
+          proof.json               <- from ``json.dumps(proof.to_dict(), …)``
+
+    The output directory is ready to upload to Zenodo, submit to
+    WorkflowHub, ingest into Galaxy, or zip + deposit anywhere an
+    RO-Crate consumer can read.
+
+    Parameters
+    ----------
+    proof
+        The signed (or unsigned) :class:`EmpiricalProofRecord` to
+        package.
+    output_dir
+        Filesystem path where the crate directory will be created.
+        If the path's parent directory doesn't exist, it is created
+        recursively (mirrors the ``Path.mkdir(parents=True)`` pattern).
+    proof_filename
+        Override for the proof JSON filename inside the crate. Default
+        ``"proof.json"``. Subjected to the same path-safety checks as
+        :func:`to_ro_crate_metadata` (no leading ``/``, no ``..``, no
+        NUL bytes).
+    extra_root_metadata
+        Forwarded to :func:`to_ro_crate_metadata` — extra entries to
+        merge into the root Dataset (e.g. ``creator``, ``license``).
+    overwrite
+        If ``True`` and ``output_dir`` already exists, the existing
+        directory is removed (recursively) before the crate is
+        written. If ``False`` (default) and the path exists, raises
+        :class:`FileExistsError` LOUDLY — refusing to silently
+        overwrite is the load-bearing safety property.
+    indent
+        JSON pretty-printing indent for both ``proof.json`` and
+        ``ro-crate-metadata.json``. Default ``2`` for human-readable
+        output. Pass ``None`` for compact (no whitespace).
+
+    Returns
+    -------
+    pathlib.Path
+        The absolute path of the written crate directory. Caller can
+        immediately ``shutil.make_archive(...)`` it for upload, or
+        point ``zenodo`` / ``rocrate-cli`` at the path directly.
+
+    Raises
+    ------
+    FileExistsError
+        If ``output_dir`` exists and ``overwrite=False``.
+    ValueError
+        If ``proof_filename`` is empty / absolute / has path traversal
+        / has NUL bytes (forwarded from :func:`to_ro_crate_metadata`).
+    OSError
+        Propagated from the underlying filesystem operations
+        (permission denied, disk full, etc.) — the writer does NOT
+        swallow IO errors.
+
+    Examples
+    --------
+    Build + upload a crate to Zenodo::
+
+        from pathlib import Path
+        from ophamin.interop import write_ro_crate
+
+        crate_dir = write_ro_crate(
+            signed_proof,
+            "/tmp/my-empirical-attestation",
+            extra_root_metadata={
+                "creator": {"@id": "https://orcid.org/0000-0000-0000-0000"},
+                "license": {"@id": "https://spdx.org/licenses/Apache-2.0"},
+            },
+        )
+        archive = Path(shutil.make_archive(str(crate_dir), "zip", crate_dir))
+        # POST archive to Zenodo's API ...
+    """
+    # Filename validation happens inside to_ro_crate_metadata; we
+    # re-trigger it here so the error fires before any filesystem
+    # mutation (we don't want a partially-written directory).
+    _validate_filename(proof_filename)
+
+    out_path = Path(output_dir)
+
+    if out_path.exists():
+        if not overwrite:
+            raise FileExistsError(
+                f"output directory already exists: {out_path}. "
+                f"Pass overwrite=True to remove it."
+            )
+        # Refuse to overwrite a file with a directory or vice versa —
+        # the load-bearing safety property is "the user told us this
+        # path is for our crate". A file at this location was probably
+        # a typo and we shouldn't replace it.
+        if not out_path.is_dir():
+            raise FileExistsError(
+                f"output path exists but is not a directory: {out_path}. "
+                f"Refusing to replace a file with a crate directory."
+            )
+        shutil.rmtree(out_path)
+
+    # Create the directory (and any missing parents).
+    out_path.mkdir(parents=True, exist_ok=False)
+
+    # 1. Write the proof JSON first — this is the principal artifact
+    # the metadata refers to via mainEntity. If this fails the
+    # directory we created becomes detectable (we don't try to
+    # rollback; an empty directory + a clear error message is more
+    # debuggable than an aborted-mid-write state).
+    proof_path = out_path / proof_filename
+    # Ensure subdirectories referenced by proof_filename exist
+    # (`proof_filename="data/proofs/proof.json"` is valid).
+    proof_path.parent.mkdir(parents=True, exist_ok=True)
+    proof_path.write_text(
+        json.dumps(proof.to_dict(), indent=indent, default=str),
+        encoding="utf-8",
+    )
+
+    # 2. Build + write the metadata JSON. This must happen AFTER the
+    # proof file is written, so the metadata's hasPart / mainEntity
+    # references are reachable on disk by the time the crate is
+    # consumed.
+    metadata = to_ro_crate_metadata(
+        proof,
+        proof_filename=proof_filename,
+        extra_root_metadata=extra_root_metadata,
+    )
+    metadata_path = out_path / RO_CRATE_METADATA_FILENAME
+    metadata_path.write_text(
+        json.dumps(metadata, indent=indent, sort_keys=True),
+        encoding="utf-8",
+    )
+
+    return out_path.resolve()
 
 
 # --------------------------------------------------------------------------

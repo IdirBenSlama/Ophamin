@@ -7,7 +7,128 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.37.0] below for the latest cut.)
+(empty — see [0.38.0] below for the latest cut.)
+
+## [0.38.0] — 2026-05-19
+
+**Headline:** Tier-1 #2 follow-on — RO-Crate physical directory
+writer. The convenience wrapper that turns the 0.36.0
+metadata-builder into a one-call self-describing crate on
+disk, ready for Zenodo upload / WorkflowHub submission / Galaxy
+ingestion without any caller-side directory-composition code.
+
+### Added — `write_ro_crate(proof, output_dir, …)` in `src/ophamin/interop/ro_crate.py`
+
+```python
+from ophamin.interop import write_ro_crate
+
+crate_dir = write_ro_crate(
+    signed_proof,
+    "./my-empirical-attestation",
+    extra_root_metadata={
+        "creator": {"@id": "https://orcid.org/0000-0000-0000-0000"},
+    },
+)
+# crate_dir is an absolute pathlib.Path
+# the directory contains: proof.json + ro-crate-metadata.json
+```
+
+Plus one new pinned constant: `RO_CRATE_METADATA_FILENAME =
+"ro-crate-metadata.json"` (the spec-pinned name of the crate
+descriptor file; consumers MUST find it at exactly that name).
+
+### Safety semantics
+
+- **`overwrite=False` (default)** refuses if `output_dir` exists.
+  This is the load-bearing safety property — a typo'd
+  `output_dir` MUST NOT silently destroy existing data.
+- **`overwrite=True`** removes the existing directory recursively
+  via `shutil.rmtree` before writing the new crate.
+- **`output_dir` exists but is a FILE** raises `FileExistsError`
+  loudly even with `overwrite=True` — refusing to replace a file
+  with a directory is a sanity check against catastrophic typos.
+- **Path-traversal / absolute / NUL-byte `proof_filename`** fires
+  the same `_validate_filename` check as `to_ro_crate_metadata`,
+  raising BEFORE any filesystem mutation (no half-written
+  directory left behind).
+- **Parent directories** of `output_dir` are created recursively
+  if missing (`Path.mkdir(parents=True)` pattern).
+- **Nested `proof_filename`** (e.g. `"data/proofs/proof.json"`)
+  is supported; intermediate directories are created
+  automatically.
+
+### Write order
+
+1. Validate `proof_filename` (no filesystem mutation yet).
+2. Handle existing `output_dir` per `overwrite` semantics.
+3. Create `output_dir` (and any parents).
+4. Write `proof.json` first — the principal artifact that
+   metadata's `mainEntity` + `hasPart` reference.
+5. Build + write `ro-crate-metadata.json` second — guarantees
+   that every metadata-referenced path is on disk by the time
+   the crate is consumed.
+
+### Hardening pins — `tests/test_ro_crate_interop.py` (19 new tests)
+
+- `RO_CRATE_METADATA_FILENAME` constant stability.
+- Creates directory; returns absolute `Path`.
+- Writes both files: `proof.json` + `ro-crate-metadata.json`.
+- Preserves HMAC signature in the written proof file
+  (external verifiers can re-check after upload).
+- Metadata correctly references the actual proof filename in
+  `mainEntity` (and on disk).
+- Nested `proof_filename` supported with intermediate dirs.
+- Default refuses existing directory; `overwrite=True` replaces;
+  refusal preserves pre-existing data byte-identically.
+- Refuses to overwrite a FILE (not a directory) even with
+  `overwrite=True`.
+- Creates parent directories recursively.
+- Filename validation fires BEFORE filesystem mutation (no
+  half-written directory).
+- Accepts `str` or `Path` for `output_dir`.
+- `extra_root_metadata` propagates through to disk.
+- `indent` controls pretty-printing; both compact and pretty
+  forms round-trip to the same dict.
+- Zero-dataset proof produces a complete crate.
+- **End-to-end self-consistency**: every `File`-typed `@id` in
+  the metadata resolves to an existing file on disk.
+- **Round-trip**: written `proof.json` loads back through the
+  Ophamin codec to an `EmpiricalProofRecord` that verifies under
+  the original signing key.
+
+All 67 RO-Crate tests pass locally (48 from 0.36.0 + 19 new).
+Full interop suite at this commit: 191 tests across SARIF +
+JUnit + MLflow + CycloneDX + in-toto + RO-Crate + OpenLineage.
+
+### Documentation — `docs/INTEROP_OVERVIEW.md`
+
+- "I want my proof packaged for Zenodo / Galaxy / WorkflowHub"
+  section rewritten to lead with the `write_ro_crate` convenience
+  API. The two-step manual path (using `to_ro_crate_metadata` +
+  manual file writes) is mentioned for full-control callers.
+- `@Stable` surface inventory extended with
+  `RO_CRATE_METADATA_FILENAME`.
+
+### What this does NOT include (out of scope for 0.38.0)
+
+- ZIP packaging — `write_ro_crate` returns the directory path;
+  caller composes `shutil.make_archive(...)` if a single file
+  is wanted. Most Zenodo deposits prefer a directory upload via
+  the Zenodo CLI anyway, so the directory IS the canonical
+  artifact shape.
+- BagIt layering (RO-Crate-on-BagIt) — separate primitive,
+  out of scope.
+- Direct Zenodo / Galaxy API client — `write_ro_crate` ends at
+  the local filesystem; transport to remote endpoints is per-
+  deployment.
+
+### Verification
+
+- `pytest tests/test_ro_crate_interop.py` → 67/67 pass.
+- Full interop suite → 191/191 pass (no regression).
+- `mkdocs build --strict` → clean (pending CI confirmation).
+- Module re-exports parse cleanly via
+  `python -c "from ophamin.interop import write_ro_crate"`.
 
 ## [0.37.0] — 2026-05-19
 

@@ -10,6 +10,7 @@ and end-to-end serializability.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -17,7 +18,9 @@ from ophamin.interop.ro_crate import (
     DEFAULT_PROOF_FILENAME,
     RO_CRATE_CONFORMS_TO_V1_2,
     RO_CRATE_CONTEXT_V1_2,
+    RO_CRATE_METADATA_FILENAME,
     to_ro_crate_metadata,
+    write_ro_crate,
 )
 from ophamin.measuring.proof import (
     Claim,
@@ -556,3 +559,238 @@ def test_all_at_ids_are_unique_in_graph():
     md = to_ro_crate_metadata(_signed_proof(n_datasets=3))
     ids = [entry["@id"] for entry in md["@graph"]]
     assert len(ids) == len(set(ids)), f"Duplicate @id detected: {ids}"
+
+
+# --------------------------------------------------------------------------
+# write_ro_crate — physical directory writer
+# --------------------------------------------------------------------------
+
+
+def test_ro_crate_metadata_filename_is_canonical():
+    """Per RO-Crate spec, the root descriptor MUST be named
+    'ro-crate-metadata.json' — consumers look for it by exact name."""
+    assert RO_CRATE_METADATA_FILENAME == "ro-crate-metadata.json"
+
+
+def test_write_ro_crate_creates_directory(tmp_path):
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(proof, tmp_path / "my-crate")
+    assert crate_dir.exists()
+    assert crate_dir.is_dir()
+
+
+def test_write_ro_crate_returns_absolute_path(tmp_path):
+    """Caller can immediately ``shutil.make_archive(...)`` the path,
+    which works best with absolute paths."""
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(proof, tmp_path / "my-crate")
+    assert crate_dir.is_absolute()
+
+
+def test_write_ro_crate_writes_metadata_json(tmp_path):
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(proof, tmp_path / "my-crate")
+    metadata_path = crate_dir / RO_CRATE_METADATA_FILENAME
+    assert metadata_path.exists()
+    md = json.loads(metadata_path.read_text())
+    assert md["@context"] == RO_CRATE_CONTEXT_V1_2
+
+
+def test_write_ro_crate_writes_proof_json(tmp_path):
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(proof, tmp_path / "my-crate")
+    proof_path = crate_dir / DEFAULT_PROOF_FILENAME
+    assert proof_path.exists()
+    proof_dict = json.loads(proof_path.read_text())
+    # The written proof carries the proof_id from the signed record
+    assert proof_dict["proof_id"] == proof.proof_id
+
+
+def test_write_ro_crate_preserves_signature_in_proof_file(tmp_path):
+    """The written proof.json carries the HMAC signature unchanged,
+    so an external verifier can re-check it after the crate is uploaded."""
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(proof, tmp_path / "my-crate")
+    proof_dict = json.loads((crate_dir / DEFAULT_PROOF_FILENAME).read_text())
+    assert proof_dict["signature"] == proof.signature
+
+
+def test_write_ro_crate_metadata_references_proof_by_correct_filename(tmp_path):
+    """The metadata's mainEntity + hasPart references must reflect
+    the actual proof filename used."""
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(
+        proof, tmp_path / "my-crate", proof_filename="empirical_record.json"
+    )
+    md = json.loads((crate_dir / RO_CRATE_METADATA_FILENAME).read_text())
+    root = _by_id(md["@graph"], "./")
+    assert root["mainEntity"] == {"@id": "empirical_record.json"}
+    # The proof file ACTUALLY exists at the referenced path
+    assert (crate_dir / "empirical_record.json").exists()
+
+
+def test_write_ro_crate_supports_nested_proof_filenames(tmp_path):
+    """`proof_filename='data/proofs/proof.json'` is valid — the writer
+    must create intermediate directories."""
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(
+        proof, tmp_path / "my-crate",
+        proof_filename="data/proofs/proof.json"
+    )
+    assert (crate_dir / "data" / "proofs" / "proof.json").exists()
+    md = json.loads((crate_dir / RO_CRATE_METADATA_FILENAME).read_text())
+    root = _by_id(md["@graph"], "./")
+    assert root["mainEntity"] == {"@id": "data/proofs/proof.json"}
+
+
+def test_write_ro_crate_refuses_existing_directory_by_default(tmp_path):
+    """Refusing-to-overwrite is the load-bearing safety property:
+    a typo'd output_dir must NOT silently destroy existing data."""
+    existing = tmp_path / "existing"
+    existing.mkdir()
+    (existing / "important.txt").write_text("DO NOT DESTROY")
+    proof = _signed_proof()
+    with pytest.raises(FileExistsError, match="overwrite=True"):
+        write_ro_crate(proof, existing)
+    # The pre-existing file must remain untouched
+    assert (existing / "important.txt").read_text() == "DO NOT DESTROY"
+
+
+def test_write_ro_crate_overwrite_replaces_directory(tmp_path):
+    """With overwrite=True the existing directory is removed cleanly
+    and the new crate written in its place."""
+    existing = tmp_path / "existing"
+    existing.mkdir()
+    (existing / "old.txt").write_text("old data")
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(proof, existing, overwrite=True)
+    # Old content is gone
+    assert not (existing / "old.txt").exists()
+    # New crate content is present
+    assert (crate_dir / RO_CRATE_METADATA_FILENAME).exists()
+    assert (crate_dir / DEFAULT_PROOF_FILENAME).exists()
+
+
+def test_write_ro_crate_refuses_overwriting_a_file(tmp_path):
+    """If output_dir exists but is a FILE (not a directory), refuse
+    even with overwrite=True — the user almost certainly typo'd."""
+    file_path = tmp_path / "actually-a-file.json"
+    file_path.write_text("{}")
+    proof = _signed_proof()
+    with pytest.raises(FileExistsError, match="not a directory"):
+        write_ro_crate(proof, file_path, overwrite=True)
+    # File is untouched
+    assert file_path.read_text() == "{}"
+
+
+def test_write_ro_crate_creates_parent_directories(tmp_path):
+    """If output_dir's parent doesn't exist, it's created recursively."""
+    deep = tmp_path / "a" / "b" / "c" / "crate"
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(proof, deep)
+    assert crate_dir.exists()
+    assert (crate_dir / RO_CRATE_METADATA_FILENAME).exists()
+
+
+def test_write_ro_crate_propagates_filename_validation_errors(tmp_path):
+    """Bad proof_filename → ValueError BEFORE creating any files
+    (no half-written crate left behind)."""
+    proof = _signed_proof()
+    out = tmp_path / "should-not-be-created"
+    with pytest.raises(ValueError, match="must not contain"):
+        write_ro_crate(proof, out, proof_filename="../escape.json")
+    # The output directory must NOT have been created
+    assert not out.exists()
+
+
+def test_write_ro_crate_with_string_path(tmp_path):
+    """The signature accepts ``str | Path`` — passing a string works."""
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(proof, str(tmp_path / "string-path-crate"))
+    assert isinstance(crate_dir, Path)
+    assert crate_dir.exists()
+
+
+def test_write_ro_crate_extra_metadata_lands_in_written_file(tmp_path):
+    """extra_root_metadata propagates through to the written
+    ro-crate-metadata.json on disk."""
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(
+        proof, tmp_path / "with-extras",
+        extra_root_metadata={
+            "creator": {"@id": "https://orcid.org/0000-0000-0000-0000"},
+        },
+    )
+    md = json.loads((crate_dir / RO_CRATE_METADATA_FILENAME).read_text())
+    root = _by_id(md["@graph"], "./")
+    assert root["creator"] == {"@id": "https://orcid.org/0000-0000-0000-0000"}
+
+
+def test_write_ro_crate_indent_controls_pretty_printing(tmp_path):
+    """indent=None produces compact JSON; indent=2 (default) produces
+    indented JSON for human readability."""
+    proof = _signed_proof()
+    crate_compact = write_ro_crate(
+        proof, tmp_path / "compact", indent=None
+    )
+    crate_pretty = write_ro_crate(
+        proof, tmp_path / "pretty", indent=4
+    )
+    compact_text = (crate_compact / RO_CRATE_METADATA_FILENAME).read_text()
+    pretty_text = (crate_pretty / RO_CRATE_METADATA_FILENAME).read_text()
+    # Compact form has no leading whitespace per line beyond JSON itself
+    assert "\n    " not in compact_text
+    # Pretty form has 4-space indent
+    assert "\n    " in pretty_text
+    # Both round-trip to the same dict
+    assert json.loads(compact_text) == json.loads(pretty_text)
+
+
+def test_write_ro_crate_with_zero_datasets(tmp_path):
+    """A proof with no §4 datasets still produces a complete crate."""
+    proof = _signed_proof(n_datasets=0)
+    crate_dir = write_ro_crate(proof, tmp_path / "no-datasets")
+    assert (crate_dir / RO_CRATE_METADATA_FILENAME).exists()
+    assert (crate_dir / DEFAULT_PROOF_FILENAME).exists()
+    md = json.loads((crate_dir / RO_CRATE_METADATA_FILENAME).read_text())
+    # Root Dataset hasPart still contains the proof file
+    root = _by_id(md["@graph"], "./")
+    assert {"@id": DEFAULT_PROOF_FILENAME} in root["hasPart"]
+
+
+def test_write_ro_crate_produces_self_consistent_crate(tmp_path):
+    """End-to-end invariant: every @id in the metadata that references
+    a filesystem path resolves to an existing file in the crate dir.
+
+    This is what makes the crate self-consistent — a consumer can
+    open ro-crate-metadata.json, walk the graph, and find every
+    referenced file on disk.
+    """
+    proof = _signed_proof(n_datasets=2)
+    crate_dir = write_ro_crate(proof, tmp_path / "consistency-check")
+    md = json.loads((crate_dir / RO_CRATE_METADATA_FILENAME).read_text())
+    # Find every entity that looks like a File entity (has @type "File")
+    for entity in md["@graph"]:
+        types = entity["@type"] if isinstance(entity["@type"], list) else [entity["@type"]]
+        if "File" in types:
+            # Its @id should be a relative path that exists in the crate
+            file_id = entity["@id"]
+            assert not file_id.startswith("#"), (
+                f"File entity has a fragment @id, not a path: {file_id}"
+            )
+            assert (crate_dir / file_id).exists(), (
+                f"File entity references {file_id} but file doesn't exist on disk"
+            )
+
+
+def test_write_ro_crate_proof_json_is_loadable_back(tmp_path):
+    """The written proof.json must round-trip back through the
+    Ophamin codec to a verifiable EmpiricalProofRecord — proves the
+    crate is a reusable artifact, not just a static descriptor."""
+    from ophamin.measuring.proof.codec import load
+    proof = _signed_proof()
+    crate_dir = write_ro_crate(proof, tmp_path / "round-trip")
+    loaded = load(crate_dir / DEFAULT_PROOF_FILENAME)
+    assert loaded.proof_id == proof.proof_id
+    assert loaded.signature == proof.signature
+    assert loaded.verify_signature(b"ro-crate-test-key")

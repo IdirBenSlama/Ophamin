@@ -211,38 +211,33 @@ for the full API. References:
 
 ### "I want my proof packaged for Zenodo / Galaxy / WorkflowHub."
 
-Wrap the proof as an RO-Crate 1.2 (Research Object Crate). The
-function returns the `ro-crate-metadata.json` content as a dict;
-the caller writes it alongside the proof JSON to produce a
-self-describing crate directory:
+Wrap the proof as an RO-Crate 1.2 (Research Object Crate). Two
+APIs exist — the building block returns the metadata dict, and
+the convenience wrapper writes a complete crate directory:
 
 ```python
-import json
-from pathlib import Path
-from ophamin.interop import to_ro_crate_metadata
+from ophamin.interop import write_ro_crate
 
-crate = Path("./my-empirical-attestation")
-crate.mkdir(parents=True, exist_ok=True)
-
-# 1. The proof file (file name MUST match what the metadata
-#    references — default is "proof.json", overridable via the
-#    proof_filename kwarg)
-(crate / "proof.json").write_text(
-    json.dumps(signed_proof.to_dict(), indent=2, sort_keys=True)
-)
-
-# 2. The ro-crate-metadata.json — the heart of the spec
-metadata = to_ro_crate_metadata(
+# One call → complete self-describing crate directory on disk
+crate_dir = write_ro_crate(
     signed_proof,
+    "./my-empirical-attestation",
     extra_root_metadata={
         "creator": {"@id": "https://orcid.org/0000-0000-0000-0000"},
         "license": {"@id": "https://spdx.org/licenses/Apache-2.0"},
     },
 )
-(crate / "ro-crate-metadata.json").write_text(
-    json.dumps(metadata, indent=2, sort_keys=True)
-)
+# crate_dir is an absolute pathlib.Path to the directory containing
+# both proof.json and ro-crate-metadata.json — ready to upload to
+# Zenodo, submit to WorkflowHub, ingest into Galaxy, or zip via
+# shutil.make_archive(str(crate_dir), "zip", crate_dir).
 ```
+
+For full control over the metadata-without-write path, use
+`to_ro_crate_metadata` directly (returns a dict). `write_ro_crate`
+refuses to overwrite an existing directory by default —
+`overwrite=True` opts in. Both APIs accept the same `proof_filename`
+and `extra_root_metadata` kwargs.
 
 The resulting `./my-empirical-attestation/` directory is a
 complete RO-Crate. Upload it to Zenodo (mint a DOI), submit it
@@ -365,7 +360,8 @@ The interop layers follow Ophamin's
   (`IN_TOTO_STATEMENT_V1_TYPE`, `OPHAMIN_PREDICATE_TYPE_V1`,
   `DSSE_INTOTO_PAYLOAD_TYPE`), RO-Crate constants
   (`RO_CRATE_CONTEXT_V1_2`, `RO_CRATE_CONFORMS_TO_V1_2`,
-  `DEFAULT_PROOF_FILENAME`), OpenLineage constants
+  `DEFAULT_PROOF_FILENAME`, `RO_CRATE_METADATA_FILENAME`),
+  OpenLineage constants
   (`OPENLINEAGE_SCHEMA_URL`, `OPENLINEAGE_PRODUCER_URL_BASE`,
   `DEFAULT_NAMESPACE`, `OPHAMIN_RUNID_NAMESPACE`).
 - **`@Provisional`** — implementation-internal details (Rust

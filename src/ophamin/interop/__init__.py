@@ -81,7 +81,9 @@ from ophamin.interop.ro_crate import (
     DEFAULT_PROOF_FILENAME,
     RO_CRATE_CONFORMS_TO_V1_2,
     RO_CRATE_CONTEXT_V1_2,
+    RO_CRATE_METADATA_FILENAME,
     to_ro_crate_metadata,
+    write_ro_crate,
 )
 from ophamin.interop.sarif import (
     SARIFExporter,
@@ -102,6 +104,7 @@ __all__ = [
     "OPHAMIN_RUNID_NAMESPACE",
     "RO_CRATE_CONFORMS_TO_V1_2",
     "RO_CRATE_CONTEXT_V1_2",
+    "RO_CRATE_METADATA_FILENAME",
     "SARIFExporter",
     "audit_record_to_sarif",
     "build_cyclonedx_sbom_from_env",
@@ -114,4 +117,5 @@ __all__ = [
     "to_openlineage_event",
     "to_ro_crate_metadata",
     "verify_dsse_envelope",
+    "write_ro_crate",
 ]
