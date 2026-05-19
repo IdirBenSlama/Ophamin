@@ -153,9 +153,62 @@ jobs:
       - name: helm push to GHCR
         # Pushes to oci://ghcr.io/<owner-lowercase>/<chart-name>:<version>
         # The chart-name segment comes from Chart.yaml's `name:` field.
+        # Captures stderr so the next step can extract the digest for
+        # cosign signing — `helm push` doesn't expose the digest as a
+        # step output, but it does print it to stderr in the form
+        #   Pushed: ghcr.io/<ns>/ophamin:<version>
+        #   Digest: sha256:<hex>
+        id: push
         run: |
+          set -o pipefail
           helm push "${{ steps.package.outputs.tgz }}" \
-            "oci://${REGISTRY}/${{ steps.oci.outputs.namespace }}"
+            "oci://${REGISTRY}/${{ steps.oci.outputs.namespace }}" \
+            2>&1 | tee /tmp/helm-push.log
+          DIGEST=$(grep -oE 'Digest: sha256:[a-f0-9]+' /tmp/helm-push.log | head -1 | awk '{print $2}')
+          PUSHED_REF=$(grep -oE 'Pushed: [^ ]+' /tmp/helm-push.log | head -1 | awk '{print $2}')
+          if [ -z "$DIGEST" ] || [ -z "$PUSHED_REF" ]; then
+            echo "::error::Could not parse digest or ref from helm push output"
+            cat /tmp/helm-push.log
+            exit 1
+          fi
+          # Strip the :tag suffix so we can re-attach the @digest form
+          REF_NO_TAG="${PUSHED_REF%:*}"
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "ref_no_tag=$REF_NO_TAG" >> "$GITHUB_OUTPUT"
+          echo "Parsed digest: $DIGEST"
+          echo "Parsed ref:    $REF_NO_TAG"
+
+      # ── Sigstore / cosign keyless signing ────────────────────────────────
+      # Signs the published chart with a short-lived Fulcio cert tied to
+      # this workflow's OIDC identity. Same supply-chain story as
+      # docker.yml — signature lands in GHCR as a sibling OCI artifact +
+      # in the public Rekor transparency log.
+      #
+      # Consumer verification:
+      #   cosign verify ghcr.io/idirbenslama/ophamin/ophamin@<digest> \
+      #     --certificate-identity-regexp='^https://github.com/IdirBenSlama/Ophamin/.*' \
+      #     --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+      #
+      # See docs/SUPPLY_CHAIN.md for the full verification flow.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.4.1'
+
+      - name: Sign chart with cosign (keyless)
+        run: |
+          DIGEST="${{ steps.push.outputs.digest }}"
+          REF_NO_TAG="${{ steps.push.outputs.ref_no_tag }}"
+          # Re-login as `crane` since cosign uses the same registry
+          # credential set helm just authenticated against — but in a
+          # fresh subprocess, so we have to re-auth here.
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | cosign login "$REGISTRY" \
+                --username "${{ github.actor }}" \
+                --password-stdin
+          CHART_DIGEST_REF="${REF_NO_TAG}@${DIGEST}"
+          echo "Signing $CHART_DIGEST_REF"
+          cosign sign --yes "$CHART_DIGEST_REF"
 
       - name: Report published chart
         if: always()
@@ -164,6 +217,12 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           echo "oci://${REGISTRY}/${{ steps.oci.outputs.namespace }}/ophamin" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "${{ steps.push.outputs.digest }}" ]; then
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo "**Digest:** \`${{ steps.push.outputs.digest }}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo "Signed via cosign keyless (Sigstore) — see docs/SUPPLY_CHAIN.md for verification." >> "$GITHUB_STEP_SUMMARY"
+          fi
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo "Install with:" >> "$GITHUB_STEP_SUMMARY"
           echo '```bash' >> "$GITHUB_STEP_SUMMARY"

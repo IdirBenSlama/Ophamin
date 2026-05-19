@@ -7,7 +7,155 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.41.0] below for the latest cut.)
+(empty — see [0.42.0] below for the latest cut.)
+
+## [0.42.0] — 2026-05-19
+
+**Headline:** Cosign + Sigstore keyless signing for BOTH the
+Docker image AND the Helm chart. Closes the supply-chain
+provenance loop — every artifact Ophamin publishes is now
+cryptographically signed by the workflow's OIDC identity AND
+permanently recorded in the public Rekor transparency log.
+
+### Why this is a meaningful release
+
+Previous releases (0.34.0 docker.yml, 0.41.0 chart.yml) shipped
+the publish workflows with `id-token: write` permission reserved
+explicitly for cosign signing. 0.42.0 wires those reservations
+into real Sigstore-keyless signing. The signature lands in GHCR
+as a sibling OCI artifact + in Rekor — anyone can independently
+verify provenance without trusting GHCR's storage layer.
+
+This is the natural conclusion of the supply-chain story the
+0.35.0 in-toto Attestation wrapper started. Now Ophamin's
+published artifacts AND user-emitted proofs can both flow into
+Sigstore / SLSA infrastructure.
+
+### Added — cosign signing in `.github/workflows/docker.yml`
+
+Two new steps inserted between the smoke-test and the digest
+report:
+
+```yaml
+- name: Install cosign
+  uses: sigstore/cosign-installer@v3
+  with:
+    cosign-release: 'v2.4.1'
+
+- name: Sign image with cosign (keyless)
+  run: |
+    DIGEST="${{ steps.build-and-push.outputs.digest }}"
+    IMAGE_REF="${REGISTRY}/${{ steps.image.outputs.name }}@${DIGEST}"
+    cosign sign --yes "$IMAGE_REF"
+```
+
+The "Build and push image" step gained `id: build-and-push` so
+its `outputs.digest` is referenceable. The single multi-arch
+manifest gets signed once; both linux/amd64 and linux/arm64
+variants are transitively covered.
+
+### Added — cosign signing in `.github/workflows/chart.yml`
+
+The "helm push to GHCR" step gained `id: push` and now captures
+the helm push stderr to extract the digest:
+
+```yaml
+- name: helm push to GHCR
+  id: push
+  run: |
+    set -o pipefail
+    helm push "${{ steps.package.outputs.tgz }}" \
+      "oci://${REGISTRY}/${{ steps.oci.outputs.namespace }}" \
+      2>&1 | tee /tmp/helm-push.log
+    DIGEST=$(grep -oE 'Digest: sha256:[a-f0-9]+' /tmp/helm-push.log | head -1 | awk '{print $2}')
+    PUSHED_REF=$(grep -oE 'Pushed: [^ ]+' /tmp/helm-push.log | head -1 | awk '{print $2}')
+    # ... emit as step outputs
+```
+
+Followed by the same Install cosign + Sign with cosign step
+pattern (with explicit `cosign login` since helm + cosign run
+in separate subprocesses). The chart's "Report published chart"
+step-summary now mentions the cosign signing + points at
+`docs/SUPPLY_CHAIN.md`.
+
+### Added — `docs/SUPPLY_CHAIN.md`
+
+New top-level supply-chain documentation explaining:
+
+- **At-a-glance table** of every Ophamin artifact + its signing
+  scheme + the verification command.
+- **How cosign keyless works** — OIDC token → Fulcio cert →
+  ephemeral key → Rekor entry → key destruction.
+- **Verifying an Ophamin Docker image** — copy-paste cosign
+  verify command with the certificate-identity-regexp pinned
+  to the workflow URL.
+- **Verifying an Ophamin Helm chart** — same shape, different
+  OCI path (`/ophamin/ophamin` vs `/ophamin`).
+- **Verification in Kubernetes admission** — example
+  `policy-controller` ClusterImagePolicy that requires signed
+  Ophamin images cluster-wide.
+- **Verifying an `EmpiricalProofRecord`** — the independent
+  HMAC-SHA256 path; cross-language Python / Rust / JS examples.
+- **Two-layer Sigstore + Ophamin verification** — DSSE outer
+  cosign + inner Ophamin HMAC for in-toto-wrapped proofs.
+- **Trust model summary** — what each signature actually
+  guarantees, and what users still trust.
+- **What this does NOT include** — reproducible-build SLSA L3+
+  attestations (timestamps + apt ordering not yet
+  byte-deterministic), PyPI trusted-publisher attestations
+  (owner-physical), SBOM cosign signing (future ship).
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.42.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.42.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.42.0"` (pinned
+  by `test_app_version_matches_ophamin_package`; 46/46 helm
+  hardening tests pass)
+
+### What this does NOT include (out of scope for 0.42.0)
+
+- **Cosign verification step inside the workflow** — the
+  workflows sign but don't `cosign verify` the signed artifact
+  before declaring success. Adding a self-verify step is a
+  small follow-on that would catch signing-pipeline drift
+  immediately rather than waiting for an external consumer to
+  hit it.
+- **Hardening pins** for the workflow YAML — `.github/workflows/`
+  doesn't have a test surface; the validation is empirical (the
+  first cosign run after push either signs cleanly or fails
+  loudly in CI logs). The earlier-shipped `test_helm_chart.py`
+  proves the chart structure but doesn't extend to workflow
+  semantics.
+- **SBOM cosign signing** — the CycloneDX SBOM exporter
+  produces a signed Ophamin proof; signing IT via cosign too
+  would close the cross-format provenance loop. Future ship.
+- **Reproducible-build attestation** — the Docker image is
+  signed but not yet byte-reproducible (apt ordering /
+  timestamps differ across builds). Closing this is a deeper
+  Dockerfile rebuild around a Nix / Bazel framework — bigger
+  design decision.
+
+### Verification
+
+- `mkdocs build --strict` → clean.
+- `pytest tests/test_helm_chart.py` → 46/46 pass.
+- **First real workflow runs after this push are the empirical
+  validation** — cosign install + sign happen against real
+  Sigstore Fulcio + Rekor endpoints.
+
+### What this opens for next-direction work
+
+- **Self-verify** step at the end of each publish workflow —
+  catches signing-pipeline drift in the same run rather than
+  waiting for an external consumer to surface it.
+- **SBOM cosign signing** — sign the CycloneDX SBOM exporter's
+  output too, closing cross-format provenance.
+- **Reproducible-build framework** for the Docker image — Nix /
+  Bazel rebuild that produces byte-deterministic output for
+  SLSA Level 3+.
+- **Slim `ophamin-client` package** remains open per
+  STATUS_2026_05_19.md's autonomous-doable list.
 
 ## [0.41.0] — 2026-05-19
 

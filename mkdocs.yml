@@ -113,7 +113,8 @@ nav:
       - Plugin catalog: PLUGIN_CATALOG_2026_05_15.md
       - Kimera observational surface: KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md
   - Interop:
-      - Interop overview (5 layers): INTEROP_OVERVIEW.md
+      - Interop overview (8 layers): INTEROP_OVERVIEW.md
+      - Supply-chain provenance (cosign + Sigstore): SUPPLY_CHAIN.md
       - Reproducing the framework: REPRODUCING.md
       - Zenodo deposit workflow: ZENODO_DEPOSIT_WORKFLOW.md
   - Proposals (Tier-2 owner picks):

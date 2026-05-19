@@ -93,6 +93,7 @@ jobs:
             type=raw,value=dispatch-${{ github.sha }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Build and push image
+        id: build-and-push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -125,6 +126,37 @@ jobs:
           fi
           echo "Smoke-testing image: $IMAGE"
           docker run --rm "$IMAGE" --help | head -5
+
+      # ── Sigstore / cosign keyless signing ────────────────────────────────
+      # Signs the pushed image with a short-lived Fulcio cert tied to this
+      # workflow's OIDC identity. The signature lands in GHCR as a sibling
+      # OCI artifact AND in the public Rekor transparency log.
+      #
+      # Consumer verification:
+      #   cosign verify ghcr.io/idirbenslama/ophamin@<digest> \
+      #     --certificate-identity-regexp='^https://github.com/IdirBenSlama/Ophamin/.*' \
+      #     --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+      #
+      # See docs/SUPPLY_CHAIN.md for the full verification flow.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.4.1'
+
+      - name: Sign image with cosign (keyless)
+        # The buildx push produces ONE multi-arch manifest at the digest;
+        # cosign signs that root manifest, transitively covering both
+        # linux/amd64 and linux/arm64 variants. Using --yes skips the
+        # interactive consent prompt that cosign would otherwise show.
+        run: |
+          DIGEST="${{ steps.build-and-push.outputs.digest }}"
+          if [ -z "$DIGEST" ]; then
+            echo "::error::build-and-push step did not export a digest"
+            exit 1
+          fi
+          IMAGE_REF="${REGISTRY}/${{ steps.image.outputs.name }}@${DIGEST}"
+          echo "Signing $IMAGE_REF"
+          cosign sign --yes "$IMAGE_REF"
 
       - name: Report image digest
         if: always()

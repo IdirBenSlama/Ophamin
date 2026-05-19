@@ -24,7 +24,7 @@ version: 0.1.0
 # Should match the most recent `ophamin` release at chart-cut time.
 # Bumping appVersion alongside the chart's image tag is the canonical
 # release flow.
-appVersion: "0.41.0"
+appVersion: "0.42.0"
 
 keywords:
   - empirical
