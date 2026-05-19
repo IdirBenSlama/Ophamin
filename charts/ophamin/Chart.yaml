@@ -1,0 +1,48 @@
+apiVersion: v2
+name: ophamin
+description: |
+  Ophamin — an empirical observatory framework producing content-addressed,
+  HMAC-signed proof records of falsifiable claims about a substrate under test.
+
+  This chart deploys `ophamin http serve` (the FastAPI REST surface) and,
+  optionally, `ophamin mcp serve` (the Model Context Protocol surface for AI
+  agents). The image is `ghcr.io/idirbenslama/ophamin` (multi-arch:
+  linux/amd64 + linux/arm64) published by the project's docker.yml workflow.
+
+# See https://github.com/IdirBenSlama/Ophamin for the project.
+home: https://github.com/IdirBenSlama/Ophamin
+sources:
+  - https://github.com/IdirBenSlama/Ophamin
+
+# A chart can be either an 'application' or a 'library'.
+type: application
+
+# Chart version — bumped per chart change. Independent of appVersion.
+version: 0.1.0
+
+# appVersion — the version of Ophamin the chart was designed against.
+# Should match the most recent `ophamin` release at chart-cut time.
+# Bumping appVersion alongside the chart's image tag is the canonical
+# release flow.
+appVersion: "0.40.0"
+
+keywords:
+  - empirical
+  - observatory
+  - signed-proofs
+  - in-toto
+  - openlineage
+  - ro-crate
+  - kimera-swm
+
+maintainers:
+  - name: Idir Ben Slama
+    url: https://github.com/IdirBenSlama
+
+# Annotations land in the chart metadata that `helm show chart` surfaces.
+annotations:
+  category: Application
+  licenses: Apache-2.0
+  artifacthub.io/changes: |
+    - kind: added
+      description: First chart release (0.40.0) — deploys ophamin http serve on K8s

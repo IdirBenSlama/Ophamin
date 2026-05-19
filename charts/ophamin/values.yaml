@@ -1,0 +1,177 @@
+# Default values for the ophamin Helm chart.
+# Override with `helm install ophamin oci://ghcr.io/idirbenslama/ophamin -f my-values.yaml`
+# or via `--set http.replicas=3 --set image.tag=0.40.0`.
+
+# ----------------------------------------------------------------------
+# Image — the published GHCR image from Ophamin's docker.yml workflow.
+# ----------------------------------------------------------------------
+image:
+  # Repository — points to the GHCR multi-arch image. Tags are
+  # produced by docker.yml on every main push (:main) + every v* tag
+  # push (:<version> + :latest).
+  repository: ghcr.io/idirbenslama/ophamin
+  # Pull policy. Default "IfNotPresent" suits tagged releases.
+  # Set to "Always" if your image.tag is "main" (bleeding-edge).
+  pullPolicy: IfNotPresent
+  # Tag — override to pin a specific Ophamin version. When empty,
+  # the chart's appVersion is used (so chart 0.1.0 → app 0.40.0).
+  tag: ""
+
+# imagePullSecrets — for pulling from private registries.
+# Public ghcr.io/idirbenslama/* needs no secret.
+imagePullSecrets: []
+
+# ----------------------------------------------------------------------
+# HTTP serve — the FastAPI surface (always enabled by default).
+# ----------------------------------------------------------------------
+http:
+  enabled: true
+  replicas: 2
+
+  # Resources — sized for a moderate workload. The HTTP surface is
+  # mostly I/O-bound (verify_proof + read_proof_index endpoints);
+  # run_scenario delegates to scenario code which has its own
+  # resource needs.
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+
+  # Probes — `/health` is the official liveness endpoint.
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 2
+
+  # Uvicorn workers per pod. >1 only matters if you want intra-pod
+  # concurrency (typically prefer scaling replicas instead).
+  workers: 1
+
+  # Extra env vars passed to the http serve process.
+  env: []
+  # - name: KIMERA_ENCODER_SNAPSHOT_PATH
+  #   value: /snapshots/canonical.bin
+
+  # podAnnotations + podLabels — for sidecar injection, metrics scraping, etc.
+  podAnnotations: {}
+  podLabels: {}
+
+# ----------------------------------------------------------------------
+# MCP serve — the Model Context Protocol surface for AI agents.
+# Disabled by default. Enable per your AI-agent deployment shape.
+# ----------------------------------------------------------------------
+mcp:
+  enabled: false
+  replicas: 1
+
+  # MCP uses stdio by default, which doesn't fit K8s networking.
+  # When running in K8s use the streamable-http transport on a TCP
+  # port. The default port is 8765 per the MCP server defaults.
+  transport: "streamable-http"
+  port: 8765
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+
+  env: []
+  podAnnotations: {}
+  podLabels: {}
+
+# ----------------------------------------------------------------------
+# Service — exposes the HTTP serve port. MCP gets its own service
+# when enabled.
+# ----------------------------------------------------------------------
+service:
+  type: ClusterIP
+  http:
+    port: 80
+    targetPort: 8000
+  # When mcp.enabled is true, this port serves the MCP streamable-http
+  # transport on its own Service.
+  mcp:
+    port: 8765
+    targetPort: 8765
+
+# ----------------------------------------------------------------------
+# Ingress — disabled by default. Enable + configure for external access.
+# ----------------------------------------------------------------------
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: ophamin.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: http
+  tls: []
+    # - secretName: ophamin-tls
+    #   hosts:
+    #     - ophamin.example.com
+
+# ----------------------------------------------------------------------
+# ServiceAccount — pods run as a dedicated SA so cluster admins can
+# scope RBAC per chart release.
+# ----------------------------------------------------------------------
+serviceAccount:
+  create: true
+  annotations: {}
+  # Name — leave empty to use the chart's fullname.
+  name: ""
+
+# ----------------------------------------------------------------------
+# Security context — defaults match what Dockerfile sets up
+# (non-root `ophamin` user, no privilege escalation).
+# ----------------------------------------------------------------------
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 1000
+  # The Dockerfile creates user "ophamin" but doesn't guarantee UID 1000;
+  # leaving runAsUser unset uses the image's USER directive (ophamin).
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false  # ophamin writes proofs/audit dirs locally; set true if you mount writable volumes explicitly
+
+# ----------------------------------------------------------------------
+# Autoscaling — disabled by default. Enable for production deployments.
+# ----------------------------------------------------------------------
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75
+  # targetMemoryUtilizationPercentage: 75
+
+# ----------------------------------------------------------------------
+# Node placement (advanced).
+# ----------------------------------------------------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}

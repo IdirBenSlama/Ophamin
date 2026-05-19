@@ -1,0 +1,69 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  $ helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+{{- if .Values.http.enabled }}
+
+═══════════════════════════════════════════════════════════════════════════
+HTTP REST API ({{ include "ophamin.fullname" . }}-http)
+═══════════════════════════════════════════════════════════════════════════
+
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+The HTTP API is exposed via Ingress at:
+{{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}{{ .path }}
+{{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+Get the NodePort:
+  export NODE_PORT=$(kubectl get -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "ophamin.fullname" . }}-http)
+  export NODE_IP=$(kubectl get nodes -n {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Ophamin HTTP API: http://$NODE_IP:$NODE_PORT"
+
+{{- else if contains "LoadBalancer" .Values.service.type }}
+Wait for the LoadBalancer external IP:
+  kubectl get svc -n {{ .Release.Namespace }} {{ include "ophamin.fullname" . }}-http --watch
+
+{{- else }}
+Forward the HTTP API to localhost (ClusterIP only):
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "ophamin.fullname" . }}-http 8000:{{ .Values.service.http.port }}
+
+Then point your client at http://127.0.0.1:8000 — e.g.:
+  curl http://127.0.0.1:8000/health
+  curl http://127.0.0.1:8000/openapi.json
+  curl http://127.0.0.1:8000/docs    # Swagger UI
+{{- end }}
+{{- end }}
+
+{{- if .Values.mcp.enabled }}
+
+═══════════════════════════════════════════════════════════════════════════
+MCP server ({{ include "ophamin.fullname" . }}-mcp)
+═══════════════════════════════════════════════════════════════════════════
+
+The MCP server runs in streamable-http mode on port {{ .Values.mcp.port }}.
+Point your MCP client at:
+  http://{{ include "ophamin.fullname" . }}-mcp.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.mcp.port }}
+
+From outside the cluster, forward the port:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "ophamin.fullname" . }}-mcp {{ .Values.mcp.port }}:{{ .Values.service.mcp.port }}
+{{- end }}
+
+═══════════════════════════════════════════════════════════════════════════
+Image
+═══════════════════════════════════════════════════════════════════════════
+
+  Repository: {{ .Values.image.repository }}
+  Tag:        {{ .Values.image.tag | default .Chart.AppVersion }}
+  App:        Ophamin {{ .Chart.AppVersion }}
+
+To upgrade to a newer Ophamin release:
+  helm upgrade {{ .Release.Name }} oci://ghcr.io/idirbenslama/ophamin -n {{ .Release.Namespace }} --set image.tag=<new-version>
+
+Project: https://github.com/IdirBenSlama/Ophamin

@@ -1,0 +1,25 @@
+# Patterns to ignore when building Helm packages.
+# Standard set + Ophamin-specific protections (we don't ship the
+# upstream tree's auxiliary artifacts in the chart tarball).
+
+# Helm + chart developer files
+.DS_Store
+.git/
+.gitignore
+.bzr/
+.bzrignore
+.hg/
+.hgignore
+.svn/
+
+# Editor / IDE files
+*.swp
+*.bak
+*.tmp
+*.orig
+*~
+.vscode/
+.idea/
+
+# Helm CI scaffolding
+ci/

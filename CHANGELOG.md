@@ -7,7 +7,145 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.39.0] below for the latest cut.)
+(empty — see [0.40.0] below for the latest cut.)
+
+## [0.40.0] — 2026-05-19
+
+**Headline:** Tier-4 dev-tool follow-on — Helm chart for K8s
+deployment. With the GHCR image landed in 0.34.0 + lowercase
+fix validated in 0.35.1, the natural next step is one-command
+K8s deployment. The chart is at `charts/ophamin/` and renders
+both the HTTP REST surface and (optionally) the MCP surface.
+
+### Added — `charts/ophamin/` Helm chart
+
+```bash
+helm install my-ophamin oci://ghcr.io/idirbenslama/ophamin \
+    --version 0.1.0 \
+    --namespace ophamin \
+    --create-namespace
+```
+
+Chart structure:
+
+- **`Chart.yaml`** — `apiVersion: v2`, `type: application`,
+  `name: ophamin`, `version: 0.1.0` (chart-only), `appVersion:
+  "0.40.0"` (Ophamin app version, tracks the package version).
+- **`values.yaml`** — defaults sized for moderate workload.
+  Image pinned to `ghcr.io/idirbenslama/ophamin`; `tag` empty
+  (falls back to Chart.appVersion).
+- **`templates/_helpers.tpl`** — 9 helper templates: `name`,
+  `fullname`, `chart`, `labels`, `selectorLabels`,
+  `httpSelectorLabels`, `mcpSelectorLabels`,
+  `serviceAccountName`, `image`.
+- **`templates/serviceaccount.yaml`** — dedicated SA for RBAC scoping.
+- **`templates/deployment-http.yaml`** + **`service-http.yaml`** —
+  2-replica Deployment + ClusterIP Service for `ophamin http
+  serve` on port 8000.
+- **`templates/deployment-mcp.yaml`** + **`service-mcp.yaml`** —
+  optional MCP Deployment + Service (streamable-http on 8765).
+  Disabled by default since the published image doesn't include
+  the `[mcp]` extra; operators with a custom MCP image can opt in.
+- **`templates/ingress.yaml`** — optional Ingress with TLS support.
+- **`templates/hpa.yaml`** — optional HorizontalPodAutoscaler
+  (CPU + memory targets).
+- **`templates/NOTES.txt`** — post-install message with the
+  right port-forward / Ingress URL / namespace-aware DNS.
+- **`README.md`** — operator-facing docs with install / upgrade
+  / uninstall + scope notes.
+- **`.helmignore`** — packaging exclusions.
+
+### Probes + security defaults
+
+- **Liveness + readiness probes** point at `/health` on port
+  `http` (named after the containerPort).
+- **`podSecurityContext.runAsNonRoot: true`** + Dockerfile's
+  USER directive defense-in-depth.
+- **`securityContext.allowPrivilegeEscalation: false`** +
+  `capabilities.drop: [ALL]` baseline pod-security-standard.
+
+### Hardening pins — `tests/test_helm_chart.py` (46 tests)
+
+The tests validate chart structure WITHOUT requiring the `helm`
+binary (not always available in CI / dev). Catches the most
+common drift modes:
+
+- Chart.yaml + values.yaml YAML parse cleanly.
+- `Chart.appVersion == ophamin.__version__` (this caught a real
+  drift during development: I'd set 0.40.0 in Chart.yaml while
+  Ophamin was still 0.39.0; the test failed loud and forced
+  the package bump).
+- Required template files all present.
+- Image repository pinned to `ghcr.io/idirbenslama/ophamin`.
+- `image.tag` defaults to empty (fallback-to-appVersion idiom).
+- `http.enabled` defaults `true`; `mcp.enabled` defaults `false`
+  (since published image lacks the [mcp] extra).
+- Probes hit `/health` on port `http`.
+- Service is ClusterIP by default; type 80 → 8000.
+- ServiceAccount creation defaults `true`.
+- Security: runAsNonRoot, allowPrivilegeEscalation false,
+  drop ALL capabilities.
+- HPA disabled by default; when enabled, minReplicas ≥ 2.
+- Deployment uses `ophamin.image` template (not hard-coded).
+- Deployment uses `args:` (NOT `command:`) — preserves the
+  Dockerfile's ENTRYPOINT.
+- Deployment binds `0.0.0.0:8000`.
+- Service.targetPort comes from values (not hard-coded).
+- MCP transport defaults to `streamable-http` (stdio doesn't
+  fit K8s).
+- `_helpers.tpl` defines all 9 helper templates.
+- HTTP Deployment + Service share `httpSelectorLabels`; MCP pair
+  shares `mcpSelectorLabels`; HTTP and MCP have distinct
+  components so Services route correctly.
+
+All 46 tests pass.
+
+### What this does NOT include (out of scope for 0.40.0)
+
+- **`helm lint` / `helm template` CI job** — would catch schema-
+  level errors the structural Python tests can't. Future ship
+  can add a GH Actions job using `azure/setup-helm@v4`.
+- **OCI registry publishing workflow** — the chart is in the
+  source tree but not yet auto-pushed to `oci://ghcr.io/idirbenslama/ophamin`
+  as a Helm chart artifact. Adding a `chart.yml` workflow that
+  runs `helm package` + `helm push` on chart-version bumps is
+  the natural next ship.
+- **PodMonitor / ServiceMonitor for Prometheus** — chart doesn't
+  ship Prometheus-Operator CRD-dependent objects yet. Operators
+  using Prometheus can post-add via Kustomize / their own
+  templates.
+- **NetworkPolicy** — chart doesn't ship a default NetPol.
+  Operators with strict-default NetPol clusters need to add one
+  allowing ingress on port 8000 / 8765.
+- **TLS termination** — handled by the Ingress controller, not
+  the chart.
+- **Persistent volumes** — Ophamin's CLI surfaces are stateless;
+  scenario runs needing PVs should override via values.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.40.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.40.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.40.0"` (pinned
+  by `test_app_version_matches_ophamin_package`)
+
+### Verification
+
+- `pytest tests/test_helm_chart.py` → 46/46 pass.
+- Full test suite (interop + helm) → 275 tests pass.
+- `mkdocs build --strict` → clean.
+
+### What this opens for next-direction work
+
+- **`chart.yml` GH Actions workflow** — auto-publish the chart
+  to GHCR as an OCI artifact on `v*` tag push (similar shape
+  to docker.yml).
+- **`helm lint` CI job** in `ci.yml` matrix.
+- **OpenLineage + in-toto + RO-Crate dashboards** as optional
+  values-toggled ConfigMaps in the chart (sidecar pattern for
+  observability integration).
+- **Slim `ophamin-client` package** — remains autonomous-doable
+  for the next session.
 
 ## [0.39.0] — 2026-05-19
 

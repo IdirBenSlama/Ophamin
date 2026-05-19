@@ -1,0 +1,18 @@
+{{- if .Values.http.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ophamin.fullname" . }}-http
+  labels:
+    {{- include "ophamin.labels" . | nindent 4 }}
+    app.kubernetes.io/component: http-serve
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.http.port }}
+      targetPort: {{ .Values.service.http.targetPort }}
+      protocol: TCP
+  selector:
+    {{- include "ophamin.httpSelectorLabels" . | nindent 4 }}
+{{- end }}
