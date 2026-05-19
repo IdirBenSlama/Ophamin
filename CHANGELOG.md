@@ -7,7 +7,194 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.43.0] below for the latest cut.)
+(empty — see [0.44.0] below for the latest cut.)
+
+## [0.44.0] — 2026-05-19
+
+**Headline:** Public benchmark dashboard at
+`https://idirbenslama.github.io/Ophamin/bench/`. The `bench`
+workflow now generates a self-contained HTML dashboard from
+its pytest-benchmark JSON output; `docs` workflow fetches the
+latest dashboard artifact and publishes it under `/bench/` on
+the GitHub Pages site. Cross-workflow artifact flow with
+graceful fallback when no bench run exists yet.
+
+### Added — `scripts/render_bench_dashboard.py` (~310 LOC)
+
+Pure Python stdlib renderer that converts pytest-benchmark
+JSON output into:
+
+- **`index.html`** — self-contained dashboard (CSS + JS
+  embedded inline; no external dependencies; light/dark mode
+  follows `prefers-color-scheme`). Includes:
+  - Machine + commit metadata (CPU, Python version, branch,
+    commit SHA + time)
+  - Sortable table of every benchmark (min / median / mean /
+    max / stddev / ops-per-second / rounds)
+  - Relative-time bar chart (per-bench mean as fraction of slowest)
+  - Click-to-sort columns (numeric for time + ops columns;
+    lexical for name)
+  - Embedded raw JSON for offline use (right-click + save HTML
+    keeps the data)
+  - XSS-safe (html.escape on every benchmark name + machine
+    field)
+- **`data.json`** — sidecar of the raw pytest-benchmark JSON
+  for machine consumers.
+
+CLI:
+
+```bash
+python scripts/render_bench_dashboard.py \
+    bench_storage \
+    /tmp/bench_dashboard
+```
+
+Accepts either a pytest-benchmark storage directory (finds
+the latest JSON by mtime) or a specific JSON file. Empty
+directory or missing path → loud non-zero exit (not silent
+empty-dashboard).
+
+### Added — `tests/test_render_bench_dashboard.py` (27 hardening pins)
+
+Validates:
+
+- Script file exists + is pure stdlib (no numpy / matplotlib /
+  pandas — must run in slim CI env)
+- CLI surface: `--help`, directory input, file input,
+  latest-by-mtime selection across multiple JSON files,
+  recursive output dir creation, loud failure on missing /
+  empty input
+- `render_html()` output: well-formed (matched tags, depth-0
+  at end), starts with DOCTYPE, has title, correct table row
+  count, machine + commit info present, benchmark names
+  present, ascending-mean ordering, dark-mode styles present,
+  sort JS present, embedded raw JSON present
+- XSS safety: `<script>` tags in benchmark names get html-
+  escaped in the visible body
+- Empty benchmarks list: doesn't crash; produces valid (empty)
+  table
+- `format_seconds()` / `format_ops()` pick correct adaptive
+  unit (ns / μs / ms / s; ops/s / K / M / G)
+- `data.json` is parseable JSON + includes `datetime` field
+
+### Added — `bench.yml` steps
+
+Between "Upload bench results" and end of job:
+
+```yaml
+- name: Render bench dashboard
+  env: { PYTHONPATH: src }
+  run: |
+    mkdir -p /tmp/bench_dashboard
+    python scripts/render_bench_dashboard.py bench_storage /tmp/bench_dashboard
+
+- name: Upload bench dashboard as artifact
+  uses: actions/upload-artifact@v7
+  with:
+    name: bench-dashboard
+    path: /tmp/bench_dashboard/
+    retention-days: 90
+```
+
+The `bench-dashboard` artifact name is the cross-workflow
+contract docs.yml depends on.
+
+### Added — `docs.yml` cross-workflow artifact fetch
+
+Between "Build site" and "Upload artifact":
+
+```yaml
+- name: Fetch latest bench dashboard
+  env: { GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
+  run: |
+    mkdir -p site/bench
+    LATEST_RUN=$(gh run list --workflow=bench.yml --branch=main \
+        --status=completed --limit=10 --json databaseId,conclusion \
+        --jq '[.[] | select(.conclusion == "success")][0].databaseId' || echo "")
+    if [ -z "$LATEST_RUN" ]; then
+        # Drop a placeholder index so links don't 404
+    else
+        gh run download "$LATEST_RUN" --name bench-dashboard --dir site/bench
+    fi
+```
+
+Uses the GitHub CLI (preinstalled on ubuntu-latest runners)
+so no third-party action dependency. Failure modes (no
+successful bench run + expired artifact) gracefully fall
+back to a placeholder index.html so the `/bench/` link
+doesn't 404.
+
+New permission added to docs.yml:
+
+```yaml
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read  # ← NEW: needed by gh run download for cross-workflow artifact
+```
+
+### Added — `docs/BENCHMARKS_DASHBOARD.md`
+
+Markdown page that links to `bench/index.html` + documents:
+
+- What's on the dashboard (sortable table, bar chart, sidecar
+  data.json)
+- How the cross-workflow flow works (ASCII flow diagram)
+- What the dashboard does NOT show (cross-commit comparison,
+  historical trends, per-PR previews)
+- Hardware noise caveat
+- How to reproduce the dashboard locally
+
+Added to mkdocs nav under Reference as
+"Benchmarks dashboard (live)".
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.44.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.44.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.44.0"` (pinned
+  by `test_app_version_matches_ophamin_package`; 46/46 helm
+  tests still pass)
+
+### What this does NOT include (out of scope for 0.44.0)
+
+- **Cross-commit comparison view** — current dashboard reflects
+  one bench run. A multi-run trend chart would need a separate
+  artifact-aggregation step. Future ship.
+- **Per-PR preview dashboards** — PRs build the docs but
+  don't deploy; the dashboard only updates on main pushes.
+- **gh-pages branch deploy** — current setup uses the
+  `actions/upload-pages-artifact` + `actions/deploy-pages` flow
+  (build_type=workflow), which is the modern path. A separate
+  gh-pages branch deploy would fragment the publish surface.
+- **Email / Slack notifications on bench regressions** — the
+  bench workflow's `>25%` gate fires in CI logs; surfacing it
+  to chat is a separate ship.
+
+### Verification
+
+- `pytest tests/test_render_bench_dashboard.py` → 27/27 pass.
+- `pytest tests/test_helm_chart.py` → 46/46 pass.
+- `mkdocs build --strict` → clean.
+- Local dashboard render against `bench_storage/` confirms
+  output is HTML-well-formed (HTMLParser tag-depth checker
+  returns 0 errors, all tags matched).
+- **First docs workflow run after this push validates the
+  cross-workflow artifact fetch empirically** — if `gh run
+  download` succeeds, `/bench/index.html` will be live at
+  `https://idirbenslama.github.io/Ophamin/bench/`.
+
+### What this opens for next-direction work
+
+- **Multi-run trend chart** — aggregate the last N bench
+  artifacts and produce a sparkline per benchmark. Needs an
+  artifact-aggregation step that walks workflow history via
+  `gh run list --workflow=bench.yml` + downloads each.
+- **Regression alerts** — when a bench mean shifts >X% across
+  consecutive runs, post a comment / open an issue.
+- **Per-PR preview dashboards** — PRs could build a dashboard
+  and link to it in the PR comment without deploying to Pages.
 
 ## [0.43.0] — 2026-05-19
 

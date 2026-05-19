@@ -13,10 +13,16 @@ on:
 
 # Mandatory permissions for the deploy step. The build job is fine
 # with read-only.
+#   contents:    read  — checkout
+#   pages:       write — deploy
+#   id-token:    write — Pages OIDC deploy
+#   actions:     read  — gh run download (fetch bench-dashboard artifact
+#                        from the bench workflow for /bench/ page; 0.44.0)
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 # Allow only one deploy at a time per branch, but don't cancel in-flight
 # deploys — losing the previous deploy mid-flight can leave the site in
@@ -53,6 +59,64 @@ jobs:
         # the GitHub repo browser AND under mkdocs). Strict mode catches
         # any future link rot at PR time.
         run: mkdocs build --strict
+
+      # ── Public bench dashboard (0.44.0) ───────────────────────────────
+      # Fetch the latest `bench-dashboard` artifact from the bench
+      # workflow + drop it into site/bench/ so it gets deployed to
+      # https://idirbenslama.github.io/Ophamin/bench/.
+      #
+      # Uses `gh run download` (preinstalled on ubuntu-latest runners)
+      # so we don't add a third-party action dependency. The fetch is
+      # gracefully optional — if the bench workflow hasn't run recently
+      # or the artifact has expired (90-day retention per bench.yml),
+      # the site still deploys, just without the /bench/ path.
+      - name: Fetch latest bench dashboard
+        # gh run download requires GH_TOKEN; the built-in GITHUB_TOKEN
+        # works for cross-workflow artifact reads.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p site/bench
+          # Find the most recent successful bench workflow run; ignore
+          # failure (no bench runs / expired artifacts → empty /bench/
+          # but site still deploys).
+          LATEST_RUN=$(gh run list \
+              --workflow=bench.yml \
+              --branch=main \
+              --status=completed \
+              --limit=10 \
+              --json databaseId,conclusion \
+              --jq '[.[] | select(.conclusion == "success")][0].databaseId' \
+              || echo "")
+          if [ -z "$LATEST_RUN" ] || [ "$LATEST_RUN" = "null" ]; then
+              echo "No successful bench workflow run found; skipping /bench/."
+              # Drop a placeholder index so links don't 404.
+              cat > site/bench/index.html <<'EOF'
+          <!DOCTYPE html><html><head><meta charset="utf-8"><title>Ophamin bench dashboard</title></head>
+          <body><h1>Ophamin bench dashboard</h1>
+          <p>No bench data yet. The <code>bench</code> workflow has not produced a
+          successful run with a dashboard artifact, or the artifact has expired
+          (90-day retention). See the
+          <a href="https://github.com/IdirBenSlama/Ophamin/actions/workflows/bench.yml">
+          bench workflow page</a> for recent runs.</p>
+          </body></html>
+          EOF
+          else
+              echo "Fetching bench-dashboard from run $LATEST_RUN"
+              gh run download "$LATEST_RUN" \
+                  --name bench-dashboard \
+                  --dir site/bench \
+                  || {
+                      echo "Artifact download failed (expired?); using placeholder."
+                      cat > site/bench/index.html <<'EOF'
+          <!DOCTYPE html><html><head><meta charset="utf-8"><title>Ophamin bench dashboard</title></head>
+          <body><h1>Ophamin bench dashboard</h1>
+          <p>The latest bench-dashboard artifact has expired. Run the bench workflow to
+          regenerate.</p></body></html>
+          EOF
+                  }
+          fi
+          ls -la site/bench/ || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

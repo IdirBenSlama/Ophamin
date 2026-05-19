@@ -74,3 +74,32 @@ jobs:
           name: bench-results
           path: bench_storage/
           retention-days: 30
+
+      # ── Public bench dashboard (0.44.0) ───────────────────────────────
+      # Renders the latest pytest-benchmark JSON into a self-contained
+      # HTML dashboard that docs.yml fetches + publishes under
+      # https://idirbenslama.github.io/Ophamin/bench/.
+      #
+      # The render script is pure stdlib so it runs in any CI env without
+      # adding deps. Generates index.html + data.json side-by-side.
+      - name: Render bench dashboard
+        env:
+          PYTHONPATH: src
+        run: |
+          mkdir -p /tmp/bench_dashboard
+          python scripts/render_bench_dashboard.py bench_storage /tmp/bench_dashboard
+          echo "--- Dashboard files ---"
+          ls -la /tmp/bench_dashboard/
+
+      - name: Upload bench dashboard as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          # The "bench-dashboard" name is what docs.yml downloads via
+          # `gh run download`. Renaming here requires a coordinated
+          # rename in docs.yml.
+          name: bench-dashboard
+          path: /tmp/bench_dashboard/
+          # 90-day retention since docs.yml may not run for a few
+          # weeks if there are no doc-affecting commits. The dashboard
+          # is the latest signal until the next bench run.
+          retention-days: 90
