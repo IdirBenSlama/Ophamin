@@ -7,7 +7,84 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.54.0] below for the latest cut.)
+(empty — see [0.55.0] below for the latest cut.)
+
+## [0.55.0] — 2026-05-19
+
+**Headline:** Phase #5 (empirical validation) of the SonarQube
+roadmap. The mandatory SonarQube stack from 0.50.0 + the 4-phase
+integration (0.51.0-0.54.0) was empirically validated by running
+a real scan against the Kimera-SWM checkout. Two empirical
+limits surfaced + fixed in-place:
+
+1. **`takwin.py` (34,666 lines) exceeds SonarQube's bundled
+   Python-analyzer capacity** — 19+ min wall-clock stuck on
+   the single file before EXECUTION FAILURE. Now excluded by
+   default in `sonar/sonar-project.kimera-swm.properties`.
+
+2. **Exclusion pattern bug** — initial fix used
+   `**/kimera_swm/domain/cognitive/takwin.py` which doesn't
+   match because `sonar.sources=kimera_swm` makes the source
+   root ALREADY `kimera_swm/`. Corrected to
+   `**/domain/cognitive/takwin.py`.
+
+Both bugs caught + fixed in the same session via the
+empirical-validation discipline that drove the 0.50.0 ship.
+
+### Added — `docs/SONARQUBE_KIMERA_VALIDATION.md`
+
+Operator-facing empirical-validation doc covering:
+
+- The exact recipe executed (bring up SQ → password change via
+  REST API → token generation via REST API → scan via
+  `sonar_scan.sh` against the Kimera-SWM checkout)
+- The two empirical findings + their resolutions
+- The actual numeric output from the successful scan (files
+  analyzed / Sonar issue counts / quality-gate status / wall-
+  clock duration)
+- Coverage caveat (this scan didn't pre-generate `coverage.xml`;
+  operators wanting test-coverage in the dashboard run
+  `pytest --cov` first per the documented `--with-coverage`
+  flag)
+- Operator quick-reference: complete one-block bash recipe
+  from cold-start to dashboard
+
+### Fixed — `sonar/sonar-project.kimera-swm.properties`
+
+- Added `**/domain/cognitive/takwin.py` to `sonar.exclusions`
+  with an explanatory NOTE comment documenting why
+- Exclusion pattern is relative to `sonar.sources=kimera_swm`
+  root (NOT relative to repo root)
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.55.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.55.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.55.0"`
+
+### Added to mkdocs nav
+
+`docs/SONARQUBE_KIMERA_VALIDATION.md` listed alongside the
+existing `docs/SONARQUBE.md` under the Interop section.
+
+### What this confirms empirically
+
+The 0.50.0 directive — "a proper SonarQube instance, running
+for Kimera-SWM, mandatory" — is now operationally true on the
+dev machine. A future Claude session running
+`bash scripts/sonar_up.sh && bash scripts/sonar_scan.sh
+/path/to/Kimera_SWM` against any Kimera-SWM checkout will
+reproduce the same dashboard outcome (modulo the per-checkout
+file count + issue specifics, which evolve with the substrate).
+
+### Verification
+
+- Scan ran cleanly through ~4,400+ files (4,498 - takwin.py
+  excluded) under default SonarQube CE memory settings.
+- Dashboard at `http://localhost:9000/dashboard?id=kimera-swm`
+  populated with Kimera-SWM's project-level metrics.
+- API queries to `/api/qualitygates/project_status?projectKey=kimera-swm`
+  return the structured gate result that `sonar.yml` consumes.
 
 ## [0.54.0] — 2026-05-19
 

@@ -116,6 +116,7 @@ nav:
       - Interop overview (8 layers): INTEROP_OVERVIEW.md
       - Supply-chain provenance (cosign + Sigstore): SUPPLY_CHAIN.md
       - SonarQube (mandatory; code-quality for Kimera-SWM): SONARQUBE.md
+      - SonarQube empirical validation (Kimera-SWM scan): SONARQUBE_KIMERA_VALIDATION.md
       - Reproducing the framework: REPRODUCING.md
       - Zenodo deposit workflow: ZENODO_DEPOSIT_WORKFLOW.md
   - Proposals (Tier-2 owner picks):
