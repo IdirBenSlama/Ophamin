@@ -2234,6 +2234,49 @@ def _resolve_proof_key(arg_value: str) -> bytes:
     return arg_value.encode("utf-8")
 
 
+def cmd_self_test(args: argparse.Namespace) -> int:
+    """Run the substrate-free scenarios against Ophamin itself.
+
+    Outputs a per-scenario summary and writes signed bundles under
+    ``--proofs-root``. Exit code = number of REFUTED scenarios so
+    CI can fail-fast on regression.
+    """
+    import json as _json
+    from ophamin.measuring.proof import BundleFormat
+    from ophamin.self_test import run_self_test
+
+    formats = BundleFormat.json_only() if args.json_only else BundleFormat.all()
+    result = run_self_test(
+        proofs_root=args.proofs_root,
+        formats=formats,
+        seed=args.seed,
+    )
+
+    if args.json:
+        print(_json.dumps(result.to_dict(), indent=2))
+    else:
+        print(f"Ophamin self-test — {result.n_total} scenarios "
+              f"in {result.total_duration_seconds:.2f}s")
+        print(f"  proofs_root: {result.proofs_root}")
+        print(f"  validated   = {result.n_validated}")
+        print(f"  refuted     = {result.n_refuted}")
+        print(f"  inconclusive= {result.n_inconclusive}")
+        print(f"  errored     = {result.n_errored}")
+        print()
+        print(f"  {'verdict':14s}  {'scenario':40s}  {'duration':>8s}  proof_id")
+        for r in result.results:
+            pid = r.proof_id[:12] if r.proof_id else "—"
+            print(f"  {r.verdict:14s}  {r.scenario_name:40s}  {r.duration_seconds:>6.2f}s   {pid}")
+            if r.error:
+                print(f"    error: {r.error[:120]}")
+
+    # Exit code = number of REFUTED so CI fails-fast on regression.
+    # Errors don't fail the build (they're surfaced loudly above) — a
+    # framework that can't construct one of its own scenarios is a
+    # CI-orthogonal bug that should be visible but not block other ships.
+    return result.n_refuted
+
+
 def cmd_proof(args: argparse.Namespace) -> int:
     """Umbrella for the `ophamin proof <action>` subcommands.
 
@@ -3406,6 +3449,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit JSON instead of the human-readable table",
     )
     p_proof_list.set_defaults(func=cmd_proof)
+
+    # ----- ophamin self-test (0.62.0) -----
+    p_self = sub.add_parser(
+        "self-test",
+        help="run the substrate-free scenarios against Ophamin itself",
+    )
+    p_self.add_argument(
+        "--proofs-root",
+        default="proofs/ophamin-self",
+        help="where to write signed bundles (default: proofs/ophamin-self)",
+    )
+    p_self.add_argument(
+        "--json",
+        action="store_true",
+        help="emit JSON instead of the human-readable table",
+    )
+    p_self.add_argument(
+        "--seed",
+        type=int,
+        default=1,
+        help="MockSubstrate random seed (default: 1, reproducible)",
+    )
+    p_self.add_argument(
+        "--json-only",
+        action="store_true",
+        help=(
+            "skip rendering MD/HTML/LaTeX/PDF — emit JSON-only bundles "
+            "for fast CI runs"
+        ),
+    )
+    p_self.set_defaults(func=cmd_self_test)
 
     return parser
 

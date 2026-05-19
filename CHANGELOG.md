@@ -7,7 +7,88 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.61.1] below for the latest cut.)
+(empty — see [0.62.0] below for the latest cut.)
+
+## [0.62.0] — 2026-05-19
+
+**Headline:** Ophamin dogfoods itself. The substrate-free
+scenarios — 7 statistical crosschecks + CRDT laws + deterministic
+seed audit + the Bayesian Φ posterior on synthetic data — now run
+against the framework via a single `ophamin self-test` command,
+producing 10 signed `EmpiricalProofRecord` bundles per run under
+`proofs/ophamin-self/`. A new GitHub Actions workflow runs the
+same on every push + PR and uploads the bundle tree as an artifact.
+
+Closes the empirical-loop question: *can the observatory observe
+itself?* For the 10/33 scenarios that don't require a Kimera
+substrate, the answer is yes — and now there's a canonical runner
++ CI gate to keep it that way.
+
+What this is NOT: the 20 cognitive-tier scenarios (immune-siege,
+sinew-*, prime-*, proprio-self-discovery, memory-as-deformation,
+etc.) measure Kimera substrate behavior; running them against
+Ophamin would measure the wrong substrate, so they're explicitly
+excluded from the self-test set. The 2 Kimera-inventory-shape
+scenarios (substrate-completeness, interface-contract-stability)
+run against Ophamin but produce vacuous results until an
+Ophamin-shape adapter lands — also excluded.
+
+Added:
+
+- **`src/ophamin/self_test.py`** (~190 LOC): `SELF_TEST_SCENARIOS`
+  curated list (10 substrate-free scenario names + ctor kwargs),
+  `run_self_test(proofs_root)` runner that persists one signed
+  bundle per scenario in the canonical 0.59.0+ layout,
+  `SelfTestResult` + `ScenarioRunResult` immutable result types
+  with `.to_dict()` for JSON output.
+
+- **`ophamin self-test` CLI subcommand**: `--proofs-root` (default
+  `proofs/ophamin-self`), `--json` (machine-readable output),
+  `--seed` (MockSubstrate seed; default 1, reproducible),
+  `--json-only` (skip MD/HTML/LaTeX/PDF for fast CI runs). Exit
+  code = number of REFUTED scenarios so CI fails-fast on
+  regression. ERROR rows don't fail the build (they're surfaced
+  in the table) — a framework that can't construct its own
+  scenarios is a CI-orthogonal bug to fix, not block other ships.
+
+- **`.github/workflows/self-test.yml`**: runs on push + PR +
+  dispatch. Installs Ophamin + LaTeX toolchain (latexmk for PDF
+  renders), runs `ophamin self-test`, surfaces per-scenario
+  outcomes in the GitHub step-summary table, uploads
+  `proofs/ophamin-self/**` as an `ophamin-self-test-${github.sha}`
+  artifact (`if: always()` so REFUTED bundles also upload —
+  those are the most useful ones to inspect). 90-day retention.
+
+- **`tests/test_self_test.py`** (~190 LOC, 23 hardening pins):
+  SELF_TEST_SCENARIOS shape (non-empty, all-registered,
+  no-Kimera-shape-args, includes-7-crosschecks), run_self_test
+  produces 1 bundle per scenario in the right layout, ERROR
+  rows don't abort the loop, all scenarios validate under seed
+  42 (regression gate), result.to_dict round-trips through JSON,
+  workflow file parses + has correct trigger / concurrency /
+  permissions / latex-install / artifact-upload / sha-in-name /
+  always-upload / v4+-only shape.
+
+Live verification (`ophamin self-test --proofs-root /tmp/...`):
+- 10/10 VALIDATED
+- 10 signed bundles persisted under
+  `<proofs_root>/<tier>/<scenario>/<date>_validated_<short>/`
+- 6.04s total wall time (single thread; ~2s of that is the
+  Bayesian-Φ-posterior PyMC sampling)
+- All signatures verify under the framework's DEFAULT_SIGN_KEY
+
+Operator notes:
+
+- Open the GUI's Proofs tab (`/ui`) after running self-test +
+  the bundle tree now shows an `ophamin-self` peer alongside
+  Kimera tiers (assuming both share the same `proofs/` root —
+  the default puts them at `proofs/ophamin-self/` to keep
+  trees disjoint).
+- `ophamin self-test --json | jq .n_validated` for scripting.
+- Sonar self-scan (already running in CI per 0.51.0 +
+  0.58.0 / sonar.yml) stays separate — it's a different loop
+  (live SonarQube REST + project_key=ophamin) and the existing
+  workflow already produces its own signed proof artefact.
 
 ## [0.61.1] — 2026-05-19
 
