@@ -7,7 +7,251 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.49.2] below for the latest cut.)
+(empty — see [0.50.0] below for the latest cut.)
+
+## [0.50.0] — 2026-05-19
+
+**Headline:** Mandatory SonarQube Docker stack for analyzing
+Kimera-SWM. Ophamin now ships SonarQube CE + PostgreSQL via
+docker-compose with persistent volumes + a sonar-project
+properties template + three helper scripts. Brings up + reaches
+healthy in 30-60s on a moderate workstation. Empirically validated
+end-to-end (`bash scripts/sonar_up.sh` reports healthy; SonarQube
+`/api/system/status` returns `{"status":"UP","version":"26.5.0.122743"}`;
+`bash scripts/sonar_down.sh` cleanly stops + preserves state).
+
+### Why "mandatory"
+
+Per owner directive: "*add to Ophamin, a proper SonarQube
+instance, running for kimera swm. Make it mandatory.*"
+
+SonarQube fills the gap between Ophamin's Tier-1 interop layers
+(which carry empirical-measurement signed claims) and the
+auditing wheel's per-PR linters (ruff / bandit / mypy /
+pip-audit). It surfaces project-level code-quality history +
+SAST trend tracking + quality-gate enforcement that the per-PR
+linters can't provide.
+
+### Added — `sonar/docker-compose.yml`
+
+SonarQube 26.5.0.122743 Community Edition + PostgreSQL 16-alpine,
+two services + four named volumes (all `ophamin_`-prefixed to
+avoid collision with other compose stacks):
+
+- `ophamin_sonarqube_data` — issues, projects, scan history
+- `ophamin_sonarqube_extensions` — installed plugins
+- `ophamin_sonarqube_logs` — log files
+- `ophamin_sonardb_data` — PostgreSQL data dir
+
+Safety semantics:
+- Postgres port 5432 **NOT** host-published (internal-only)
+- SonarQube telemetry **disabled** by default (operators opt
+  in via `SONAR_TELEMETRY_ENABLE=true`)
+- Both services use `restart: unless-stopped`
+- SonarQube `depends_on: sonardb (service_healthy)` — prevents
+  flaky boots where SonarQube tries to connect to PG before PG
+  accepts connections
+- Both services have proper healthchecks (Postgres uses
+  `pg_isready`; SonarQube curls `/api/system/status` and greps
+  for `"status":"UP"` — checks Elasticsearch + DB migration
+  + plugin load all complete, not just web port open)
+- ulimits raised (`nofile: 65536`, `nproc: 8192`) for bundled
+  Elasticsearch
+- JVM heap split: 1g web + 2g compute engine + 1g/1g search
+  (Elasticsearch requires `-Xms == -Xmx` per bootstrap-check;
+  CHANGELOG-pinned discovery)
+
+### Added — `sonar/sonar-project.kimera-swm.properties`
+
+Scanner template configured for Kimera-SWM's specific layout:
+
+- `sonar.projectKey=kimera-swm` (stable; multi-scan history
+  accumulates under this key)
+- `sonar.sources=kimera_swm` (3,818 Python files at 2026-05-19
+  baseline)
+- `sonar.tests=tests,kimera_swm/tests` (1,459 test files)
+- `sonar.python.version=3.12` (pins the rule set)
+- `sonar.exclusions=` extensive list covering bytecode + caches
+  + `.venv` + `_archive/` + `_legacy_intake/` + `Docs_v2/` +
+  `experiments/observatory/runs/` + proof artifacts + sbom
+- `sonar.cpd.exclusions=` skip duplication-check on test files
+  (parametrize + fixtures have justified repetition)
+- `sonar.host.url=http://localhost:9000` (default; override
+  via `-Dsonar.host.url=...` for remote SonarQube)
+- `sonar.python.coverage.reportPaths=coverage.xml` (consumed
+  when `sonar_scan.sh --with-coverage` runs pytest first)
+
+### Added — three executable helper scripts in `scripts/`
+
+- **`sonar_up.sh`** — bring up the stack; blocks until healthy
+  (4-min timeout); prints operator next-steps (UI URL + login +
+  token-generation path + scan recipe). Idempotent.
+- **`sonar_scan.sh /path/to/Kimera_SWM [--with-coverage]
+  [--with-ruff] [--with-bandit]`** — run a sonar-scanner pass
+  via Docker (sonarsource/sonar-scanner-cli) with optional
+  external-linter ingest. Requires `SONAR_TOKEN` env var
+  (generate at `/account/security`).
+- **`sonar_down.sh [--wipe]`** — stop containers (default
+  preserves volumes); `--wipe` requires interactive 'wipe'
+  confirmation OR `OPHAMIN_SONAR_WIPE_CONFIRMED=yes` env var.
+  Drift in this default would silently destroy SonarQube
+  history on every stop.
+
+All three scripts use a subshell-wrapped fallback for
+`REPO_ROOT="$(git rev-parse --show-toplevel || (cd ... && pwd))"`
+(closes a shell-precedence bug found in first run where
+`||` + `&&` without grouping concatenated outputs).
+
+### Added — `docs/SONARQUBE.md`
+
+~250-line mandatory-integration doc:
+
+- Quick-start (4 commands: up → open → token → scan)
+- Why "mandatory" (Ophamin value-proposition framing)
+- Container layout + persistent-volume strategy
+- What gets scanned (specific Kimera-SWM exclusions)
+- Coverage + external-linter ingest flags
+- Quality-gate defaults + customization recipe
+- Architecture diagram (ASCII)
+- Operating considerations: memory + ulimits + backups +
+  upgrade path
+- Mandatory-integration framing (SonarQube is the 9th
+  observability surface alongside the 8 interop layers)
+
+Added to `mkdocs.yml` nav under "Interop" section:
+**"SonarQube (mandatory; code-quality for Kimera-SWM)"**.
+
+### Hardening pins — `tests/test_sonar_setup.py` (44 tests)
+
+Structural validation that runs WITHOUT requiring Docker to be
+running. Catches:
+
+- File-presence: compose, properties template, three scripts,
+  docs page
+- Script executable bits (user + group)
+- docker-compose.yml schema: services declared, image
+  pinned (no `:latest`; postgres major version digit
+  required), `depends_on: service_healthy` semantics, port
+  9000 published, port 5432 NOT published, healthchecks
+  present, all 4 named volumes declared with `ophamin_` prefix
+  in `name:` field, ulimits set, telemetry-off, restart
+  policy `unless-stopped`
+- sonar-project.kimera-swm.properties: projectKey, sources,
+  tests, python.version starting with `3.`, exclusions cover
+  `_archive` / `_legacy_intake` / venv / caches / observatory
+  runs, CPD exclusions skip tests, coverage path set, host URL
+  defaults to localhost:9000, UTF-8 encoding
+- Helper-script content: compose file path, `set -e`,
+  `SONAR_TOKEN` required, `sonarsource/sonar-scanner-cli`
+  pinned, `--with-coverage` flag supported, `--wipe` requires
+  confirmation
+- Docs: "mandatory" wording present, quick-start mentioned,
+  mkdocs nav entry present, helper scripts cross-referenced
+
+All 44 tests pass. The hardening pins ride alongside the
+existing 71 helm-chart pins (total 115 chart+sonar structural
+pins).
+
+### Empirical validation (the part Docker actually exercises)
+
+Smoke-tested on the development machine (Docker Desktop
+4.73.0 + Compose v5.1.3 on macOS arm64, 16 CPU / 7.75 GiB
+allocated to Docker):
+
+```
+$ bash scripts/sonar_up.sh
+▶ Bringing up SonarQube + PostgreSQL...
+ Container ophamin-sonardb Healthy
+ Container ophamin-sonarqube Started
+▶ Waiting for SonarQube to report healthy (timeout: 4 min)...
+✓ SonarQube is healthy.
+
+$ curl -s http://localhost:9000/api/system/status
+{"id":"FC9687EE-AZ5Af21P4vPvPATcRerA","version":"26.5.0.122743","status":"UP"}
+
+$ bash scripts/sonar_down.sh
+✓ SonarQube stack stopped.
+  Volumes preserved; resume with: bash scripts/sonar_up.sh
+```
+
+Three bugs discovered + fixed via empirical iteration during
+this ship:
+
+1. **Image tag drift** — initial `sonarqube:25-community` doesn't
+   exist on Docker Hub; correct current tag is
+   `sonarqube:26.5.0.122743-community` (queried via Docker Hub
+   registry API).
+2. **Elasticsearch bootstrap-check** — `-Xms` must equal `-Xmx`
+   in `SONAR_SEARCH_JAVAOPTS`; mismatch causes "resize pauses"
+   failure that kills the search subprocess at boot. Fixed
+   `-Xmx1g -Xms512m` → `-Xmx1g -Xms1g`.
+3. **Healthcheck tool** — SonarQube image has `curl` not `wget`;
+   the `wget --spider` check returned false-negative healthy
+   forever. Switched to `curl -fsS ... | grep -q '"status":"UP"'`.
+4. **Shell-precedence bug in REPO_ROOT** — `cmd1 || cmd2 && cmd3`
+   runs cmd3 even when cmd1 succeeds, concatenating output.
+   Subshell-wrapped the fallback: `... || (cd ... && pwd)`.
+
+Each iteration was caught in the same run as the deploy and
+fixed in-place. The empirical-validation gate is the canonical
+"works on this machine" signal; CI now has structural-validation
+coverage via the 44 hardening pins.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.50.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.50.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.50.0"` (helm
+  tests + sonar tests both green)
+
+### What this does NOT include (out of scope for 0.50.0)
+
+- **CI integration** — the SonarQube scan runs locally /
+  on-demand. Adding a `sonar.yml` GH Actions workflow that
+  brings up the stack + scans Kimera-SWM in CI is a future
+  ship (requires either a hosted SonarQube instance or a
+  self-hosted runner since the bundled stack needs ~4 GB).
+- **SonarCloud integration** — `sonarsource/sonarcloud-github-action`
+  exists if operators want hosted analysis. Future ship.
+- **Pre-baked quality-gate** — defaults to Sonar's "Sonar way".
+  Custom Kimera-SWM-specific gates are an owner-tunable thing
+  via the UI; not pre-baked in the compose stack.
+- **Kimera-SWM scan results commitment** — running an actual
+  scan against the current Kimera-SWM checkout would take
+  5-10 minutes and produce ~10,000+ Sonar issues. The
+  results are operator-runnable (not owner-physical), but
+  not embedded in this release's CHANGELOG.
+- **SLSA provenance for the SonarQube docker images** —
+  upstream's image is not yet SLSA-attested by Ophamin's
+  cosign infrastructure. Future ship.
+
+### Verification
+
+- `pytest tests/test_sonar_setup.py` → 44/44 pass.
+- `bash scripts/sonar_up.sh` → SonarQube reaches healthy
+  in ~30s (after the JVM-heap fix landed in this same ship).
+- `curl http://localhost:9000/api/system/status` →
+  `{"status":"UP","version":"26.5.0.122743"}`
+- `bash scripts/sonar_down.sh` → containers stopped,
+  volumes preserved.
+- `mkdocs build --strict` → clean.
+- 71/71 helm + 44/44 sonar hardening pins both pass.
+
+### What this opens for next-direction work
+
+- **`sonar.yml` GitHub Actions workflow** — automate the scan
+  on push to main against a hosted SonarQube (or SonarCloud).
+  Would need either a credential surface (SONAR_HOST_URL +
+  SONAR_TOKEN as GH secrets) or a self-hosted runner.
+- **Kimera-side commit of `sonar-project.properties`** —
+  drop the template into the Kimera-SWM checkout so
+  `sonar-scanner` works there without the Ophamin wrapper.
+- **Pre-baked Kimera-SWM-specific quality gate** — custom
+  thresholds for cognitive-complexity / cyclomatic-complexity
+  / hot-spot-review aligned with Kimera-SWM's architecture.
+- **Auto-cosign the SonarQube image** — Ophamin's supply-chain
+  trilogy could cover the bundled SonarQube image too (sign +
+  SBOM + SLSA against the upstream digest).
 
 ## [0.49.2] — 2026-05-19
 

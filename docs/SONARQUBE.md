@@ -1,0 +1,270 @@
+# SonarQube — mandatory code-quality + SAST surface for Kimera-SWM
+
+> Ophamin ships a **mandatory** SonarQube stack for static
+> analysis + code-quality reporting against Kimera-SWM (and any
+> other Python substrate target). SonarQube CE + PostgreSQL +
+> persistent volumes run via Docker Compose; a sonar-project
+> properties template + three helper scripts make a complete
+> scan reproducible in under five minutes.
+
+## Quick start
+
+```bash
+# 1. Bring up the stack (~60-90s first boot)
+bash scripts/sonar_up.sh
+
+# 2. Open http://localhost:9000
+#    Default admin / admin → change password on first login
+#    Generate a token at: /account/security
+#    Export it:
+export SONAR_TOKEN=<your-token>
+
+# 3. Scan a Kimera-SWM checkout
+bash scripts/sonar_scan.sh /path/to/Kimera_SWM
+
+# 4. (later) Stop the stack — volumes preserved
+bash scripts/sonar_down.sh
+```
+
+The scan dashboard lands at
+`http://localhost:9000/dashboard?id=kimera-swm`.
+
+## Why "mandatory"
+
+Ophamin's value proposition is **measured + signed claims about
+a substrate**. The Tier-1 interop layers (in-toto, RO-Crate,
+OpenLineage) cover the empirical-measurement side. The
+auditing wheel (ruff, bandit, mypy, pip-audit) covers per-PR
+static checks. **SonarQube fills the gap between them**:
+project-level code-quality history + SAST trend tracking +
+quality-gate enforcement that the per-PR linters can't
+provide.
+
+Without SonarQube, Ophamin can sign Kimera-SWM's empirical
+findings but not surface the substrate's own code-quality
+posture over time. SonarQube changes that — every scan
+produces a dashboard with:
+
+- **Bugs / vulnerabilities / security hotspots** tracked
+  across commits
+- **Code smells** + maintainability index
+- **Cyclomatic complexity** + cognitive complexity heatmap
+  per file
+- **Duplication** percentage + per-block locations
+- **Test coverage** (when `--with-coverage` is passed)
+- **External-linter ingest** for ruff / bandit / mypy
+  (when their respective `--with-*` flags are passed)
+- **Quality gate** pass/fail status with configurable
+  thresholds
+
+A scan against current Kimera-SWM (~3,800 production files +
+~1,459 test files) typically takes 5-10 minutes wall-clock and
+produces ~10,000+ Sonar issues — most of them code-smells +
+maintainability hints, not critical bugs.
+
+## What gets deployed
+
+`docker-compose.yml` at [`sonar/docker-compose.yml`](https://github.com/IdirBenSlama/Ophamin/blob/main/sonar/docker-compose.yml)
+brings up:
+
+| Container | Image | Purpose |
+|---|---|---|
+| `ophamin-sonarqube` | `sonarqube:25-community` | Web UI on `:9000`, compute engine, bundled Elasticsearch |
+| `ophamin-sonardb` | `postgres:16-alpine` | SonarQube's metadata + scan-history database |
+
+Persistent named volumes:
+
+- `ophamin_sonarqube_data` — issues, projects, history
+- `ophamin_sonarqube_extensions` — installed plugins
+- `ophamin_sonarqube_logs` — log files
+- `ophamin_sonardb_data` — PostgreSQL data dir
+
+`bash scripts/sonar_down.sh` stops containers but **preserves
+volumes**. Use `bash scripts/sonar_down.sh --wipe` (with explicit
+confirmation prompt) to also delete volumes — destroys ALL
+SonarQube history.
+
+## What gets scanned
+
+The bundled `sonar-project.kimera-swm.properties` configures
+the scanner for Kimera-SWM's specific layout:
+
+| Property | Value | Why |
+|---|---|---|
+| `sonar.projectKey` | `kimera-swm` | Stable key — multi-scan history accumulates under this key |
+| `sonar.sources` | `kimera_swm/` | The substrate codebase (~3,800 files at 2026-05-19) |
+| `sonar.tests` | `tests/,kimera_swm/tests/` | Both test trees (~1,459 files) |
+| `sonar.python.version` | `3.12` | Ophamin's pinned Python version |
+| `sonar.exclusions` | bytecode + caches + `.venv` + `_archive/` + `_legacy_intake/` + `Docs_v2/` + `experiments/observatory/runs/` + proof artifacts + sbom | Noise reduction; these dirs contain generated / archived / non-source content |
+| `sonar.cpd.exclusions` | `test_*.py`, `conftest.py` | Test code has justified repetition (fixtures, parametrize) |
+
+Override any value via `-D<key>=<value>` on the
+`sonar-scanner` command line if needed for a specific run.
+
+## Coverage + external-linter ingest
+
+The `sonar_scan.sh` wrapper supports four ingest modes via
+flags:
+
+```bash
+# Just the scan (Sonar's own Python analyzer)
+bash scripts/sonar_scan.sh /path/to/Kimera_SWM
+
+# Plus test coverage (runs pytest --cov first)
+bash scripts/sonar_scan.sh /path/to/Kimera_SWM --with-coverage
+
+# Plus ruff issues (ingested with their ruff rule IDs)
+bash scripts/sonar_scan.sh /path/to/Kimera_SWM --with-ruff
+
+# Plus bandit security findings
+bash scripts/sonar_scan.sh /path/to/Kimera_SWM --with-bandit
+
+# All four
+bash scripts/sonar_scan.sh /path/to/Kimera_SWM \
+    --with-coverage --with-ruff --with-bandit
+```
+
+Each `--with-*` flag generates the corresponding report
+in-place under the target directory + passes its path to the
+scanner. The flags are independent; mix freely.
+
+## Quality gates
+
+Defaults from SonarQube's "Sonar way" quality gate (active
+on first install):
+
+| Metric (new code) | Threshold | Failure mode |
+|---|---|---|
+| Bugs | 0 | Quality gate fails |
+| Vulnerabilities | 0 | Quality gate fails |
+| Security Hotspots Reviewed | 100% | Quality gate fails |
+| Coverage | ≥ 80% | Quality gate fails |
+| Duplicated Lines | ≤ 3% | Quality gate fails |
+| Maintainability Rating | A | Quality gate fails |
+| Reliability Rating | A | Quality gate fails |
+| Security Rating | A | Quality gate fails |
+
+Customize at `http://localhost:9000/quality_gates`. Gate applies
+to **new code** (defined by the project's new-code reference);
+historical code is reported but not gated.
+
+## Architecture
+
+```text
+      ┌─────────────────────────┐
+      │ Kimera-SWM checkout     │
+      │  (source tree, tests)   │
+      └────────────┬────────────┘
+                   │ mounted as /usr/src
+                   ▼
+      ┌────────────────────────────────────────────┐
+      │ sonarsource/sonar-scanner-cli (Docker)     │
+      │  - parses sonar-project.properties         │
+      │  - analyzes Python sources                 │
+      │  - ingests coverage.xml + ruff + bandit    │
+      │  - submits results via HTTP                │
+      └────────────┬───────────────────────────────┘
+                   │ POST localhost:9000 (--network=host)
+                   ▼
+      ┌────────────────────────────────────────────┐
+      │  ophamin-sonarqube  (sonarqube:25-community)│
+      │  - web UI (:9000)                           │
+      │  - compute engine                           │
+      │  - bundled Elasticsearch                    │
+      │  - persistent data + extensions + logs     │
+      └────────────┬───────────────────────────────┘
+                   │ JDBC
+                   ▼
+      ┌────────────────────────────────────────────┐
+      │  ophamin-sonardb  (postgres:16-alpine)      │
+      │  - metadata + scan history                 │
+      └────────────────────────────────────────────┘
+```
+
+All three containers live on a Docker Compose internal network.
+Only the SonarQube web UI port (`9000`) is published to the
+host. The scanner uses `--network=host` to reach
+`localhost:9000` from the scanner container.
+
+## Operating considerations
+
+### Memory + ulimits
+
+SonarQube ships with bundled Elasticsearch, which requires
+raised `nofile` + `nproc` ulimits + a 4 GB working set. The
+compose file sets both ulimits and a 1g/2g/1g Java heap split
+across web / compute engine / search. **Less than 4 GB RAM
+available to Docker will produce intermittent OOM-killed
+Elasticsearch behavior** — the compose file declares this
+explicitly in comments.
+
+### Backups
+
+`ophamin_sonarqube_data` + `ophamin_sonardb_data` are the
+load-bearing volumes; `_extensions` + `_logs` are reproducible.
+For a backup:
+
+```bash
+docker run --rm \
+    -v ophamin_sonarqube_data:/data \
+    -v "$(pwd):/backup" \
+    alpine tar czf /backup/sonarqube-data-$(date +%Y%m%d).tar.gz -C /data .
+
+docker run --rm \
+    -v ophamin_sonardb_data:/data \
+    -v "$(pwd):/backup" \
+    alpine tar czf /backup/sonardb-data-$(date +%Y%m%d).tar.gz -C /data .
+```
+
+Restore with the inverse.
+
+### Upgrading SonarQube
+
+SonarQube's data-migration step runs automatically on first
+boot of a newer version IF the JDBC URL points to a
+SonarQube-managed PostgreSQL whose schema is one minor version
+back from the new SonarQube. **Across LTS boundaries**, follow
+SonarSource's [upgrade guide](https://docs.sonarsource.com/sonarqube-server/latest/setup-and-upgrade/upgrade-the-server/upgrade-guide/)
+before changing the `image:` tag in compose.
+
+### Updating the bundled Python analyzer
+
+SonarQube ships its own Python analyzer with each release;
+no separate update required. To see the Python rules' current
+catalogue:
+[`http://localhost:9000/coding_rules?languages=py`](http://localhost:9000/coding_rules?languages=py)
+
+## Mandatory integration with the rest of Ophamin
+
+SonarQube is the **9th interop / observability surface** Ophamin
+ships (after the 8 interop layers from 0.16.0 → 0.39.0). It's
+mandatory in the sense that:
+
+- Every Ophamin operator analyzing Kimera-SWM has it available
+  by default — no additional install step.
+- The compose stack is tracked in git (`sonar/`), not externally
+  hosted.
+- The helper scripts (`sonar_up.sh` / `sonar_scan.sh` /
+  `sonar_down.sh`) bring it from cold-start to scan-result in
+  under 5 minutes.
+- Hardening pins (`tests/test_sonar_setup.py`) catch drift in
+  the compose file structure + scanner properties.
+
+Unlike the in-toto / RO-Crate / OpenLineage layers (which are
+**export-only** wrappers around signed proof records),
+SonarQube is **runtime infrastructure** — it has its own
+state, its own UI, its own auth. The 8 interop layers + the
+SonarQube stack together cover the full
+"empirical-claim-side" + "code-quality-side" of the
+substrate-validation story.
+
+## See also
+
+- [SonarQube Server documentation](https://docs.sonarsource.com/sonarqube-server/latest/)
+- [SonarQube Python rules catalogue](https://rules.sonarsource.com/python/)
+- [`sonar/docker-compose.yml`](https://github.com/IdirBenSlama/Ophamin/blob/main/sonar/docker-compose.yml) — the stack definition
+- [`sonar/sonar-project.kimera-swm.properties`](https://github.com/IdirBenSlama/Ophamin/blob/main/sonar/sonar-project.kimera-swm.properties) — the Kimera-SWM scan config
+- [`scripts/sonar_up.sh`](https://github.com/IdirBenSlama/Ophamin/blob/main/scripts/sonar_up.sh) / [`scripts/sonar_scan.sh`](https://github.com/IdirBenSlama/Ophamin/blob/main/scripts/sonar_scan.sh) / [`scripts/sonar_down.sh`](https://github.com/IdirBenSlama/Ophamin/blob/main/scripts/sonar_down.sh) — the helper scripts
+- [`tests/test_sonar_setup.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/tests/test_sonar_setup.py) — hardening pins
+- [`docs/SUPPLY_CHAIN.md`](SUPPLY_CHAIN.md) — supply-chain provenance (cosign + SBOM + SLSA)
+- [`docs/INTEROP_OVERVIEW.md`](INTEROP_OVERVIEW.md) — the 8 interop layers

@@ -1,0 +1,125 @@
+# Ophamin SonarQube Compose stack — mandatory code-quality + SAST surface
+# for analyzing Kimera-SWM (and any other Ophamin substrate target).
+#
+# Ships SonarQube Community Edition + PostgreSQL 16 + persistent volumes.
+# Brings up on `docker compose up -d` and reaches healthy in ~60s on a
+# moderate workstation. Scanner runs separately (see ../scripts/sonar_*.sh
+# and the `ophamin sonar` CLI when wired).
+#
+# Reference: SonarSource's official compose example
+#   https://docs.sonarsource.com/sonarqube-server/latest/setup/install/docker/
+#
+# Quick start:
+#   docker compose -f sonar/docker-compose.yml up -d
+#   open http://localhost:9000          # admin / admin (change on first login)
+#   bash scripts/sonar_scan.sh /path/to/Kimera_SWM/repo
+#   docker compose -f sonar/docker-compose.yml down
+#
+# Tear-down + wipe state:
+#   docker compose -f sonar/docker-compose.yml down -v
+#   # The `-v` flag removes the named volumes — destroys all SonarQube
+#   # history. Without -v, the next `up` resumes where it left off.
+
+services:
+  sonarqube:
+    # SonarQube Community Edition — free, supports Python + 30+ other
+    # languages. Pinned to the current stable build at chart-cut time
+    # (26.5.0.122743-community published 2026-05-19 per Docker Hub tag
+    # listing). Don't drift to `:community` (rolling latest) without
+    # owner approval — silent major-version bumps can break the JDBC
+    # contract with PostgreSQL or invalidate existing scan history.
+    image: sonarqube:26.5.0.122743-community
+    container_name: ophamin-sonarqube
+    depends_on:
+      sonardb:
+        condition: service_healthy
+    environment:
+      # PostgreSQL connection — matches the `sonardb` service below.
+      # ALL of these are required; SonarQube refuses to boot without them.
+      SONAR_JDBC_URL: "jdbc:postgresql://sonardb:5432/sonarqube"
+      SONAR_JDBC_USERNAME: "sonarqube"
+      SONAR_JDBC_PASSWORD: "sonarqube"
+
+      # Telemetry — opt OUT by default. Operators wanting to share
+      # anonymous usage stats with SonarSource can flip this to true.
+      SONAR_TELEMETRY_ENABLE: "false"
+
+      # Web UI sizing — Community Edition default heap is 512m;
+      # bump to 1g for a smoother experience on multi-module projects
+      # like Kimera-SWM (3800+ Python files).
+      SONAR_WEB_JAVAOPTS: "-Xmx1g -Xms512m"
+      SONAR_CE_JAVAOPTS: "-Xmx2g -Xms512m"        # compute engine = scanner backend
+      # Elasticsearch's bootstrap check requires -Xms == -Xmx (mismatch
+      # causes "resize pauses" failure mode that kills the search
+      # subprocess at boot). Both set to 1g to give ES enough headroom
+      # for a multi-module Python project like Kimera-SWM.
+      SONAR_SEARCH_JAVAOPTS: "-Xmx1g -Xms1g"
+    ports:
+      # Web UI at http://localhost:9000.
+      - "9000:9000"
+    volumes:
+      # Persistent data — survives `docker compose down` (only `down -v`
+      # wipes them). Each volume serves a distinct purpose; do NOT merge.
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    healthcheck:
+      # SonarQube's web UI returns the status JSON at /api/system/status.
+      # The container is "healthy" once the status is UP (not STARTING,
+      # not DOWN, not DB_MIGRATION_NEEDED). First boot can take 60-90s.
+      #
+      # Uses curl (preinstalled on the sonarqube image; wget is NOT).
+      # The grep on '"status":"UP"' is the load-bearing check — any
+      # other status (STARTING / DOWN / DB_MIGRATION_NEEDED) returns
+      # 200 from the endpoint but isn't "ready for scans".
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/api/system/status | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 90s    # generous; first boot installs the bundled plugins
+    ulimits:
+      # SonarQube's bundled Elasticsearch needs raised limits.
+      # Documented requirement; failing to set these causes a loud
+      # "max virtual memory areas vm.max_map_count [65530] is too low"
+      # error in the SonarQube logs.
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 8192
+        hard: 8192
+    restart: unless-stopped
+
+  sonardb:
+    # PostgreSQL 16 — SonarQube 25.x supports PG 13-16; we pick 16 for
+    # the longest support window. Bumping requires a SonarQube release
+    # that supports the new version (check release notes first).
+    image: postgres:16-alpine
+    container_name: ophamin-sonardb
+    environment:
+      POSTGRES_USER: "sonarqube"
+      POSTGRES_PASSWORD: "sonarqube"
+      POSTGRES_DB: "sonarqube"
+      # No need for SCRAM-SHA-256 wrapping; the network is internal-only.
+    volumes:
+      - sonardb_data:/var/lib/postgresql/data
+    healthcheck:
+      # PG is healthy once `pg_isready` succeeds + the SonarQube DB exists.
+      test: ["CMD-SHELL", "pg_isready -U sonarqube -d sonarqube"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  # Named volumes — Docker manages the storage location. To purge all
+  # SonarQube state, `docker compose down -v` (not just `down`).
+  sonarqube_data:
+    name: ophamin_sonarqube_data
+  sonarqube_extensions:
+    name: ophamin_sonarqube_extensions
+  sonarqube_logs:
+    name: ophamin_sonarqube_logs
+  sonardb_data:
+    name: ophamin_sonardb_data
