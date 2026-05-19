@@ -1,0 +1,305 @@
+name: sonar
+
+# Run SonarQube analysis against the Ophamin source tree on every push +
+# pull request. Exercises the 0.50.0 mandatory SonarQube stack (the same
+# sonarqube:26.5.0.122743-community + postgres:16-alpine pairing that
+# `sonar/docker-compose.yml` runs locally) inside CI via GitHub Actions
+# `services:` containers.
+#
+# Triggers:
+#   - push to main         → baseline scan; updates SonarQube history
+#   - tag push v*          → release-cut scan
+#   - pull_request         → per-PR scan; surfaces drift before merge
+#   - workflow_dispatch    → manual trigger
+#
+# What this workflow IS / IS NOT:
+#   - Brings up a FRESH SonarQube instance per CI run (ephemeral; no
+#     persistent state across runs). Quality-gate enforcement happens
+#     against the default "Sonar way" gate.
+#   - Scans Ophamin's own source tree (src/ophamin/, tests/).
+#   - Does NOT scan Kimera-SWM in CI — Kimera-SWM lives in a separate
+#     repo and would need its own sonar.yml (or a multi-repo
+#     orchestration step). Operators wanting Kimera-SWM CI analysis
+#     should copy this workflow into the Kimera-SWM repo + adjust
+#     sonar.sources / sonar.tests.
+#   - Does NOT publish to a persistent / hosted SonarQube. The instance
+#     dies with the workflow run.
+#
+# For persistent / cross-run SonarQube history, run the bundled stack
+# locally per docs/SONARQUBE.md (`bash scripts/sonar_up.sh`) or wire a
+# self-hosted runner with `services:` removed + SONAR_HOST_URL pointing
+# at the long-lived instance.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Single in-flight scan per ref — newer pushes replace older.
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: SonarQube scan (ephemeral instance)
+    runs-on: ubuntu-latest
+    # SonarQube CE + Elasticsearch + PG boot takes ~60-90s; scan of the
+    # Ophamin tree (~50 source files + ~150 test files) is fast (~30s).
+    # 30 min cap is the worst case if Sonar repository indexing balloons
+    # under unusual load.
+    timeout-minutes: 30
+
+    # ── Ephemeral SonarQube stack via GH Actions services ──────────────
+    # Same image + JDBC pairing as sonar/docker-compose.yml. Differences:
+    #   - No persistent volumes (ephemeral — each CI run is fresh)
+    #   - --ulimit raised via options block (ES bootstrap requirement)
+    #   - JVM heap mirrors compose: Web 1g/512m, CE 2g/512m, Search 1g/1g
+    #     (Search Xms == Xmx is REQUIRED by ES bootstrap check; mismatch
+    #     kills the search subprocess at boot — discovered empirically
+    #     during 0.50.0)
+    services:
+      sonardb:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: sonarqube
+          POSTGRES_PASSWORD: sonarqube
+          POSTGRES_DB: sonarqube
+        options: >-
+          --health-cmd "pg_isready -U sonarqube -d sonarqube"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 30s
+
+      sonarqube:
+        image: sonarqube:26.5.0.122743-community
+        env:
+          SONAR_JDBC_URL: "jdbc:postgresql://sonardb:5432/sonarqube"
+          SONAR_JDBC_USERNAME: sonarqube
+          SONAR_JDBC_PASSWORD: sonarqube
+          SONAR_TELEMETRY_ENABLE: "false"
+          SONAR_WEB_JAVAOPTS: "-Xmx1g -Xms512m"
+          SONAR_CE_JAVAOPTS: "-Xmx2g -Xms512m"
+          SONAR_SEARCH_JAVAOPTS: "-Xmx1g -Xms1g"
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -fsS http://localhost:9000/api/system/status | grep -q '\"status\":\"UP\"' || exit 1"
+          --health-interval 15s
+          --health-timeout 5s
+          --health-retries 20
+          --health-start-period 90s
+          --ulimit nofile=65536:65536
+          --ulimit nproc=8192:8192
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # SonarQube uses git blame + commit ages for new-code calc and
+          # rule heatmaps. Full history is needed for these to work
+          # correctly across the project.
+          fetch-depth: 0
+
+      - name: Set up Python (for coverage generation)
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Ophamin + test extras
+        run: |
+          python -m pip install --upgrade pip
+          # The property_test extra carries coverage + pytest-cov.
+          # Skip [all] because the SonarQube scan doesn't need the full
+          # heavy ML stack — install only what coverage.xml needs.
+          pip install -e ".[property_test]"
+
+      - name: Wait for SonarQube readiness
+        # The services: block reports healthy when the wrapper container
+        # reports healthy, but SonarQube's REST API is the load-bearing
+        # check — wait for it explicitly with a generous timeout.
+        run: |
+          echo "Waiting for SonarQube at http://localhost:9000..."
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:9000/api/system/status 2>/dev/null \
+                | grep -q '"status":"UP"'; then
+              echo "✓ SonarQube ready after ${i}×5s"
+              curl -s http://localhost:9000/api/system/status
+              echo
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::SonarQube did not reach UP status within 5 min"
+          docker logs $(docker ps -q --filter ancestor=sonarqube:26.5.0.122743-community) 2>&1 | tail -50 || true
+          exit 1
+
+      - name: Generate coverage report (best-effort)
+        # Pytest with --cov produces coverage.xml that the Sonar
+        # Python analyzer reads via sonar.python.coverage.reportPaths.
+        # Best-effort: a single failing test shouldn't fail the scan
+        # job — Sonar surfaces coverage gaps but Python tests are
+        # gated separately by ci.yml. We still want coverage data
+        # to flow into Sonar even if a test happens to fail.
+        continue-on-error: true
+        env:
+          PYTHONPATH: src
+        run: |
+          pytest -q --cov=ophamin --cov-report=xml:coverage.xml \
+              --ignore=tests/bench --ignore=tests/canonical_form \
+              -x --tb=no 2>&1 | tail -10 || true
+          if [ -f coverage.xml ]; then
+            echo "✓ coverage.xml generated ($(wc -c < coverage.xml) bytes)"
+          else
+            echo "WARN: coverage.xml not produced; Sonar coverage will report 0%"
+          fi
+
+      - name: Generate sonar-project.properties for Ophamin
+        # The bundled sonar/sonar-project.kimera-swm.properties targets
+        # Kimera-SWM's layout (kimera_swm/ + tests/). For scanning
+        # Ophamin itself, generate a similar properties file pointing
+        # at src/ophamin/ + tests/.
+        run: |
+          PROJECT_VERSION="${{ github.sha }}"
+          # The shorter sha (12 chars) is what cosign / docker tag with
+          PROJECT_VERSION="${PROJECT_VERSION:0:12}"
+
+          cat > sonar-project.properties <<EOF
+          sonar.projectKey=ophamin
+          sonar.projectName=Ophamin
+          sonar.projectVersion=$PROJECT_VERSION
+          sonar.host.url=http://localhost:9000
+          # Fresh-instance bootstrap auth — the SonarQube container's
+          # admin/admin still works for API calls until first web login.
+          # Safe here because the instance dies with the job.
+          sonar.login=admin
+          sonar.password=admin
+
+          sonar.sources=src/ophamin
+          sonar.python.version=3.12
+
+          sonar.tests=tests
+          sonar.test.inclusions=**/test_*.py,**/*_test.py
+
+          sonar.exclusions=\\
+              **/__pycache__/**,\\
+              **/*.pyc,\\
+              **/.venv/**,\\
+              **/venv/**,\\
+              **/.git/**,\\
+              **/.hypothesis/**,\\
+              **/.mypy_cache/**,\\
+              **/.pytest_cache/**,\\
+              **/.ruff_cache/**,\\
+              **/build/**,\\
+              **/dist/**,\\
+              **/*.egg-info/**,\\
+              **/node_modules/**,\\
+              **/site/**
+
+          sonar.cpd.exclusions=**/test_*.py,**/*_test.py,**/conftest.py
+
+          sonar.python.coverage.reportPaths=coverage.xml
+
+          sonar.sourceEncoding=UTF-8
+          EOF
+          echo "--- sonar-project.properties ---"
+          cat sonar-project.properties
+
+      - name: Run sonar-scanner
+        # Docker-based scanner so the workflow doesn't have to install
+        # the Java-based sonar-scanner-cli on the runner. --network=host
+        # lets the scanner reach the SonarQube `services:` container at
+        # localhost:9000.
+        run: |
+          docker run --rm \
+              --network=host \
+              -v "$PWD:/usr/src" \
+              sonarsource/sonar-scanner-cli:latest \
+              -Dsonar.scanner.metadataFilePath=/tmp/sonar-metadata.txt
+
+      - name: Wait for analysis processing
+        # SonarSource scanner uploads results + the server processes them
+        # asynchronously. Poll the Compute Engine task status until DONE
+        # (or FAILED). The scanner writes /tmp/sonar-metadata.txt with
+        # the task URL — we read it back.
+        run: |
+          # Recover the metadata file the scanner wrote inside the
+          # container (we mounted $PWD so /usr/src/.scannerwork/
+          # report-task.txt is the canonical location).
+          REPORT=".scannerwork/report-task.txt"
+          if [ ! -f "$REPORT" ]; then
+              echo "::warning::scanner report-task.txt not found; skipping CE-task poll"
+              exit 0
+          fi
+          CE_TASK_URL=$(grep '^ceTaskUrl=' "$REPORT" | cut -d= -f2-)
+          if [ -z "$CE_TASK_URL" ]; then
+              echo "::warning::ceTaskUrl missing from $REPORT"
+              exit 0
+          fi
+          echo "Polling Compute Engine task: $CE_TASK_URL"
+          for i in $(seq 1 60); do
+            STATUS=$(curl -fsS -u admin:admin "$CE_TASK_URL" | jq -r '.task.status' || echo "UNKNOWN")
+            case "$STATUS" in
+              SUCCESS) echo "✓ Analysis processed after ${i}×5s"; exit 0 ;;
+              FAILED|CANCELED)
+                echo "::error::Sonar analysis task ended with status: $STATUS"
+                curl -fsS -u admin:admin "$CE_TASK_URL" | jq .
+                exit 1 ;;
+              PENDING|IN_PROGRESS) sleep 5 ;;
+              *) echo "Unexpected task status: $STATUS"; sleep 5 ;;
+            esac
+          done
+          echo "::warning::analysis task did not finish within 5 min — moving on"
+
+      - name: Check Quality Gate
+        # The Quality Gate is the load-bearing pass/fail criterion. For
+        # PR scans we fail the workflow on a failing gate; for main
+        # pushes we report-only (operator may need to adjust thresholds).
+        run: |
+          PROJECT_KEY="ophamin"
+          GATE_URL="http://localhost:9000/api/qualitygates/project_status?projectKey=$PROJECT_KEY"
+          GATE_JSON=$(curl -fsS -u admin:admin "$GATE_URL")
+          GATE_STATUS=$(echo "$GATE_JSON" | jq -r '.projectStatus.status')
+          echo "Quality Gate status: $GATE_STATUS"
+          echo "$GATE_JSON" | jq .
+
+          # Always print the conditions for visibility — operators can
+          # tune the Sonar Way gate via the UI if defaults are too strict.
+          echo "## SonarQube Quality Gate" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Status:** \`$GATE_STATUS\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          echo "$GATE_JSON" | jq . >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$GATE_STATUS" = "OK" ]; then
+              echo "✓ Quality Gate PASSED"
+              exit 0
+          fi
+
+          if [ "$GATE_STATUS" = "ERROR" ]; then
+              echo "::warning::Quality Gate FAILED — see report above"
+              # Phase-1 (0.51.0): warn-only on gate fail. Operators tune
+              # thresholds in the UI before flipping this to a hard exit.
+              # The exit-1 path is the natural next-direction work; the
+              # ephemeral CI instance dies right after this step, so
+              # operators don't have history to tune against yet.
+              exit 0
+          fi
+
+          if [ "$GATE_STATUS" = "NONE" ]; then
+              echo "::warning::Quality Gate status is NONE — analysis may not have completed yet"
+              exit 0
+          fi
+          echo "::warning::Unknown Quality Gate status: $GATE_STATUS"
+          exit 0

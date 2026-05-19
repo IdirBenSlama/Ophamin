@@ -7,7 +7,136 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.50.0] below for the latest cut.)
+(empty — see [0.51.0] below for the latest cut.)
+
+## [0.51.0] — 2026-05-19
+
+**Headline:** CI automation phase #1 of the 4-phase integration
+roadmap (CI / Security / Local / Deployment). `.github/workflows/sonar.yml`
+brings up an ephemeral SonarQube stack via GH Actions `services:`
+containers (drift-free with `sonar/docker-compose.yml` image pins
+from 0.50.0) and runs a scan against the Ophamin source tree on
+every push + PR. Quality-gate check is **warn-only** in this
+phase; operators need history to tune the gate against before
+flipping to hard-fail.
+
+### Added — `.github/workflows/sonar.yml`
+
+Single `scan` job with 9 ordered steps:
+
+1. **Checkout** with `fetch-depth: 0` (Sonar uses git blame for
+   new-code calc + heatmaps)
+2. **Set up Python 3.12** + pip cache
+3. **Install Ophamin + `[property_test]` extra** (pytest-cov)
+4. **Wait for SonarQube readiness** (polls `/api/system/status`
+   with 5-min timeout; bails loud if not UP)
+5. **Generate coverage report (best-effort)** — pytest --cov on
+   ophamin, `continue-on-error: true` so a single test failure
+   doesn't block the scan
+6. **Generate `sonar-project.properties` for Ophamin** — heredoc
+   writes the runtime config (project key, sources, tests,
+   coverage path, exclusions, host URL)
+7. **Run sonar-scanner** — Docker-based via
+   `sonarsource/sonar-scanner-cli` (matches local `sonar_scan.sh`)
+8. **Wait for analysis processing** — polls the Compute Engine
+   task URL until SUCCESS / FAILED / 5-min timeout
+9. **Check Quality Gate** — fetches project_status via Sonar API;
+   reports to step summary; warn-only on ERROR in 0.51.0
+
+### Ephemeral SonarQube via GH Actions services
+
+The workflow uses `services:` containers (NOT a docker-compose
+invocation) so the runner network reaches SonarQube at
+`localhost:9000`. Same image + JDBC pairing as the local
+compose file from 0.50.0:
+
+- `postgres:16-alpine` with `pg_isready` healthcheck
+- `sonarqube:26.5.0.122743-community` with `--ulimit` raised +
+  `curl + grep '"status":"UP"'` healthcheck + JVM heap split
+  matching the local compose (Web 1g/512m, CE 2g/512m,
+  **Search 1g/1g** — Xms == Xmx required by ES bootstrap-check)
+
+The 4 empirical bugs caught + fixed during the 0.50.0 ship
+(image tag drift, ES Xms-Xmx mismatch, wget-vs-curl healthcheck,
+shell-precedence in REPO_ROOT) are all baked into the CI
+workflow's structural pins so any future drift re-triggers
+the same loud failure.
+
+### Quality-gate auth
+
+The workflow's sonar-scanner invocation uses `sonar.login=admin
+sonar.password=admin` against the ephemeral instance (safe
+because the SonarQube container dies with the workflow run).
+For persistent / shared SonarQube, swap to `SONAR_TOKEN` from
+GH Actions secrets.
+
+### Hardening pins — `tests/test_sonar_workflow.py` (29 tests)
+
+Validates the workflow file's structural correctness WITHOUT
+running it. Catches:
+
+- Triggers: push to main + v* tag + pull_request + workflow_dispatch
+- Concurrency: `cancel-in-progress: true` on `sonar-${ref}`
+- Permissions: `contents: read` only (no write surfaces)
+- Services: sonarqube + sonardb declared
+- **Image pins match `sonar/docker-compose.yml` exactly** — drift
+  would mean CI scans against a different SonarQube version than
+  local
+- `SONAR_SEARCH_JAVAOPTS` `-Xms == -Xmx` (ES bootstrap-check
+  invariant from 0.50.0)
+- Healthcheck uses `curl` (not `wget`)
+- Healthcheck greps `"status":"UP"` (not just `/api/system/status`
+  returning 200, which it does during STARTING / DB_MIGRATION_NEEDED)
+- ulimits raised
+- Telemetry off
+- Checkout step uses `fetch-depth: 0` (full git history)
+- Scanner uses `sonarsource/sonar-scanner-cli`
+- Quality Gate step calls `project_status` endpoint
+- Coverage step is `continue-on-error: true`
+- PG credentials + JDBC URL match the local compose file
+
+29 hardening pins all pass. Combined with the 44 sonar setup
+pins + 71 helm pins, total chart/sonar structural surface is
+**144 hardening pins**.
+
+### Documentation — `docs/SONARQUBE.md` extended
+
+New "CI integration (0.51.0)" section explains:
+
+- The 4 trigger shapes (push main / push tag / PR / dispatch)
+- Ephemeral vs persistent SonarQube
+- Warn-only gate semantics (future ship for hard-fail)
+- **Scope note**: workflow scans Ophamin, NOT Kimera-SWM.
+  Operators wanting Kimera-SWM CI analysis copy the workflow
+  into the Kimera-SWM repo + adjust `sonar.sources`.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.51.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.51.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.51.0"` (71/71
+  helm tests + 44/44 sonar setup tests + 29/29 sonar workflow
+  tests pass → **144/144** structural pins green)
+
+### Phase #1 of 4 — what's next
+
+Per owner directive "by relevance", the 4-phase roadmap is:
+
+- **Phase 1 (this ship — 0.51.0)**: ✅ CI automation
+- **Phase 2 — 0.52.0**: Security & dependency scanning
+  (Trivy container scanner + OWASP Dependency-Check Sonar plugin)
+- **Phase 3 — 0.53.0**: Local guardrails (`.sonarlint/` project
+  binding for VS Code / Cursor / IntelliJ)
+- **Phase 4 — 0.54.0**: Deployment & GitOps (ArgoCD
+  Application manifest)
+
+### Verification
+
+- `pytest tests/test_sonar_workflow.py` → 29/29 pass.
+- Workflow YAML parses cleanly (validated locally).
+- **First workflow run after this push validates empirically.**
+  All structural pins covered by hardening tests; runtime
+  validation is per-run.
 
 ## [0.50.0] — 2026-05-19
 

@@ -29,6 +29,39 @@ bash scripts/sonar_down.sh
 The scan dashboard lands at
 `http://localhost:9000/dashboard?id=kimera-swm`.
 
+## CI integration (0.51.0)
+
+The `.github/workflows/sonar.yml` workflow brings up an
+**ephemeral** SonarQube stack inside CI (same image pins as
+`sonar/docker-compose.yml` — drift-free across CI vs local)
+and runs a scan against the Ophamin source tree on every:
+
+- Push to `main` (baseline scan; updates Sonar history)
+- Push to `v*` tag (release-cut scan)
+- Pull request to `main` (per-PR scan; surfaces drift before merge)
+- Manual `workflow_dispatch`
+
+The workflow uses GitHub Actions `services:` containers to
+spin up SonarQube + PostgreSQL — no persistent state between
+runs. Quality-gate enforcement is **warn-only** in 0.51.0
+(operators need history to tune the "Sonar way" defaults
+against). A future ship can flip the gate to a hard exit-1
+once thresholds are stable.
+
+**Scope note:** the CI workflow scans **Ophamin itself**, not
+Kimera-SWM. Kimera-SWM lives in a separate repo and would
+need its own `sonar.yml` (or a multi-repo orchestration step
+that checks out the Kimera-SWM tree before scanning). For
+in-CI Kimera-SWM analysis, copy `.github/workflows/sonar.yml`
+into the Kimera-SWM repo + adjust `sonar.sources` /
+`sonar.tests` to point at `kimera_swm/` + `tests/`.
+
+For **persistent** / cross-run SonarQube history (e.g. tracking
+issue trends over time), use the bundled stack locally per
+the Quick Start above, or wire a self-hosted runner that
+replaces `services:` with `SONAR_HOST_URL` pointing at a
+long-lived SonarQube.
+
 ## Why "mandatory"
 
 Ophamin's value proposition is **measured + signed claims about
