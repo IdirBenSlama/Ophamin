@@ -7,7 +7,74 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.33.0] below for the latest cut.)
+(empty — see [0.33.1] below for the latest cut.)
+
+## [0.33.1] — 2026-05-19
+
+**Headline:** Tier-4 dev-tool #2 — Windows CI matrix entry,
+added as ADVISORY (continue-on-error) so the breakage surfaces
+honestly without gating the build.
+
+CI-config-only release. No substrate or wire-format changes.
+
+### Added — Windows to CI matrix as advisory
+
+The previous matrix shape (`ubuntu-latest × {3.12, 3.13}` +
+`macos-latest × 3.12`) carried a comment naming Windows as
+"deferred — subprocess-path code uses POSIX conventions that
+would need explicit Windows shims (open work)". 0.33.1 adds:
+
+```yaml
+- os: windows-latest
+  python-version: "3.12"
+  experimental: true
+```
+
+Plus `continue-on-error: ${{ matrix.experimental == true }}`
+at the job level + a 45-minute per-job timeout (the optional-
+deps install on Windows may hit slow wheel resolution).
+
+The job is **advisory**: failures are findings, not gating
+regressions. Pattern mirrors the existing ruff invocation
+which also runs `continue-on-error: true` pending owner
+ratchet (see ci.yml line 158-160).
+
+### What this surfaces
+
+The first Windows CI run will produce one of three outcomes:
+
+- **All-green** (unexpected but possible): nothing to fix; flip
+  `experimental: false` to gate.
+- **Install-time failure**: the `[all]` extra contains causal /
+  topology / time-series deps with C/C++ wheels that may not
+  have Windows builds. Surfaces which extras to scope down.
+- **Test-time failures**: subprocess-path / POSIX-isms in the
+  code as the historical comment warned. Each failure is a
+  concrete fix candidate.
+
+In all three cases the build proceeds (Windows is advisory).
+This is the same pattern scikit-learn / pymc / mlflow used
+when ratcheting their Windows test coverage from zero.
+
+### Why advisory rather than gating
+
+Per Ophamin's `docs/STATUS_2026_05_19.md` Tier-4 list,
+Windows CI was deferred work pending the platform-specific
+sweep. Adding a gating job today would cascade-fail the build
+on every push until the sweep completes. Advisory mode gets
+the empirical data NOW (so the sweep can be planned) without
+blocking ongoing work.
+
+When the Windows-portability sweep closes, flip
+`experimental: true` → `false` to make Windows a gating
+platform.
+
+### Verified
+
+- `ci.yml` validates as YAML (parses via PyYAML safe_load).
+- pre-commit hygiene hooks pass on the modified workflow file.
+- 45-min timeout safely above green-path Ubuntu / macOS timing
+  (~15-20 min per the existing 0.33.0 CI run).
 
 ## [0.33.0] — 2026-05-19
 

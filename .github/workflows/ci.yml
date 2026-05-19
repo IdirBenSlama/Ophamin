@@ -19,6 +19,14 @@ jobs:
   test:
     name: tests (${{ matrix.os }} / Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
+    # Windows is surfaced as ADVISORY (allow-failure) per matrix.experimental.
+    # See the per-entry comment block below for the rationale.
+    continue-on-error: ${{ matrix.experimental == true }}
+    # Cap each job at 45 minutes. The non-Windows jobs run in ~15-20 min;
+    # the Windows job may hit slow pip-install on optional-deps wheels.
+    # 45 min is safely above the green-path timing without burning a
+    # full hour per run if Windows hangs.
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -26,13 +34,23 @@ jobs:
         # 3.12 is the canonical target; 3.13 catches the next stable release.
         # macOS is included on Python 3.12 only to catch platform-specific
         # path / wheel / encoding regressions without quadrupling cost.
-        # Windows is deferred — subprocess-path code uses POSIX conventions
-        # that would need explicit Windows shims (open work).
         os: [ubuntu-latest]
         python-version: ["3.12", "3.13"]
+        experimental: [false]
         include:
           - os: macos-latest
             python-version: "3.12"
+            experimental: false
+          # Windows added 2026-05-19 as ADVISORY (continue-on-error via the
+          # matrix.experimental flag). Subprocess-path code historically used
+          # POSIX conventions (path separators, /tmp, /dev/null) that aren't
+          # portable; running on Windows surfaces which assumptions still
+          # need explicit shims. Failures here are findings, not gating
+          # regressions — the build proceeds. Ratchet to non-experimental
+          # once the Windows-portability sweep closes.
+          - os: windows-latest
+            python-version: "3.12"
+            experimental: true
     steps:
       - name: Checkout
         uses: actions/checkout@v6
