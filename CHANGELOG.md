@@ -7,7 +7,63 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.55.0] below for the latest cut.)
+(empty — see [0.56.0] below for the latest cut.)
+
+## [0.56.0] — 2026-05-19
+
+**Headline:** Tier 1 of the post-0.55.0 SonarQube-ecosystem follow-up
+— SonarQube findings now flow through Ophamin's signed-proof framework
+via a new `SonarQubeScanProof` scenario. Code-quality observation and
+cognitive-behaviour observation now share one signed-claim discipline.
+
+The scenario lives at `ophamin.measuring.scenarios.sonarqube_scan`
+and registers under the CLI name `sonarqube-scan` (Tier.ENGINEERING,
+family `code_quality`). It probes the SonarQube REST API
+(`/api/qualitygates/project_status` + `/api/measures/component` +
+`/api/server/version`), captures the Quality Gate verdict and seven
+canonical metrics (bugs, vulnerabilities, security_hotspots,
+code_smells, duplicated_lines_density, ncloc, sqale_index), and emits
+a signed `EmpiricalProofRecord` whose threshold is `qg_passed >= 1.0`
+(QG status == OK).
+
+**First live signed proof against the running stack**
+(`http://localhost:9000`, project `kimera-swm`):
+`verdict=VALIDATED`, `qg_passed=1.0`, with the 0.55.0 measures
+captured in evidence detail (667 bugs / 2 vulnerabilities /
+236 hotspots / 7,827 code smells / 9.0% duplication /
+571,610 ncloc / 59,322 SQALE minutes / Sonar 26.5.0.122743).
+Signature verifies; proof is content-addressed.
+
+Added:
+
+- `src/ophamin/measuring/scenarios/sonarqube_scan.py` (~370 LOC):
+  `SonarQubeScanProof` scenario + `SonarQubeAPIError` +
+  `SonarQubeQualityGateMissingError` typed exceptions + canonical
+  metric-key tuple. Stdlib-only HTTP (urllib + base64); no new
+  runtime dep. Override of `Scenario.run()` like
+  `SubstrateCompletenessScenario` — no corpus / no cycle stream,
+  pure REST probe.
+- `tests/test_sonarqube_scenario.py` (~340 LOC, 32 hardening
+  pins): metadata + registration + canonical-metric-key set +
+  constructor validation + endpoint composition + measure
+  coercion + live-run path (synthetic SonarQube, monkey-patched
+  HTTP) for each QG state (OK / WARN / ERROR / NONE → VALIDATED
+  / REFUTED) + evidence-shape pins + dataset/provenance/pillar
+  invariants + loud-failure on unknown status / missing
+  projectStatus / HTTP non-2xx + Authorization header presence
+  when token is supplied.
+
+Cross-references:
+
+- Live VALIDATED proof was produced by:
+  `PYTHONPATH=src .venv/bin/python -c "from
+  ophamin.measuring.scenarios.sonarqube_scan import
+  SonarQubeScanProof; proof = SonarQubeScanProof(token=open(
+  '/tmp/ophamin_sonar_token.tmp').read().strip()).run();
+  print(proof.proof_id, proof.verdict.outcome)"`.
+- Same numbers + dashboard URL captured at
+  `docs/SONARQUBE_KIMERA_VALIDATION.md`; the scenario is the
+  signed counterpart to that doc.
 
 ## [0.55.0] — 2026-05-19
 
