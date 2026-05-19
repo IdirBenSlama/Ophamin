@@ -2234,6 +2234,102 @@ def _resolve_proof_key(arg_value: str) -> bytes:
     return arg_value.encode("utf-8")
 
 
+def cmd_agent(args: argparse.Namespace) -> int:
+    """Dispatch to one of the four agent subcommands.
+
+    Each subcommand calls into ``ophamin.agentic.agents.*``. Exit 0 on
+    success, 1 on LLM transport failure, 2 on agent-output parse
+    failure (where applicable).
+    """
+    action = getattr(args, "agent_action", None)
+    if action is None:
+        print("usage: ophamin agent {adapt,brief,triage,query} ...",
+              file=__import__("sys").stderr)
+        return 2
+
+    from ophamin.agentic import LLMClient, LLMClientError
+    audit = not getattr(args, "no_audit", False)
+    client = LLMClient()
+
+    try:
+        if action == "adapt":
+            from ophamin.agentic.agents.adapter_gen import generate
+            result = generate(
+                name=args.name, description=args.description,
+                category=args.category, on_disk_path=args.path,
+                client=client, audit=audit,
+            )
+            print(result.source)
+            print("", file=__import__("sys").stderr)
+            print(f"# model={result.model} runtime={result.runtime} "
+                  f"latency={result.latency_ms:.0f}ms", file=__import__("sys").stderr)
+            if result.call_record_path:
+                print(f"# audit={result.call_record_path}",
+                      file=__import__("sys").stderr)
+            return 0
+
+        if action == "brief":
+            from ophamin.agentic.agents.proof_brief import write_brief
+            result = write_brief(args.proof_path, client=client, audit=audit)
+            print(result.brief_markdown)
+            print("", file=__import__("sys").stderr)
+            print(f"# model={result.model} runtime={result.runtime} "
+                  f"latency={result.latency_ms:.0f}ms",
+                  file=__import__("sys").stderr)
+            if result.call_record_path:
+                print(f"# audit={result.call_record_path}",
+                      file=__import__("sys").stderr)
+            return 0
+
+        if action == "triage":
+            from ophamin.agentic.agents.refuted_triage import propose_followups
+            import json as _json
+            result = propose_followups(
+                args.proof_path, n_max=args.n_max,
+                client=client, audit=audit,
+            )
+            print(_json.dumps({"followups": result.followups}, indent=2))
+            print("", file=__import__("sys").stderr)
+            print(f"# model={result.model} runtime={result.runtime} "
+                  f"latency={result.latency_ms:.0f}ms "
+                  f"n_followups={len(result.followups)}",
+                  file=__import__("sys").stderr)
+            if result.call_record_path:
+                print(f"# audit={result.call_record_path}",
+                      file=__import__("sys").stderr)
+            return 0 if result.followups else 2
+
+        if action == "query":
+            from ophamin.agentic.agents.bundle_query import parse_query, apply_filter
+            from ophamin.http_api.bundle_browser import bundle_tree
+            import json as _json
+            result = parse_query(args.query, client=client, audit=audit)
+            tree = bundle_tree(args.proofs_root)
+            matches = apply_filter(tree, result.filter_spec)
+            print(_json.dumps({
+                "filter_spec": result.filter_spec,
+                "n_matches": len(matches),
+                "matches": matches,
+            }, indent=2))
+            print("", file=__import__("sys").stderr)
+            print(f"# model={result.model} runtime={result.runtime} "
+                  f"latency={result.latency_ms:.0f}ms",
+                  file=__import__("sys").stderr)
+            if result.call_record_path:
+                print(f"# audit={result.call_record_path}",
+                      file=__import__("sys").stderr)
+            return 0
+
+        print(f"unknown agent action: {action}", file=__import__("sys").stderr)
+        return 2
+
+    except LLMClientError as exc:
+        print(f"LLM transport error: {exc}", file=__import__("sys").stderr)
+        if exc.body_snippet:
+            print(f"  body: {exc.body_snippet[:300]}", file=__import__("sys").stderr)
+        return 1
+
+
 def cmd_self_test(args: argparse.Namespace) -> int:
     """Run the substrate-free scenarios against Ophamin itself.
 
@@ -3480,6 +3576,53 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     p_self.set_defaults(func=cmd_self_test)
+
+    # ----- ophamin agent <task> (0.63.0) -----
+    p_agent = sub.add_parser(
+        "agent",
+        help="local-LLM agentic tools (adapter-gen / brief / triage / query)",
+    )
+    agent_sub = p_agent.add_subparsers(dest="agent_action")
+
+    p_agent_adapt = agent_sub.add_parser(
+        "adapt",
+        help="generate a Foreign_Corpus adapter from a NL description",
+    )
+    p_agent_adapt.add_argument("--name", required=True,
+                                help="module name (e.g. my_new_dataset)")
+    p_agent_adapt.add_argument("--category", default="symbolic",
+                                help="Foreign_Corpus category dir")
+    p_agent_adapt.add_argument("--path", default="",
+                                help="explicit on-disk path (else <category>/<name>)")
+    p_agent_adapt.add_argument("--description", required=True,
+                                help="one-paragraph dataset description")
+    p_agent_adapt.add_argument("--no-audit", action="store_true",
+                                help="skip writing the signed LLMCallRecord")
+
+    p_agent_brief = agent_sub.add_parser(
+        "brief",
+        help="write a plain-English brief for a proof.json",
+    )
+    p_agent_brief.add_argument("proof_path", help="path to a proof.json")
+    p_agent_brief.add_argument("--no-audit", action="store_true")
+
+    p_agent_triage = agent_sub.add_parser(
+        "triage",
+        help="propose follow-up scenarios for a REFUTED proof",
+    )
+    p_agent_triage.add_argument("proof_path", help="path to a REFUTED proof.json")
+    p_agent_triage.add_argument("--n-max", type=int, default=3)
+    p_agent_triage.add_argument("--no-audit", action="store_true")
+
+    p_agent_query = agent_sub.add_parser(
+        "query",
+        help="natural-language query over proof bundles",
+    )
+    p_agent_query.add_argument("query", help='e.g. "validated proofs this week"')
+    p_agent_query.add_argument("--proofs-root", default="proofs")
+    p_agent_query.add_argument("--no-audit", action="store_true")
+
+    p_agent.set_defaults(func=cmd_agent)
 
     return parser
 

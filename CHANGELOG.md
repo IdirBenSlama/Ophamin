@@ -7,7 +7,114 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.62.0] below for the latest cut.)
+(empty — see [0.63.0] below for the latest cut.)
+
+## [0.63.0] — 2026-05-19
+
+**Headline:** Local-LLM agentic layer. Four agents — adapter
+generator, proof brief writer, REFUTED-triage proposer, and
+natural-language bundle query — sit on top of an OpenAI-compatible
+HTTP client targeting either Ollama or MLX-LM. Every LLM call
+persists a signed `LLMCallRecord` under `proofs/llm_calls/` so
+LLM-assisted output stays as auditable as a normal scenario proof.
+
+What this is NOT (preserving CLAUDE.md's no-LLM rule):
+- The LLM layer lives in **Ophamin**, never inside Kimera-SWM's
+  substrate.
+- LLM outputs never override `Verdict.decide(...)` or substitute
+  for a statistical pillar.
+- Default off — agents only fire when explicitly invoked via the
+  CLI or programmatic API. Ophamin's signed-proof discipline does
+  not depend on a model being up.
+
+Runtime stack:
+- `OPHAMIN_LLM_BASE_URL` env var picks between Ollama
+  (`http://localhost:11434/v1`, the default) and MLX-LM
+  (`http://localhost:8080/v1`).
+- Apple Silicon M-series with 64-128 GB unified memory comfortably
+  runs the workhorse tier (Llama 3.3 70B q4_K_M ~42 GB at 10-15
+  tok/s) alongside the fast tier (Llama 3.1 8B at 50-80 tok/s).
+- Per-task tier routing in `models.py`; per-task model + max-tokens
+  override via env vars.
+
+Tier → default model:
+| Tier | Default Ollama tag | Use for |
+|---|---|---|
+| FAST | `llama3.1:8b` | classification, routing, NL→JSON |
+| WORKHORSE | `llama3.3:70b-instruct-q4_K_M` | general agentic work |
+| CODER | `qwen2.5-coder:32b` | code generation |
+| REASONING | `deepseek-r1:32b` | chain-of-thought synthesis |
+
+Added:
+
+- **`src/ophamin/agentic/`** (~860 LOC):
+  - `client.py` — `LLMClient` (OpenAI `/v1/chat/completions`
+    shape; stdlib `urllib`; loud-fail on transport / non-2xx /
+    non-JSON / malformed-response per the no-fallback rule)
+  - `models.py` — task→tier routing, env overrides
+  - `audit.py` — `LLMCallRecord` (content-addressed + HMAC-signed
+    via separate `OPHAMIN_LLM_AUDIT_KEY`; lands under
+    `proofs/llm_calls/<YYYY-MM-DD>/<short>.json`; idempotent on
+    same-body re-write)
+  - `agents/adapter_gen.py` — NL dataset description →
+    Foreign_Corpus adapter source (few-shot prompted with
+    existing adapter exemplar; CODER tier)
+  - `agents/proof_brief.py` — signed proof.json → 2-4 paragraph
+    contextual Markdown brief (WORKHORSE tier)
+  - `agents/refuted_triage.py` — REFUTED proof → 1-3 follow-up
+    scenario proposals with claim drafts (REASONING tier,
+    `response_format=json_object`)
+  - `agents/bundle_query.py` — NL → filter-spec dict + pure-code
+    `apply_filter` that runs the spec against `bundle_tree()`
+    output (FAST tier, `response_format=json_object`; LLM never
+    executes code — it emits a structured spec the codepath
+    consumes)
+
+- **`ophamin agent <task>` CLI subcommand**:
+  - `ophamin agent adapt --name X --description "..." --category Y`
+  - `ophamin agent brief <proof.json>`
+  - `ophamin agent triage <proof.json> --n-max 3`
+  - `ophamin agent query "validated scientific proofs this week"`
+  Exit codes: 0 success, 1 LLM transport failure, 2 agent-output
+  parse failure (where applicable). Each subcommand prints
+  payload to stdout + `# model=... runtime=... latency=...
+  audit=...` metadata to stderr.
+
+- **`tests/test_agentic.py`** (~390 LOC, 32 hardening pins):
+  - Client: base-URL + timeout validation; runtime-hint inference;
+    happy-path response parsing; loud-fail on HTTPError +
+    URLError + non-JSON + malformed-choices; JSON response format
+    payload shape.
+  - Models: per-task routing; unknown-task → WORKHORSE fallback;
+    env overrides for model + max-tokens; default-max-tokens per
+    task.
+  - Audit: `LLMCallRecord` content-addressing; sign/verify
+    round-trip; tampering breaks signature; persist lands at
+    canonical path; idempotent re-write; auto-sign if unsigned.
+  - Agents: each end-to-end (mocked LLM); `adapter_gen` strips
+    markdown fences; `proof_brief` accepts dict / str / Path
+    inputs; `refuted_triage` returns empty on malformed JSON
+    (not raise); `bundle_query` sanitizer rejects unknown tiers
+    + bad dates; `apply_filter` pure-code path over synthetic
+    tree; `audit=False` skips record write.
+
+Operator notes:
+- Install Ollama: `brew install ollama && ollama serve`
+- Pull models you need: `ollama pull llama3.1:8b` (fast tier;
+  ~5 GB), `ollama pull llama3.3:70b-instruct-q4_K_M` (~42 GB),
+  `ollama pull qwen2.5-coder:32b` (~18 GB),
+  `ollama pull deepseek-r1:32b` (~20 GB)
+- For MLX-LM: `pip install mlx-lm && mlx_lm.server --port 8080
+  --model mlx-community/Llama-3.3-70B-Instruct-4bit`; then
+  `export OPHAMIN_LLM_BASE_URL=http://localhost:8080/v1`
+- Override per-task model with `OPHAMIN_AGENT_MODEL_<TASK>` env
+  (e.g. `OPHAMIN_AGENT_MODEL_BUNDLE_QUERY=mistral-nemo:12b`)
+
+Live verification: agent layer importable, mocked-LLM end-to-end
+on all four agents passes (32/32); CLI `ophamin agent --help`
+surfaces all four subcommands. Focused-selection regression at
+165/165 across http_api + bundle_browser + persist + pdf_renderer
++ self_test + agentic.
 
 ## [0.62.0] — 2026-05-19
 
