@@ -34,6 +34,11 @@ from ophamin.http_api.bundle_browser import (
     bundle_tree,
     safe_bundle_file_path,
 )
+from ophamin.http_api.metrics import (
+    METRICS,
+    http_metrics_middleware_factory,
+    render_exposition,
+)
 from ophamin.interfaces._impls import (
     canonicalize_value_impl,
     get_scenario_claim_impl,
@@ -216,21 +221,19 @@ def build_app() -> FastAPI:
         },
     )
     def metrics() -> PlainTextResponse:
-        registry = CollectorRegistry()
-        Info(
-            "ophamin_build",
-            "Ophamin framework build identity",
-            registry=registry,
-        ).info({"version": SERVER_VERSION, "name": SERVER_NAME})
-        Gauge(
-            "ophamin_scenarios_registered",
-            "Number of scenarios currently in the registry.",
-            registry=registry,
-        ).set(len(SCENARIOS))
-        return PlainTextResponse(
-            generate_latest(registry).decode("utf-8"),
-            media_type=CONTENT_TYPE_LATEST,
-        )
+        # Delegates to ophamin.http_api.metrics.render_exposition which
+        # combines the module-level stateful registry (HTTP request
+        # counters, scenario run counters, etc.) with the per-scrape
+        # stateless registry (bundle counts, psutil readings, etc.).
+        body, content_type = render_exposition()
+        return PlainTextResponse(body.decode("utf-8"), media_type=content_type)
+
+    # Register the HTTP metrics middleware. Must be added BEFORE any
+    # request handler runs — the @app.middleware decorator on the
+    # already-constructed FastAPI app registers it for every future
+    # request. Skips /metrics + /ui/static/ paths internally to avoid
+    # recursive accounting + label-cardinality explosion.
+    app.middleware("http")(http_metrics_middleware_factory())
 
     # ------------------------------------------------------------------
     # Read endpoints

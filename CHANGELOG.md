@@ -7,7 +7,129 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.60.0] below for the latest cut.)
+(empty — see [0.61.0] below for the latest cut.)
+
+## [0.61.0] — 2026-05-19
+
+**Headline:** `/metrics` goes from 2 signals to **33** across six
+categories — framework health, scenarios, proof bundles, HTTP API,
+process resources, substrate cycles. Counters + histograms are
+state-tracking; gauges + info signals recompute at scrape time from
+ground truth. Operators can now wire the chart's `ServiceMonitor` /
+`PodMonitor` at a real observability surface, not a build-info stub.
+
+The full MUST-gauge inventory shipped:
+
+**Framework identity & health (4):**
+- `ophamin_build_info` (kept; version + name labels)
+- `ophamin_python_runtime_info` (Python version + platform + impl)
+- `ophamin_uptime_seconds` (process uptime gauge)
+- `ophamin_health` (synthetic 1/0; AND over sub-checks)
+
+**Scenarios (6):**
+- `ophamin_scenarios_registered` (total)
+- `ophamin_scenarios_registered_by_tier{tier}` (one per tier)
+- `ophamin_scenarios_registered_by_family{family}` (one per family)
+- `ophamin_scenario_runs_total{scenario, verdict}` (Counter, hooked
+  in `Scenario.run_and_persist`)
+- `ophamin_scenario_run_duration_seconds{scenario}` (Histogram)
+- `ophamin_scenario_run_failures_total{scenario, exception}` (Counter)
+
+**Proof bundles (7):**
+- `ophamin_proof_bundles_total` (walks `proofs/` at scrape time)
+- `ophamin_proof_bundles_by_tier{tier}`
+- `ophamin_proof_bundles_by_scenario{tier, scenario}`
+- `ophamin_proof_verdicts{verdict}` (verdict distribution)
+- `ophamin_proof_bundle_storage_bytes` (disk size of `proofs/` tree)
+- `ophamin_proof_latest_timestamp{tier, scenario}` (Unix epoch of
+  latest bundle date per scenario)
+- `ophamin_proof_render_failures_total{format}` (Counter; PDF skip
+  when latexmk missing increments this)
+
+**HTTP API (3):**
+- `ophamin_http_requests_total{method, path, status}` (Counter, via
+  FastAPI middleware. Path label is the routed *template*, e.g.
+  `/scenarios/{name}/claim` — bounds Prometheus cardinality)
+- `ophamin_http_request_duration_seconds{method, path}` (Histogram)
+- `ophamin_http_requests_in_flight` (Gauge)
+
+The middleware skips `/metrics` (no self-inflation) and
+`/ui/static/...` (no per-asset cardinality explosion).
+
+**Process resources (6):**
+- `ophamin_process_cpu_seconds_total` (psutil cpu_times user+system)
+- `ophamin_process_resident_memory_bytes` (psutil RSS)
+- `ophamin_process_threads`
+- `ophamin_process_open_fds` (POSIX-only)
+- `ophamin_process_page_faults_total` (best-effort; ctx_switches
+  fallback on platforms without page-fault counters)
+- `ophamin_disk_free_bytes{path}` (proofs/ root)
+
+**Substrate cycles (5):**
+- `ophamin_substrate_cycles_total{substrate}` (Counter, hooked in
+  `Scenario.run` after substrate.run_batch returns)
+- `ophamin_substrate_cycle_duration_seconds{substrate}` (Histogram;
+  batch_duration / n_cycles)
+- `ophamin_substrate_cycle_failures_total{substrate, kind}` (Counter
+  for `CycleResult.success=False`)
+- `ophamin_substrate_last_phi{substrate}` (Gauge; most-recent Φ
+  from `CycleResult.raw["phi"]`)
+- `ophamin_substrate_halt_reason_total{substrate, halt}` (Counter
+  over `CycleResult.halt_mode` — M1/M2/M3/M4/selective/exhausted/
+  exception/...)
+
+Added:
+
+- **`src/ophamin/http_api/metrics.py`** (~360 LOC): `OphaminMetrics`
+  owns the module-level `CollectorRegistry` + stateful collectors
+  (Counter / Histogram / in-flight Gauge). `render_exposition()`
+  concatenates the stateful registry with a per-scrape stateless
+  registry (rebuilt each call from on-disk + psutil + scenarios).
+  `http_metrics_middleware_factory()` returns the FastAPI middleware
+  that wraps every request. Convenience hooks
+  (`record_scenario_run` / `record_scenario_failure` /
+  `record_render_failure` / `record_substrate_batch`) so call
+  sites don't import module internals.
+
+- **`src/ophamin/http_api/server.py`** — `/metrics` endpoint now
+  delegates to `render_exposition()`. New middleware registered
+  before any handler runs.
+
+- **`src/ophamin/measuring/scenarios/base.py`** —
+  `Scenario.run_and_persist` hooks `record_scenario_run`,
+  `record_scenario_failure`, and `record_render_failure` (one
+  call per format that `persist_proof.skipped` reports). Lazy
+  imports keep the metrics layer optional for downstream
+  importers.
+
+- **`Scenario.run`** (same file) hooks `record_substrate_batch`
+  after `substrate.run_batch()` returns — recording cycle counts,
+  duration, halts, failures, and the most-recent Φ.
+
+- **`tests/test_http_metrics.py`** (~290 LOC, 20 hardening pins):
+  signal-name coverage, exposition parses-as-Prometheus,
+  combined-registry shape, middleware behaviour (404 + 4xx +
+  routed-template + skip-self + skip-static), convenience hooks
+  (scenario_run / failure / render_failure / substrate_batch with
+  phi + halt + failures), scrape-time gauges reflect disk
+  (bundle counts update when bundles added), health degrades
+  when proofs root missing, uptime non-negative, CPU monotonic.
+
+  Includes an `autouse=True` reset fixture that clears collector
+  `_metrics` between tests — without it the module-singleton
+  state contaminates test order. The fixture is the standard
+  prometheus_client pattern for testing module-level Counters.
+
+Cumulative hardening growth this round: +20 pins (`test_http_metrics`).
+The focused selection (http_api / bundle_browser / persist /
+pdf_renderer / sonarqube / helm / sonar workflow) sits at 284/284
+with the new metrics suite added.
+
+Live verification: 33 distinct signal types in the exposition;
+HTTP middleware records routed-template paths (e.g. `/scenarios/
+{name}/claim`) not raw URLs; /metrics doesn't self-inflate;
+psutil readings update across scrapes; bundle counts reflect
+ground truth from the proofs/ tree.
 
 ## [0.60.0] — 2026-05-19
 

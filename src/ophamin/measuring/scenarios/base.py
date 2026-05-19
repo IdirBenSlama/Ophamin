@@ -506,8 +506,23 @@ class Scenario(abc.ABC):
         )
 
         # RUN — stream the real corpus through the substrate
+        import time as _time
         stimuli = [record.text for record in records]
+        _batch_start = _time.perf_counter()
         cycle_results = substrate.run_batch(stimuli)
+        _batch_duration = _time.perf_counter() - _batch_start
+
+        # Record substrate metrics (cycle counts, halt distribution,
+        # last Φ, failures). Lazy import — see run_and_persist().
+        try:
+            from ophamin.http_api.metrics import METRICS as _METRICS
+            _METRICS.record_substrate_batch(
+                substrate_name=substrate.name,
+                cycle_results=cycle_results,
+                batch_duration_seconds=_batch_duration,
+            )
+        except Exception:  # pragma: no cover  — defensive
+            pass
 
         # FIELD-CONTRACT VALIDATION — if the scenario declares a contract,
         # validate the first successful cycle's raw dict against it before
@@ -596,17 +611,49 @@ class Scenario(abc.ABC):
         """
         # Imports are local to keep the base-class footprint light;
         # callers that only want `.run()` don't pay any import cost.
+        import time as _time
         from ophamin.measuring.proof.persistence import (
             BundleFormat,
             persist_proof,
         )
 
-        record = self.run(substrate=substrate, data_root=data_root, sign_key=sign_key)
+        # Record metrics. Lazy-import the metrics layer to avoid forcing
+        # http_api → prometheus_client into every scenario import path
+        # (some lightweight test paths construct scenarios without
+        # touching the HTTP surface).
+        try:
+            from ophamin.http_api.metrics import METRICS as _METRICS
+        except Exception:  # pragma: no cover  — defensive
+            _METRICS = None
+
+        start = _time.perf_counter()
+        try:
+            record = self.run(
+                substrate=substrate, data_root=data_root, sign_key=sign_key,
+            )
+        except Exception as exc:
+            if _METRICS is not None:
+                _METRICS.record_scenario_failure(
+                    scenario_name=self.name, exception=type(exc).__name__,
+                )
+            raise
+        duration = _time.perf_counter() - start
+        if _METRICS is not None:
+            _METRICS.record_scenario_run(
+                scenario_name=self.name,
+                verdict=record.verdict.outcome,
+                duration_seconds=duration,
+            )
+
         tier_value = self.tier.value if hasattr(self.tier, "value") else str(self.tier)
-        return persist_proof(
+        bundle = persist_proof(
             record,
             root=Path(proofs_root),
             tier=tier_value,
             scenario_name=self.name,
             formats=formats if formats is not None else BundleFormat.all(),
         )
+        if _METRICS is not None:
+            for fmt in bundle.skipped:
+                _METRICS.record_render_failure(format_name=fmt.value)
+        return bundle
