@@ -1,0 +1,6 @@
+{
+    "$schema": "https://docs.sonarsource.com/sonarlint/intellij/team-features/connected-mode/setup/connectedMode.schema.json",
+    "_comment": "SonarQube for IDE — Connected Mode project binding for Ophamin. When operators open this directory in VS Code, IntelliJ, Eclipse, or any SonarLint-compatible IDE, they get the same rules + quality gate + suppressions as the bundled SonarQube CE instance (sonar/docker-compose.yml). See docs/SONARQUBE.md and https://docs.sonarsource.com/sonarlint/ for details. To enable: install the SonarQube extension for your IDE → it auto-detects this file → confirms binding to the local instance at http://localhost:9000. If running against SonarCloud or a remote SonarQube, override the projectKey + serverUrl via the IDE's connection settings; this file is the default.",
+    "sonarQubeUri": "http://localhost:9000",
+    "projectKey": "ophamin"
+}

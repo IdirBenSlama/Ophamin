@@ -132,6 +132,37 @@ After 0.52.0 the security claim is:
 Six independent layers, all verifiable, all surfaced either in
 SonarQube's dashboard or GitHub's Security tab.
 
+## Local IDE guardrails (0.53.0)
+
+Phase #3 of the 4-phase integration roadmap ships
+`.sonarlint/connectedMode.json` — a SonarQube-for-IDE
+connected-mode binding that auto-detects when operators open
+the Ophamin repo in any SonarLint-compatible editor:
+
+| IDE | Extension |
+|---|---|
+| VS Code / VSCodium / Cursor | `SonarSource.sonarlint-vscode` |
+| IntelliJ IDEA / PyCharm / WebStorm | `org.sonarlint.idea` |
+| Eclipse | SonarLint plugin |
+| Visual Studio | `SonarSource.SonarQubeForVS` |
+
+After installing the extension + bringing up the bundled
+SonarQube via `bash scripts/sonar_up.sh`, the IDE binds
+automatically to `http://localhost:9000` with project key
+`ophamin`. Every file you edit gets real-time analysis using
+the **same rules as the CI pipeline** — no more "passes
+locally, fails in PR" surprises.
+
+For AI-assisted coding (Cursor, Copilot, etc.), this is the
+**immediate** guardrail: AI-generated code gets analyzed as
+it lands in the editor, before commit, before PR, before any
+CI runs. Bugs + vulnerabilities + code smells surface in
+real time.
+
+See [`.sonarlint/README.md`](https://github.com/IdirBenSlama/Ophamin/blob/main/.sonarlint/README.md)
+for the 4-step quick-start + the standalone-vs-connected
+mode distinction.
+
 ## Why "mandatory"
 
 Ophamin's value proposition is **measured + signed claims about

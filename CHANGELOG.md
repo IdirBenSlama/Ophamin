@@ -7,7 +7,128 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.52.0] below for the latest cut.)
+(empty — see [0.53.0] below for the latest cut.)
+
+## [0.53.0] — 2026-05-19
+
+**Headline:** Phase #3 of 4 — Local IDE guardrails via
+SonarQube-for-IDE (formerly SonarLint) connected-mode binding.
+A `.sonarlint/connectedMode.json` file in the repo root makes
+every SonarLint-compatible IDE (VS Code, IntelliJ, Eclipse,
+Cursor, etc.) auto-bind to the bundled local SonarQube
+instance at `http://localhost:9000` with project key `ophamin`.
+Real-time analysis in the editor using **the same rules as
+the CI pipeline** — closes the loop between AI-assisted coding
++ the SonarQube quality gate.
+
+### Added — `.sonarlint/connectedMode.json`
+
+JSON binding per SonarSource's documented connected-mode setup:
+
+```json
+{
+    "$schema": "https://docs.sonarsource.com/.../connectedMode.schema.json",
+    "sonarQubeUri": "http://localhost:9000",
+    "projectKey": "ophamin"
+}
+```
+
+The IDE extension auto-detects this file when the workspace
+opens + offers to bind. Token entry happens once via the IDE's
+credential manager — NOT stored in this file (which would leak
+to git). The binding lets the IDE pick up:
+
+- Server-side rules (incl. custom rules if operators add them)
+- Quality-gate status visible in editor
+- Issues marked "Won't Fix" on the server hide automatically
+  in the IDE
+- New-code definition mirrors server (in-editor changes get
+  the same gating as PR scans)
+
+### Added — `.sonarlint/README.md`
+
+~110-line operator-facing doc covering:
+
+- What connected mode is (vs standalone) + why it matters
+  ("passes locally, fails in PR" surprises driven by rule-set
+  drift)
+- IDE extension marketplace links for VS Code / IntelliJ /
+  Eclipse / Visual Studio
+- 4-step quick-start (bring up SonarQube → install extension →
+  open repo → generate token)
+- **Why this matters for AI-assisted coding** — connects back
+  to the 0.50.0 owner-directive context about "rapidly using
+  agentic tools like Cursor AI or VS Code". Connected-mode
+  SonarLint is the immediate guardrail before commit / PR / CI.
+- Override path for SonarCloud / remote SonarQube via IDE
+  connection settings (the bundled binding is the default for
+  operators using the local stack)
+
+### Hardening pins — `tests/test_sonarlint_setup.py` (14 tests)
+
+Validates the binding file's static shape WITHOUT requiring an
+IDE to be running:
+
+- `.sonarlint/` directory + `connectedMode.json` + `README.md`
+  all present
+- Binding declares `$schema` pointing at SonarSource's published
+  JSON Schema (gives autocomplete + validation in JSON-aware
+  editors)
+- `projectKey` is `"ophamin"` (must match
+  `sonar.projectKey=ophamin` in the workflow-generated
+  `sonar-project.properties`)
+- `sonarQubeUri` uses `http://` (NOT `https://` — the bundled
+  local instance doesn't terminate TLS)
+- Binding URI uses port 9000 (matches local compose's
+  `9000:9000` publish)
+- **Credentials NOT carried in the file** — token/password/secret/
+  apiKey/credentials all rejected at the structural level (the
+  IDE prompts + stores via the OS credential manager instead)
+- Cross-file consistency: workflow's `sonar.projectKey` + the
+  binding's `projectKey` MUST match (otherwise IDE issues +
+  server issues don't align)
+- README content: mentions connected-vs-standalone distinction,
+  lists supported IDEs, documents quick-start, references
+  `docs/SONARQUBE.md` + `sonar/docker-compose.yml`
+
+Total chart + sonar + trivy + sonarlint structural surface:
+**187 pins** (71 helm + 44 sonar setup + 35 sonar workflow +
+23 trivy workflow + 14 sonarlint).
+
+### Documentation — `docs/SONARQUBE.md` extended
+
+New "Local IDE guardrails (0.53.0)" section covers:
+
+- IDE extension table (VS Code / IntelliJ / Eclipse / VS Code
+  Cursor)
+- The auto-detect + bind flow
+- AI-assisted coding framing (connected mode = immediate
+  guardrail for Cursor / Copilot output)
+- Pointer to `.sonarlint/README.md` for full operator details
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.53.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.53.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.53.0"`
+- 187/187 structural pins green
+
+### Phase #3 of 4 — what's next
+
+- **Phase 1 — 0.51.0**: ✅ CI automation (sonar.yml)
+- **Phase 2 — 0.52.0**: ✅ Security & deps (Trivy + OWASP DC)
+- **Phase 3 — 0.53.0**: ✅ Local guardrails (`.sonarlint/`)
+- **Phase 4 — 0.54.0**: Deployment & GitOps (ArgoCD
+  Application manifest)
+
+### Verification
+
+- `pytest tests/test_sonarlint_setup.py` → 14/14 pass.
+- All 4 chart+sonar+trivy+sonarlint test suites green
+  (187/187 pins).
+- JSON parses cleanly against SonarSource's published schema
+  (operators with JSON-schema-aware editors get autocomplete
+  for free).
 
 ## [0.52.0] — 2026-05-19
 
