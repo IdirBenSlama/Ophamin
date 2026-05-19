@@ -19,7 +19,12 @@ from ophamin.interop.openlineage import (
     OPENLINEAGE_PRODUCER_URL_BASE,
     OPENLINEAGE_SCHEMA_URL,
     OPHAMIN_RUNID_NAMESPACE,
+    new_run_id,
+    to_openlineage_complete_event,
     to_openlineage_event,
+    to_openlineage_fail_event,
+    to_openlineage_running_event,
+    to_openlineage_start_event,
 )
 from ophamin.measuring.proof import (
     Claim,
@@ -514,3 +519,457 @@ def test_empty_analysis_plan_omits_documentation_facet():
     proof.preregistration.analysis_plan = ""
     event = to_openlineage_event(proof)
     assert "documentation" not in event["job"]["facets"]
+
+
+# --------------------------------------------------------------------------
+# Event-sequencing — START + RUNNING + COMPLETE / FAIL
+# --------------------------------------------------------------------------
+
+
+def test_new_run_id_returns_uuid():
+    """The runId minter returns a valid uuid.UUID."""
+    import uuid as uuid_lib
+    run_id = new_run_id()
+    assert isinstance(run_id, uuid_lib.UUID)
+
+
+def test_new_run_ids_are_unique():
+    """Each invocation mints a distinct runId — load-bearing for
+    distinguishing parallel campaigns."""
+    ids = {new_run_id() for _ in range(10)}
+    assert len(ids) == 10
+
+
+# --- START events --------------------------------------------------------
+
+
+def test_start_event_has_event_type_start():
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert event["eventType"] == "START"
+
+
+def test_start_event_preserves_run_id():
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert event["run"]["runId"] == str(rid)
+
+
+def test_start_event_accepts_string_run_id():
+    """run_id can be passed as a UUID string (e.g. from CLI)."""
+    rid_str = str(new_run_id())
+    event = to_openlineage_start_event(
+        run_id=rid_str, scenario_name="my_scenario"
+    )
+    assert event["run"]["runId"] == rid_str
+
+
+def test_start_event_refuses_invalid_run_id_string():
+    """A string that doesn't parse as UUID raises loud."""
+    with pytest.raises(ValueError, match="valid UUID"):
+        to_openlineage_start_event(
+            run_id="not-a-uuid",
+            scenario_name="my_scenario",
+        )
+
+
+def test_start_event_refuses_empty_namespace():
+    rid = new_run_id()
+    with pytest.raises(ValueError, match="namespace must be non-empty"):
+        to_openlineage_start_event(
+            run_id=rid, scenario_name="x", namespace=""
+        )
+
+
+def test_start_event_refuses_empty_scenario_name():
+    rid = new_run_id()
+    with pytest.raises(ValueError, match="scenario_name must be non-empty"):
+        to_openlineage_start_event(run_id=rid, scenario_name="")
+
+
+def test_start_event_uses_scenario_name_as_job_name():
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid, scenario_name="immune_siege"
+    )
+    assert event["job"]["name"] == "immune_siege"
+
+
+def test_start_event_outputs_empty_no_proof_yet():
+    """At START time no proof exists yet, so outputs is []."""
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert event["outputs"] == []
+
+
+def test_start_event_with_claim_attaches_claim_facet():
+    """When a pre-registered claim is provided, consumers see what
+    the run is testing BEFORE any results exist."""
+    rid = new_run_id()
+    proof = _signed_proof()  # use its claim
+    event = to_openlineage_start_event(
+        run_id=rid, scenario_name="my_scenario", claim=proof.claim
+    )
+    facet = event["run"]["facets"]["ophamin_claim"]
+    assert facet["statement"] == proof.claim.statement
+
+
+def test_start_event_without_claim_omits_claim_facet():
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid, scenario_name="my_scenario", claim=None
+    )
+    assert "ophamin_claim" not in event["run"]["facets"]
+
+
+def test_start_event_with_datasets_attaches_inputs():
+    rid = new_run_id()
+    proof = _signed_proof(n_datasets=2)
+    event = to_openlineage_start_event(
+        run_id=rid,
+        scenario_name="my_scenario",
+        datasets=proof.datasets,
+    )
+    assert len(event["inputs"]) == 2
+    # First input carries the correct content_hash
+    facet = event["inputs"][0]["facets"]["ophamin_dataset"]
+    assert facet["content_hash"] == proof.datasets[0].content_hash
+
+
+def test_start_event_inputs_default_to_empty():
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert event["inputs"] == []
+
+
+def test_start_event_attaches_analysis_plan_documentation_facet():
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid,
+        scenario_name="my_scenario",
+        analysis_plan="cumulative meta-analysis over 1000 cycles",
+    )
+    doc = event["job"]["facets"]["documentation"]
+    assert doc["description"] == "cumulative meta-analysis over 1000 cycles"
+
+
+def test_start_event_omits_documentation_when_plan_is_empty():
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid, scenario_name="my_scenario", analysis_plan=""
+    )
+    assert "documentation" not in event["job"]["facets"]
+
+
+def test_start_event_default_event_time_is_rfc3339_utc():
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    # RFC 3339 UTC ends in 'Z'
+    assert event["eventTime"].endswith("Z")
+    # And matches the YYYY-MM-DDTHH:MM:SSZ shape
+    import re
+    assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", event["eventTime"])
+
+
+def test_start_event_custom_event_time_passes_through():
+    rid = new_run_id()
+    event = to_openlineage_start_event(
+        run_id=rid,
+        scenario_name="my_scenario",
+        event_time="2026-05-19T12:34:56Z",
+    )
+    assert event["eventTime"] == "2026-05-19T12:34:56Z"
+
+
+# --- RUNNING events ------------------------------------------------------
+
+
+def test_running_event_has_event_type_running():
+    rid = new_run_id()
+    event = to_openlineage_running_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert event["eventType"] == "RUNNING"
+
+
+def test_running_event_preserves_run_id():
+    rid = new_run_id()
+    event = to_openlineage_running_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert event["run"]["runId"] == str(rid)
+
+
+def test_running_event_inputs_and_outputs_are_empty():
+    """RUNNING events are heartbeats; the canonical inputs/outputs
+    are emitted on the START + terminal events."""
+    rid = new_run_id()
+    event = to_openlineage_running_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert event["inputs"] == []
+    assert event["outputs"] == []
+
+
+def test_running_event_with_progress_attaches_facet():
+    rid = new_run_id()
+    event = to_openlineage_running_event(
+        run_id=rid,
+        scenario_name="my_scenario",
+        progress={
+            "percent_complete": 0.42,
+            "cycles_completed": 4200,
+            "cycles_total": 10000,
+            "message": "Batch 42/100",
+        },
+    )
+    facet = event["run"]["facets"]["ophamin_progress"]
+    assert facet["percent_complete"] == 0.42
+    assert facet["cycles_completed"] == 4200
+    assert facet["message"] == "Batch 42/100"
+    # Always carries the producer + schema URL
+    assert facet["_producer"]
+    assert facet["_schemaURL"]
+
+
+def test_running_event_without_progress_omits_facet():
+    rid = new_run_id()
+    event = to_openlineage_running_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert "ophamin_progress" not in event["run"]["facets"]
+
+
+# --- COMPLETE events (caller-managed run_id) ----------------------------
+
+
+def test_complete_event_uses_caller_run_id_not_proof_derived():
+    """The streaming-COMPLETE function MUST use the caller's run_id,
+    not the deterministic proof-derived one. This is the load-bearing
+    distinction from the single-event to_openlineage_event path."""
+    rid = new_run_id()
+    proof = _signed_proof()
+    event = to_openlineage_complete_event(
+        run_id=rid, proof=proof
+    )
+    assert event["run"]["runId"] == str(rid)
+    # And NOT the proof-derived one
+    import uuid as uuid_lib
+    proof_derived = str(uuid_lib.uuid5(OPHAMIN_RUNID_NAMESPACE, proof.proof_id))
+    assert event["run"]["runId"] != proof_derived
+
+
+def test_complete_event_carries_full_proof_payload():
+    """COMPLETE events still embed claim + verdict facets + inputs +
+    outputs from the proof — same shape as to_openlineage_event."""
+    rid = new_run_id()
+    proof = _signed_proof(n_datasets=2)
+    event = to_openlineage_complete_event(run_id=rid, proof=proof)
+    assert "ophamin_claim" in event["run"]["facets"]
+    assert "ophamin_verdict" in event["run"]["facets"]
+    assert len(event["inputs"]) == 2
+    assert len(event["outputs"]) == 1
+    assert event["outputs"][0]["name"] == proof.proof_id
+
+
+def test_complete_event_validated_maps_to_complete():
+    rid = new_run_id()
+    proof = _signed_proof(outcome_target=0.18)  # VALIDATED
+    event = to_openlineage_complete_event(run_id=rid, proof=proof)
+    assert event["eventType"] == "COMPLETE"
+
+
+def test_complete_event_refuted_maps_to_complete_not_fail():
+    """REFUTED is a real result — must NOT trip job-failure alerts."""
+    rid = new_run_id()
+    proof = _signed_proof(outcome_target=0.05)  # REFUTED
+    event = to_openlineage_complete_event(run_id=rid, proof=proof)
+    assert proof.verdict.outcome == "REFUTED"
+    assert event["eventType"] == "COMPLETE"
+
+
+def test_complete_event_inconclusive_maps_to_fail():
+    rid = new_run_id()
+    from ophamin.measuring.proof import Threshold, Verdict
+    threshold = Threshold("slope", ">=", 0.1)
+    proof = _signed_proof()
+    proof.verdict = Verdict.decide(0.18, threshold, inconclusive=True)
+    proof.sign(b"openlineage-test-key")
+    event = to_openlineage_complete_event(run_id=rid, proof=proof)
+    assert event["eventType"] == "FAIL"
+
+
+# --- FAIL events (scenario crashed before producing proof) --------------
+
+
+def test_fail_event_has_event_type_fail():
+    rid = new_run_id()
+    event = to_openlineage_fail_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert event["eventType"] == "FAIL"
+
+
+def test_fail_event_with_error_message_attaches_error_facet():
+    rid = new_run_id()
+    event = to_openlineage_fail_event(
+        run_id=rid,
+        scenario_name="my_scenario",
+        error_message="data source unreachable",
+        error_type="ConnectionError",
+    )
+    facet = event["run"]["facets"]["ophamin_error"]
+    assert facet["error_message"] == "data source unreachable"
+    assert facet["error_type"] == "ConnectionError"
+
+
+def test_fail_event_without_error_info_omits_facet():
+    """No error_message + no error_type → no ophamin_error facet
+    (facets must carry real content)."""
+    rid = new_run_id()
+    event = to_openlineage_fail_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    assert "ophamin_error" not in event["run"]["facets"]
+
+
+def test_fail_event_with_just_error_type_still_attaches_facet():
+    """Either error_message OR error_type alone is enough content."""
+    rid = new_run_id()
+    event = to_openlineage_fail_event(
+        run_id=rid,
+        scenario_name="my_scenario",
+        error_type="TimeoutError",
+    )
+    assert "ophamin_error" in event["run"]["facets"]
+
+
+# --- End-to-end sequence consistency -------------------------------------
+
+
+def test_start_to_complete_sequence_shares_run_id():
+    """The canonical workflow: mint run_id once, thread it through
+    START + RUNNING + COMPLETE. All three events MUST carry the
+    same runId — that's how Marquez ties them into one run record."""
+    rid = new_run_id()
+    proof = _signed_proof()
+
+    start = to_openlineage_start_event(
+        run_id=rid,
+        scenario_name="my_scenario",
+        claim=proof.claim,
+        datasets=proof.datasets,
+    )
+    running = to_openlineage_running_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    complete = to_openlineage_complete_event(
+        run_id=rid, proof=proof, job_name="my_scenario"
+    )
+
+    assert start["run"]["runId"] == running["run"]["runId"]
+    assert running["run"]["runId"] == complete["run"]["runId"]
+    assert start["run"]["runId"] == str(rid)
+
+
+def test_start_to_fail_sequence_shares_run_id():
+    """Same shape but ending in FAIL (e.g., scenario crashed)."""
+    rid = new_run_id()
+
+    start = to_openlineage_start_event(
+        run_id=rid, scenario_name="my_scenario"
+    )
+    fail = to_openlineage_fail_event(
+        run_id=rid,
+        scenario_name="my_scenario",
+        error_message="OOM at cycle 3422",
+        error_type="MemoryError",
+    )
+
+    assert start["run"]["runId"] == fail["run"]["runId"]
+
+
+def test_all_streaming_events_serialize_to_json():
+    """Every event in the streaming sequence must round-trip cleanly
+    through json.dumps for transport."""
+    rid = new_run_id()
+    proof = _signed_proof()
+
+    for event in [
+        to_openlineage_start_event(
+            run_id=rid,
+            scenario_name="my_scenario",
+            claim=proof.claim,
+            datasets=proof.datasets,
+            analysis_plan="test plan",
+        ),
+        to_openlineage_running_event(
+            run_id=rid,
+            scenario_name="my_scenario",
+            progress={"percent_complete": 0.5},
+        ),
+        to_openlineage_complete_event(
+            run_id=rid, proof=proof
+        ),
+        to_openlineage_fail_event(
+            run_id=rid,
+            scenario_name="my_scenario",
+            error_message="test failure",
+        ),
+    ]:
+        text = json.dumps(event, sort_keys=True)
+        assert json.loads(text) == event
+
+
+def test_streaming_events_match_schema_url():
+    """All streaming events declare the same schemaURL as the
+    single-event path — consistent shape for downstream consumers."""
+    rid = new_run_id()
+    proof = _signed_proof()
+
+    for event in [
+        to_openlineage_start_event(run_id=rid, scenario_name="x"),
+        to_openlineage_running_event(run_id=rid, scenario_name="x"),
+        to_openlineage_complete_event(run_id=rid, proof=proof),
+        to_openlineage_fail_event(run_id=rid, scenario_name="x"),
+    ]:
+        assert event["schemaURL"] == OPENLINEAGE_SCHEMA_URL
+
+
+def test_streaming_events_carry_version_pinned_producer():
+    """All streaming events carry the same versioned producer URL."""
+    rid = new_run_id()
+    proof = _signed_proof()
+    events = [
+        to_openlineage_start_event(run_id=rid, scenario_name="x"),
+        to_openlineage_running_event(run_id=rid, scenario_name="x"),
+        to_openlineage_complete_event(run_id=rid, proof=proof),
+        to_openlineage_fail_event(run_id=rid, scenario_name="x"),
+    ]
+    producers = {e["producer"] for e in events}
+    assert len(producers) == 1  # all identical
+    assert OPENLINEAGE_PRODUCER_URL_BASE in producers.pop()
+
+
+def test_run_id_accepts_uuid_or_string_consistently():
+    """All 4 streaming-event functions accept UUID OR str."""
+    rid_uuid = new_run_id()
+    rid_str = str(rid_uuid)
+    proof = _signed_proof()
+
+    for run_id_arg in (rid_uuid, rid_str):
+        # All four functions accept it
+        to_openlineage_start_event(run_id=run_id_arg, scenario_name="x")
+        to_openlineage_running_event(run_id=run_id_arg, scenario_name="x")
+        to_openlineage_complete_event(run_id=run_id_arg, proof=proof)
+        to_openlineage_fail_event(run_id=run_id_arg, scenario_name="x")

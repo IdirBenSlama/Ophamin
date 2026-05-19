@@ -7,7 +7,160 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.38.0] below for the latest cut.)
+(empty — see [0.39.0] below for the latest cut.)
+
+## [0.39.0] — 2026-05-19
+
+**Headline:** Tier-1 #3 follow-on — OpenLineage event-sequencing
+for the full START + RUNNING + COMPLETE / FAIL lifecycle. Long-
+running Ophamin campaigns can now surface live progress in
+Marquez / Airflow / dbt lineage UIs instead of only appearing
+when the run completes.
+
+### Added — five new functions in `src/ophamin/interop/openlineage.py`
+
+- **`new_run_id() -> uuid.UUID`** — mint a fresh random UUIDv4
+  for a single Ophamin scenario invocation. The streaming path
+  can't use the 0.37.0 deterministic UUIDv5 derivation (no
+  `proof_id` exists at START time), so callers manage the
+  runId themselves and thread it through each event.
+
+- **`to_openlineage_start_event(*, run_id, scenario_name, namespace,
+  claim=None, datasets=None, analysis_plan="", event_time=None,
+  extra_facets=None)`** — emit BEFORE the substrate measurement
+  begins. Marquez renders this as the job's start marker.
+  Optional `claim` parameter attaches an `ophamin_claim` facet
+  so consumers see what's about to be tested before any
+  results exist. Optional `datasets` populates OpenLineage
+  `inputs` from event #1.
+
+- **`to_openlineage_running_event(*, run_id, scenario_name,
+  namespace, event_time=None, progress=None, extra_facets=None)`**
+  — heartbeat events during a long run. Optional `progress`
+  dict attaches an `ophamin_progress` custom facet with
+  conventional fields (`percent_complete`, `cycles_completed`,
+  `cycles_total`, `message`); any keys allowed.
+
+- **`to_openlineage_complete_event(*, run_id, proof, namespace,
+  job_name=None, extra_facets=None)`** — terminal event with
+  caller-managed `run_id`. Same eventType mapping as
+  `to_openlineage_event` (VALIDATED/REFUTED → COMPLETE;
+  INCONCLUSIVE → FAIL); differs only in that `run.runId` is
+  the caller's value (matching the earlier START event) rather
+  than the deterministic UUIDv5 derivation.
+
+- **`to_openlineage_fail_event(*, run_id, scenario_name, namespace,
+  error_message="", error_type="", event_time=None,
+  extra_facets=None)`** — emit if the scenario crashes BEFORE
+  producing a proof (vs INCONCLUSIVE which produces a proof
+  that couldn't decide the threshold). Optional
+  `ophamin_error` facet carries `error_message` + `error_type`
+  for Marquez's error-rendering.
+
+### Why caller-managed runId
+
+OpenLineage spec ties events together by `run.runId` equality.
+The 0.37.0 single-event terminal path derives runId
+deterministically from `proof_id` (content-addressed, same
+proof → same runId across machines). For streaming events,
+no proof exists at START time, so caller mints `new_run_id()`
+and threads it through. The two paths coexist:
+
+- **0.37.0 `to_openlineage_event(proof)`** — single-event
+  terminal, deterministic runId from `proof_id`. Use for
+  emit-once-when-done.
+- **0.39.0 streaming 4-function path** — caller-managed
+  runId from `new_run_id()`. Use for long-running campaigns
+  where progress matters.
+
+### Hardening pins — 38 new tests in `tests/test_openlineage_interop.py`
+
+`new_run_id`:
+- Returns valid `uuid.UUID`; each invocation distinct.
+
+START event:
+- eventType = "START"; runId preserved (UUID or string).
+- Invalid runId string → `ValueError`.
+- Empty namespace / scenario_name → `ValueError`.
+- scenario_name → job.name.
+- outputs empty (no proof yet).
+- With claim → `ophamin_claim` facet attached.
+- Without claim → facet omitted.
+- With datasets → inputs populated with `ophamin_dataset` +
+  `dataSource` facets per DatasetRef.
+- With analysis_plan → `documentation` job facet attached.
+- Without plan → facet omitted.
+- Default `event_time` is RFC 3339 UTC ending in 'Z'.
+- Custom `event_time` passes through.
+
+RUNNING event:
+- eventType = "RUNNING"; runId preserved.
+- inputs and outputs empty (heartbeat-only).
+- With progress dict → `ophamin_progress` facet attached with
+  `_producer` + `_schemaURL` + caller fields.
+- Without progress → facet omitted.
+
+COMPLETE event:
+- Uses CALLER's runId (NOT proof-derived) — load-bearing
+  distinction.
+- Full proof payload (claim + verdict facets + inputs +
+  outputs) embedded.
+- eventType mapping holds: VALIDATED → COMPLETE; REFUTED →
+  COMPLETE (NOT FAIL); INCONCLUSIVE → FAIL.
+
+FAIL event:
+- eventType = "FAIL".
+- With error_message OR error_type → `ophamin_error` facet
+  attached.
+- With both → both fields populated.
+- With neither → facet omitted (no empty facets).
+
+End-to-end:
+- START + RUNNING + COMPLETE share same runId — Marquez ties
+  them into one run.
+- START + FAIL share same runId.
+- All 4 streaming events serialize through `json.dumps`
+  losslessly.
+- All 4 declare the same schemaURL.
+- All 4 carry version-pinned producer URL.
+- All 4 accept UUID or str runId consistently.
+
+All 80 OpenLineage tests pass (42 from 0.37.0 + 38 new).
+Full interop suite at this commit: 229 tests across SARIF +
+JUnit + MLflow + CycloneDX + in-toto + RO-Crate + OpenLineage.
+
+### Documentation — `docs/INTEROP_OVERVIEW.md`
+
+- OpenLineage section extended with the full streaming
+  lifecycle example (mint runId → START → loop[batch +
+  RUNNING] → COMPLETE / FAIL on exception). Single-event
+  emit-once-when-done path remains documented for callers
+  that don't need progress visibility.
+
+### What this does NOT include (out of scope for 0.39.0)
+
+- Direct Marquez HTTP client — the functions return event
+  dicts; caller composes the POST. Building a wrapper that
+  handles auth + retries + batching against a known Marquez
+  endpoint is a future ship.
+- Auto-emission from `Scenario.run()` — current API requires
+  caller to thread runId + call the functions manually. A
+  decorator or context-manager wrapper that auto-emits
+  START + COMPLETE / FAIL around a scenario invocation is a
+  future ship.
+- Per-cycle event emission — the framework's design is to
+  emit periodic (every N seconds or N cycles) RUNNING
+  heartbeats, not one per substrate cycle. Per-cycle would
+  produce O(scenarios × cycles) events; the periodic shape
+  produces O(scenarios) events.
+
+### Verification
+
+- `pytest tests/test_openlineage_interop.py` → 80/80 pass.
+- Full interop suite → 229/229 pass (no regression).
+- `mkdocs build --strict` → clean (pending CI confirmation).
+- Module re-exports parse cleanly via
+  `python -c "from ophamin.interop import new_run_id, to_openlineage_start_event"`.
 
 ## [0.38.0] — 2026-05-19
 

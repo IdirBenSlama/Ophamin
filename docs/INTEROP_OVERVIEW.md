@@ -317,6 +317,73 @@ pipeline operator can join lineage on proof_id ↔ runId without
 maintaining any separate mapping table. Marquez consumers see
 each Ophamin scenario as a first-class job in their lineage graph.
 
+For **long-running Ophamin campaigns**, emit the full lifecycle
+(START at scenario boot, periodic RUNNING heartbeats, terminal
+COMPLETE or FAIL):
+
+```python
+from ophamin.interop import (
+    new_run_id,
+    to_openlineage_start_event,
+    to_openlineage_running_event,
+    to_openlineage_complete_event,
+    to_openlineage_fail_event,
+)
+
+run_id = new_run_id()  # mint once at scenario boot
+
+# 1. START — emit BEFORE the substrate measurement begins
+post(to_openlineage_start_event(
+    run_id=run_id,
+    scenario_name="immune_siege",
+    claim=preregistered_claim,
+    datasets=corpus_dataset_refs,
+    analysis_plan="cumulative meta-analysis over 1000 cycles",
+))
+
+# 2. RUNNING heartbeats — emit periodically during the run
+try:
+    for batch_idx, batch in enumerate(scenario_batches):
+        process_batch(batch)
+        post(to_openlineage_running_event(
+            run_id=run_id,
+            scenario_name="immune_siege",
+            progress={
+                "percent_complete": (batch_idx + 1) / len(scenario_batches),
+                "cycles_completed": cycles_so_far,
+                "cycles_total": total_cycles,
+                "message": f"Batch {batch_idx + 1}/{len(scenario_batches)}",
+            },
+        ))
+
+    # 3a. COMPLETE — emit with the signed proof
+    signed_proof = build_and_sign_proof(...)
+    post(to_openlineage_complete_event(
+        run_id=run_id, proof=signed_proof,
+    ))
+except Exception as exc:
+    # 3b. FAIL — emit if the scenario crashed before producing a proof
+    post(to_openlineage_fail_event(
+        run_id=run_id,
+        scenario_name="immune_siege",
+        error_message=str(exc),
+        error_type=type(exc).__name__,
+    ))
+    raise
+```
+
+Marquez renders the full lifecycle: a job that started at T0,
+emitted progress at T0+5m / T0+10m / T0+15m, and completed (or
+failed) at T0+20m. The `ophamin_progress` facet on RUNNING
+events surfaces percent-complete bars; the `ophamin_error`
+facet on FAIL events surfaces the exception details.
+
+The single-event terminal :func:`to_openlineage_event` remains
+available for emit-once-when-done callers (no START/RUNNING
+preamble); it derives a deterministic runId from `proof_id`.
+For streaming, use the four lifecycle functions above with a
+caller-managed `run_id` from `new_run_id()`.
+
 See [`src/ophamin/interop/openlineage.py`](https://github.com/IdirBenSlama/Ophamin/blob/main/src/ophamin/interop/openlineage.py)
 for the full API. References:
 
