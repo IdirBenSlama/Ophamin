@@ -66,6 +66,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Docker registry refs MUST be lowercase, but ${{ github.repository }}
+      # carries the original-case GitHub repo name (e.g. "IdirBenSlama/Ophamin").
+      # docker/metadata-action lowercases automatically for the tags it
+      # emits, but cache-from / cache-to / smoke-test pull paths that we
+      # template ourselves need explicit lowercasing or buildx fails with
+      # "invalid reference format: repository name must be lowercase".
+      - name: Compute lowercase image name
+        id: image
+        run: echo "name=${IMAGE_NAME,,}" >> "$GITHUB_OUTPUT"
+
       - name: Extract image metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -92,8 +102,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           # GHCR caching via the registry — speeds up incremental builds
           # without leaking artifacts to a third-party registry.
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          # Lowercased image name — see "Compute lowercase image name" step.
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:buildcache,mode=max
           # Multi-arch: linux/amd64 + linux/arm64. The Dockerfile
           # comment-notes that some optional wheels don't have arm64
           # builds, but the core image doesn't install those — base
@@ -105,7 +116,7 @@ jobs:
         # produces help text. Catches the case where build succeeds but
         # the image fails to start (entrypoint regression, missing dep).
         run: |
-          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          IMAGE="${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ github.sha }}"
           # If push didn't tag with sha (semver path), fall back to main
           # or version-derived tag.
           if ! docker pull "$IMAGE" 2>/dev/null; then

@@ -7,7 +7,39 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.35.0] below for the latest cut.)
+(empty — see [0.35.1] below for the latest cut.)
+
+## [0.35.1] — 2026-05-19
+
+**Headline:** Docker GHCR workflow lowercase fix. First real
+run of the 0.34.0 workflow failed with:
+
+```
+ERROR: failed to build: failed to solve: failed to configure
+registry cache exporter: invalid reference format: repository
+name (IdirBenSlama/Ophamin) must be lowercase
+```
+
+Docker registry refs MUST be lowercase, but `${{ github.repository }}`
+returns the original-case GitHub repo name. `docker/metadata-action`
+lowercases automatically for the tags it emits, but the
+`cache-from` / `cache-to` / smoke-test paths the workflow
+templates itself bypassed that lowercasing and kept the
+original case, which buildx then rejected.
+
+### Fixed — `.github/workflows/docker.yml`
+
+- New "Compute lowercase image name" step using bash
+  parameter expansion `${IMAGE_NAME,,}` → `steps.image.outputs.name`
+  carries the lowercased path.
+- `cache-from` / `cache-to` switched from `${{ env.IMAGE_NAME }}`
+  to `${{ steps.image.outputs.name }}`.
+- Smoke-test `IMAGE=...` substitution switched to the same
+  lowercased step output.
+
+CI-config-only fix. No substrate, runtime-API, library-API, or
+test changes. Validated by the next CI run (the empirical
+check the 0.33.1/0.34.0/0.35.0 release shape leans on).
 
 ## [0.35.0] — 2026-05-19
 
