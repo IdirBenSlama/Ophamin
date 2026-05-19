@@ -119,6 +119,47 @@ jobs:
           grep -q 'kind: NetworkPolicy' /tmp/rendered-netpol.yaml \
             || { echo "::error::NetworkPolicy template did not render"; exit 1; }
 
+      - name: helm template with Pod Disruption Budget enabled
+        # 0.47.0 — exercises the new PDB templates' opt-in path.
+        # Tests both HTTP-only (mcp=disabled, http=enabled) AND both-on
+        # so we cover the per-Deployment-PDB rendering paths.
+        run: |
+          # Case 1: HTTP-only with PDB → only pdb-http.yaml renders
+          helm template my-ophamin "$CHART_DIR" \
+            --set podDisruptionBudget.enabled=true \
+            --debug \
+            > /tmp/rendered-pdb-http.yaml
+          grep -q 'kind: PodDisruptionBudget' /tmp/rendered-pdb-http.yaml \
+            || { echo "::error::PodDisruptionBudget template did not render in http-only case"; exit 1; }
+          # Confirm only ONE PDB (http) — mcp.enabled=false should keep pdb-mcp.yaml gated
+          PDB_COUNT=$(grep -c 'kind: PodDisruptionBudget' /tmp/rendered-pdb-http.yaml)
+          if [ "$PDB_COUNT" -ne 1 ]; then
+            echo "::error::expected 1 PDB (http only), got $PDB_COUNT"
+            exit 1
+          fi
+
+          # Case 2: HTTP + MCP both with PDB → both pdb-http.yaml + pdb-mcp.yaml render
+          helm template my-ophamin "$CHART_DIR" \
+            --set podDisruptionBudget.enabled=true \
+            --set mcp.enabled=true \
+            --debug \
+            > /tmp/rendered-pdb-both.yaml
+          PDB_COUNT_BOTH=$(grep -c 'kind: PodDisruptionBudget' /tmp/rendered-pdb-both.yaml)
+          if [ "$PDB_COUNT_BOTH" -ne 2 ]; then
+            echo "::error::expected 2 PDBs (http + mcp), got $PDB_COUNT_BOTH"
+            exit 1
+          fi
+
+          # Case 3: explicit minAvailable override surfaces in rendered YAML
+          helm template my-ophamin "$CHART_DIR" \
+            --set podDisruptionBudget.enabled=true \
+            --set podDisruptionBudget.http.minAvailable="50%" \
+            --debug \
+            > /tmp/rendered-pdb-50pct.yaml
+          grep -q 'minAvailable: 50%' /tmp/rendered-pdb-50pct.yaml \
+            || { echo "::error::minAvailable override did not propagate to rendered PDB"; exit 1; }
+          echo "--- All PDB opt-in cases rendered successfully ---"
+
   publish:
     name: publish chart to GHCR
     # Publish on:

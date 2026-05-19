@@ -1,0 +1,34 @@
+{{- if and .Values.podDisruptionBudget.enabled .Values.http.enabled -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "ophamin.fullname" . }}-http
+  labels:
+    {{- include "ophamin.labels" . | nindent 4 }}
+    app.kubernetes.io/component: http-serve
+spec:
+  # Apply to the HTTP-serve Pods only. The MCP Deployment gets its own
+  # PDB resource via pdb-mcp.yaml when both http.enabled + mcp.enabled
+  # + podDisruptionBudget.enabled are all true.
+  selector:
+    matchLabels:
+      {{- include "ophamin.httpSelectorLabels" . | nindent 6 }}
+  # Either minAvailable OR maxUnavailable must be set, not both. The
+  # values.yaml exposes both with a comment-only example for each;
+  # we honour whichever is set, preferring minAvailable when both are
+  # set explicitly (Kubernetes will refuse the resource if both are
+  # given, so the chart enforces the same rule at template time).
+  {{- if and .Values.podDisruptionBudget.http.minAvailable (not (eq .Values.podDisruptionBudget.http.maxUnavailable "")) }}
+  {{- fail "podDisruptionBudget.http: set ONE of minAvailable or maxUnavailable, not both" }}
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.http.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.http.minAvailable }}
+  {{- else if .Values.podDisruptionBudget.http.maxUnavailable }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.http.maxUnavailable }}
+  {{- else }}
+  # Fallback default: at least 1 HTTP Pod must remain available during
+  # voluntary disruptions. This is the safe-by-default behavior when
+  # operators enable the PDB but don't specify a constraint.
+  minAvailable: 1
+  {{- end }}
+{{- end }}

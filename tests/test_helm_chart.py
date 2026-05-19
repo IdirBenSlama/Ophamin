@@ -251,6 +251,8 @@ def test_network_policy_default_policy_types_is_ingress(values_yaml):
     "ingress.yaml",
     "hpa.yaml",
     "networkpolicy.yaml",
+    "pdb-http.yaml",
+    "pdb-mcp.yaml",
     "NOTES.txt",
     "tests/test-http-health.yaml",
 ])
@@ -457,3 +459,88 @@ def test_network_policy_uses_networking_k8s_io():
     (NOT extensions/v1beta1 — long-deprecated)."""
     content = (CHART_DIR / "templates" / "networkpolicy.yaml").read_text()
     assert "apiVersion: networking.k8s.io/v1" in content
+
+
+# --------------------------------------------------------------------------
+# Pod Disruption Budget (PDB) — opt-in via podDisruptionBudget.enabled
+# --------------------------------------------------------------------------
+
+
+def test_pdb_default_disabled(values_yaml):
+    """PDB is opt-in. Single-replica deployments don't benefit from it
+    (and would break under voluntary disruption), so default-off is
+    the safe baseline."""
+    assert values_yaml["podDisruptionBudget"]["enabled"] is False
+
+
+def test_pdb_has_separate_http_and_mcp_blocks(values_yaml):
+    """HTTP and MCP get separate PDB resources so operators can set
+    different constraints per Deployment."""
+    pdb = values_yaml["podDisruptionBudget"]
+    assert "http" in pdb
+    assert "mcp" in pdb
+
+
+def test_pdb_per_deployment_has_minAvailable_and_maxUnavailable_keys(values_yaml):
+    """Both keys present per Deployment — operators set ONE, leave the
+    other empty. Kubernetes refuses PDBs with both set; the chart
+    enforces this at template time via `fail`."""
+    for component in ("http", "mcp"):
+        block = values_yaml["podDisruptionBudget"][component]
+        assert "minAvailable" in block
+        assert "maxUnavailable" in block
+
+
+def test_pdb_http_template_only_renders_when_pdb_enabled_AND_http_enabled():
+    """Both gates must be satisfied — a PDB for a non-existent
+    Deployment is dead code."""
+    content = (CHART_DIR / "templates" / "pdb-http.yaml").read_text()
+    assert "podDisruptionBudget.enabled" in content
+    assert "http.enabled" in content
+
+
+def test_pdb_mcp_template_only_renders_when_pdb_enabled_AND_mcp_enabled():
+    content = (CHART_DIR / "templates" / "pdb-mcp.yaml").read_text()
+    assert "podDisruptionBudget.enabled" in content
+    assert "mcp.enabled" in content
+
+
+def test_pdb_uses_policy_v1_apiVersion():
+    """The right apiVersion is policy/v1 (NOT policy/v1beta1 —
+    deprecated in K8s 1.21, removed in K8s 1.25). The chart targets
+    modern clusters."""
+    for tpl in ("pdb-http.yaml", "pdb-mcp.yaml"):
+        content = (CHART_DIR / "templates" / tpl).read_text()
+        assert "apiVersion: policy/v1" in content
+        assert "apiVersion: policy/v1beta1" not in content
+
+
+def test_pdb_http_targets_http_pods_via_selector():
+    """The PDB selector MUST match the HTTP Deployment's pod selector
+    so the constraint binds to the right pods."""
+    content = (CHART_DIR / "templates" / "pdb-http.yaml").read_text()
+    assert "ophamin.httpSelectorLabels" in content
+
+
+def test_pdb_mcp_targets_mcp_pods_via_selector():
+    content = (CHART_DIR / "templates" / "pdb-mcp.yaml").read_text()
+    assert "ophamin.mcpSelectorLabels" in content
+
+
+def test_pdb_template_enforces_xor_via_fail():
+    """If operator accidentally sets BOTH minAvailable and maxUnavailable,
+    helm should fail at template time with a clear message — not
+    produce an invalid PDB resource that the apiserver rejects."""
+    for tpl in ("pdb-http.yaml", "pdb-mcp.yaml"):
+        content = (CHART_DIR / "templates" / tpl).read_text()
+        assert "fail" in content
+        # The fail message should mention the constraint
+        assert "minAvailable or maxUnavailable" in content
+
+
+def test_pdb_template_defaults_to_min_available_1():
+    """When neither is set but PDB is enabled, the safe default is
+    minAvailable: 1 — at least one pod stays up during disruptions."""
+    for tpl in ("pdb-http.yaml", "pdb-mcp.yaml"):
+        content = (CHART_DIR / "templates" / tpl).read_text()
+        assert "minAvailable: 1" in content

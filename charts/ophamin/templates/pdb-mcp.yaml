@@ -1,0 +1,25 @@
+{{- if and .Values.podDisruptionBudget.enabled .Values.mcp.enabled -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "ophamin.fullname" . }}-mcp
+  labels:
+    {{- include "ophamin.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mcp-serve
+spec:
+  # Apply to the MCP-serve Pods only.
+  selector:
+    matchLabels:
+      {{- include "ophamin.mcpSelectorLabels" . | nindent 6 }}
+  # Same minAvailable XOR maxUnavailable enforcement as pdb-http.yaml.
+  {{- if and .Values.podDisruptionBudget.mcp.minAvailable (not (eq .Values.podDisruptionBudget.mcp.maxUnavailable "")) }}
+  {{- fail "podDisruptionBudget.mcp: set ONE of minAvailable or maxUnavailable, not both" }}
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.mcp.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.mcp.minAvailable }}
+  {{- else if .Values.podDisruptionBudget.mcp.maxUnavailable }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.mcp.maxUnavailable }}
+  {{- else }}
+  minAvailable: 1
+  {{- end }}
+{{- end }}

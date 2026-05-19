@@ -7,7 +7,121 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.46.1] below for the latest cut.)
+(empty — see [0.47.0] below for the latest cut.)
+
+## [0.47.0] — 2026-05-19
+
+**Headline:** Pod Disruption Budget (PDB) chart templates for
+HTTP + MCP Deployments. Closes the chart-polish backlog item
+flagged in 0.45.0's CHANGELOG ("Pod Disruption Budget would
+help during voluntary disruptions"). Opt-in via
+`podDisruptionBudget.enabled=true`; separate PDB per Deployment
+so operators can constrain HTTP + MCP independently.
+
+### Added — two new chart templates
+
+- **`charts/ophamin/templates/pdb-http.yaml`** — `policy/v1`
+  PodDisruptionBudget targeting the HTTP-serve Pods via
+  `ophamin.httpSelectorLabels`. Gated on
+  `podDisruptionBudget.enabled=true AND http.enabled=true`.
+- **`charts/ophamin/templates/pdb-mcp.yaml`** — same shape for
+  MCP-serve Pods (`ophamin.mcpSelectorLabels`). Gated on
+  `podDisruptionBudget.enabled=true AND mcp.enabled=true`.
+
+Both templates enforce the **minAvailable XOR maxUnavailable**
+constraint at chart-template time via `helm fail` rather than
+producing an invalid resource the apiserver would refuse:
+
+```yaml
+{{- if and .Values.podDisruptionBudget.http.minAvailable (not (eq .Values.podDisruptionBudget.http.maxUnavailable "")) }}
+{{- fail "podDisruptionBudget.http: set ONE of minAvailable or maxUnavailable, not both" }}
+{{- end }}
+```
+
+When neither is set but PDB is enabled, **safe-by-default**
+fallback is `minAvailable: 1` (at least one pod stays up
+during voluntary disruptions).
+
+### Added — `podDisruptionBudget` section in values.yaml
+
+```yaml
+podDisruptionBudget:
+  enabled: false
+  http:
+    minAvailable: ""    # set ONE of these, not both
+    maxUnavailable: ""
+  mcp:
+    minAvailable: ""
+    maxUnavailable: ""
+```
+
+Comments include example production setting (`minAvailable: "50%"`
+for HTTP).
+
+### Hardening pins — `tests/test_helm_chart.py` (+12 new pins)
+
+- Default `podDisruptionBudget.enabled=false` (opt-in)
+- Separate `http` + `mcp` blocks (so operators set each
+  independently)
+- Both blocks have `minAvailable` + `maxUnavailable` keys
+- pdb-http.yaml conditional gates on both
+  `podDisruptionBudget.enabled` AND `http.enabled` (no PDB for
+  non-existent Deployment)
+- pdb-mcp.yaml same shape for MCP
+- Both use `apiVersion: policy/v1` (NOT the deprecated
+  `policy/v1beta1` which is gone in K8s 1.25+)
+- Selectors reference the correct
+  `ophamin.httpSelectorLabels` / `ophamin.mcpSelectorLabels`
+- Templates enforce the XOR constraint via `helm fail` with a
+  clear error message
+- Safe default `minAvailable: 1` when neither value is set
+
+Plus the `test_required_template_file_exists` parametrized
+test extended to require both new files.
+
+Total helm-chart test count: **71** (was 59 at 0.45.0).
+
+### Workflow polish — `.github/workflows/chart.yml`
+
+New "helm template with Pod Disruption Budget enabled" step
+exercises three opt-in paths:
+
+1. HTTP-only with PDB → only `pdb-http.yaml` renders (1 PDB)
+2. HTTP + MCP both with PDB → both `pdb-*.yaml` render (2 PDBs)
+3. Explicit `minAvailable=50%` override surfaces in rendered YAML
+
+Each case has a `grep` assertion that fails the workflow loud
+if the template doesn't render as expected. Same shape as the
+NetworkPolicy smoke-test from 0.45.0.
+
+### Documentation — `charts/ophamin/README.md`
+
+"Optional resources" table extended with the
+PodDisruptionBudget row + per-Deployment constraint note.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.47.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.47.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.47.0"` (pinned
+  by `test_app_version_matches_ophamin_package`; 71/71 helm
+  tests pass)
+
+### What this does NOT include (out of scope for 0.47.0)
+
+- **PDB for the helm-test Pod** — that Pod is a `helm.sh/hook:
+  test` resource that's short-lived; PDB doesn't apply.
+- **HPA-aware PDB scaling** — when `autoscaling.enabled=true`,
+  the PDB's static `minAvailable` may conflict with very-low
+  HPA replica counts. Operators with both enabled should set
+  PDB to a percentage form. Documented in the example comment.
+
+### Verification
+
+- `pytest tests/test_helm_chart.py` → 71/71 pass.
+- `mkdocs build --strict` → clean.
+- Next chart workflow run after this push validates the new
+  three PDB smoke-test cases empirically.
 
 ## [0.46.1] — 2026-05-19
 

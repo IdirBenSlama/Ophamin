@@ -51,6 +51,7 @@ Optional resources (opt-in via values.yaml):
 | Ingress | `ingress.enabled=true` | External access via cluster's Ingress controller |
 | HorizontalPodAutoscaler | `autoscaling.enabled=true` | CPU/memory-based scaling for the HTTP Deployment |
 | NetworkPolicy | `networkPolicy.enabled=true` | Required for strict-default-deny clusters; supply explicit ingress / egress rules in values for production |
+| PodDisruptionBudget | `podDisruptionBudget.enabled=true` | Protects HTTP / MCP Pods from voluntary disruptions (node drains, upgrades, cluster-autoscaler scale-down). Separate PDB per Deployment; set `minAvailable` OR `maxUnavailable` per component, not both |
 | `helm test` Pod | always (via `templates/tests/`) | Post-install health check — invoke with `helm test <release>` to curl `/health` against the deployed Service |
 
 ## Probes

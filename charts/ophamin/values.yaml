@@ -191,7 +191,39 @@ networkPolicy:
   #         protocol: UDP
 
 # ----------------------------------------------------------------------
-# Autoscaling — disabled by default. Enable for production deployments.
+# Pod Disruption Budget — disabled by default. Enable for production
+# deployments where voluntary disruptions (node drains, upgrades,
+# cluster autoscaler scale-down) shouldn't take all replicas down at
+# once. Separate PDB per Deployment (HTTP + MCP) so each can have its
+# own constraint.
+#
+# Set EITHER minAvailable OR maxUnavailable per Deployment, NOT both —
+# Kubernetes rejects PodDisruptionBudgets that specify both, and the
+# chart enforces this at template time via `helm fail` rather than
+# producing an invalid resource at apply time.
+# ----------------------------------------------------------------------
+podDisruptionBudget:
+  enabled: false
+  http:
+    # minAvailable: minimum pods (count or %) that must remain up during
+    # voluntary disruptions. Defaults to 1 if neither is set.
+    minAvailable: ""
+    # maxUnavailable: maximum pods (count or %) that can be unavailable.
+    # Mutually exclusive with minAvailable.
+    maxUnavailable: ""
+    # Example production setting (50% HTTP pods must stay up):
+    # minAvailable: "50%"
+  mcp:
+    minAvailable: ""
+    maxUnavailable: ""
+    # Example (only useful if you have ≥2 MCP replicas):
+    # minAvailable: 1
+
+# ----------------------------------------------------------------------
+# NetworkPolicy — disabled by default. Required for strict-default-deny
+# clusters where every Pod needs explicit ingress/egress allow rules.
+# When enabled, allows ingress from anywhere by default (only restricts
+# the chart's Pods if you supply concrete ingress / egress arrays).
 # ----------------------------------------------------------------------
 autoscaling:
   enabled: false
