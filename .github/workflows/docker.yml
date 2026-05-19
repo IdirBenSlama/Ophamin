@@ -148,6 +148,7 @@ jobs:
         # cosign signs that root manifest, transitively covering both
         # linux/amd64 and linux/arm64 variants. Using --yes skips the
         # interactive consent prompt that cosign would otherwise show.
+        id: sign
         run: |
           DIGEST="${{ steps.build-and-push.outputs.digest }}"
           if [ -z "$DIGEST" ]; then
@@ -157,6 +158,34 @@ jobs:
           IMAGE_REF="${REGISTRY}/${{ steps.image.outputs.name }}@${DIGEST}"
           echo "Signing $IMAGE_REF"
           cosign sign --yes "$IMAGE_REF"
+          echo "image_ref=$IMAGE_REF" >> "$GITHUB_OUTPUT"
+
+      # ── Self-verify the freshly-published signature ──────────────────────
+      # Catches signing-pipeline drift IMMEDIATELY rather than waiting for
+      # an external consumer to run `cosign verify` later. If the
+      # certificate-identity regex stops matching this workflow's identity
+      # (e.g. workflow file renamed, ref pattern changed), this step fails
+      # loud — closing the gap 0.42.0's CHANGELOG flagged.
+      #
+      # The verify uses the same Sigstore Fulcio + Rekor endpoints as the
+      # consumer-side command documented in docs/SUPPLY_CHAIN.md, so any
+      # consumer running that command should produce the same green output.
+      - name: Self-verify the signature
+        run: |
+          IMAGE_REF="${{ steps.sign.outputs.image_ref }}"
+          echo "Self-verifying $IMAGE_REF"
+          cosign verify "$IMAGE_REF" \
+            --certificate-identity-regexp='^https://github\.com/IdirBenSlama/Ophamin/\.github/workflows/docker\.yml@.*' \
+            --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+            > /tmp/cosign-verify-output.json
+          echo "Verify output bytes: $(wc -c < /tmp/cosign-verify-output.json)"
+          # Sanity-check the verify output has the expected shape — cosign
+          # exits non-zero on verify failure, so reaching this means the
+          # signature was found AND the cert identity matched.
+          jq -e '.[] | .critical.identity.docker-reference' /tmp/cosign-verify-output.json \
+              > /dev/null \
+              || { echo "::error::cosign verify output unexpected shape"; cat /tmp/cosign-verify-output.json; exit 1; }
+          echo "OK — signature verifies against this workflow's identity"
 
       - name: Report image digest
         if: always()

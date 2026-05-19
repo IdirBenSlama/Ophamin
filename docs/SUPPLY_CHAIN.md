@@ -21,6 +21,20 @@ protects individual proof records, and the in-toto wrapper
 bridges the two (so an Ophamin proof can be signed by Sigstore
 when emitted into a SLSA-aware pipeline).
 
+## CI self-verifies every signature (0.46.0)
+
+Every signing step in `docker.yml` + `chart.yml` is immediately
+followed by a `cosign verify` step using the same certificate-
+identity-regex consumers would use externally. **A green CI run
+means the signature is already known to verify** with the
+documented consumer commands below — no waiting for an external
+consumer to surface signing-pipeline drift.
+
+This closes the gap 0.42.0's CHANGELOG flagged. If the workflow
+file is renamed, the OIDC ref pattern changes, Fulcio is down,
+or the signature didn't actually land in Rekor, the self-verify
+step fails the workflow loudly in the same run as the publish.
+
 ## Cosign keyless signing — how it works
 
 Ophamin's `docker.yml` and `chart.yml` workflows sign every

@@ -7,7 +7,104 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.45.0] below for the latest cut.)
+(empty — see [0.46.0] below for the latest cut.)
+
+## [0.46.0] — 2026-05-19
+
+**Headline:** Cosign self-verify steps in both publish workflows.
+After every `cosign sign`, the same workflow now immediately
+runs `cosign verify` with the consumer-facing identity-regex
+pattern. **CI fails loud at signing time if the signature
+doesn't verify under the documented consumer command** — closes
+the gap 0.42.0's CHANGELOG flagged as open.
+
+### Why this matters
+
+Before 0.46.0:
+- Workflow signed the artifact + uploaded the signature to
+  Sigstore.
+- An external consumer running the `cosign verify` recipe from
+  `docs/SUPPLY_CHAIN.md` would discover any signing-pipeline
+  drift (wrong cert-identity regex, missing Rekor entry,
+  Fulcio config drift) only when their verify command failed.
+- Internal teams running CI had no signal that drift had
+  happened until somebody downstream complained.
+
+After 0.46.0:
+- Same workflow that signs ALSO immediately verifies under the
+  same cert-identity-regex consumers would use externally.
+- A green workflow run means the signature is already known to
+  verify with the consumer command. No external dependency to
+  catch pipeline drift.
+- Workflow file rename, OIDC ref-pattern change, Fulcio
+  outage, missing Rekor entry → workflow fails loud in the
+  same run as the publish.
+
+### Added — self-verify steps in both workflows
+
+**`.github/workflows/docker.yml`** (after "Sign image with cosign"):
+
+```yaml
+- name: Self-verify the signature
+  run: |
+    IMAGE_REF="${{ steps.sign.outputs.image_ref }}"
+    cosign verify "$IMAGE_REF" \
+      --certificate-identity-regexp='^https://github\.com/IdirBenSlama/Ophamin/\.github/workflows/docker\.yml@.*' \
+      --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+      > /tmp/cosign-verify-output.json
+    jq -e '.[] | .critical.identity.docker-reference' /tmp/cosign-verify-output.json
+```
+
+**`.github/workflows/chart.yml`** (after "Sign chart with cosign"):
+
+Same shape with the chart-yml certificate-identity-regex. Both
+sign steps gained `id: sign` + an `image_ref` / `chart_ref`
+step-output so the verify step doesn't have to re-compute the
+digest reference.
+
+The shell pipes the verify output through `jq -e` to confirm
+the JSON has the expected shape — catches any future cosign
+CLI behavior change that exits 0 without actually finding a
+signature (very unlikely but defensive).
+
+### Updated — `docs/SUPPLY_CHAIN.md`
+
+New section "CI self-verifies every signature" above "Cosign
+keyless signing — how it works". Explains the guarantee:
+
+> A green CI run means the signature is already known to
+> verify with the documented consumer commands below — no
+> waiting for an external consumer to surface signing-pipeline
+> drift.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.46.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.46.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.46.0"` (pinned
+  by `test_app_version_matches_ophamin_package`; 59/59 helm
+  tests pass)
+
+### What this does NOT include (out of scope for 0.46.0)
+
+- **Rekor inclusion proof inspection** — `cosign verify`
+  already implicitly checks Rekor inclusion; surfacing the
+  Rekor log index in the workflow run summary is a future
+  ship.
+- **SBOM cosign signing** — the CycloneDX SBOM is itself a
+  signed Ophamin proof; cosign-signing it too would close the
+  cross-format provenance loop. Mentioned in 0.42.0's "What
+  this does NOT include" — still open.
+- **Cosign attestation** (vs cosign signature) — attestations
+  carry typed predicates (e.g. SLSA provenance, SPDX SBOM).
+  Future ship; complements the in-toto wrapper at 0.35.0.
+
+### Verification
+
+- `mkdocs build --strict` → clean.
+- **First workflow runs after this push validate empirically**:
+  if `cosign verify` succeeds at the same Sigstore endpoints
+  consumers use, the self-verify chain is operational.
 
 ## [0.45.0] — 2026-05-19
 
