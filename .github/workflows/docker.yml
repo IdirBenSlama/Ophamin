@@ -1,0 +1,124 @@
+name: docker
+
+# Build the Ophamin CORE image (per Dockerfile) and publish to GHCR.
+# Per `docs/TOOL_LANDSCAPE_2026_05_19.md` Tier-4 #5: operators wanting
+# `ophamin http serve` or `ophamin mcp serve` in K8s shouldn't have
+# to build locally.
+#
+# Triggers:
+#   - tag push v*    → image tagged with the version (e.g. 0.33.1) + latest
+#   - push to main   → image tagged 'main' (so 'docker pull ghcr.io/.../ophamin:main'
+#                      always grabs the bleeding edge for testing)
+#   - workflow_dispatch — manual trigger (for testing the workflow itself)
+#
+# What the image IS / IS NOT (mirrors Dockerfile's scope-note block):
+#   - CORE runtime + CLI (`ophamin scenario list`, `ophamin http serve`,
+#     `ophamin schema validate`, etc.)
+#   - NO optional extras (no [causal] / [bayesian] / [tda] / [audit] etc.)
+#     The image is intentionally slim; consumers needing extras install
+#     them locally on a build-tool-equipped host.
+#
+# Pull the image:
+#   docker pull ghcr.io/idirbenslama/ophamin:0.33.1
+#   docker pull ghcr.io/idirbenslama/ophamin:latest
+#   docker pull ghcr.io/idirbenslama/ophamin:main
+#
+# Smoke-test:
+#   docker run --rm ghcr.io/idirbenslama/ophamin:latest --help
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write  # required to push to ghcr.io
+  id-token: write  # for future cosign / sigstore signing
+
+# Single in-flight build per ref — replacing the in-progress build when
+# a fresh push lands is fine for the image-publishing workflow.
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    name: build + push image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Tags:
+          #   - v0.33.1 tag push  → 0.33.1 + latest
+          #   - main branch push  → main
+          #   - manual dispatch   → dispatch-<sha-prefix>
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=raw,value=dispatch-${{ github.sha }},enable=${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # GHCR caching via the registry — speeds up incremental builds
+          # without leaking artifacts to a third-party registry.
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          # Multi-arch: linux/amd64 + linux/arm64. The Dockerfile
+          # comment-notes that some optional wheels don't have arm64
+          # builds, but the core image doesn't install those — base
+          # python:3.12.7-slim-bookworm + core deps work on both arches.
+          platforms: linux/amd64,linux/arm64
+
+      - name: Smoke-test pushed image
+        # Pull one of the freshly-pushed tags and verify the entrypoint
+        # produces help text. Catches the case where build succeeds but
+        # the image fails to start (entrypoint regression, missing dep).
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          # If push didn't tag with sha (semver path), fall back to main
+          # or version-derived tag.
+          if ! docker pull "$IMAGE" 2>/dev/null; then
+            FIRST_TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -1)
+            IMAGE="$FIRST_TAG"
+          fi
+          echo "Smoke-testing image: $IMAGE"
+          docker run --rm "$IMAGE" --help | head -5
+
+      - name: Report image digest
+        if: always()
+        run: |
+          echo "## Pushed image tags" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo '${{ steps.meta.outputs.tags }}' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

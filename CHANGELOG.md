@@ -7,7 +7,104 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.33.1] below for the latest cut.)
+(empty — see [0.34.0] below for the latest cut.)
+
+## [0.34.0] — 2026-05-19
+
+**Headline:** Tier-4 dev-tool #3 — Docker GHCR publishing
+workflow. Operators wanting `ophamin http serve` or
+`ophamin mcp serve` in K8s no longer need to build the image
+locally. Multi-arch (linux/amd64 + linux/arm64), tag-driven,
+auto-pushed on release tags + main pushes.
+
+CI-config-only release. No substrate, runtime-API, or
+existing-workflow changes. The Dockerfile itself is
+unchanged from 0.16.0+.
+
+### Added — `.github/workflows/docker.yml`
+
+New GitHub Actions workflow that builds the Ophamin CORE image
+(per the existing repo-root `Dockerfile`) and publishes to GHCR.
+
+Triggers:
+
+- **`v*` tag push** — image tagged with the version (e.g.
+  `ghcr.io/idirbenslama/ophamin:0.34.0`) + `:latest`.
+- **push to `main`** — image tagged `:main` for bleeding-edge
+  consumers / smoke testing.
+- **`workflow_dispatch`** — manual trigger for testing the
+  workflow itself.
+
+Steps:
+
+1. Checkout
+2. Set up Docker Buildx (multi-arch support)
+3. Log in to GHCR using the built-in `GITHUB_TOKEN` (no secret
+   needed)
+4. Extract metadata via `docker/metadata-action@v5` (version
+   tag → semver pattern, branch → branch tag, manual →
+   dispatch-<sha>)
+5. Build + push via `docker/build-push-action@v6` with
+   registry-backed buildcache and `linux/amd64,linux/arm64`
+   platform matrix
+6. Smoke-test the pushed image (`docker run --rm <image>
+   --help`)
+7. Report image tags in the workflow-run summary
+
+Pull recipes:
+
+```bash
+docker pull ghcr.io/idirbenslama/ophamin:0.34.0   # pinned version
+docker pull ghcr.io/idirbenslama/ophamin:latest   # latest release
+docker pull ghcr.io/idirbenslama/ophamin:main     # bleeding edge
+```
+
+### What the image is (mirrors Dockerfile's scope-note)
+
+- **CORE runtime + CLI**: `ophamin scenario list`,
+  `ophamin http serve`, `ophamin mcp serve`, `ophamin schema
+  validate`, etc.
+- **No optional extras**: the `[causal]` / `[bayesian]` /
+  `[tda]` / `[audit]` extras need C/C++ build tools that
+  `python:3.12-slim` doesn't carry. Consumers needing those
+  install on a build-tool-equipped host.
+- **Non-root user** (`ophamin`).
+- **Multi-arch**: linux/amd64 + linux/arm64. Core deps work
+  on both; the arch-restricted optional extras aren't in this
+  image.
+
+### Permissions
+
+The workflow declares `permissions: packages: write` (required
+to push to ghcr.io) and `id-token: write` (for future
+cosign/sigstore image signing — not wired yet, kept open as
+the natural next step matching Sigstore + SLSA practice).
+
+### Concurrency + timeout
+
+- `concurrency: docker-${{ github.ref }}` with
+  `cancel-in-progress: true` — replacing the in-flight build
+  on a fresh push is fine for image publishing.
+- `timeout-minutes: 30` — multi-arch builds with cache-miss
+  take ~10-15 min; 30 caps the worst case.
+
+### Verified
+
+- `.github/workflows/docker.yml` parses as YAML.
+- The image will produce one of three states on first run:
+  (a) all-green publish — multi-arch image lives at GHCR with
+  the expected tags; (b) Buildx setup or auth failure (rare on
+  GitHub-hosted runners; investigate); (c) Dockerfile-level
+  build failure (would surface as a real Dockerfile issue —
+  unchanged since 0.16.0 so unlikely but possible). The first
+  run on this commit is the empirical check.
+
+### What this opens for next-direction work
+
+Per `docs/TOOL_LANDSCAPE_2026_05_19.md` Tier-2 #6: with a
+published image, Helm chart / K8s manifests for `ophamin http
+serve` + `ophamin mcp serve` become straightforward. That
+remains autonomous-doable for a future Claude session.
 
 ## [0.33.1] — 2026-05-19
 
