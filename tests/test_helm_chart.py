@@ -215,6 +215,27 @@ def test_autoscaling_min_replicas_at_least_2(values_yaml):
     assert values_yaml["autoscaling"]["minReplicas"] >= 2
 
 
+def test_network_policy_default_disabled(values_yaml):
+    """NetworkPolicy is opt-in — only needed on strict-default-deny
+    clusters. Default-on would break in clusters without a NetPol
+    controller."""
+    assert values_yaml["networkPolicy"]["enabled"] is False
+
+
+def test_network_policy_has_required_keys(values_yaml):
+    """When enabled, NetworkPolicy needs policyTypes + ingress + egress."""
+    np = values_yaml["networkPolicy"]
+    assert "policyTypes" in np
+    assert "ingress" in np
+    assert "egress" in np
+
+
+def test_network_policy_default_policy_types_is_ingress(values_yaml):
+    """Default NetPol covers ingress (the most common requirement);
+    egress can be added explicitly for stricter postures."""
+    assert "Ingress" in values_yaml["networkPolicy"]["policyTypes"]
+
+
 # --------------------------------------------------------------------------
 # Template files — required presence
 # --------------------------------------------------------------------------
@@ -229,7 +250,9 @@ def test_autoscaling_min_replicas_at_least_2(values_yaml):
     "service-mcp.yaml",
     "ingress.yaml",
     "hpa.yaml",
+    "networkpolicy.yaml",
     "NOTES.txt",
+    "tests/test-http-health.yaml",
 ])
 def test_required_template_file_exists(template_file):
     path = CHART_DIR / "templates" / template_file
@@ -362,3 +385,75 @@ def test_http_and_mcp_have_distinct_selectors():
     helpers = (CHART_DIR / "templates" / "_helpers.tpl").read_text()
     assert 'app.kubernetes.io/component: http-serve' in helpers
     assert 'app.kubernetes.io/component: mcp-serve' in helpers
+
+
+# --------------------------------------------------------------------------
+# helm-test hook (templates/tests/)
+# --------------------------------------------------------------------------
+
+
+def test_helm_test_hook_has_test_annotation():
+    """The Pod under templates/tests/ MUST carry helm.sh/hook: test,
+    or `helm test` won't execute it."""
+    content = (CHART_DIR / "templates" / "tests" / "test-http-health.yaml").read_text()
+    assert '"helm.sh/hook": test' in content
+
+
+def test_helm_test_hook_has_delete_policy():
+    """hook-delete-policy keeps the test Pod from lingering as a
+    completed-then-orphaned object after the test."""
+    content = (CHART_DIR / "templates" / "tests" / "test-http-health.yaml").read_text()
+    assert "helm.sh/hook-delete-policy" in content
+    assert "hook-succeeded" in content
+
+
+def test_helm_test_hook_targets_http_service():
+    """The test Pod's curl URL MUST point at the HTTP Service the chart
+    creates (templated via ophamin.fullname). Hardcoding a hostname
+    would break for any non-default release name."""
+    content = (CHART_DIR / "templates" / "tests" / "test-http-health.yaml").read_text()
+    assert 'ophamin.fullname' in content
+    assert "/health" in content
+
+
+def test_helm_test_hook_only_runs_when_http_enabled():
+    """If http.enabled is false (rare; would be MCP-only deployments),
+    the test Pod isn't useful and shouldn't be rendered."""
+    content = (CHART_DIR / "templates" / "tests" / "test-http-health.yaml").read_text()
+    assert content.lstrip().startswith("{{- if .Values.http.enabled")
+
+
+def test_helm_test_hook_image_is_pinned():
+    """Pinning the curl image by exact tag/digest is reproducibility
+    hygiene — drift could change the curl flags' behavior."""
+    content = (CHART_DIR / "templates" / "tests" / "test-http-health.yaml").read_text()
+    # Some explicit tag (NOT :latest)
+    assert "curlimages/curl:" in content
+    assert "curlimages/curl:latest" not in content
+
+
+# --------------------------------------------------------------------------
+# NetworkPolicy template (opt-in)
+# --------------------------------------------------------------------------
+
+
+def test_network_policy_only_renders_when_enabled():
+    """The NetworkPolicy template is gated on networkPolicy.enabled —
+    consumers without strict-default-deny don't pay for the resource."""
+    content = (CHART_DIR / "templates" / "networkpolicy.yaml").read_text()
+    assert content.lstrip().startswith("{{- if .Values.networkPolicy.enabled")
+
+
+def test_network_policy_targets_chart_pods():
+    """The NetPol's podSelector MUST match the chart's selector labels —
+    a drift would either apply to the wrong pods (security violation)
+    or leave the chart's pods unprotected."""
+    content = (CHART_DIR / "templates" / "networkpolicy.yaml").read_text()
+    assert "ophamin.selectorLabels" in content
+
+
+def test_network_policy_uses_networking_k8s_io():
+    """The right apiVersion for NetworkPolicy is networking.k8s.io/v1
+    (NOT extensions/v1beta1 — long-deprecated)."""
+    content = (CHART_DIR / "templates" / "networkpolicy.yaml").read_text()
+    assert "apiVersion: networking.k8s.io/v1" in content

@@ -103,6 +103,22 @@ jobs:
             > /tmp/rendered-hpa.yaml
           echo "--- Rendered (hpa) line count: $(wc -l < /tmp/rendered-hpa.yaml)"
 
+      - name: helm template with NetworkPolicy enabled
+        # 0.45.0 — exercises the new NetworkPolicy template's opt-in path
+        # so any future schema drift in templates/networkpolicy.yaml
+        # surfaces at PR time instead of post-install.
+        run: |
+          helm template my-ophamin "$CHART_DIR" \
+            --set networkPolicy.enabled=true \
+            --debug \
+            > /tmp/rendered-netpol.yaml
+          echo "--- Rendered (netpol) line count: $(wc -l < /tmp/rendered-netpol.yaml)"
+          # Confirm the NetworkPolicy resource is actually present
+          # (catches the case where the conditional accidentally evaluates
+          # to false even when networkPolicy.enabled=true).
+          grep -q 'kind: NetworkPolicy' /tmp/rendered-netpol.yaml \
+            || { echo "::error::NetworkPolicy template did not render"; exit 1; }
+
   publish:
     name: publish chart to GHCR
     # Publish on:

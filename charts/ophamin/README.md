@@ -50,6 +50,8 @@ Optional resources (opt-in via values.yaml):
 | Deployment + Service | `mcp.enabled=true` | `ophamin mcp serve` (streamable-http) on port 8765 |
 | Ingress | `ingress.enabled=true` | External access via cluster's Ingress controller |
 | HorizontalPodAutoscaler | `autoscaling.enabled=true` | CPU/memory-based scaling for the HTTP Deployment |
+| NetworkPolicy | `networkPolicy.enabled=true` | Required for strict-default-deny clusters; supply explicit ingress / egress rules in values for production |
+| `helm test` Pod | always (via `templates/tests/`) | Post-install health check — invoke with `helm test <release>` to curl `/health` against the deployed Service |
 
 ## Probes
 
@@ -101,7 +103,18 @@ directories. Set it to `true` if you mount writable volumes explicitly.
 
 ## Verifying the deployment
 
-After install, check the workload:
+The chart ships a `helm test` Pod that curls `/health` against the
+deployed Service after install — invoke it explicitly:
+
+```bash
+helm test my-ophamin -n ophamin
+```
+
+A green test confirms the HTTP surface is reachable + the
+`/health` endpoint responds. The test Pod is auto-cleaned up
+after the run (hook-delete-policy: hook-succeeded).
+
+For manual verification:
 
 ```bash
 kubectl get pods -n ophamin -l app.kubernetes.io/instance=my-ophamin

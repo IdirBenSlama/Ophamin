@@ -7,7 +7,152 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.44.1] below for the latest cut.)
+(empty — see [0.45.0] below for the latest cut.)
+
+## [0.45.0] — 2026-05-19
+
+**Headline:** Helm chart polish — `NetworkPolicy` (opt-in, for
+strict-default-deny clusters) + a `helm test` hook that curls
+`/health` against the deployed Service post-install. Closes
+the Tier-4 chart-polish backlog that 0.40.0's CHANGELOG flagged
+as autonomous-doable.
+
+### Added — `charts/ophamin/templates/networkpolicy.yaml`
+
+Opt-in NetworkPolicy resource gated on `networkPolicy.enabled=true`.
+Required for clusters that run a `default-deny` NetworkPolicy in
+every namespace; without it, the chart's Pods would be cut off
+from kube-DNS, the kube-apiserver, and any peer Service.
+
+Defaults in `values.yaml`:
+
+```yaml
+networkPolicy:
+  enabled: false
+  policyTypes: [Ingress]
+  ingress: []   # empty = allow-all when enabled (matches "open by default" pattern)
+  egress: []
+```
+
+The `policyTypes`, `ingress`, and `egress` keys pass through
+verbatim to the Kubernetes NetworkPolicy spec — operators can
+write production-grade rules without touching the template.
+Example rule for a namespace-restricted production deployment
+is in the values.yaml comments.
+
+### Added — `charts/ophamin/templates/tests/test-http-health.yaml`
+
+`helm test` hook Pod that runs after install:
+
+```bash
+helm test my-ophamin -n ophamin
+```
+
+Implementation:
+
+- Uses `curlimages/curl:8.10.1` (pinned by exact tag, NOT
+  `:latest` — reproducibility hygiene)
+- Hits `http://<release>-http:80/health` via the Service DNS
+  name templated through `ophamin.fullname`
+- Retries 5× with 3s backoff to tolerate rolling-update startup
+- `helm.sh/hook: test` + `helm.sh/hook-delete-policy:
+  before-hook-creation,hook-succeeded` annotations clean up the
+  test Pod after the run (no orphaned completed Pods)
+- Only renders when `http.enabled=true` (the rare MCP-only
+  deployments wouldn't have a /health endpoint to probe)
+
+### Workflow polish — `.github/workflows/chart.yml`
+
+Added a new helm-lint step to exercise the NetworkPolicy
+opt-in path:
+
+```yaml
+- name: helm template with NetworkPolicy enabled
+  run: |
+    helm template my-ophamin "$CHART_DIR" \
+      --set networkPolicy.enabled=true \
+      --debug \
+      > /tmp/rendered-netpol.yaml
+    grep -q 'kind: NetworkPolicy' /tmp/rendered-netpol.yaml \
+      || { echo "::error::NetworkPolicy template did not render"; exit 1; }
+```
+
+Catches schema drift in the new template at PR time.
+
+### Hardening pins — `tests/test_helm_chart.py` (+13 new pins)
+
+NetworkPolicy:
+- Default `networkPolicy.enabled=false` (opt-in)
+- `policyTypes` + `ingress` + `egress` keys present in values
+- Default `policyTypes` includes `Ingress`
+- Template only renders when `networkPolicy.enabled=true`
+- `podSelector` references `ophamin.selectorLabels` (matches
+  chart's Pods, no drift)
+- Uses `apiVersion: networking.k8s.io/v1` (not the long-
+  deprecated `extensions/v1beta1`)
+
+helm-test hook:
+- Has `"helm.sh/hook": test` annotation (required by `helm test`)
+- Has `hook-delete-policy` with `hook-succeeded`
+- Curl target uses `ophamin.fullname` template (works for any
+  release name)
+- Probes `/health` endpoint
+- Only renders when `http.enabled=true`
+- Image is pinned by explicit tag (not `:latest`)
+
+Plus the existing `test_required_template_file_exists` test
+extended to require both new files: `networkpolicy.yaml` +
+`tests/test-http-health.yaml`.
+
+Total helm-chart test count: **59** (was 46 at 0.41.0).
+
+### Documentation — `charts/ophamin/README.md`
+
+- "Optional resources" table extended with NetworkPolicy +
+  `helm test` Pod rows.
+- "Verifying the deployment" section leads with the new
+  `helm test my-ophamin -n ophamin` recipe before the manual
+  kubectl-port-forward + curl path.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.45.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.45.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.45.0"` (pinned
+  by `test_app_version_matches_ophamin_package`; 59/59 helm
+  tests pass)
+
+### What this does NOT include (out of scope for 0.45.0)
+
+- **Pre-baked egress rules for common scenarios** (e.g. allow
+  DNS + kube-apiserver, deny internet). These are deployment-
+  specific; the chart's values.yaml comments give example
+  shapes but operators write the rules.
+- **PodMonitor / ServiceMonitor** for Prometheus Operator —
+  chart still doesn't ship those CRDs (operators with
+  Prometheus Operator add via Kustomize / their own chart layer).
+- **Pod Disruption Budget** — would help during voluntary
+  disruptions (node drains, upgrades). Future ship.
+- **A second `helm test` Pod for MCP** when `mcp.enabled=true` —
+  the MCP server has no `/health` equivalent; would need a
+  different probe shape (TCP connect; possibly an MCP
+  `list_tools` call). Future ship.
+
+### Verification
+
+- `pytest tests/test_helm_chart.py` → 59/59 pass.
+- `mkdocs build --strict` → clean.
+- `helm lint` + `helm template ... --set networkPolicy.enabled=true`
+  empirically validated by the next chart.yml run after this push.
+
+### What this opens for next-direction work
+
+- Pod Disruption Budget template (~30 LOC + 5 hardening pins)
+- Per-resource ServiceAccount annotations for cloud-IAM
+  workload-identity (GKE / EKS / AKS)
+- PodMonitor + ServiceMonitor templates gated on a
+  `prometheus.enabled=true` toggle
+- A `helm test` Pod for the MCP surface (when `mcp.enabled=true`)
 
 ## [0.44.1] — 2026-05-19
 

@@ -160,6 +160,37 @@ securityContext:
   readOnlyRootFilesystem: false  # ophamin writes proofs/audit dirs locally; set true if you mount writable volumes explicitly
 
 # ----------------------------------------------------------------------
+# NetworkPolicy — disabled by default. Required for strict-default-deny
+# clusters where every Pod needs explicit ingress/egress allow rules.
+# When enabled, allows ingress from anywhere by default (only restricts
+# the chart's Pods if you supply concrete ingress / egress arrays).
+# ----------------------------------------------------------------------
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+  # Ingress rules — empty default allows all (set policyTypes to [Ingress, Egress]
+  # and add explicit egress rules below for a deny-by-default posture).
+  ingress: []
+  # Example for production: only allow ingress from a specific namespace:
+  # ingress:
+  #   - from:
+  #       - namespaceSelector:
+  #           matchLabels:
+  #             kubernetes.io/metadata.name: client-ns
+  #     ports:
+  #       - port: 8000
+  #         protocol: TCP
+  egress: []
+  # Example for a no-internet workload:
+  # egress:
+  #   - to:
+  #       - namespaceSelector: {}  # cluster-internal only
+  #     ports:
+  #       - port: 53
+  #         protocol: UDP
+
+# ----------------------------------------------------------------------
 # Autoscaling — disabled by default. Enable for production deployments.
 # ----------------------------------------------------------------------
 autoscaling:
