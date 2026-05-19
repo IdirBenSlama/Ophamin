@@ -1,0 +1,171 @@
+name: chart
+
+# Build the Ophamin Helm chart (charts/ophamin/) and publish to GHCR as
+# an OCI artifact. Operators install via:
+#   helm install my-ophamin oci://ghcr.io/idirbenslama/ophamin \
+#     --version <chart-version>
+#
+# Plus a per-PR helm-lint job that catches schema-level chart errors
+# the structural Python tests (tests/test_helm_chart.py) can't see.
+#
+# Triggers:
+#   - push to main         → helm-lint runs (validates the chart change)
+#   - tag push v*          → helm-lint + publish chart to GHCR
+#   - workflow_dispatch    → manual trigger (for testing the workflow)
+#   - pull_request         → helm-lint only (catches drift before merge)
+#
+# What this workflow IS / IS NOT:
+#   - Publishes the Helm chart at charts/ophamin/ as an OCI artifact
+#   - Validates chart schema via `helm lint`
+#   - Does NOT publish the Docker image (that's docker.yml)
+#   - Does NOT bump the chart version automatically (operator does that
+#     in Chart.yaml before tagging)
+#
+# Pull recipes after publish:
+#   helm show chart oci://ghcr.io/idirbenslama/ophamin --version 0.1.0
+#   helm install my-ophamin oci://ghcr.io/idirbenslama/ophamin \
+#       --version 0.1.0 --namespace ophamin --create-namespace
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - "charts/**"
+      - ".github/workflows/chart.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write  # required to push to ghcr.io
+  id-token: write  # for future cosign / sigstore chart signing
+
+# Single in-flight build per ref — newer pushes replace older.
+concurrency:
+  group: chart-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  # Chart pushes to oci://<registry>/<repo-owner-lowercased> — Helm
+  # creates the per-chart subpath automatically based on Chart.yaml's
+  # `name:` field. The repo-owner segment must be lowercase (same
+  # lesson as the docker.yml 0.35.1 fix).
+  CHART_DIR: charts/ophamin
+
+jobs:
+  helm-lint:
+    name: helm lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - name: helm lint charts/ophamin
+        run: |
+          helm lint "$CHART_DIR"
+
+      - name: helm template charts/ophamin (default values)
+        # Smoke-test that the templates render with default values.
+        # Catches the most common template-syntax errors that `lint`
+        # doesn't fire on.
+        run: |
+          helm template my-ophamin "$CHART_DIR" --debug \
+            > /tmp/rendered-default.yaml
+          echo "--- Rendered (default) line count: $(wc -l < /tmp/rendered-default.yaml)"
+
+      - name: helm template with mcp enabled + ingress enabled
+        # Exercise the opt-in code paths once per change.
+        run: |
+          helm template my-ophamin "$CHART_DIR" \
+            --set mcp.enabled=true \
+            --set ingress.enabled=true \
+            --set ingress.hosts[0].host=test.example.com \
+            --set ingress.hosts[0].paths[0].path=/ \
+            --set ingress.hosts[0].paths[0].pathType=Prefix \
+            --set ingress.hosts[0].paths[0].service=http \
+            --debug \
+            > /tmp/rendered-mcp-ingress.yaml
+          echo "--- Rendered (mcp+ingress) line count: $(wc -l < /tmp/rendered-mcp-ingress.yaml)"
+
+      - name: helm template with autoscaling enabled
+        run: |
+          helm template my-ophamin "$CHART_DIR" \
+            --set autoscaling.enabled=true \
+            --debug \
+            > /tmp/rendered-hpa.yaml
+          echo "--- Rendered (hpa) line count: $(wc -l < /tmp/rendered-hpa.yaml)"
+
+  publish:
+    name: publish chart to GHCR
+    # Publish on:
+    #   - push to main                 → tag the chart with branch name
+    #   - tag push v*                  → use the chart's Chart.yaml version
+    #   - workflow_dispatch            → use the chart's Chart.yaml version
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
+    needs: helm-lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - name: Compute lowercase OCI namespace
+        id: oci
+        # Same lesson as docker.yml — OCI refs must be lowercase but
+        # GitHub returns the original-case repo name. Lowercase the
+        # owner segment (the chart name comes from Chart.yaml,
+        # already lowercase by convention).
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          echo "namespace=${OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | helm registry login "$REGISTRY" \
+                --username "${{ github.actor }}" \
+                --password-stdin
+
+      - name: helm package
+        id: package
+        run: |
+          mkdir -p /tmp/chart-out
+          helm package "$CHART_DIR" --destination /tmp/chart-out
+          CHART_TGZ=$(ls /tmp/chart-out/*.tgz | head -1)
+          echo "tgz=$CHART_TGZ" >> "$GITHUB_OUTPUT"
+          echo "Packaged: $CHART_TGZ"
+
+      - name: helm push to GHCR
+        # Pushes to oci://ghcr.io/<owner-lowercase>/<chart-name>:<version>
+        # The chart-name segment comes from Chart.yaml's `name:` field.
+        run: |
+          helm push "${{ steps.package.outputs.tgz }}" \
+            "oci://${REGISTRY}/${{ steps.oci.outputs.namespace }}"
+
+      - name: Report published chart
+        if: always()
+        run: |
+          echo "## Published Helm chart" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "oci://${REGISTRY}/${{ steps.oci.outputs.namespace }}/ophamin" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo "Install with:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```bash' >> "$GITHUB_STEP_SUMMARY"
+          echo "helm install my-ophamin oci://${REGISTRY}/${{ steps.oci.outputs.namespace }}/ophamin" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -7,7 +7,116 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.40.0] below for the latest cut.)
+(empty — see [0.41.0] below for the latest cut.)
+
+## [0.41.0] — 2026-05-19
+
+**Headline:** Tier-4 dev-tool — `chart.yml` GH Actions workflow
+publishes the 0.40.0 Helm chart as an OCI artifact to GHCR.
+Operators can now install via `helm install` against the
+`oci://ghcr.io/idirbenslama/ophamin` registry without cloning
+the repo first. Per-PR `helm lint` + `helm template` runs catch
+schema-level chart errors the structural Python tests can't see.
+
+### Added — `.github/workflows/chart.yml`
+
+Two jobs:
+
+1. **`helm-lint`** — runs on every push to main + every PR
+   touching `charts/**` or the workflow itself + on manual
+   dispatch. Steps:
+   - Checkout
+   - `azure/setup-helm@v4` (pinned to `v3.16.4`)
+   - `helm lint charts/ophamin` — catches Chart.yaml +
+     templates/ schema violations
+   - `helm template ...` with default values — smoke-tests
+     template rendering
+   - `helm template ... --set mcp.enabled=true --set ingress.enabled=true ...` —
+     exercises the opt-in code paths
+   - `helm template ... --set autoscaling.enabled=true` —
+     exercises the HPA template
+
+2. **`publish`** — runs after `helm-lint` on push-to-main +
+   `v*` tag push + manual dispatch (gated by `if:` to skip PRs).
+   Steps:
+   - Checkout + setup-helm (same as lint job)
+   - Compute lowercase OCI namespace (`${OWNER,,}` — same lesson
+     as docker.yml 0.35.1)
+   - `helm registry login ghcr.io` using built-in `GITHUB_TOKEN`
+   - `helm package charts/ophamin`
+   - `helm push <chart.tgz> oci://ghcr.io/<owner-lowercase>`
+   - Report published chart in workflow run summary
+
+### Pull recipes (after the workflow lands its first push)
+
+```bash
+# Show chart metadata without installing
+helm show chart oci://ghcr.io/idirbenslama/ophamin --version 0.1.0
+
+# Install
+helm install my-ophamin oci://ghcr.io/idirbenslama/ophamin \
+    --version 0.1.0 \
+    --namespace ophamin \
+    --create-namespace
+
+# Pin a specific Ophamin app version (defaults to Chart.appVersion)
+helm install my-ophamin oci://ghcr.io/idirbenslama/ophamin \
+    --version 0.1.0 \
+    --set image.tag=0.41.0 \
+    --namespace ophamin
+```
+
+### Permissions + concurrency
+
+- `permissions: packages: write` — required to push to ghcr.io
+- `id-token: write` — kept open for future cosign / sigstore
+  chart signing (analogous to the docker.yml pattern)
+- `concurrency: chart-${{ github.ref }}` with `cancel-in-progress:
+  true` — newer pushes replace older builds. Same shape as
+  docker.yml.
+- `timeout-minutes: 15` — helm push is fast; 15 caps the worst
+  case for transient registry slowness.
+
+### Why this is a meaningful release vs a patch
+
+The chart was in the source tree from 0.40.0 onward, but
+without this workflow, operators had to clone the repo and run
+`helm install ./charts/ophamin`. The published OCI artifact is
+the canonical "Helm chart distribution" experience — analogous
+to how 0.34.0 elevated the Dockerfile to a published GHCR image.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.41.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.41.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.41.0"`
+  (pinned by `test_app_version_matches_ophamin_package`)
+
+### Verification
+
+- `pytest tests/test_helm_chart.py` → 46/46 pass.
+- `mkdocs build --strict` → clean.
+- First real workflow run on push to main is the empirical
+  validation of the publish-to-GHCR step.
+
+### What this does NOT include (out of scope for 0.41.0)
+
+- **Cosign signing** of the published chart — `id-token: write`
+  is reserved; wiring sigstore is a future ship.
+- **Multi-arch chart** — Helm charts are arch-agnostic; only
+  the referenced image needs multi-arch (already covered by
+  0.34.0's `linux/amd64,linux/arm64` build).
+- **Auto-bumping `Chart.yaml` version** on chart-only changes —
+  operator does that manually in `Chart.yaml` before tagging.
+
+### What this opens for next-direction work
+
+- **Slim `ophamin-client` package** — carve out wire-format +
+  interop modules without statsmodels / pymc tree.
+- **Public bench dashboard** — `bench.yml` results surfacing
+  via GitHub Pages.
+- **Cosign + Rekor** chart signing — wires the `id-token: write`
+  permission into a real signature flow.
 
 ## [0.40.0] — 2026-05-19
 
