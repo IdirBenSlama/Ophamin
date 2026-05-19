@@ -7,7 +7,91 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.42.0] below for the latest cut.)
+(empty — see [0.43.0] below for the latest cut.)
+
+## [0.43.0] — 2026-05-19
+
+**Headline:** Tier-2 proposal — `docs/proposals/SLIM_OPHAMIN_CLIENT.md`
+documenting four design options for shipping a slim `ophamin`
+install path for verify-only consumers. **Empirical finding from
+the investigation: every slim-target module imports ZERO heavy
+deps**; today's ~500 MB install is entirely driven by declared
+dependencies that the verify-only path never touches.
+
+### Why this is a proposal not a ship
+
+The slim-client design is a backward-compat-affecting decision
+that needs owner pick. The proposal surveys options A (separate
+`ophamin-client` sibling package), B (separate repo — ruled out),
+C (move heavy deps to `[scenarios]` extra, recommended), and D
+(do nothing + document workaround). Each option has concrete
+trade-off analysis + effort estimate.
+
+Per the autonomous-loop policy of "ship OR document design
+decision for owner input", this release ships the design
+decision documented.
+
+### Added — `docs/proposals/SLIM_OPHAMIN_CLIENT.md`
+
+~280-line proposal covering:
+
+- **TL;DR + empirical finding**: import-trace shows
+  `proof/record.py`, `proof/codec.py`, `interop/in_toto.py`,
+  `interop/ro_crate.py`, `interop/openlineage.py`,
+  `measuring/metrics/tiers.py`, `seeing/substrate/base.py`,
+  and `ophamin/__init__.py` itself ALL import only Python
+  stdlib (no statsmodels / pandas / scipy / mlflow / dvc /
+  rdflib / etc.).
+- **Why this matters**: 3 downstream use cases (CI verification
+  jobs / edge consumers / K8s admission sidecars) that today
+  pay ~500 MB of install cost for zero functional value.
+- **Four options** with pro/con/effort estimates:
+  - A: separate `ophamin-client` sibling distribution
+    (OpenTelemetry-api / -sdk pattern)
+  - B: separate repo (ruled out — release-cycle drift risk)
+  - C: move heavy deps to `[scenarios]` extra (recommended —
+    backward-incompatible but cleanly mitigated by major
+    bump + honest-failure ImportError + 1-week deprecation
+    window)
+  - D: do nothing + document `--no-deps` workaround
+- **Migration shape** if C is picked: 0.99.x prep release adds
+  honest-failure stubs → 0.99.x deprecation window → 1.0.0
+  cuts the dep move.
+- **Decision required from owner**: pick + migration confirmation
+  + cut-moment confirmation.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.43.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.43.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.43.0"` (pinned
+  by `test_app_version_matches_ophamin_package`; 46/46 helm
+  tests still pass)
+- `mkdocs.yml` nav: new entry "Slim ophamin-client install path"
+  under Proposals section
+
+### What this does NOT include (out of scope for 0.43.0)
+
+- **The actual restructuring** — pyproject changes are gated on
+  owner pick of option A or C.
+- **Honest-failure ImportError stubs** — would land in the
+  prep-release (0.99.x in option C's migration plan).
+- **A working slim install path TODAY** — the `pip install
+  --no-deps ophamin jsonschema` workaround per option D is the
+  unsupported escape hatch until the proposal lands.
+
+### What this opens for next-direction work
+
+If owner picks **C** (recommended) — first ship of the
+restructuring is option C's step 1: honest-failure stubs in
+scenario modules. Autonomous-doable.
+
+If owner picks **A** — first ship is the dual-package pyproject
++ a CI job validating that the slim package's import surface
+stays stdlib-only. Autonomous-doable.
+
+Either way, the slim path is unlocked by 0.43.0's design
+documentation.
 
 ## [0.42.0] — 2026-05-19
 

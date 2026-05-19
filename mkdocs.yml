@@ -119,6 +119,7 @@ nav:
       - Zenodo deposit workflow: ZENODO_DEPOSIT_WORKFLOW.md
   - Proposals (Tier-2 owner picks):
       - Proof reproduction command: proposals/PROOF_REPRODUCTION_COMMAND.md
+      - Slim ophamin-client install path: proposals/SLIM_OPHAMIN_CLIENT.md
   - Reference:
       - Schemas (signed records): reference/schemas.md
       - Public API: reference/api.md
