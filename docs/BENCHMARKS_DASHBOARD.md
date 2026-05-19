@@ -88,7 +88,7 @@ laptop's numbers.
 # 1. Run the benches against your local checkout
 PYTHONPATH=src python -m pytest tests/bench/ -q \
     --benchmark-only \
-    --benchmark-storage=file:./bench_storage \
+    --benchmark-storage=./bench_storage \
     --benchmark-save=local
 
 # 2. Render the dashboard

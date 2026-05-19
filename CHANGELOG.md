@@ -7,7 +7,63 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.44.0] below for the latest cut.)
+(empty — see [0.44.1] below for the latest cut.)
+
+## [0.44.1] — 2026-05-19
+
+**Headline:** Fix bench-storage path drift discovered by the
+first 0.44.0 bench-dashboard run. pytest-benchmark 5.x does
+NOT strip the `file:` URI prefix from `--benchmark-storage`,
+so the CI run was literally creating a directory named `file:`
+instead of `bench_storage/`. The bench-results artifact has
+been silently empty for the same reason; this fix repairs both
+paths.
+
+### Fixed — pytest-benchmark storage path
+
+- `.github/workflows/bench.yml` — `--benchmark-storage=file:./bench_storage`
+  → `--benchmark-storage=./bench_storage`. Added a NOTE comment
+  explaining the pytest-benchmark 5.x URI-parser regression.
+- `docs/BENCHMARKS_AND_COVERAGE.md` — same fix in two
+  documented command-recipes (lines 121 + 170).
+- `docs/BENCHMARKS_DASHBOARD.md` — same fix in the local-repro
+  recipe.
+
+### Empirical evidence the fix is needed
+
+The 0.44.0 bench workflow run on commit `34dae8a` (Run ID
+26073005250):
+
+- "Run benches" step: success (benches ran)
+- "Upload bench results as artifact" step: success (uploaded
+  whatever was at `bench_storage/` — which turned out to be
+  nothing, since pytest-benchmark wrote to `file:/bench_storage/`
+  instead)
+- "Render bench dashboard" step: **FAILED** with
+  `ERROR: bench_storage is neither a directory nor a .json file`
+  — the render script correctly refused to silently produce an
+  empty dashboard.
+
+The job was marked `success` overall only because of
+`continue-on-error: true` on the bench job. The empty
+bench-results artifact failure was previously invisible
+because nothing downstream consumed it.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.44.1`
+- `src/ophamin/__init__.py` `__version__` → `"0.44.1"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.44.1"` (pinned
+  by `test_app_version_matches_ophamin_package`; 46/46 helm
+  tests still pass)
+
+### Verification
+
+- Local pytest-benchmark run with bare `--benchmark-storage=./X`
+  produces a real directory `X/Linux-CPython-...64bit/0001_...json`
+  (verified locally before pushing).
+- Next bench workflow run after this push validates empirically:
+  if "Render bench dashboard" lands green, the fix worked.
 
 ## [0.44.0] — 2026-05-19
 

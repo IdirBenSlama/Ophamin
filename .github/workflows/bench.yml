@@ -61,8 +61,13 @@ jobs:
         run: |
           # Warm up once (numpy / scipy lazy-imports cost the first bench)
           # then run with --benchmark-only so the bench fixture is required.
+          # NOTE: pytest-benchmark 5.x does NOT strip the `file:` URI prefix;
+          # `--benchmark-storage=file:./bench_storage` literally creates a
+          # directory named `file:` (URI parser regression vs older versions).
+          # Use the bare path form so the resulting directory IS bench_storage/.
+          # Discovered in the 0.44.0 first-bench-dashboard run + fixed at 0.44.1.
           pytest tests/bench/ -q --benchmark-only \
-            --benchmark-storage=file:./bench_storage \
+            --benchmark-storage=./bench_storage \
             --benchmark-save=ci_run \
             --benchmark-warmup=on \
             --benchmark-min-rounds=10 \

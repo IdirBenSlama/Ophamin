@@ -118,7 +118,7 @@ the action-item table above closes.
 >
 > ```bash
 > .venv/bin/python -m pytest tests/bench/ -q --benchmark-only \
->     --benchmark-storage=file:./bench_storage --benchmark-save=baseline
+>     --benchmark-storage=./bench_storage --benchmark-save=baseline
 > ```
 >
 > Pinned baselines populate the table below as benches land. CI gate:
@@ -167,7 +167,7 @@ Baseline saved at `bench_storage/baseline_v0_5_0/`. Re-run + compare via:
 
 ```bash
 .venv/bin/python -m pytest tests/bench/ -q --benchmark-only \
-    --benchmark-storage=file:./bench_storage \
+    --benchmark-storage=./bench_storage \
     --benchmark-compare=baseline_v0_5_0 \
     --benchmark-compare-fail=mean:20%
 ```
