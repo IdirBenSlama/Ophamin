@@ -12,6 +12,7 @@
 |---|---|---|---|
 | Docker image | `ghcr.io/idirbenslama/ophamin` | Sigstore keyless (cosign) | `cosign verify ghcr.io/idirbenslama/ophamin@<digest> --certificate-identity-regexp=...` |
 | Docker image SBOM (CycloneDX) | attached to image as cosign attestation | Sigstore keyless (cosign) | `cosign verify-attestation ... --type cyclonedx` |
+| Docker image SLSA provenance v1.0 | attached to image as GitHub-native attestation | Sigstore keyless (`actions/attest-build-provenance@v2`) | `gh attestation verify` OR `cosign verify-attestation ... --type slsaprovenance1` |
 | Helm chart | `oci://ghcr.io/idirbenslama/ophamin/ophamin` | Sigstore keyless (cosign) | `cosign verify ghcr.io/idirbenslama/ophamin/ophamin@<digest> --certificate-identity-regexp=...` |
 | `EmpiricalProofRecord` (proof JSON) | per-deployment | HMAC-SHA256 (own key) | `verify_proof_impl(json)` / Rust + JS ports / HTTP `/verify` endpoint |
 | `EmpiricalProofRecord` (in-toto Statement) | per-deployment | HMAC-SHA256 (own key, double-layer) | `cosign verify-attestation` — see [INTEROP_OVERVIEW.md](INTEROP_OVERVIEW.md) |
@@ -152,6 +153,88 @@ spec:
           - name: must-have-sbom
             predicateType: https://cyclonedx.org/bom
 ```
+
+## Verifying the Docker image's SLSA L3 provenance (0.49.0)
+
+In parallel to the SBOM attestation, every published Docker
+image carries a **SLSA v1.0 build provenance attestation** that
+documents *how* the image was built — the GitHub workflow URI,
+commit SHA, builder identity, invocation metadata, and the
+materials (source repo) the build consumed.
+
+The attestation is produced by GitHub's native
+`actions/attest-build-provenance@v2` action (which uses the
+same Sigstore keyless flow as cosign attest) and lands in both:
+
+- **GitHub's attestation registry** — verifiable via
+  `gh attestation verify`
+- **Sigstore Rekor + the image's OCI sibling slot** — verifiable
+  via `cosign verify-attestation --type slsaprovenance1`
+
+Either tool path produces the same SLSA v1.0 in-toto Statement.
+
+### Via the `gh` CLI (simplest)
+
+```bash
+gh attestation verify oci://ghcr.io/idirbenslama/ophamin@<digest> \
+    --repo IdirBenSlama/Ophamin
+```
+
+Pass `--predicate-type https://slsa.dev/provenance/v1` to filter to
+just the SLSA attestation (the same image may have multiple — SBOM
++ SLSA + cosign-signature).
+
+### Via `cosign verify-attestation`
+
+```bash
+cosign verify-attestation \
+    ghcr.io/idirbenslama/ophamin@sha256:<digest> \
+    --type slsaprovenance1 \
+    --certificate-identity-regexp='^https://github\.com/(IdirBenSlama/Ophamin|actions/attest-build-provenance)/.*' \
+    --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+  | jq -r '.payload | @base64d | fromjson | .predicate'
+```
+
+The output is the raw SLSA v1.0 predicate showing the build
+context. Example shape:
+
+```json
+{
+  "buildDefinition": {
+    "buildType": "https://actions.github.io/buildtypes/workflow/v1",
+    "externalParameters": {
+      "workflow": {
+        "ref": "refs/heads/main",
+        "repository": "https://github.com/IdirBenSlama/Ophamin",
+        "path": ".github/workflows/docker.yml"
+      }
+    },
+    "resolvedDependencies": [
+      {"uri": "git+https://github.com/IdirBenSlama/Ophamin@refs/heads/main",
+       "digest": {"gitCommit": "<commit-sha>"}}
+    ]
+  },
+  "runDetails": {
+    "builder": {"id": "https://github.com/actions/runner/github-hosted"},
+    "metadata": {"invocationId": "<workflow-run-url>"}
+  }
+}
+```
+
+### Three attestations, one image
+
+After 0.49.0 every published Docker image carries **three
+independent Sigstore-keyless attestations**, all in Rekor:
+
+1. **Image signature** (0.42.0) — "this digest was published by
+   our workflow"
+2. **CycloneDX SBOM** (0.48.0) — "this is what's inside"
+3. **SLSA v1.0 provenance** (0.49.0) — "this is how it was
+   built"
+
+Consumers can gate admission on any subset via
+`policy-controller` + `attestations:` filters with the appropriate
+`predicateType` URL.
 
 ## Verifying an Ophamin Helm chart
 

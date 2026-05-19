@@ -7,7 +7,114 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.48.0] below for the latest cut.)
+(empty — see [0.49.0] below for the latest cut.)
+
+## [0.49.0] — 2026-05-19
+
+**Headline:** SLSA v1.0 build-provenance attestation for every
+published Docker image. Closes the supply-chain trilogy started
+at 0.42.0 (signature) and continued at 0.48.0 (SBOM):
+
+- **0.42.0** — image signature → "this digest was published
+  by our workflow"
+- **0.48.0** — CycloneDX SBOM attestation → "this is what's
+  inside"
+- **0.49.0** — SLSA v1.0 provenance attestation → "this is
+  how it was built"
+
+Three independent Sigstore-keyless attestations per image,
+all in Rekor, all verifiable via either `gh attestation verify`
+or `cosign verify-attestation`.
+
+### Added — two new steps in `.github/workflows/docker.yml`
+
+After the existing "Self-verify the SBOM attestation":
+
+1. **`Attest SLSA build provenance`** uses GitHub's native
+   `actions/attest-build-provenance@v2` action:
+   ```yaml
+   - uses: actions/attest-build-provenance@v2
+     with:
+       subject-name: ghcr.io/idirbenslama/ophamin
+       subject-digest: ${{ steps.build-and-push.outputs.digest }}
+       push-to-registry: true
+   ```
+   The action produces SLSA v1.0 provenance (per
+   <https://slsa.dev/spec/v1.0/>) with builder info + materials
+   (source repo + commit) + invocation metadata (workflow URL,
+   run ID). Signed via Sigstore keyless. The attestation lands
+   in BOTH GitHub's attestation registry (`gh attestation verify`)
+   AND the OCI sibling slot on GHCR (`cosign verify-attestation`).
+
+2. **`Self-verify the SLSA provenance attestation`** runs
+   `cosign verify-attestation --type slsaprovenance1` with the
+   identity regex pattern that accepts both Ophamin's own
+   workflow identity AND GitHub's reusable
+   `actions/attest-build-provenance` reusable-workflow identity
+   (the action delegates to a Sigstore reusable workflow under
+   GitHub's identity).
+
+### Added — `attestations: write` permission
+
+`actions/attest-build-provenance@v2` requires
+`permissions.attestations: write` (the workflow already had
+`id-token: write` for cosign). The new permission slot mirrors
+GitHub's recommended pattern for the action.
+
+### Added — `docs/SUPPLY_CHAIN.md` extensions
+
+- **At-a-glance table** new row: "Docker image SLSA provenance
+  v1.0 → attached to image as GitHub-native attestation →
+  Sigstore keyless → `gh attestation verify` OR
+  `cosign verify-attestation ... --type slsaprovenance1`"
+- **New section "Verifying the Docker image's SLSA L3 provenance"**:
+  - Copy-paste `gh attestation verify` recipe (simplest path)
+  - Copy-paste `cosign verify-attestation` recipe with the
+    SLSA-aware identity regex
+  - Example SLSA v1.0 predicate JSON shape (`buildDefinition` +
+    `runDetails` + `resolvedDependencies`)
+- **New summary subsection "Three attestations, one image"**
+  documenting the trilogy: signature + SBOM + SLSA provenance,
+  each independently verifiable + gateable in admission policy.
+
+### What this does NOT include (out of scope for 0.49.0)
+
+- **SLSA provenance for the Helm chart** — possible but lower
+  value (the chart is 9 templated YAML files, not a built
+  artifact). Future ship.
+- **SLSA L4 (hermetic builds)** — the Docker build uses
+  GitHub-hosted runners + apt + pip pulling from the live
+  registry. L4 requires a hermetic build environment (Nix /
+  Bazel / similar). The current attestation is honestly SLSA
+  L2-to-L3 depending on how strictly you read the spec — the
+  attestation is unforgeable + maintained + verifiable, but
+  the build is not byte-reproducible. Documented honestly in
+  the SUPPLY_CHAIN.md "What this does NOT include" of 0.48.0.
+- **PyPI trusted-publishing attestations** — PEP 740. Owner-
+  physical (PyPI trusted-publisher activation).
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.49.0`
+- `src/ophamin/__init__.py` `__version__` → `"0.49.0"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.49.0"` (71/71
+  helm tests pass)
+
+### Verification
+
+- `mkdocs build --strict` → clean.
+- **First docker workflow run after this push validates
+  empirically.** Two new steps in sequence: attest-build-
+  provenance → cosign verify-attestation slsaprovenance1.
+
+### What this opens for next-direction work
+
+- **PyPI trusted-publishing + PEP 740 attestations** —
+  owner-physical step.
+- **SLSA provenance for the Helm chart** — same pattern in
+  `chart.yml` (lower priority, fewer consumers).
+- **Hermetic builds for SLSA L4** — Nix or Bazel rebuild of
+  the Dockerfile. Big design call.
 
 ## [0.48.0] — 2026-05-19
 
