@@ -7,7 +7,77 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.49.0] below for the latest cut.)
+(empty — see [0.49.1] below for the latest cut.)
+
+## [0.49.1] — 2026-05-19
+
+**Headline:** Fix the SLSA-attestation self-verify step's verify
+tool (0.49.0 regression caught by 0.49.0's own self-verify run).
+The SLSA attestation produced + signed correctly; only my CI
+self-verify was using the wrong tool.
+
+### What happened
+
+0.49.0's first docker workflow run succeeded through "Attest SLSA
+build provenance" but failed at "Self-verify the SLSA provenance
+attestation" with:
+
+```
+Error: none of the attestations matched the predicate type:
+slsaprovenance1, found: https://cyclonedx.org/bom
+```
+
+cosign found the SBOM attestation from 0.48.0 but NOT the SLSA
+provenance attestation. The SLSA attestation IS at the image
+digest — but `actions/attest-build-provenance@v2` writes in
+sigstore-bundle format (the GitHub-native attestation registry
+shape) which `cosign verify-attestation --type slsaprovenance1`
+doesn't map to. The canonical verify tool for this format is
+`gh attestation verify` — which is preinstalled on
+GitHub-hosted runners.
+
+### Fix
+
+The CI self-verify step now uses `gh attestation verify`:
+
+```yaml
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+run: |
+  IMAGE_REF="${{ steps.sign.outputs.image_ref }}"
+  gh attestation verify "oci://$IMAGE_REF" \
+    --repo "${{ github.repository }}" \
+    --predicate-type=https://slsa.dev/provenance/v1
+  grep -q -E "Loaded.*attestation|verified" /tmp/gh-slsa-verify.txt
+```
+
+`docs/SUPPLY_CHAIN.md` already documented both verify paths
+(`gh attestation verify` AND `cosign verify-attestation`) as
+operator options. The 0.49.1 fix only changes the CI's
+self-verify to use the canonical tool for the attestation
+shape `attest-build-provenance` produces.
+
+### What this confirms
+
+The self-verify mechanism caught real attestation-format drift
+in the same run. Without it, 0.49.0's CI would have appeared
+green (SLSA attest step succeeded; image got the SLSA
+provenance) but consumers running `cosign verify-attestation
+--type slsaprovenance1` would silently fail — a worse
+failure mode than the loud workflow failure.
+
+### Companion bumps
+
+- `pyproject.toml` version → `0.49.1`
+- `src/ophamin/__init__.py` `__version__` → `"0.49.1"`
+- `charts/ophamin/Chart.yaml` `appVersion` → `"0.49.1"` (71/71
+  helm tests pass)
+
+### Verification
+
+- Next docker workflow run after this push validates: if the
+  `gh attestation verify` step lands green, the SLSA chain is
+  operationally validated end-to-end.
 
 ## [0.49.0] — 2026-05-19
 

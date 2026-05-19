@@ -275,34 +275,34 @@ jobs:
           push-to-registry: true
 
       - name: Self-verify the SLSA provenance attestation
-        # Verify via cosign verify-attestation against the same Sigstore
-        # endpoints consumers use — same pattern as the other self-verify
-        # steps (catch attestation-pipeline drift in the same run).
+        # Verify via the `gh attestation verify` CLI — the canonical
+        # tool for attestations produced by actions/attest-build-
+        # provenance@v2. The 0.49.0 first-run discovered that
+        # cosign verify-attestation --type slsaprovenance1 doesn't find
+        # the attestation because actions/attest-build-provenance writes
+        # in sigstore-bundle format (the GitHub-native attestation
+        # registry shape) which cosign's --type filter doesn't map to.
+        # `gh attestation verify` is the right tool for this format.
         #
-        # actions/attest-build-provenance writes to a slightly different
-        # cert-identity URL prefix than direct cosign attest (it uses the
-        # reusable-workflow identity at sigstore-attest-*). The regex
-        # accepts both forms so it stays robust if GitHub changes the
-        # reusable-workflow path.
+        # The cosign verify-attestation path documented in
+        # docs/SUPPLY_CHAIN.md remains valid for consumers who prefer it
+        # — but the CI self-verify uses gh as the canonical path.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           IMAGE_REF="${{ steps.sign.outputs.image_ref }}"
           echo "Self-verifying SLSA provenance attestation on $IMAGE_REF"
-          # actions/attest-build-provenance v2 uses GitHub's reusable
-          # workflow at sigstore/sigstore-attest-action. The cert
-          # identity will be a URL under that path.
-          cosign verify-attestation "$IMAGE_REF" \
-            --type slsaprovenance1 \
-            --certificate-identity-regexp='^https://github\.com/(IdirBenSlama/Ophamin|actions/attest-build-provenance)/.*' \
-            --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
-            > /tmp/cosign-slsa-verify.json
-          SLSA_BYTES=$(wc -c < /tmp/cosign-slsa-verify.json)
-          echo "SLSA attestation verify output bytes: $SLSA_BYTES"
-          if [ "$SLSA_BYTES" -lt 100 ]; then
-              echo "::error::SLSA attestation verify output suspiciously small"
-              cat /tmp/cosign-slsa-verify.json
-              exit 1
-          fi
-          echo "OK — SLSA provenance verifies against this workflow's identity"
+          # The gh CLI accepts oci://... URIs for OCI artifacts.
+          gh attestation verify "oci://$IMAGE_REF" \
+            --repo "${{ github.repository }}" \
+            --predicate-type=https://slsa.dev/provenance/v1 \
+            > /tmp/gh-slsa-verify.txt 2>&1
+          echo "--- gh attestation verify output ---"
+          cat /tmp/gh-slsa-verify.txt
+          # Sanity-check the verify output mentions success
+          grep -q -E "Loaded.*attestation|verified" /tmp/gh-slsa-verify.txt \
+              || { echo "::error::gh attestation verify output unexpected shape"; exit 1; }
+          echo "OK — SLSA provenance verifies via gh attestation verify"
 
       - name: Report image digest
         if: always()
