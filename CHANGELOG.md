@@ -7,7 +7,90 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.59.0] below for the latest cut.)
+(empty — see [0.60.0] below for the latest cut.)
+
+## [0.60.0] — 2026-05-19
+
+**Headline:** Provisional read-mostly GUI. Open
+``http://127.0.0.1:8765/ui`` (or any port you bind ``ophamin http
+serve`` to) and you get a single-page app that browses scenarios,
+the proof-bundle tree, Prometheus metrics, and can trigger a
+scenario run. No framework, no build step — vanilla HTML/JS/CSS
+shipped as a static-asset bundle inside the Python package.
+
+What the GUI shows:
+
+- **Header**: framework version + scenario count + bundle count +
+  verdict distribution (validated / refuted / inconclusive chips).
+- **Proofs tab**: bundle tree on the left (tier → scenario →
+  date_verdict_hash), detail pane on the right with five
+  format-tabs (JSON / MD / HTML / TEX / PDF) that render
+  in-place. PDF + HTML render in iframes; Markdown via a minimal
+  in-page renderer; JSON pretty-printed; LaTeX as code block.
+- **Scenarios tab**: card grid (33 today), tier + family badges,
+  one-line goal.
+- **Metrics tab**: Prometheus gauges parsed into tiles + the raw
+  exposition behind a ``<details>`` block.
+- **Run tab**: scenario picker + kwargs JSON textarea + Run
+  button that POSTs to ``/scenarios/{name}/run`` and refreshes
+  the bundle tree on success.
+
+Added:
+
+- **`src/ophamin/http_api/bundle_browser.py`** (~190 LOC):
+  ``bundle_tree(proofs_root)`` walks the 0.59.0 layout and returns
+  the nested ``tier → scenario → bundles`` shape the SPA renders.
+  ``safe_bundle_file_path(...)`` resolves a 4-tuple
+  ``(tier, scenario, bundle, filename)`` request into a safe
+  on-disk path; refuses every form of traversal attack (``../``,
+  capital-letter components, unknown filenames, symlinks
+  escaping ``proofs_root``). Filenames are restricted to the
+  canonical five (proof.{json,md,html,tex,pdf}). 20 hardening
+  pins in `tests/test_bundle_browser.py`.
+
+- **`src/ophamin/http_api/server.py`** — three new endpoints:
+  * ``GET /proofs/bundles/tree`` — the nested-tree shape
+  * ``GET /proofs/bundles/file`` — safe single-file fetch with
+    MIME types per filename
+  * ``GET /ui`` — the SPA HTML (mounted only when the static dir
+    exists)
+  Plus ``StaticFiles`` mount at ``/ui/static/`` for the CSS+JS
+  assets, plus a convenience 302 redirect ``/ → /ui``.
+
+- **`src/ophamin/http_api/static/`** — the bundled SPA:
+  * `index.html` (~110 LOC)
+  * `styles.css` (~410 LOC) — minimal, no framework
+  * `app.js` (~360 LOC) — vanilla, IIFE-wrapped; `node --check`
+    passes; talks to 6 endpoints
+
+- **`tests/test_http_api.py`** — 11 new pins for the bundle
+  endpoints + the UI mount + OpenAPI advertisement of the new
+  endpoints. 41/41 pass.
+
+Verification (live, against the running server):
+
+- Header chips populated from real data: v0.60.0 / 33 scenarios /
+  33 bundles / 21 validated / 10 refuted / 2 inconclusive
+- Bundle tree auto-expanded with all 4 tiers, 18 scenarios
+- Path traversal returns 400 with descriptive error
+- Disallowed filename returns 400
+- Missing file returns 404
+- JSON file served with `application/json`; PDF served with
+  `application/pdf`; HTML+CSS+JS served with right MIME types
+- OpenAPI lists all 3 new endpoints
+- `node --check` confirms app.js parses cleanly
+- Headless-Chrome screenshot confirms full SPA layout renders
+
+Operator notes:
+
+- No auth — same posture as SonarQube + the rest of the local-dev
+  stack. Production deployment should put oauth2-proxy / Envoy
+  JWT filter in front (the chart docs already point at this).
+- No live-stream — the SPA polls on demand (`Refresh` buttons +
+  auto-refresh after a Run completes). A future SSE endpoint
+  over `ResourceWatcher` would unlock live cycle plots.
+- The new tests added 31 pins total (20 bundle_browser + 11
+  http_api endpoints).
 
 ## [0.59.0] — 2026-05-19
 

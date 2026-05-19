@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ophamin — Empirical Observatory</title>
+    <link rel="stylesheet" href="/ui/static/styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand-name">Ophamin</span>
+            <span class="brand-tag">empirical observatory</span>
+        </div>
+        <div class="header-stats" id="header-stats">
+            <span class="stat" id="stat-version">v…</span>
+            <span class="stat" id="stat-scenarios">… scenarios</span>
+            <span class="stat" id="stat-bundles">… bundles</span>
+            <span class="stat verdict-validated" id="stat-validated">… validated</span>
+            <span class="stat verdict-refuted" id="stat-refuted">… refuted</span>
+            <span class="stat verdict-inconclusive" id="stat-inconclusive">… inconclusive</span>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab active" data-tab="proofs">Proofs</button>
+        <button class="tab" data-tab="scenarios">Scenarios</button>
+        <button class="tab" data-tab="metrics">Metrics</button>
+        <button class="tab" data-tab="run">Run</button>
+    </nav>
+
+    <main class="content">
+        <!-- ============================ PROOFS TAB ============================ -->
+        <section id="tab-proofs" class="tab-panel active">
+            <div class="split">
+                <aside class="tree-pane">
+                    <div class="pane-header">
+                        <span>Bundle tree</span>
+                        <button class="icon-btn" id="refresh-tree" title="Refresh">⟳</button>
+                    </div>
+                    <div id="bundle-tree" class="tree"></div>
+                </aside>
+                <section class="detail-pane">
+                    <div class="pane-header">
+                        <span id="detail-path">Select a bundle</span>
+                    </div>
+                    <nav class="format-tabs" id="format-tabs"></nav>
+                    <div id="detail-view" class="detail-view">
+                        <div class="empty-state">
+                            <p>Click any bundle in the tree on the left.</p>
+                            <p>The bundle ships five rendered formats — JSON, Markdown, HTML, LaTeX, PDF — open whichever fits.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <!-- =========================== SCENARIOS TAB ========================== -->
+        <section id="tab-scenarios" class="tab-panel">
+            <div class="pane-header">
+                <span>Registered scenarios</span>
+                <span class="muted" id="scenarios-count"></span>
+            </div>
+            <div id="scenarios-grid" class="scenarios-grid"></div>
+        </section>
+
+        <!-- ============================ METRICS TAB =========================== -->
+        <section id="tab-metrics" class="tab-panel">
+            <div class="pane-header">
+                <span>Prometheus exposition (/metrics)</span>
+                <button class="icon-btn" id="refresh-metrics" title="Refresh">⟳</button>
+            </div>
+            <div id="metrics-tiles" class="metrics-tiles"></div>
+            <details class="raw-block">
+                <summary>Raw exposition</summary>
+                <pre id="metrics-raw"></pre>
+            </details>
+        </section>
+
+        <!-- ============================== RUN TAB ============================= -->
+        <section id="tab-run" class="tab-panel">
+            <div class="pane-header"><span>Run a scenario</span></div>
+            <form class="run-form" id="run-form">
+                <label>
+                    Scenario name
+                    <select id="run-scenario" required></select>
+                </label>
+                <label>
+                    Constructor kwargs (JSON)
+                    <textarea id="run-kwargs" placeholder='{ "param": "value" }'>{}</textarea>
+                </label>
+                <button type="submit" class="primary-btn">Run</button>
+            </form>
+            <div class="run-status" id="run-status"></div>
+            <details class="raw-block">
+                <summary>Last run result</summary>
+                <pre id="run-result"></pre>
+            </details>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <span>Ophamin · provisional GUI · all data is read-only unless triggered via Run</span>
+    </footer>
+
+    <script src="/ui/static/app.js"></script>
+</body>
+</html>

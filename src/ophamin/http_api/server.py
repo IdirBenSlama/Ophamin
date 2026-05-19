@@ -13,8 +13,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from pathlib import Path as _Path
+
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     CollectorRegistry,
@@ -25,6 +28,12 @@ from prometheus_client import (
 from pydantic import BaseModel, Field
 
 from ophamin import __version__
+from ophamin.http_api.bundle_browser import (
+    ALLOWED_BUNDLE_FILES,
+    BundlePathError,
+    bundle_tree,
+    safe_bundle_file_path,
+)
 from ophamin.interfaces._impls import (
     canonicalize_value_impl,
     get_scenario_claim_impl,
@@ -34,6 +43,21 @@ from ophamin.interfaces._impls import (
     verify_proof_impl,
 )
 from ophamin.measuring.scenarios import SCENARIOS
+
+#: Path to the bundled static-asset directory (index.html + app.js + styles.css)
+#: served at `/ui/` when the SPA is enabled.
+_STATIC_DIR: _Path = _Path(__file__).parent / "static"
+
+#: MIME-type lookup for the five canonical bundle files. Browsers render
+#: HTML / PDF / plain-text natively; JSON / Markdown / LaTeX are served
+#: as text so the SPA can fetch + render them in-page.
+_BUNDLE_FILE_MEDIATYPE: dict[str, str] = {
+    "proof.json": "application/json",
+    "proof.md": "text/markdown; charset=utf-8",
+    "proof.html": "text/html; charset=utf-8",
+    "proof.tex": "text/x-tex; charset=utf-8",
+    "proof.pdf": "application/pdf",
+}
 
 #: Public server identity. Reused by ``ophamin.http_api.__init__`` and the CLI.
 SERVER_NAME: str = "ophamin-http-api"
@@ -340,6 +364,110 @@ def build_app() -> FastAPI:
             return run_scenario_impl(name, body.kwargs_json)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    # ------------------------------------------------------------------
+    # Bundle browser — bundle-aware surface for the provisional SPA
+    # (read-only). Sits alongside the legacy /proofs/index endpoint;
+    # the SPA prefers /proofs/bundles/tree because it returns the
+    # nested tier→scenario→bundle shape directly.
+    # ------------------------------------------------------------------
+
+    @app.get(
+        "/proofs/bundles/tree",
+        summary="Walk the proofs/ tree as nested tier→scenario→bundles",
+        description=(
+            "Returns the 0.59.0 bundle layout as a navigable tree. Each "
+            "leaf carries `date`, `verdict`, `short_hash`, `path` "
+            "(relative), and the list of files present "
+            "(proof.{json,md,html,tex,pdf}). Backs the SPA's left-side "
+            "navigation. Caller-side optional `?proofs_root=` override "
+            "lets the SPA browse a non-default tree."
+        ),
+        tags=["proofs"],
+    )
+    def get_bundle_tree(proofs_root: str = "proofs") -> dict[str, Any]:
+        return bundle_tree(proofs_root)
+
+    @app.get(
+        "/proofs/bundles/file",
+        summary="Serve a single file from inside a proof bundle",
+        description=(
+            "Read-only file fetch. Path components (`tier`, `scenario`, "
+            "`bundle`) and `filename` are validated against strict "
+            "regexes; `filename` must be one of "
+            "`proof.{json,md,html,tex,pdf}`. Refuses traversal + symlink "
+            "escapes. The MIME type is chosen by filename so the browser "
+            "renders HTML/PDF natively + the SPA can fetch JSON/MD/TEX as "
+            "text for in-page rendering."
+        ),
+        responses={
+            400: {"description": "Malformed path component or refused filename"},
+            404: {"description": "Bundle file not found"},
+        },
+        tags=["proofs"],
+    )
+    def get_bundle_file(
+        tier: str,
+        scenario: str,
+        bundle: str,
+        filename: str,
+        proofs_root: str = "proofs",
+    ) -> FileResponse:
+        try:
+            path = safe_bundle_file_path(
+                proofs_root, tier, scenario, bundle, filename,
+            )
+        except BundlePathError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return FileResponse(
+            path,
+            media_type=_BUNDLE_FILE_MEDIATYPE.get(filename, "application/octet-stream"),
+            filename=filename,
+        )
+
+    # ------------------------------------------------------------------
+    # Provisional GUI — single-page HTML app served from static/
+    # ------------------------------------------------------------------
+
+    if _STATIC_DIR.is_dir():
+        app.mount(
+            "/ui/static",
+            StaticFiles(directory=str(_STATIC_DIR)),
+            name="ophamin-ui-static",
+        )
+
+        @app.get(
+            "/ui",
+            summary="Provisional read-mostly GUI",
+            description=(
+                "Serves the bundled single-page HTML app that browses "
+                "scenarios + the proofs/ bundle tree + the /metrics "
+                "exposition. Vanilla HTML/JS/CSS, no framework, no build "
+                "step. Read-only by default; the `Run` tab POSTs to "
+                "/scenarios/{name}/run when invoked."
+            ),
+            tags=["ui"],
+            response_class=FileResponse,
+        )
+        def get_ui_root() -> FileResponse:
+            index = _STATIC_DIR / "index.html"
+            if not index.is_file():
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"static/index.html missing under {_STATIC_DIR}",
+                )
+            return FileResponse(index, media_type="text/html; charset=utf-8")
+
+        @app.get(
+            "/",
+            summary="Redirect / → /ui for convenience",
+            include_in_schema=False,
+        )
+        def root_redirect():
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(url="/ui", status_code=302)
 
     # ------------------------------------------------------------------
     # Unified error envelope — any uncaught exception becomes a

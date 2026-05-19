@@ -338,3 +338,119 @@ class TestErrorEnvelope:
         assert r.status_code in (400, 422)
         body = r.json()
         assert "detail" in body
+
+
+class TestBundlesEndpoints:
+    """Pins on the 0.60.0 bundle-aware endpoints + the static UI mount."""
+
+    def test_bundles_tree_returns_200_with_expected_shape(self, client: TestClient) -> None:
+        r = client.get("/proofs/bundles/tree")
+        assert r.status_code == 200
+        body = r.json()
+        assert "tiers" in body and "totals" in body
+        # totals keys
+        for k in ("tiers", "scenarios", "bundles", "verdicts"):
+            assert k in body["totals"]
+
+    def test_bundles_tree_accepts_custom_proofs_root(self, tmp_path, client: TestClient) -> None:
+        """Operator can browse a non-default proofs/ dir via querystring."""
+        # Build a tiny synthetic tree.
+        bundle = tmp_path / "scientific" / "rosetta-scaling" / "2026-05-19_validated_abcdef012345"
+        bundle.mkdir(parents=True)
+        (bundle / "proof.json").write_text("{}")
+        r = client.get("/proofs/bundles/tree", params={"proofs_root": str(tmp_path)})
+        assert r.status_code == 200
+        body = r.json()
+        assert body["totals"]["bundles"] == 1
+
+    def test_bundles_file_refuses_path_traversal(self, client: TestClient) -> None:
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "../etc", "scenario": "x",
+            "bundle": "y", "filename": "proof.json",
+        })
+        assert r.status_code == 400
+        assert "invalid tier" in r.json()["detail"]
+
+    def test_bundles_file_refuses_disallowed_filename(self, tmp_path, client: TestClient) -> None:
+        bundle = tmp_path / "scientific" / "rosetta-scaling" / "2026-05-19_validated_abcdef012345"
+        bundle.mkdir(parents=True)
+        (bundle / "proof.json").write_text("{}")
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "scientific", "scenario": "rosetta-scaling",
+            "bundle": "2026-05-19_validated_abcdef012345",
+            "filename": "passwd",
+            "proofs_root": str(tmp_path),
+        })
+        assert r.status_code == 400
+        assert "refusing to serve" in r.json()["detail"]
+
+    def test_bundles_file_returns_404_when_missing(self, tmp_path, client: TestClient) -> None:
+        bundle = tmp_path / "scientific" / "rosetta-scaling" / "2026-05-19_validated_abcdef012345"
+        bundle.mkdir(parents=True)
+        (bundle / "proof.json").write_text("{}")
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "scientific", "scenario": "rosetta-scaling",
+            "bundle": "2026-05-19_validated_abcdef012345",
+            "filename": "proof.pdf",  # not present
+            "proofs_root": str(tmp_path),
+        })
+        assert r.status_code == 404
+
+    def test_bundles_file_serves_json_with_application_json_mime(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        bundle = tmp_path / "scientific" / "rosetta-scaling" / "2026-05-19_validated_abcdef012345"
+        bundle.mkdir(parents=True)
+        (bundle / "proof.json").write_text('{"hello": "world"}')
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "scientific", "scenario": "rosetta-scaling",
+            "bundle": "2026-05-19_validated_abcdef012345",
+            "filename": "proof.json",
+            "proofs_root": str(tmp_path),
+        })
+        assert r.status_code == 200
+        assert r.headers["content-type"] == "application/json"
+        assert r.json() == {"hello": "world"}
+
+
+class TestProvisionalGUIMount:
+    """The /ui endpoint serves the bundled SPA when the static dir exists."""
+
+    def test_ui_index_returns_html(self, client: TestClient) -> None:
+        r = client.get("/ui")
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("text/html")
+        assert "Ophamin" in r.text
+        assert "/ui/static/styles.css" in r.text
+        assert "/ui/static/app.js" in r.text
+
+    def test_ui_static_styles_served(self, client: TestClient) -> None:
+        r = client.get("/ui/static/styles.css")
+        assert r.status_code == 200
+        # FastAPI's StaticFiles uses standard mimetypes; .css → text/css
+        assert "text/css" in r.headers["content-type"]
+        assert ":root" in r.text  # CSS custom-property block
+
+    def test_ui_static_app_js_served(self, client: TestClient) -> None:
+        r = client.get("/ui/static/app.js")
+        assert r.status_code == 200
+        # JS files served as application/javascript or text/javascript
+        ctype = r.headers["content-type"]
+        assert "javascript" in ctype
+        assert "(function ()" in r.text  # IIFE marker
+
+    def test_root_redirects_to_ui(self, client: TestClient) -> None:
+        # follow_redirects=False so we can observe the 302
+        r = client.get("/", follow_redirects=False)
+        assert r.status_code == 302
+        assert r.headers["location"] == "/ui"
+
+    def test_openapi_lists_new_endpoints(self, client: TestClient) -> None:
+        """Verify the 3 new endpoints are advertised in the OpenAPI
+        schema so external clients can discover them."""
+        r = client.get("/openapi.json")
+        assert r.status_code == 200
+        paths = r.json()["paths"]
+        assert "/proofs/bundles/tree" in paths
+        assert "/proofs/bundles/file" in paths
+        assert "/ui" in paths
