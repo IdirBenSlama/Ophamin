@@ -2243,7 +2243,7 @@ def cmd_agent(args: argparse.Namespace) -> int:
     """
     action = getattr(args, "agent_action", None)
     if action is None:
-        print("usage: ophamin agent {adapt,brief,triage,query,prereg,confounds} ...",
+        print("usage: ophamin agent {adapt,scenario-gen,brief,triage,query,prereg,confounds} ...",
               file=__import__("sys").stderr)
         return 2
 
@@ -2302,6 +2302,27 @@ def cmd_agent(args: argparse.Namespace) -> int:
                 print(f"# audit={result.call_record_path}",
                       file=__import__("sys").stderr)
             return 0 if result.followups else 2
+
+        if action == "scenario-gen":
+            from ophamin.agentic.agents.scenario_gen import generate as gen_scenario
+            result = gen_scenario(
+                name=args.name,
+                family=args.family,
+                claim=args.claim_path,
+                corpus_name=args.corpus_name or "",
+                target=args.target or "",
+                tier=args.tier,
+                client=client, audit=audit,
+            )
+            print(result.source)
+            print("", file=__import__("sys").stderr)
+            print(f"# model={result.model} runtime={result.runtime} "
+                  f"latency={result.latency_ms:.0f}ms",
+                  file=__import__("sys").stderr)
+            if result.call_record_path:
+                print(f"# audit={result.call_record_path}",
+                      file=__import__("sys").stderr)
+            return 0
 
         if action == "prereg":
             from ophamin.agentic.agents.prereg_validator import validate_preregistration
@@ -3684,6 +3705,40 @@ def build_parser() -> argparse.ArgumentParser:
     p_agent_query.add_argument("query", help='e.g. "validated proofs this week"')
     p_agent_query.add_argument("--proofs-root", default="proofs")
     p_agent_query.add_argument("--no-audit", action="store_true")
+
+    # 0.63.3 — scaffold a Scenario subclass from a claim
+    p_agent_scenario_gen = agent_sub.add_parser(
+        "scenario-gen",
+        help="(0.63.3) scaffold a Scenario subclass from a claim "
+             "(score() left as NotImplementedError stub for the operator)",
+    )
+    p_agent_scenario_gen.add_argument(
+        "name",
+        help="kebab-case scenario name (also the module file basename)",
+    )
+    p_agent_scenario_gen.add_argument(
+        "claim_path",
+        help="path to claim JSON (or proof.json — nested 'claim' "
+             "key auto-extracted)",
+    )
+    p_agent_scenario_gen.add_argument(
+        "--family", default="general",
+        help="topic family (memory / prime / immune / ...)",
+    )
+    p_agent_scenario_gen.add_argument(
+        "--corpus-name", default="",
+        help="corpus identifier this scenario consumes "
+             "(default: <name>-corpus)",
+    )
+    p_agent_scenario_gen.add_argument(
+        "--target", default="",
+        help="substrate-side label (default: substrate_under_test)",
+    )
+    p_agent_scenario_gen.add_argument(
+        "--tier", default="SCIENTIFIC",
+        choices=["SCIENTIFIC", "OPERATIONAL"],
+    )
+    p_agent_scenario_gen.add_argument("--no-audit", action="store_true")
 
     # 0.63.2 — falsifiability guardrail agents
     p_agent_prereg = agent_sub.add_parser(

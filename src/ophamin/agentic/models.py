@@ -77,6 +77,10 @@ TASK_ROUTING: dict[str, TaskTier] = {
     "bundle_query": TaskTier.FAST,
     "prereg_validator": TaskTier.REASONING,
     "confound_enumerator": TaskTier.REASONING,
+    # 0.63.3 — scaffolds a Scenario subclass from a claim. Same tier
+    # as adapter_gen for the same reason: code generation rewards
+    # quality over speed.
+    "scenario_gen": TaskTier.CODER,
 }
 
 
@@ -89,6 +93,8 @@ DEFAULT_MAX_TOKENS: dict[str, int] = {
     "bundle_query": 512,           # JSON filter is small
     "prereg_validator": 2048,      # structured JSON, modest size
     "confound_enumerator": 4096,   # 3-5 confounds × mechanism + test
+    "scenario_gen": 6144,          # full Scenario subclass; docstring +
+                                   # __init__ + build_claim() + score() stub
 }
 
 

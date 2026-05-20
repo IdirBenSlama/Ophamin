@@ -219,6 +219,8 @@ def test_pick_model_routes_per_task():
     # 0.63.2 — falsifiability guardrail agents
     assert pick_model("prereg_validator").tier == TaskTier.REASONING
     assert pick_model("confound_enumerator").tier == TaskTier.REASONING
+    # 0.63.3 — scenario scaffold generator (CODER, like adapter_gen)
+    assert pick_model("scenario_gen").tier == TaskTier.CODER
 
 
 def test_pick_model_unknown_task_falls_back_to_workhorse():
@@ -1041,3 +1043,112 @@ def test_confound_enumerator_rejects_bad_input_type(tmp_path):
     from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
     with pytest.raises(TypeError, match="unsupported proof input type"):
         enumerate_confounds(12345, proofs_root=str(tmp_path))  # type: ignore[arg-type]
+
+
+# ===========================================================================
+# 0.63.3 — scenario_gen agent
+# ===========================================================================
+
+_FAKE_SCENARIO_SOURCE = '''"""Test scenario emitted by the agent for hardening."""
+from ophamin.measuring.proof import Claim, Threshold
+from ophamin.measuring.scenarios.base import Scenario, ScenarioScore, Tier
+
+
+class FakeScenario(Scenario):
+    name = "fake-scenario"
+    tier = Tier.SCIENTIFIC
+    family = "test"
+    goal = "test"
+    explanation = "test"
+    method = "test"
+    falsification_consequence = "test"
+    corpus_name = "test"
+    target = "test"
+
+    def __init__(self, *, threshold_value=0.5):
+        if not 0.0 < threshold_value <= 1.0:
+            raise ValueError("threshold_value out of range")
+        self.threshold_value = float(threshold_value)
+
+    def build_claim(self):
+        return Claim(
+            statement=f"M >= {self.threshold_value}",
+            operationalization="compute M somehow",
+            threshold=Threshold(metric="M", comparator=">=",
+                                 value=self.threshold_value, units="x"),
+            h0=f"M < {self.threshold_value}",
+            h1=f"M >= {self.threshold_value}",
+        )
+
+    def score(self, cycle_results, records):
+        raise NotImplementedError("operator: implement scoring")
+'''
+
+
+def test_scenario_gen_happy_path(mock_llm, tmp_path):
+    from ophamin.agentic.agents.scenario_gen import generate
+    mock_llm(_mock_chat_body(_FAKE_SCENARIO_SOURCE, model="qwen3-coder-next"))
+    r = generate(
+        name="fake-scenario", family="test",
+        claim=_good_claim(),
+        proofs_root=str(tmp_path),
+    )
+    assert "class FakeScenario" in r.source
+    assert "raise NotImplementedError" in r.source
+    assert "build_claim" in r.source
+    assert Path(r.call_record_path).exists()
+
+
+def test_scenario_gen_strips_markdown_fences(mock_llm, tmp_path):
+    """If the model wraps source in ```python ... ``` despite instructions,
+    the agent strips fences cleanly (existing pattern from adapter_gen)."""
+    from ophamin.agentic.agents.scenario_gen import generate
+    wrapped = "```python\n" + _FAKE_SCENARIO_SOURCE + "\n```"
+    mock_llm(_mock_chat_body(wrapped, model="qwen3-coder-next"))
+    r = generate(
+        name="fake-scenario", family="test",
+        claim=_good_claim(), proofs_root=str(tmp_path),
+    )
+    assert not r.source.startswith("```")
+    assert 'raise NotImplementedError("operator: implement scoring")' in r.source
+    assert "```" not in r.source
+
+
+def test_scenario_gen_accepts_proof_json_path(mock_llm, tmp_path):
+    """Path input: when handed a proof.json, descend to nested 'claim'."""
+    from ophamin.agentic.agents.scenario_gen import generate
+    proof_path = tmp_path / "proof.json"
+    proof_path.write_text(json.dumps({
+        "proof_id": "z" * 64,
+        "claim": _good_claim(),
+        "verdict": {"outcome": "VALIDATED"},
+    }))
+    mock_llm(_mock_chat_body(_FAKE_SCENARIO_SOURCE, model="qwen3-coder-next"))
+    r = generate(name="from-proof", family="test", claim=proof_path,
+                  proofs_root=str(tmp_path))
+    assert "FakeScenario" in r.source
+
+
+def test_scenario_gen_rejects_unknown_tier(tmp_path):
+    """tier must be SCIENTIFIC or OPERATIONAL; anything else raises loud."""
+    from ophamin.agentic.agents.scenario_gen import generate
+    with pytest.raises(ValueError, match="tier must be one of"):
+        generate(name="x", family="test", claim=_good_claim(),
+                  tier="LEGENDARY", proofs_root=str(tmp_path))
+
+
+def test_scenario_gen_rejects_bad_claim_input(tmp_path):
+    from ophamin.agentic.agents.scenario_gen import generate
+    with pytest.raises(TypeError, match="unsupported claim input type"):
+        generate(name="x", family="test",
+                  claim=12345,  # type: ignore[arg-type]
+                  proofs_root=str(tmp_path))
+
+
+def test_scenario_gen_audit_can_be_disabled(mock_llm, tmp_path):
+    from ophamin.agentic.agents.scenario_gen import generate
+    mock_llm(_mock_chat_body(_FAKE_SCENARIO_SOURCE, model="qwen3-coder-next"))
+    r = generate(name="x", family="test", claim=_good_claim(),
+                  audit=False, proofs_root=str(tmp_path))
+    assert r.call_record_path == ""
+    assert not (tmp_path / "llm_calls").exists()

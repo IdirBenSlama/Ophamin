@@ -30,9 +30,10 @@ Public surface:
 - :class:`LLMClient` — OpenAI-compatible chat-completions client
 - :func:`pick_model` — task → model routing (fast / workhorse / coder / reasoning)
 - :class:`LLMCallRecord` + :func:`persist_call` — signed audit record
-- Six agents under :mod:`ophamin.agentic.agents`:
+- Seven agents under :mod:`ophamin.agentic.agents`:
   ``adapter_gen`` / ``proof_brief`` / ``refuted_triage`` / ``bundle_query`` /
-  ``prereg_validator`` (0.63.2) / ``confound_enumerator`` (0.63.2)
+  ``prereg_validator`` (0.63.2) / ``confound_enumerator`` (0.63.2) /
+  ``scenario_gen`` (0.63.3 — scaffolds Scenario subclasses from claims)
 """
 
 from ophamin.agentic.client import LLMClient, LLMClientError

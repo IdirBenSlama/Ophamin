@@ -7,7 +7,104 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.63.2] below for the latest cut.)
+(empty — see [0.63.3] below for the latest cut.)
+
+## [0.63.3] — 2026-05-20
+
+**Headline:** `scenario_gen` agent. Closes the operator loop end-to-end:
+
+    prereg (claim) → scenario-gen (claim) → operator fills score()
+      → run → confounds (validated_proof) → scenario-gen (new claim)
+      → ...
+
+Agent count goes 6 → 7. Same shape as `adapter_gen` (CODER tier, raw
+Python source output, operator reviews + saves), but for the
+scenarios/ tree instead of the foreign_corpus_adapters/ tree.
+
+Added:
+
+- **`src/ophamin/agentic/agents/scenario_gen.py`** —
+  `generate(name, family, claim, ...) → ScenarioGenResult`. Takes a
+  claim dict (or path to claim JSON / proof.json — nested `claim`
+  key auto-extracted) plus a name + family + optional corpus/target/
+  tier hints. Emits a Python module containing a full Scenario
+  subclass scaffold:
+  - Module docstring derived from claim + falsification consequence
+  - All 9 class-level fields populated
+  - `__init__` with eager validation (FileNotFoundError + ValueError
+    bounds; no silent fallbacks)
+  - `build_claim()` returning a full `Claim` with values drawn from
+    the operator-tunable __init__ params
+  - **`score()` as a NotImplementedError stub** — the operator
+    implements substrate-specific statistical computation themselves.
+    The agent does NOT invent the math. This is by design: an LLM
+    that auto-implemented score() would be a falsifiability surface
+    (it could silently match the threshold).
+
+  Generated source is OPERATOR-EDITED CODE. The agent stops at the
+  boundary where statistical computation begins.
+
+- **`ophamin agent scenario-gen <name> <claim_or_proof>`** CLI
+  subcommand with `--family / --corpus-name / --target / --tier`
+  + `--no-audit`. Scenario source printed to stdout; metadata to
+  stderr.
+
+- TASK_ROUTING + DEFAULT_MAX_TOKENS extended in `models.py` for the
+  new task (`scenario_gen` → CODER tier, 6144 max-tokens).
+
+Few-shot prompting: the system prompt + one in-context example
+(MemoryAsDeformationScenario) teach the model the exact 9-field
+contract. The example shows eager input validation + NotImplementedError
+stub explicitly, anchoring the generated scaffold's shape.
+
+Hardening (`tests/test_agentic.py`):
+
+- 7 new pinning tests (`67/67 pass`, was 61):
+  - happy-path: source contains class, NotImplementedError, build_claim
+  - markdown-fence stripping (mirrors adapter_gen)
+  - path input: accepts proof.json + descends to nested 'claim'
+  - rejects unknown tier loudly (ValueError)
+  - rejects non-dict/str/Path claim input loudly (TypeError)
+  - audit can be disabled
+  - routing pin extended: scenario_gen → CODER tier
+
+Live smoke (LM Studio, qwen3-coder-next):
+
+- **scenario-gen on a real well-formed claim** (cycle-recognition-5p-floor,
+  5th-percentile Jaccard >= 0.85 across N>=50 re-exposure pairs):
+  37.9 s wall, 118-line scaffold, audit signed at
+  `proofs/llm_calls/2026-05-20/3ea7f4c90814deee.json`.
+
+- **Generated scaffold AST-validated against contract:** Python
+  syntactically valid; exactly 1 Scenario subclass; all 9 class
+  fields present (name / tier / family / goal / explanation / method /
+  falsification_consequence / corpus_name / target); all 3 required
+  methods (__init__, build_claim, score); score() raises
+  NotImplementedError per design. One minor formatting bug in
+  generated source (`{}` in a non-f-string) — operator-fix in review,
+  expected since scaffolds are operator-edited code.
+
+What this enables for operators:
+
+- After `confounds` returns a disambiguating_test, pipe it directly
+  into `scenario-gen` to scaffold the follow-up scenario without
+  hand-writing boilerplate.
+- After `prereg` returns `severity=ok`, scaffold the scenario
+  before running it.
+- Cuts the per-scenario boilerplate (~100 LOC of class structure)
+  from operator time, leaving them free to focus on `score()` — the
+  one method where the substrate-specific math lives.
+
+Constraints preserved (per CLAUDE.md):
+
+- No LLM in Kimera substrate (Ophamin layer only).
+- No LLM-graded verdicts; `Verdict.decide` unchanged.
+- **No LLM-authored statistical computation** — `score()` is an
+  explicit stub. The operator implements the math; the agent
+  scaffolds the structure. This boundary is load-bearing for
+  falsifiability.
+- Every call signed under `proofs/llm_calls/<date>/<short>.json`.
+- Default off — agent fires only on explicit CLI invocation.
 
 ## [0.63.2] — 2026-05-20
 
