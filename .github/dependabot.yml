@@ -36,11 +36,14 @@ updates:
       # astroid 4.1.x has no compatible pylint yet — pylint 4.0.5 (latest)
       # caps astroid<=4.1.dev0. Coupled bump; re-enable when pylint 4.1 lands.
       - dependency-name: "astroid"
-      # Bumping opentelemetry-instrumentation-threading alone breaks the
-      # otel stack's lockstep versioning (it needs the whole
-      # opentelemetry-* set at the matching release). Bump the stack
-      # together in a manual PR instead.
-      - dependency-name: "opentelemetry-instrumentation-threading"
+      # The opentelemetry-* packages are versioned in lockstep (core
+      # 1.x.y + instrumentation 0.Nbx must match). Any single-package
+      # bump (threading, otlp-proto-common, …) breaks the stack; bump
+      # the whole otel set together in a manual PR instead.
+      - dependency-name: "opentelemetry-*"
+      # numba 0.64.1+ is capped by infomeasure (requires numba<0.64.1).
+      # Coupled; re-enable when infomeasure lifts the cap or is dropped.
+      - dependency-name: "numba"
 
   # GitHub Actions used in .github/workflows/*.yml
   - package-ecosystem: "github-actions"

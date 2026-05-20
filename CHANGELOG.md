@@ -7,7 +7,41 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.64.3] below for the latest cut.)
+(empty — see [0.64.4] below for the latest cut.)
+
+## [0.64.4] — 2026-05-20
+
+**Headline:** second Dependabot batch (#12–#19, 8 PRs opened by the
+Monday run) merged with the same rigor — 6 valid bumps in, 2
+coupled-broken bumps held.
+
+Merged (valid):
+- docker/login-action 3 → 4 (#12)
+- github/codeql-action 3 → 4 (#13)
+- aquasecurity/trivy-action 0.28.0 → 0.36.0 (#14)
+- python-multipart 0.0.28 → 0.0.29 (#15)
+- huggingface-hub 1.14.0 → 1.15.0 (#17)
+- holidays 0.96 → 0.97 (#18)
+
+Held (closed with rationale + added to dependabot ignores):
+- **numba 0.64.0 → 0.65.1** (#19): `infomeasure` hard-caps
+  `numba<0.64.1` (both in the `analytic` extra), so the bump is a
+  guaranteed conflict. Revisit when infomeasure lifts the cap.
+- **opentelemetry-exporter-otlp-proto-common 1.37.0 → 1.42.0** (#16):
+  the opentelemetry-* packages are versioned in lockstep (core 1.x.y +
+  instrumentation 0.Nbx); the lock pins the stack at 1.37.0/0.58b0, so
+  a single-package bump breaks it. Bump the whole otel set in one
+  coordinated manual PR instead.
+
+Guardrails: `.github/dependabot.yml` ignore list broadened — the
+specific `opentelemetry-instrumentation-threading` hold (from 0.64.2)
+is now `opentelemetry-*` (the whole stack), and `numba` is added. Held
+list is now: `dowhy`, `astroid`, `opentelemetry-*`, `numba` (plus the
+existing all-package major-version hold).
+
+`main` has **0 open PRs** and **only the `main` branch** remains on the
+remote after both batches (16 Dependabot PRs total: 11 merged, 5 held/
+reverted across coupled-package + python-version blockers).
 
 ## [0.64.3] — 2026-05-20
 
