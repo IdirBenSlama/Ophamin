@@ -80,7 +80,7 @@ cycler==0.12.1
 cyclonedx-python-lib==11.7.0
 Cython==3.2.4
 darts==0.44.1
-databricks-sdk==0.108.0
+databricks-sdk==0.110.0
 debtcollector==3.1.0
 decorator==5.2.1
 defusedxml==0.7.1
