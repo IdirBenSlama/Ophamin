@@ -36,7 +36,7 @@ permissions:
   contents: read
   packages: write       # required to push to ghcr.io
   id-token: write       # cosign / sigstore keyless signing (0.42.0+)
-  attestations: write   # actions/attest-build-provenance@v2 SLSA writer (0.49.0+)
+  attestations: write   # actions/attest-build-provenance@v4 SLSA writer (0.49.0+)
 
 # Single in-flight build per ref — replacing the in-progress build when
 # a fresh push lands is fine for the image-publishing workflow.
@@ -262,7 +262,7 @@ jobs:
       # attestation registry (`gh attestation verify`) AND Sigstore's
       # Rekor (cosign verify-attestation).
       - name: Attest SLSA build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-name: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}

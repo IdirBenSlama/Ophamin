@@ -5,7 +5,7 @@ name: release
 #
 # Three layers of cryptographic attribution attached to every artefact:
 #
-#   1. SLSA 3 build provenance     — actions/attest-build-provenance@v2
+#   1. SLSA 3 build provenance     — actions/attest-build-provenance@v4
 #      Records the {builder, source, command, materials} tuple that
 #      produced each artefact. Verifiable via `gh attestation verify`
 #      from any GitHub clone of the repo, no extra tooling.
@@ -103,7 +103,7 @@ jobs:
         run: ls -la dist/
 
       - name: Generate SLSA 3 build provenance attestation
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         # Generates a sigstore-signed SLSA Provenance v1.0 attestation
         # covering every file in dist/. The attestation lands in
         # GitHub's attestation store + the public Rekor transparency log.
