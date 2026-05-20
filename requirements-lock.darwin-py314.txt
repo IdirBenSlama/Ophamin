@@ -355,7 +355,7 @@ tadasets==0.2.2
 tblib==3.2.2
 tenacity==9.1.4
 texttable==1.7.0
-textual==8.2.6
+textual==8.2.7
 threadpoolctl==3.6.0
 tigramite==5.2.10.1
 tokenizers==0.22.2
