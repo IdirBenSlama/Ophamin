@@ -187,7 +187,7 @@ markdown-it-py==4.2.0
 MarkupSafe==3.0.3
 matplotlib==3.10.9
 mccabe==0.7.0
-mcp==1.23.3
+mcp==1.27.1
 mdit-py-plugins==0.6.1
 mdurl==0.1.2
 memray==1.19.3
