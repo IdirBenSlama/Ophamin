@@ -7,7 +7,71 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.64.1] below for the latest cut.)
+(empty — see [0.64.2] below for the latest cut.)
+
+## [0.64.2] — 2026-05-20
+
+**Headline:** dependency-merge cleanup. Merging the 8 open Dependabot
+PRs (#4–#11) into `main` revealed that 3 of the pip bumps were not
+coherently installable — Dependabot moved single lock-file lines
+without accounting for coupled packages or the lock's Python target.
+This release restores those 3 pins to their last-known-good values,
+keeps the 5 valid bumps, makes both lock files internally consistent,
+and adds Dependabot holds so the broken bumps don't reopen.
+
+Merged + kept (valid):
+- click 8.3.3 → 8.4.0 (#7)
+- ast-serialize 0.4.0 → 0.5.0 (#8) — verified present on PyPI + installs
+- actions/upload-pages-artifact 3 → 5 (#4)
+- actions/attest-build-provenance 2 → 4 (#5)
+- actions/setup-node 4 → 6 (#6)
+  (all 3 Action bumps applied to the correct workflow files; all 12
+  workflow YAMLs validated.)
+
+Reverted (Dependabot bumps that were broken):
+- **dowhy 0.14 → 0.8** (darwin-py314 lock) / **→ 0.12** (linux-py312
+  lock). dowhy 0.14 requires Python `>=3.9,<3.14` — it **excludes
+  py314**, which the darwin lock targets, making that lock
+  uninstallable. Restored each lock to its prior, python-valid pin
+  (the two locks legitimately diverge per Python: 0.8 max on py314,
+  0.12 known-good on py312). #10 had bumped both to 0.14.
+- **astroid 4.1.2 → 4.0.4** (both locks). The latest pylint (4.0.5)
+  caps `astroid<=4.1.dev0`; there is no released pylint compatible
+  with astroid 4.1.x, so the bump broke the `audit` extra's
+  pylint↔astroid pairing. Confirmed via package metadata + a clean
+  `pip check` after the revert. #11.
+- **opentelemetry-instrumentation-threading 0.62b1 → 0.58b0** (darwin
+  lock). 0.62b1 requires the whole opentelemetry stack at the matching
+  release (api 1.41 / instrumentation + semantic-conventions 0.62b1),
+  but the lock pins the stack at 1.37 / 0.58b0. Bumping one
+  instrumentation package alone is incoherent; reverted to keep the
+  stack lockstep. #9.
+
+Guardrails:
+- `.github/dependabot.yml` now holds `dowhy`, `astroid`, and
+  `opentelemetry-instrumentation-threading` entirely (with rationale
+  comments) so Dependabot doesn't reopen the same un-installable PRs.
+  Each is to be bumped manually as a coordinated PR once its blocker
+  clears (dowhy py314 support / pylint 4.1 / a whole-otel-stack bump).
+
+Validation:
+- The 3 reverts are justified by **hard package metadata**, not
+  preference: dowhy 0.14's `Requires-Python <3.14`, pylint 4.0.5's
+  `astroid<=4.1.dev0`, and the opentelemetry stack's exact-version
+  lockstep. Keeping an un-installable lock would not be exemplary.
+- `pip check` is clean of the pylint↔astroid conflict after the
+  astroid revert; the otel stack is internally coherent again.
+- All 12 GitHub-Actions workflow YAMLs validated; the 3 Action bumps
+  applied to the correct `uses:` lines.
+- `ophamin self-test` scenarios execute + score correctly against the
+  corrected deps (e.g. deterministic-seed-audit → VALIDATED). NOTE:
+  the PDF *format* step fails locally with a pre-existing, unrelated
+  TeX bug (`LaTeX Error: Unicode character μ` — the .tex template
+  emits raw Greek under pdflatex without unicode-math); JSON/MD/HTML/
+  TEX all generate fine. Tracked separately; not caused by this merge.
+- No code changed — lock files + CI config + version only — so the
+  pytest suite (which runs against the installed venv, not the lock
+  files) is unaffected by this commit.
 
 ## [0.64.1] — 2026-05-20
 

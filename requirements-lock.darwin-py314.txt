@@ -41,7 +41,7 @@ arviz-base==1.1.0
 arviz-plots==1.1.0
 arviz-stats==1.1.0
 ast_serialize==0.5.0
-astroid==4.1.2
+astroid==4.0.4
 asyncssh==2.23.0
 atpublic==7.0.0
 attrs==26.1.0
@@ -92,7 +92,7 @@ diskcache==5.6.3
 distro==1.9.0
 dnspython==2.8.0
 docker==7.1.0
-dowhy==0.14
+dowhy==0.8
 dpath==2.2.0
 duckdb==1.5.2
 dulwich==1.2.1
@@ -217,7 +217,7 @@ opentelemetry-exporter-otlp-proto-common==1.37.0
 opentelemetry-exporter-otlp-proto-http==1.37.0
 opentelemetry-instrumentation==0.58b0
 opentelemetry-instrumentation-requests==0.58b0
-opentelemetry-instrumentation-threading==0.62b1
+opentelemetry-instrumentation-threading==0.58b0
 opentelemetry-proto==1.37.0
 opentelemetry-sdk==1.37.0
 opentelemetry-semantic-conventions==0.58b0

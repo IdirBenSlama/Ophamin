@@ -25,6 +25,22 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
+      # --- Held packages (coupled-dependency / python-version blockers) ---
+      # These are minor bumps Dependabot proposed that are NOT coherently
+      # installable; held entirely until the blocker clears, then bump
+      # manually as a coordinated PR. (Reverted on 2026-05-20 — see CHANGELOG.)
+      #
+      # dowhy 0.14+ requires Python <3.14, but the darwin lock targets
+      # py314. Re-enable when dowhy restores py314 support.
+      - dependency-name: "dowhy"
+      # astroid 4.1.x has no compatible pylint yet — pylint 4.0.5 (latest)
+      # caps astroid<=4.1.dev0. Coupled bump; re-enable when pylint 4.1 lands.
+      - dependency-name: "astroid"
+      # Bumping opentelemetry-instrumentation-threading alone breaks the
+      # otel stack's lockstep versioning (it needs the whole
+      # opentelemetry-* set at the matching release). Bump the stack
+      # together in a manual PR instead.
+      - dependency-name: "opentelemetry-instrumentation-threading"
 
   # GitHub Actions used in .github/workflows/*.yml
   - package-ecosystem: "github-actions"
