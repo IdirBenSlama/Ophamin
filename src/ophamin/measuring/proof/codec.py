@@ -398,14 +398,31 @@ def ingest(
 # --- directory walking ------------------------------------------------------
 
 
+#: Subdirectories under a proofs root that hold non-proof JSON and must
+#: be skipped by proof iteration. ``llm_calls/`` holds the agentic
+#: layer's signed ``LLMCallRecord`` audit records (0.63.0+) — a
+#: different schema (call_id / task / request / response, not proof_id /
+#: claim / verdict). They live under ``proofs/`` for audit-trail
+#: locality but are NOT ``EmpiricalProofRecord``s; scanning them as
+#: proofs mis-classifies them (and fails schema validation).
+_NON_PROOF_SUBDIRS: frozenset[str] = frozenset({"llm_calls"})
+
+
 def iter_proofs(directory: str | Path) -> Iterator[Path]:
-    """Yield every ``*.json`` file under ``directory`` (recursive).
+    """Yield every proof ``*.json`` file under ``directory`` (recursive).
 
     Order is sorted-path-deterministic so consumers (e.g.
     :func:`list_proofs`, ``ophamin summarize``, drift detectors) see a
     stable enumeration.
+
+    Skips the :data:`_NON_PROOF_SUBDIRS` subtrees (currently
+    ``llm_calls/``) so agentic-layer audit records aren't mistaken for
+    proofs.
     """
-    yield from sorted(Path(directory).rglob("*.json"))
+    for p in sorted(Path(directory).rglob("*.json")):
+        if _NON_PROOF_SUBDIRS.intersection(p.parts):
+            continue
+        yield p
 
 
 @dataclass(frozen=True)

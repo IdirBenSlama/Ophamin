@@ -7,7 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.64.2] below for the latest cut.)
+(empty — see [0.64.3] below for the latest cut.)
+
+## [0.64.3] — 2026-05-20
+
+**Fix:** `iter_proofs()` now skips the `llm_calls/` subtree, so the
+agentic layer's signed `LLMCallRecord` audit records aren't mistaken
+for proofs.
+
+Surfaced by the full 2417-test suite during the 0.64.2 dependency
+validation: `test_validate_schema_passes_for_every_shipped_proof`
+failed on 10 files under `proofs/llm_calls/` — but those are
+`LLMCallRecord`s (fields `call_id` / `task` / `request` / `response`),
+not `EmpiricalProofRecord`s. `iter_proofs()` did a bare
+`rglob("*.json")` with no exclusions, so every consumer
+(`list_proofs`, `ophamin summarize`, drift detectors, the schema
+test) treated audit records as proofs.
+
+This was a latent bug introduced with the 0.63.0 agentic layer
+(`persist_call` writes to `proofs/llm_calls/<date>/<short>.json` for
+audit-trail locality) — `iter_proofs` was never taught to skip them.
+`proofs/llm_calls/` is gitignored, so CI / fresh clones never hit it;
+it only fails on a machine that has actually run an agent + then runs
+the suite. Fixing it makes the suite green on **any** machine, not
+just clean CI.
+
+- `iter_proofs` skips `_NON_PROOF_SUBDIRS = {"llm_calls"}` (extensible).
+- New pin `test_iter_proofs_skips_llm_calls_subtree`; `test_proof_codec.py`
+  56 passed.
+
+(The other full-suite failure — `test_app_version_matches_ophamin_package`
+— was a transient artifact of editing the version files mid-run during
+0.64.2; it passes on the settled tree. No code issue.)
 
 ## [0.64.2] — 2026-05-20
 

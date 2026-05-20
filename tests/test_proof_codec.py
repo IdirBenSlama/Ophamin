@@ -379,6 +379,24 @@ def test_iter_proofs_skips_non_json(tmp_path):
     assert [p.name for p in paths] == ["ok.json"]
 
 
+def test_iter_proofs_skips_llm_calls_subtree(tmp_path):
+    """iter_proofs must NOT yield agentic-layer audit records.
+
+    The 0.63.0 agentic layer persists signed LLMCallRecords under
+    proofs/llm_calls/<date>/<short>.json — a different schema. They
+    live under proofs/ for audit locality but are not proofs; scanning
+    them would mis-classify them + fail proof-schema validation."""
+    (tmp_path / "real_proof.json").write_text("{}", encoding="utf-8")
+    audit_dir = tmp_path / "llm_calls" / "2026-05-20"
+    audit_dir.mkdir(parents=True)
+    (audit_dir / "deadbeef.json").write_text(
+        '{"call_id": "x", "task": "prereg_validator"}', encoding="utf-8",
+    )
+    paths = list(iter_proofs(tmp_path))
+    assert [p.name for p in paths] == ["real_proof.json"]
+    assert all("llm_calls" not in p.parts for p in paths)
+
+
 def test_list_proofs_returns_entries(tmp_path):
     record = _make_record().sign(_TEST_KEY)
     dump(record, tmp_path / "good.json")
