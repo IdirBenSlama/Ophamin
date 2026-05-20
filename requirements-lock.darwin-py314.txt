@@ -94,7 +94,7 @@ dnspython==2.8.0
 docker==7.1.0
 dowhy==0.8
 dpath==2.2.0
-duckdb==1.5.2
+duckdb==1.5.3
 dulwich==1.2.1
 dvc==3.67.1
 dvc-data==3.18.3
