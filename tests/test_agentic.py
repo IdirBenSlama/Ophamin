@@ -58,15 +58,25 @@ class _MockOpenAIResponse:
 
 
 def _mock_chat_body(content: str, *, model: str = "test-model",
-                   prompt_tokens: int = 10, completion_tokens: int = 20) -> bytes:
-    """Build a fake OpenAI chat-completions response body."""
+                   prompt_tokens: int = 10, completion_tokens: int = 20,
+                   reasoning_content: str | None = None,
+                   finish_reason: str = "stop") -> bytes:
+    """Build a fake OpenAI chat-completions response body.
+
+    Set ``reasoning_content`` to simulate an LM Studio reasoning-tuned
+    model (Gemma 4 reasoning, Qwen3.5 reasoning, etc.) whose output
+    is routed through the reasoning channel instead of ``content``.
+    """
+    message: dict = {"role": "assistant", "content": content}
+    if reasoning_content is not None:
+        message["reasoning_content"] = reasoning_content
     return json.dumps({
         "id": "chatcmpl-test",
         "model": model,
         "choices": [{
             "index": 0,
-            "message": {"role": "assistant", "content": content},
-            "finish_reason": "stop",
+            "message": message,
+            "finish_reason": finish_reason,
         }],
         "usage": {
             "prompt_tokens": prompt_tokens,
@@ -514,3 +524,262 @@ def test_agent_audit_can_be_disabled(mock_llm, tmp_path):
     assert result.call_record_path == ""
     # No llm_calls dir created
     assert not (tmp_path / "llm_calls").exists()
+
+
+# ===========================================================================
+# 0.63.1 — reasoning_content channel (LM Studio reasoning-tuned models)
+# ===========================================================================
+# Gemma 4 reasoning / Qwen3.5 reasoning / DeepSeek-R1 / GPT-OSS in
+# reasoning-effort=high split their output into a separate
+# `reasoning_content` field. The client exposes both channels; agents
+# opt in to surfacing the reasoning stream via accept_reasoning=True.
+
+
+def test_llm_response_reasoning_populated_when_present(mock_llm):
+    """LLMResponse.reasoning gets set from message.reasoning_content."""
+    client = LLMClient(base_url="http://localhost:1234/v1", api_key="")
+    mock_llm(_mock_chat_body(
+        content="",
+        reasoning_content="Step 1: parse. Step 2: classify.",
+        finish_reason="length",
+    ))
+    r = client.chat(model="m", messages=[{"role": "user", "content": "x"}])
+    assert r.content == ""
+    assert "Step 1" in r.reasoning
+
+
+def test_llm_response_reasoning_defaults_empty_when_absent(mock_llm):
+    """No reasoning_content in raw → LLMResponse.reasoning is empty string."""
+    client = LLMClient(base_url="http://localhost:1234/v1", api_key="")
+    mock_llm(_mock_chat_body(content="PONG"))
+    r = client.chat(model="m", messages=[{"role": "user", "content": "x"}])
+    assert r.content == "PONG"
+    assert r.reasoning == ""
+
+
+def test_llm_response_content_null_treated_as_empty(mock_llm):
+    """Some reasoning models emit `content: null`; treat as ''."""
+    client = LLMClient(base_url="http://localhost:1234/v1", api_key="")
+    body = json.dumps({
+        "id": "x", "model": "m",
+        "choices": [{"index": 0, "message": {"role": "assistant",
+                     "content": None, "reasoning_content": "ABC"},
+                     "finish_reason": "length"}],
+        "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+    }).encode("utf-8")
+    mock_llm(body)
+    r = client.chat(model="m", messages=[{"role": "user", "content": "x"}])
+    assert r.content == ""
+    assert r.reasoning == "ABC"
+
+
+def test_proof_brief_accept_reasoning_false_keeps_empty(mock_llm, tmp_path):
+    """Default accept_reasoning=False: empty content stays empty
+    even if reasoning_content is populated. NO silent fallback."""
+    from ophamin.agentic.agents.proof_brief import write_brief
+    mock_llm(_mock_chat_body(
+        content="",
+        reasoning_content="Some analysis text the model produced.",
+        finish_reason="length",
+        model="qwen3.5-35b-a3b",
+    ))
+    proof = {
+        "proof_id": "a" * 64,
+        "claim": {"statement": "X >= 0", "threshold": {}},
+        "verdict": {"outcome": "VALIDATED"},
+        "evidence": [],
+    }
+    r = write_brief(proof, proofs_root=str(tmp_path))
+    # Brief should be empty (no silent reasoning substitution)
+    assert r.brief_markdown == ""
+
+
+def test_proof_brief_accept_reasoning_true_surfaces_reasoning(mock_llm, tmp_path):
+    """accept_reasoning=True + empty content + non-empty reasoning →
+    brief = reasoning (prefixed with audit marker)."""
+    from ophamin.agentic.agents.proof_brief import write_brief
+    mock_llm(_mock_chat_body(
+        content="",
+        reasoning_content="The substrate validated the claim cleanly.",
+        finish_reason="length",
+        model="qwen3.5-35b-a3b",
+    ))
+    proof = {
+        "proof_id": "a" * 64,
+        "claim": {"statement": "X >= 0", "threshold": {}},
+        "verdict": {"outcome": "VALIDATED"},
+        "evidence": [],
+    }
+    r = write_brief(proof, proofs_root=str(tmp_path), accept_reasoning=True)
+    assert "substrate validated" in r.brief_markdown
+    # Audit marker tells the reader the content channel was empty.
+    assert "reasoning_content" in r.brief_markdown
+
+
+def test_proof_brief_accept_reasoning_unused_when_content_nonempty(mock_llm, tmp_path):
+    """accept_reasoning=True but content is non-empty: use content,
+    ignore reasoning. (Reasoning channel is the LAST RESORT, not
+    a default override.)"""
+    from ophamin.agentic.agents.proof_brief import write_brief
+    mock_llm(_mock_chat_body(
+        content="## Brief\n\nClean validation.",
+        reasoning_content="Some chain-of-thought noise.",
+        model="gpt-oss-120b",
+    ))
+    proof = {
+        "proof_id": "a" * 64,
+        "claim": {"statement": "X >= 0", "threshold": {}},
+        "verdict": {"outcome": "VALIDATED"},
+        "evidence": [],
+    }
+    r = write_brief(proof, proofs_root=str(tmp_path), accept_reasoning=True)
+    assert "Clean validation" in r.brief_markdown
+    # Audit marker NOT present (we read content, not reasoning).
+    assert "reasoning_content" not in r.brief_markdown
+
+
+def test_refuted_triage_accept_reasoning_extracts_json_from_reasoning(mock_llm, tmp_path):
+    """accept_reasoning=True + empty content + reasoning containing
+    a parsable JSON object with 'followups' → followups extracted."""
+    from ophamin.agentic.agents.refuted_triage import propose_followups
+    canned = json.dumps({
+        "followups": [
+            {"title": "via-reasoning", "claim_statement": "Z >= 1",
+             "operationalization": "noop", "threshold_metric": "z",
+             "threshold_op": ">=", "threshold_value": 1.0,
+             "h0": "Z < 1", "h1": "Z >= 1", "rationale": "from reasoning"},
+        ]
+    })
+    reasoning_blob = "Let me think...\n\nFinal answer:\n" + canned
+    mock_llm(_mock_chat_body(
+        content="",
+        reasoning_content=reasoning_blob,
+        finish_reason="length",
+        model="qwen3.5-35b-a3b",
+    ))
+    proof = {
+        "proof_id": "r" * 64,
+        "claim": {"statement": "X >= 0", "threshold": {}},
+        "verdict": {"outcome": "REFUTED", "observed": -0.5},
+        "evidence": [],
+    }
+    r = propose_followups(proof, proofs_root=str(tmp_path), accept_reasoning=True)
+    assert len(r.followups) == 1
+    assert r.followups[0]["title"] == "via-reasoning"
+
+
+def test_refuted_triage_accept_reasoning_false_ignores_reasoning(mock_llm, tmp_path):
+    """Default accept_reasoning=False: empty content → empty followups,
+    even when reasoning would parse cleanly."""
+    from ophamin.agentic.agents.refuted_triage import propose_followups
+    canned = json.dumps({"followups": [{"title": "would-have-worked",
+                                         "claim_statement": "Z",
+                                         "operationalization": "noop",
+                                         "threshold_metric": "z",
+                                         "threshold_op": ">=",
+                                         "threshold_value": 1.0,
+                                         "h0": "Z < 1", "h1": "Z >= 1",
+                                         "rationale": "x"}]})
+    mock_llm(_mock_chat_body(
+        content="",
+        reasoning_content=canned,
+        finish_reason="length",
+    ))
+    proof = {"proof_id": "r" * 64, "claim": {}, "verdict": {"outcome": "REFUTED"},
+             "evidence": []}
+    r = propose_followups(proof, proofs_root=str(tmp_path))  # accept_reasoning defaults False
+    assert r.followups == []
+
+
+def test_refuted_triage_accept_reasoning_handles_unparsable_reasoning(mock_llm, tmp_path):
+    """accept_reasoning=True + empty content + reasoning has no
+    JSON object → followups stay empty, no crash."""
+    from ophamin.agentic.agents.refuted_triage import propose_followups
+    mock_llm(_mock_chat_body(
+        content="",
+        reasoning_content="No structured output here, just prose.",
+        finish_reason="length",
+    ))
+    proof = {"proof_id": "r" * 64, "claim": {}, "verdict": {"outcome": "REFUTED"},
+             "evidence": []}
+    r = propose_followups(proof, proofs_root=str(tmp_path), accept_reasoning=True)
+    assert r.followups == []
+
+
+# ===========================================================================
+# 0.63.1 — OPHAMIN_LLM_JSON_FORMAT runtime knob (LM Studio compat)
+# ===========================================================================
+# LM Studio rejects {"type":"json_object"} with HTTP 400 — only accepts
+# json_schema or text. Different OpenAI-compatible servers have
+# different opinions. The knob lets the operator pick.
+
+
+def test_json_format_default_emits_json_object(mock_llm, monkeypatch):
+    """Default (env unset): the on-wire response_format is the
+    OpenAI canonical {"type":"json_object"}."""
+    monkeypatch.delenv("OPHAMIN_LLM_JSON_FORMAT", raising=False)
+    captured = {}
+    def fake_urlopen(req, timeout=None):
+        captured["body"] = json.loads(req.data.decode("utf-8"))
+        return _MockOpenAIResponse(_mock_chat_body("{}"))
+    import ophamin.agentic.client as mod
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fake_urlopen)
+    client = LLMClient(base_url="http://localhost:1234/v1", api_key="")
+    client.chat(model="m", messages=[{"role": "user", "content": "x"}],
+                response_format="json_object")
+    assert captured["body"]["response_format"] == {"type": "json_object"}
+
+
+def test_json_format_text_for_lmstudio(mock_llm, monkeypatch):
+    """OPHAMIN_LLM_JSON_FORMAT=text → emit {"type":"text"} (LM Studio
+    accepts this shape but rejects json_object)."""
+    monkeypatch.setenv("OPHAMIN_LLM_JSON_FORMAT", "text")
+    captured = {}
+    def fake_urlopen(req, timeout=None):
+        captured["body"] = json.loads(req.data.decode("utf-8"))
+        return _MockOpenAIResponse(_mock_chat_body("{}"))
+    import ophamin.agentic.client as mod
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fake_urlopen)
+    client = LLMClient(base_url="http://localhost:1234/v1", api_key="")
+    client.chat(model="m", messages=[{"role": "user", "content": "x"}],
+                response_format="json_object")
+    assert captured["body"]["response_format"] == {"type": "text"}
+
+
+def test_json_format_none_omits_response_format(mock_llm, monkeypatch):
+    """OPHAMIN_LLM_JSON_FORMAT=none → response_format key is absent
+    from the request payload entirely."""
+    monkeypatch.setenv("OPHAMIN_LLM_JSON_FORMAT", "none")
+    captured = {}
+    def fake_urlopen(req, timeout=None):
+        captured["body"] = json.loads(req.data.decode("utf-8"))
+        return _MockOpenAIResponse(_mock_chat_body("{}"))
+    import ophamin.agentic.client as mod
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fake_urlopen)
+    client = LLMClient(base_url="http://localhost:1234/v1", api_key="")
+    client.chat(model="m", messages=[{"role": "user", "content": "x"}],
+                response_format="json_object")
+    assert "response_format" not in captured["body"]
+
+
+def test_json_format_invalid_raises(mock_llm, monkeypatch):
+    """Unknown value rejected loud — no silent fallback to default."""
+    monkeypatch.setenv("OPHAMIN_LLM_JSON_FORMAT", "yaml")
+    client = LLMClient(base_url="http://localhost:1234/v1", api_key="")
+    with pytest.raises(LLMClientError, match="OPHAMIN_LLM_JSON_FORMAT"):
+        client.chat(model="m", messages=[{"role": "user", "content": "x"}],
+                    response_format="json_object")
+
+
+def test_json_format_unused_when_response_format_none(monkeypatch):
+    """When the caller doesn't ask for JSON, the env knob is a no-op."""
+    monkeypatch.setenv("OPHAMIN_LLM_JSON_FORMAT", "json_object")
+    captured = {}
+    def fake_urlopen(req, timeout=None):
+        captured["body"] = json.loads(req.data.decode("utf-8"))
+        return _MockOpenAIResponse(_mock_chat_body("hello"))
+    import ophamin.agentic.client as mod
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fake_urlopen)
+    client = LLMClient(base_url="http://localhost:1234/v1", api_key="")
+    client.chat(model="m", messages=[{"role": "user", "content": "x"}])
+    assert "response_format" not in captured["body"]

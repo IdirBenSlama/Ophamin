@@ -72,6 +72,7 @@ def propose_followups(
     client: LLMClient | None = None,
     audit: bool = True,
     proofs_root: str = "proofs",
+    accept_reasoning: bool = False,
 ) -> RefutedTriageResult:
     """Generate follow-up scenario proposals for a REFUTED proof.
 
@@ -79,6 +80,14 @@ def propose_followups(
     malformed JSON, the raw response is preserved in ``raw_response``
     and ``followups`` is an empty list — caller decides what to do
     (re-prompt, hand-edit, etc.).
+
+    ``accept_reasoning`` (default False) — when True AND the content
+    channel comes back empty AND the reasoning channel contains a
+    parsable JSON object (some reasoning-tuned models append the
+    final structured answer to ``reasoning_content`` when emit-after-
+    think is misconfigured), try the reasoning channel as a last
+    resort. Failure here leaves ``followups`` empty (per the
+    existing contract — no silent fabrication).
     """
     if client is None:
         client = LLMClient()
@@ -131,6 +140,7 @@ def propose_followups(
     )
 
     followups: list[dict[str, Any]] = []
+    parse_source = "content"
     try:
         parsed = json.loads(resp.content)
         if isinstance(parsed, dict) and isinstance(parsed.get("followups"), list):
@@ -138,6 +148,27 @@ def propose_followups(
     except (json.JSONDecodeError, TypeError):
         # Leave followups empty; caller can re-prompt.
         pass
+
+    # Reasoning-channel fallback — explicit, opt-in, last resort.
+    # Tries to extract a JSON object from reasoning_content (some
+    # reasoning models trail the final structured answer here when
+    # the emit-after-think turn is truncated).
+    if not followups and accept_reasoning and resp.reasoning.strip():
+        try:
+            # Best-effort: slice from the FIRST '{' to the LAST '}'.
+            # The first '{' starts the outermost object; the last
+            # '}' closes it. Inner braces (e.g. from nested followup
+            # dicts) are correctly preserved inside the slice.
+            text = resp.reasoning.strip()
+            start = text.find("{")
+            end = text.rfind("}")
+            if start != -1 and end > start:
+                parsed = json.loads(text[start:end + 1])
+                if isinstance(parsed, dict) and isinstance(parsed.get("followups"), list):
+                    followups = parsed["followups"][:n_max]
+                    parse_source = "reasoning"
+        except (json.JSONDecodeError, TypeError):
+            pass
 
     call_path = ""
     if audit:

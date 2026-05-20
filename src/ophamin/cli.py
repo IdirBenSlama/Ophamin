@@ -2270,7 +2270,10 @@ def cmd_agent(args: argparse.Namespace) -> int:
 
         if action == "brief":
             from ophamin.agentic.agents.proof_brief import write_brief
-            result = write_brief(args.proof_path, client=client, audit=audit)
+            result = write_brief(
+                args.proof_path, client=client, audit=audit,
+                accept_reasoning=getattr(args, "accept_reasoning", False),
+            )
             print(result.brief_markdown)
             print("", file=__import__("sys").stderr)
             print(f"# model={result.model} runtime={result.runtime} "
@@ -2287,6 +2290,7 @@ def cmd_agent(args: argparse.Namespace) -> int:
             result = propose_followups(
                 args.proof_path, n_max=args.n_max,
                 client=client, audit=audit,
+                accept_reasoning=getattr(args, "accept_reasoning", False),
             )
             print(_json.dumps({"followups": result.followups}, indent=2))
             print("", file=__import__("sys").stderr)
@@ -3605,6 +3609,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_agent_brief.add_argument("proof_path", help="path to a proof.json")
     p_agent_brief.add_argument("--no-audit", action="store_true")
+    p_agent_brief.add_argument(
+        "--accept-reasoning", action="store_true",
+        help="when the routed model emits its analysis via "
+             "reasoning_content (LM Studio reasoning-mode models like "
+             "Gemma 4 / Qwen3.5), surface the reasoning stream as the "
+             "brief if content comes back empty. Explicit opt-in.",
+    )
 
     p_agent_triage = agent_sub.add_parser(
         "triage",
@@ -3613,6 +3624,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_agent_triage.add_argument("proof_path", help="path to a REFUTED proof.json")
     p_agent_triage.add_argument("--n-max", type=int, default=3)
     p_agent_triage.add_argument("--no-audit", action="store_true")
+    p_agent_triage.add_argument(
+        "--accept-reasoning", action="store_true",
+        help="last-resort parse from reasoning_content when content "
+             "comes back empty (best-effort JSON-block extraction). "
+             "Explicit opt-in.",
+    )
 
     p_agent_query = agent_sub.add_parser(
         "query",

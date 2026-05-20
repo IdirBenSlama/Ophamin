@@ -69,6 +69,19 @@ class LLMResponse:
     ``raw`` carries the full decoded JSON for callers that want
     token counts, finish-reason, etc. The hot path (``content``)
     is exposed directly.
+
+    Reasoning models (Qwen3 reasoning, Gemma 4 reasoning, DeepSeek-R1,
+    GPT-OSS in reasoning-effort=high mode, etc.) split their output
+    into a separate ``reasoning_content`` channel — chain-of-thought
+    in one stream, final answer in ``content``. Some local runtimes
+    (LM Studio default) emit ONLY into ``reasoning_content`` for
+    reasoning-tuned models, leaving ``content`` empty. ``reasoning``
+    surfaces that stream so callers can decide whether to use it
+    (analysis agents → yes; structured-output agents → no, because
+    a chain-of-thought stream isn't valid Python or JSON).
+
+    Strict no-fallback: the client does NOT silently substitute
+    ``reasoning`` for ``content``. Each caller decides explicitly.
     """
 
     content: str
@@ -78,6 +91,7 @@ class LLMResponse:
     completion_tokens: int
     latency_ms: float
     raw: dict[str, Any]
+    reasoning: str = ""
 
 
 class LLMClient:
@@ -127,11 +141,19 @@ class LLMClient:
     ) -> LLMResponse:
         """Send a chat completion. Returns an :class:`LLMResponse`.
 
-        ``response_format`` accepts the OpenAI shapes
-        ``"json_object"`` (forces JSON output; supported by most
-        modern instruct models on both Ollama + MLX) or ``None`` for
-        free-form. Use ``"json_object"`` for the bundle-query agent;
-        leave ``None`` for prose agents.
+        ``response_format`` accepts ``"json_object"`` (caller wants
+        JSON output) or ``None`` (free-form). How the JSON-output
+        request is encoded on the wire depends on the runtime — set
+        via env var ``OPHAMIN_LLM_JSON_FORMAT``:
+
+        - ``json_object`` (default — OpenAI, Ollama, MLX-LM): emit
+          ``response_format={"type":"json_object"}`` on the request.
+        - ``text`` (LM Studio): emit ``{"type":"text"}`` and rely on
+          system-prompt instruction for JSON output (LM Studio rejects
+          ``json_object`` with HTTP 400).
+        - ``none``: omit ``response_format`` entirely. Same effect as
+          ``text`` for most runtimes; useful for runtimes that reject
+          any ``response_format`` shape.
 
         Loud-fail on any transport / response error per the
         no-fallback rule.
@@ -143,7 +165,19 @@ class LLMClient:
             "temperature": float(temperature),
         }
         if response_format == "json_object":
-            payload["response_format"] = {"type": "json_object"}
+            wire_format = os.environ.get("OPHAMIN_LLM_JSON_FORMAT", "json_object").strip()
+            if wire_format == "json_object":
+                payload["response_format"] = {"type": "json_object"}
+            elif wire_format == "text":
+                payload["response_format"] = {"type": "text"}
+            elif wire_format == "none":
+                pass  # omit response_format entirely
+            else:
+                raise LLMClientError(
+                    f"OPHAMIN_LLM_JSON_FORMAT={wire_format!r} is not one of "
+                    f"{{'json_object', 'text', 'none'}}; refusing to send.",
+                    status_code=0, body_snippet="",
+                )
         if stop:
             payload["stop"] = list(stop)
 
@@ -187,7 +221,12 @@ class LLMClient:
 
         try:
             choice = data["choices"][0]
-            content = choice["message"]["content"]
+            message = choice["message"]
+            # `content` can be the empty string or even null on
+            # reasoning-tuned models that emit everything via
+            # `reasoning_content`. Treat null as "".
+            content = message.get("content") or ""
+            reasoning = message.get("reasoning_content") or ""
             finish_reason = choice.get("finish_reason", "stop")
             usage = data.get("usage") or {}
             return LLMResponse(
@@ -198,6 +237,7 @@ class LLMClient:
                 completion_tokens=int(usage.get("completion_tokens", 0)),
                 latency_ms=latency_ms,
                 raw=data,
+                reasoning=reasoning,
             )
         except (KeyError, IndexError, TypeError) as exc:
             raise LLMClientError(

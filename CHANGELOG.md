@@ -7,7 +7,82 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.63.0] below for the latest cut.)
+(empty — see [0.63.1] below for the latest cut.)
+
+## [0.63.1] — 2026-05-20
+
+**Headline:** LM Studio compatibility hardening for the 0.63.0 agentic
+layer. Two real gaps surfaced when an operator wired LM Studio (5
+chat models exposed: `gemma-4-26b-a4b`, `qwen3.5-35b-a3b`,
+`qwen3-coder-next`, `gpt-oss-120b`, plus a Nomic v1.5 embedding
+model). Both closed; both hardened.
+
+Additive only — no breaking changes to 0.63.0:
+
+- **`LLMResponse.reasoning: str`** — new field exposing the
+  `message.reasoning_content` channel that reasoning-tuned models
+  (Gemma 4 reasoning, Qwen3.5 reasoning, DeepSeek-R1, GPT-OSS in
+  reasoning-effort=high) split their output into. LM Studio's
+  default behaviour for these models is to emit ALL output into
+  `reasoning_content` with `content` empty — the 0.63.0 client
+  silently swallowed the entire model output. Now both channels
+  are exposed.
+
+- **`accept_reasoning: bool = False`** flag on `proof_brief.write_brief`
+  and `refuted_triage.propose_followups`. When True AND content
+  is empty AND reasoning is populated, the agent surfaces the
+  reasoning stream (brief: as the brief with an audit-marker
+  prefix; triage: best-effort JSON-object extraction). Default
+  False — strict no-fallback per CLAUDE.md; the operator explicitly
+  opts in.
+
+- **`--accept-reasoning`** CLI flag on `ophamin agent brief` and
+  `ophamin agent triage`. Same semantics as the programmatic flag.
+
+- **`OPHAMIN_LLM_JSON_FORMAT`** env knob (default `json_object`):
+  controls how the wire-level `response_format` is encoded for a
+  caller's `response_format="json_object"` request. LM Studio
+  rejects the OpenAI canonical `{"type":"json_object"}` with HTTP
+  400 and only accepts `json_schema` or `text`. Values:
+  - `json_object` (default — OpenAI / Ollama / MLX-LM)
+  - `text` (LM Studio)
+  - `none` (omit `response_format` entirely)
+  Invalid values raise `LLMClientError` loudly; no silent fallback.
+
+- **`config/lmstudio.env`** — drop-in source-able env file with
+  per-tier routing for the 4 chat models, the new `JSON_FORMAT=text`
+  knob set, per-model content-channel audit annotations, and
+  alternative routings commented for operator pick.
+
+Hardening (`tests/test_agentic.py`):
+
+- 14 new pinning tests (`46/46 pass`, was 32):
+  - 3 for `LLMResponse.reasoning` (populated when present; empty
+    default; `content: null` treated as `""`)
+  - 4 for proof_brief flag behaviour (False keeps empty, True
+    surfaces reasoning + audit marker, True is no-op when content
+    non-empty, audit marker absent when content used)
+  - 3 for refuted_triage flag behaviour (False ignores reasoning,
+    True extracts JSON, True handles unparsable reasoning gracefully)
+  - 5 for `OPHAMIN_LLM_JSON_FORMAT` knob (default emits json_object;
+    `text` emits `{"type":"text"}`; `none` omits the key; invalid
+    raises; unused when `response_format=None`)
+
+Live smoke (against LM Studio with the 4 chat models loaded):
+
+- `brief --accept-reasoning` against `qwen3.5-35b-a3b` reasoning-mode:
+  49.6 s wall, full chain-of-thought + brief draft surfaced, audit
+  signed at `proofs/llm_calls/2026-05-20/415c2e346d3196f0.json`.
+- `triage` against `gpt-oss-120b` with `JSON_FORMAT=text`: 8.0 s
+  wall, 2 well-formed followup proposals with full claim five-tuples,
+  audit signed at `proofs/llm_calls/2026-05-20/3def7d874b3a9a26.json`.
+
+Bug fix:
+
+- `refuted_triage` JSON-block extraction from `reasoning_content`
+  now uses `text.find('{') + text.rfind('}')` (outermost braces)
+  instead of `rfind('{')` (would slice the innermost nested object
+  on real reasoning blobs).
 
 ## [0.63.0] — 2026-05-19
 

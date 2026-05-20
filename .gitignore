@@ -95,3 +95,13 @@ packages/*/*.tsbuildinfo
 # --- Rust crate (crates/ophamin-proof) ---
 crates/*/target/
 crates/*/Cargo.lock
+
+# --- Per-operator AI assistant state ---
+.claude/
+
+# --- LLM-call audit records (0.63.0+) ---
+# Signed LLMCallRecord JSON lands here at proofs/llm_calls/<date>/<short>.json
+# whenever an agent runs. Per-operator transient evidence; do NOT commit in
+# bulk. Land specific exemplars explicitly via `git add -f` if needed for an
+# audit demonstration (same pattern as traces/ from earlier campaigns).
+proofs/llm_calls/

@@ -71,6 +71,7 @@ def write_brief(
     client: LLMClient | None = None,
     audit: bool = True,
     proofs_root: str = "proofs",
+    accept_reasoning: bool = False,
 ) -> ProofBriefResult:
     """Generate a plain-English brief for the given proof.
 
@@ -84,6 +85,14 @@ def write_brief(
         Optional pre-built :class:`LLMClient`.
     audit:
         Persist a signed call record.
+    accept_reasoning:
+        When True AND ``LLMResponse.content`` comes back empty AND
+        ``LLMResponse.reasoning`` is non-empty (the LM Studio
+        reasoning-mode case), use the reasoning stream as the brief.
+        Default False — strict no-fallback per CLAUDE.md. Set True
+        explicitly when routing this agent through a reasoning-tuned
+        model (Gemma 4 / Qwen3.5 / GPT-OSS reasoning-high) whose
+        analysis content lives in ``reasoning_content``.
     """
     if client is None:
         client = LLMClient()
@@ -141,6 +150,13 @@ def write_brief(
     )
 
     brief = resp.content.strip()
+    # Reasoning-mode handler. Explicitly opt-in; never silent.
+    # Only takes effect when content is empty AND reasoning is
+    # populated (the LM Studio reasoning-tuned-model case).
+    reasoning_used = False
+    if not brief and accept_reasoning and resp.reasoning.strip():
+        brief = resp.reasoning.strip()
+        reasoning_used = True
     # Drop any wrapping markdown fences
     if brief.startswith("```"):
         lines = brief.splitlines()
@@ -149,6 +165,11 @@ def write_brief(
         if lines and lines[-1].startswith("```"):
             lines = lines[:-1]
         brief = "\n".join(lines)
+    if reasoning_used:
+        brief = (
+            "_(brief synthesised from the model's reasoning_content "
+            "channel — content channel was empty)_\n\n" + brief
+        )
 
     call_path = ""
     if audit:
