@@ -2243,7 +2243,7 @@ def cmd_agent(args: argparse.Namespace) -> int:
     """
     action = getattr(args, "agent_action", None)
     if action is None:
-        print("usage: ophamin agent {adapt,brief,triage,query} ...",
+        print("usage: ophamin agent {adapt,brief,triage,query,prereg,confounds} ...",
               file=__import__("sys").stderr)
         return 2
 
@@ -2302,6 +2302,52 @@ def cmd_agent(args: argparse.Namespace) -> int:
                 print(f"# audit={result.call_record_path}",
                       file=__import__("sys").stderr)
             return 0 if result.followups else 2
+
+        if action == "prereg":
+            from ophamin.agentic.agents.prereg_validator import validate_preregistration
+            import json as _json
+            result = validate_preregistration(
+                args.claim_path, client=client, audit=audit,
+                accept_reasoning=getattr(args, "accept_reasoning", False),
+            )
+            print(_json.dumps({
+                "severity": result.severity,
+                "is_falsifiable": result.is_falsifiable,
+                "issues": result.issues,
+                "recommendations": result.recommendations,
+            }, indent=2))
+            print("", file=__import__("sys").stderr)
+            print(f"# model={result.model} runtime={result.runtime} "
+                  f"latency={result.latency_ms:.0f}ms "
+                  f"severity={result.severity} "
+                  f"n_issues={len(result.issues)}",
+                  file=__import__("sys").stderr)
+            if result.call_record_path:
+                print(f"# audit={result.call_record_path}",
+                      file=__import__("sys").stderr)
+            # Exit code mirrors severity for shell-script use:
+            #   0 = ok, 1 = warn, 2 = block. Never raises by default;
+            #   the operator decides whether to act on the severity.
+            return {"ok": 0, "warn": 1, "block": 2}.get(result.severity, 1)
+
+        if action == "confounds":
+            from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+            import json as _json
+            result = enumerate_confounds(
+                args.proof_path, n_max=args.n_max,
+                client=client, audit=audit,
+                accept_reasoning=getattr(args, "accept_reasoning", False),
+            )
+            print(_json.dumps({"confounds": result.confounds}, indent=2))
+            print("", file=__import__("sys").stderr)
+            print(f"# model={result.model} runtime={result.runtime} "
+                  f"latency={result.latency_ms:.0f}ms "
+                  f"n_confounds={len(result.confounds)}",
+                  file=__import__("sys").stderr)
+            if result.call_record_path:
+                print(f"# audit={result.call_record_path}",
+                      file=__import__("sys").stderr)
+            return 0 if result.confounds else 2
 
         if action == "query":
             from ophamin.agentic.agents.bundle_query import parse_query, apply_filter
@@ -3638,6 +3684,41 @@ def build_parser() -> argparse.ArgumentParser:
     p_agent_query.add_argument("query", help='e.g. "validated proofs this week"')
     p_agent_query.add_argument("--proofs-root", default="proofs")
     p_agent_query.add_argument("--no-audit", action="store_true")
+
+    # 0.63.2 — falsifiability guardrail agents
+    p_agent_prereg = agent_sub.add_parser(
+        "prereg",
+        help="(0.63.2) vet a claim's pre-registration for falsifiability",
+    )
+    p_agent_prereg.add_argument(
+        "claim_path",
+        help="path to a claim JSON (or a proof.json — the nested "
+             "'claim' key is auto-extracted)",
+    )
+    p_agent_prereg.add_argument("--no-audit", action="store_true")
+    p_agent_prereg.add_argument(
+        "--accept-reasoning", action="store_true",
+        help="last-resort JSON extract from reasoning_content channel",
+    )
+
+    p_agent_confounds = agent_sub.add_parser(
+        "confounds",
+        help="(0.63.2) red-team a VALIDATED proof — enumerate "
+             "alternative explanations + disambiguating tests",
+    )
+    p_agent_confounds.add_argument(
+        "proof_path",
+        help="path to a VALIDATED proof.json",
+    )
+    p_agent_confounds.add_argument(
+        "--n-max", type=int, default=5,
+        help="cap on returned confounds (default 5)",
+    )
+    p_agent_confounds.add_argument("--no-audit", action="store_true")
+    p_agent_confounds.add_argument(
+        "--accept-reasoning", action="store_true",
+        help="last-resort JSON extract from reasoning_content channel",
+    )
 
     p_agent.set_defaults(func=cmd_agent)
 

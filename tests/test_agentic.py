@@ -216,6 +216,9 @@ def test_pick_model_routes_per_task():
     assert pick_model("proof_brief").tier == TaskTier.WORKHORSE
     assert pick_model("refuted_triage").tier == TaskTier.REASONING
     assert pick_model("bundle_query").tier == TaskTier.FAST
+    # 0.63.2 — falsifiability guardrail agents
+    assert pick_model("prereg_validator").tier == TaskTier.REASONING
+    assert pick_model("confound_enumerator").tier == TaskTier.REASONING
 
 
 def test_pick_model_unknown_task_falls_back_to_workhorse():
@@ -783,3 +786,258 @@ def test_json_format_unused_when_response_format_none(monkeypatch):
     client = LLMClient(base_url="http://localhost:1234/v1", api_key="")
     client.chat(model="m", messages=[{"role": "user", "content": "x"}])
     assert "response_format" not in captured["body"]
+
+
+# ===========================================================================
+# 0.63.2 — prereg_validator agent
+# ===========================================================================
+
+def _good_claim() -> dict:
+    """A well-formed falsifiable claim."""
+    return {
+        "statement": "On a Family J Takwin trajectory, the Walker M4 conservation ratio R < 0.10",
+        "operationalization": "For each M4 event, compute residual = total(i-1) - total(i); R = median|residual|/median|total| with 2000-resample bootstrap CI.",
+        "threshold": {"metric": "walker_m4_conservation_ratio",
+                      "comparator": "<", "value": 0.10,
+                      "units": "dimensionless"},
+        "h0": "R >= 0.10 — substrate fails to conserve at decision points.",
+        "h1": "R < 0.10 — substrate conserves at decision points.",
+    }
+
+
+def test_prereg_validator_ok_path(mock_llm, tmp_path):
+    """Happy path: well-formed claim → severity='ok'."""
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    canned = json.dumps({
+        "severity": "ok",
+        "is_falsifiable": True,
+        "issues": [],
+        "recommendations": [],
+    })
+    mock_llm(_mock_chat_body(canned, model="gpt-oss-120b"))
+    r = validate_preregistration(_good_claim(), proofs_root=str(tmp_path))
+    assert r.severity == "ok"
+    assert r.is_falsifiable is True
+    assert r.issues == []
+    assert Path(r.call_record_path).exists()
+
+
+def test_prereg_validator_block_path(mock_llm, tmp_path):
+    """Block: model returns severity='block' + concrete issues."""
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    canned = json.dumps({
+        "severity": "block",
+        "is_falsifiable": False,
+        "issues": [
+            {"code": "THRESHOLD_VAGUE",
+             "detail": "threshold.value is None"},
+            {"code": "H0_H1_OVERLAP",
+             "detail": "h0 and h1 both assert X >= 0"},
+        ],
+        "recommendations": [
+            "set threshold.value to a numeric (e.g. 0.10)",
+            "rewrite h0 as the logical negation of h1",
+        ],
+    })
+    mock_llm(_mock_chat_body(canned, model="gpt-oss-120b"))
+    r = validate_preregistration(
+        {"statement": "X is good", "threshold": {"value": None},
+         "h0": "X >= 0", "h1": "X >= 0"},
+        proofs_root=str(tmp_path),
+    )
+    assert r.severity == "block"
+    assert r.is_falsifiable is False
+    assert len(r.issues) == 2
+    assert r.issues[0]["code"] == "THRESHOLD_VAGUE"
+    assert len(r.recommendations) == 2
+
+
+def test_prereg_validator_accepts_proof_json_path(mock_llm, tmp_path):
+    """Path input: when handed a proof.json, descend to the nested 'claim' key."""
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    proof_path = tmp_path / "proof.json"
+    proof_path.write_text(json.dumps({
+        "proof_id": "x" * 64,
+        "claim": _good_claim(),
+        "verdict": {"outcome": "VALIDATED"},
+    }))
+    canned = json.dumps({"severity": "ok", "is_falsifiable": True,
+                          "issues": [], "recommendations": []})
+    mock_llm(_mock_chat_body(canned, model="gpt-oss-120b"))
+    r = validate_preregistration(proof_path, proofs_root=str(tmp_path))
+    assert r.severity == "ok"
+
+
+def test_prereg_validator_malformed_json_does_not_silently_pass(mock_llm, tmp_path):
+    """Parse failure: severity='warn' + OTHER-code issue, never 'ok'.
+    A silently-'ok' verdict on a malformed response would mask the
+    failure from the operator."""
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    mock_llm(_mock_chat_body("not valid json", model="gpt-oss-120b"))
+    r = validate_preregistration(_good_claim(), proofs_root=str(tmp_path))
+    assert r.severity == "warn"
+    assert r.is_falsifiable is False
+    assert any(i.get("code") == "OTHER" for i in r.issues)
+
+
+def test_prereg_validator_severity_clamped_to_known_values(mock_llm, tmp_path):
+    """Unknown severity from model → clamp to 'warn' (defensive)."""
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    canned = json.dumps({
+        "severity": "yellow",  # not in {ok, warn, block}
+        "is_falsifiable": True,
+        "issues": [],
+        "recommendations": [],
+    })
+    mock_llm(_mock_chat_body(canned, model="gpt-oss-120b"))
+    r = validate_preregistration(_good_claim(), proofs_root=str(tmp_path))
+    assert r.severity == "warn"
+
+
+def test_prereg_validator_audit_can_be_disabled(mock_llm, tmp_path):
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    canned = json.dumps({"severity": "ok", "is_falsifiable": True,
+                          "issues": [], "recommendations": []})
+    mock_llm(_mock_chat_body(canned, model="gpt-oss-120b"))
+    r = validate_preregistration(_good_claim(), proofs_root=str(tmp_path),
+                                  audit=False)
+    assert r.call_record_path == ""
+    assert not (tmp_path / "llm_calls").exists()
+
+
+def test_prereg_validator_accept_reasoning_extracts_from_reasoning(mock_llm, tmp_path):
+    """When content is empty + accept_reasoning=True + reasoning has
+    a valid JSON object → parse from reasoning."""
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    canned = json.dumps({"severity": "warn", "is_falsifiable": True,
+                          "issues": [{"code": "SCOPE_VAGUE", "detail": "x"}],
+                          "recommendations": ["narrow the scope"]})
+    mock_llm(_mock_chat_body(
+        content="",
+        reasoning_content="Thinking...\n" + canned,
+        finish_reason="length",
+    ))
+    r = validate_preregistration(_good_claim(), proofs_root=str(tmp_path),
+                                  accept_reasoning=True)
+    assert r.severity == "warn"
+    assert r.issues[0]["code"] == "SCOPE_VAGUE"
+
+
+def test_prereg_validator_rejects_bad_input_type(tmp_path):
+    """Inputs that are not dict / str / Path raise TypeError loudly."""
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    with pytest.raises(TypeError, match="unsupported claim input type"):
+        validate_preregistration(12345, proofs_root=str(tmp_path))  # type: ignore[arg-type]
+
+
+# ===========================================================================
+# 0.63.2 — confound_enumerator agent
+# ===========================================================================
+
+def _validated_proof() -> dict:
+    return {
+        "proof_id": "v" * 64,
+        "claim": {"statement": "Cycle recognition floor >= 0.94",
+                  "operationalization": "Concept Jaccard across 5/5 re-exposure pairs",
+                  "threshold": {"metric": "concept_jaccard_floor",
+                                "comparator": ">=", "value": 0.94}},
+        "verdict": {"outcome": "VALIDATED", "observed": 1.0,
+                    "reasoning": "5/5 pairs at 1.0000"},
+        "evidence": [{"pillar": "recognition", "statistic_name": "jaccard",
+                      "statistic_value": 1.0}],
+        "data": {"substrate_name": "kimera-swm",
+                 "datasets": [{"name": "trajectory", "n_records": 5,
+                                "kind": "takwin"}]},
+    }
+
+
+def test_confound_enumerator_returns_confounds(mock_llm, tmp_path):
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    canned = json.dumps({
+        "confounds": [
+            {"name": "deterministic-dispatch",
+             "mechanism": "Same input → same output via cached hash; "
+                          "Jaccard=1.0 with no real computation.",
+             "disambiguating_test": "Re-run with PYTHONHASHSEED varying; "
+                                    "expect Jaccard drop if dispatch is "
+                                    "the source."},
+            {"name": "recognition-cache-hit",
+             "mechanism": "The substrate cached the concepts from the "
+                          "first exposure and returned them verbatim.",
+             "disambiguating_test": "Insert a 100-cycle gap before "
+                                    "re-exposure; cache should expire."},
+        ]
+    })
+    mock_llm(_mock_chat_body(canned, model="gpt-oss-120b"))
+    r = enumerate_confounds(_validated_proof(), proofs_root=str(tmp_path))
+    assert len(r.confounds) == 2
+    assert r.confounds[0]["name"] == "deterministic-dispatch"
+    assert "disambiguating_test" in r.confounds[1]
+    assert Path(r.call_record_path).exists()
+
+
+def test_confound_enumerator_n_max_truncates(mock_llm, tmp_path):
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    canned = json.dumps({
+        "confounds": [
+            {"name": f"c{i}", "mechanism": "m", "disambiguating_test": "t"}
+            for i in range(7)
+        ]
+    })
+    mock_llm(_mock_chat_body(canned, model="gpt-oss-120b"))
+    r = enumerate_confounds(_validated_proof(), proofs_root=str(tmp_path),
+                             n_max=3)
+    assert len(r.confounds) == 3
+
+
+def test_confound_enumerator_returns_empty_on_malformed_json(mock_llm, tmp_path):
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    mock_llm(_mock_chat_body("not valid json", model="gpt-oss-120b"))
+    r = enumerate_confounds(_validated_proof(), proofs_root=str(tmp_path))
+    assert r.confounds == []
+    assert r.raw_response == "not valid json"
+
+
+def test_confound_enumerator_accept_reasoning_extracts_from_reasoning(mock_llm, tmp_path):
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    canned = json.dumps({"confounds": [{"name": "via-reasoning",
+                                          "mechanism": "x",
+                                          "disambiguating_test": "y"}]})
+    mock_llm(_mock_chat_body(
+        content="",
+        reasoning_content="Final:\n" + canned,
+        finish_reason="length",
+    ))
+    r = enumerate_confounds(_validated_proof(), proofs_root=str(tmp_path),
+                             accept_reasoning=True)
+    assert len(r.confounds) == 1
+    assert r.confounds[0]["name"] == "via-reasoning"
+
+
+def test_confound_enumerator_accepts_path(mock_llm, tmp_path):
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    proof_path = tmp_path / "proof.json"
+    proof_path.write_text(json.dumps(_validated_proof()))
+    canned = json.dumps({"confounds": [{"name": "x",
+                                          "mechanism": "y",
+                                          "disambiguating_test": "z"}]})
+    mock_llm(_mock_chat_body(canned, model="gpt-oss-120b"))
+    r = enumerate_confounds(proof_path, proofs_root=str(tmp_path))
+    assert len(r.confounds) == 1
+
+
+def test_confound_enumerator_audit_can_be_disabled(mock_llm, tmp_path):
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    canned = json.dumps({"confounds": [{"name": "x", "mechanism": "y",
+                                          "disambiguating_test": "z"}]})
+    mock_llm(_mock_chat_body(canned, model="gpt-oss-120b"))
+    r = enumerate_confounds(_validated_proof(), proofs_root=str(tmp_path),
+                             audit=False)
+    assert r.call_record_path == ""
+    assert not (tmp_path / "llm_calls").exists()
+
+
+def test_confound_enumerator_rejects_bad_input_type(tmp_path):
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    with pytest.raises(TypeError, match="unsupported proof input type"):
+        enumerate_confounds(12345, proofs_root=str(tmp_path))  # type: ignore[arg-type]

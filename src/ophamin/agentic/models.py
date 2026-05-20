@@ -62,25 +62,33 @@ DEFAULT_TIER_MODELS: dict[TaskTier, str] = {
 #: Per-task tier assignment. Edit here when adding new agents.
 #:
 #: Rationale:
-#: - adapter_gen     → CODER     (code generation; quality > speed)
-#: - proof_brief     → WORKHORSE (general English summarization)
-#: - refuted_triage  → REASONING (hypothesis derivation needs CoT)
-#: - bundle_query    → FAST      (NL → JSON filter; small + fast)
+#: - adapter_gen          → CODER     (code generation; quality > speed)
+#: - proof_brief          → WORKHORSE (general English summarization)
+#: - refuted_triage       → REASONING (hypothesis derivation needs CoT)
+#: - bundle_query         → FAST      (NL → JSON filter; small + fast)
+#: - prereg_validator     → REASONING (semantic falsifiability checks;
+#:                                     0.63.2)
+#: - confound_enumerator  → REASONING (red-team alternative explanations;
+#:                                     0.63.2)
 TASK_ROUTING: dict[str, TaskTier] = {
     "adapter_gen": TaskTier.CODER,
     "proof_brief": TaskTier.WORKHORSE,
     "refuted_triage": TaskTier.REASONING,
     "bundle_query": TaskTier.FAST,
+    "prereg_validator": TaskTier.REASONING,
+    "confound_enumerator": TaskTier.REASONING,
 }
 
 
 #: Per-task max-tokens budget. Override via env
 #: ``OPHAMIN_AGENT_MAXTOK_<TASK>`` if a particular task needs longer output.
 DEFAULT_MAX_TOKENS: dict[str, int] = {
-    "adapter_gen": 4096,      # generated code can be long
+    "adapter_gen": 4096,           # generated code can be long
     "proof_brief": 2048,
-    "refuted_triage": 4096,   # reasoning chains can be long
-    "bundle_query": 512,      # JSON filter is small
+    "refuted_triage": 4096,        # reasoning chains can be long
+    "bundle_query": 512,           # JSON filter is small
+    "prereg_validator": 2048,      # structured JSON, modest size
+    "confound_enumerator": 4096,   # 3-5 confounds × mechanism + test
 }
 
 

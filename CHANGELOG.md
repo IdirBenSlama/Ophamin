@@ -7,7 +7,111 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.63.1] below for the latest cut.)
+(empty — see [0.63.2] below for the latest cut.)
+
+## [0.63.2] — 2026-05-20
+
+**Headline:** Two falsifiability-guardrail agents — `prereg_validator`
+and `confound_enumerator` — extending Ophamin's signed-proof
+discipline into the BEFORE and AFTER of every run. Both are
+REASONING tier (gpt-oss-120b empirically validated on M4 Max LM
+Studio). Neither touches the verdict path; both are advisory.
+
+The agent count goes 4 → 6:
+
+- `adapter_gen`         (CODER)     — corpus adapter scaffolds
+- `proof_brief`         (WORKHORSE) — plain-English briefs
+- `refuted_triage`      (REASONING) — follow-up scenarios for REFUTED
+- `bundle_query`        (FAST)      — NL → bundle filter
+- `prereg_validator`    (REASONING) — *new* — vet a claim's pre-registration
+- `confound_enumerator` (REASONING) — *new* — red-team a VALIDATED proof
+
+Added:
+
+- **`src/ophamin/agentic/agents/prereg_validator.py`** —
+  `validate_preregistration(claim) → PreregValidationResult`.
+  Takes a claim dict (or path to a claim JSON / proof.json — the
+  nested `claim` key is auto-extracted) and runs 7 falsifiability
+  checks via REASONING tier: threshold concreteness, threshold
+  direction, h0/h1 logical opposition, operationalization
+  concreteness, metric-claim consistency, circularity, scope
+  concreteness. Output: severity (ok / warn / block), is_falsifiable,
+  issues, recommendations. ADVISORY — never blocks a run; the
+  operator decides. Malformed model output never silently 'ok's:
+  parse failure → severity='warn' + OTHER-code issue.
+
+- **`src/ophamin/agentic/agents/confound_enumerator.py`** —
+  `enumerate_confounds(proof) → ConfoundEnumerationResult`. Sister
+  to refuted_triage: given a VALIDATED proof, enumerates 3-5
+  alternative explanations + a concrete disambiguating test for
+  each. Pulls real proof features (sample size, bootstrap params,
+  metric definition) into substantive confounds, not generic
+  skepticism. NEVER overrides the original verdict — confounds are
+  flags for follow-up, not retroactive edits.
+
+- **`ophamin agent prereg <claim_or_proof>`** — CLI subcommand.
+  Exit code mirrors severity: 0=ok, 1=warn, 2=block. Operator can
+  pipe into shell scripts; default behavior is advisory only.
+
+- **`ophamin agent confounds <proof> --n-max 5`** — CLI subcommand.
+  Exit code 0 if confounds returned, 2 if none (the latter usually
+  indicates a parse failure worth investigating).
+
+- Both commands accept `--accept-reasoning` (last-resort JSON
+  extract from `reasoning_content` channel; 0.63.1 mechanism).
+
+- TASK_ROUTING + DEFAULT_MAX_TOKENS extended in `models.py` for the
+  two new tasks.
+
+Hardening (`tests/test_agentic.py`):
+
+- 15 new pinning tests (`61/61 pass`, was 46):
+  - 8 for prereg_validator: ok-path, block-path, proof.json input,
+    malformed-JSON-does-NOT-silently-pass, severity clamping,
+    audit-disable, accept_reasoning extract, bad-input-type rejection
+  - 7 for confound_enumerator: happy path, n_max truncation,
+    malformed-JSON returns empty, accept_reasoning extract, path input,
+    audit-disable, bad-input-type rejection
+- Routing pin extended to assert both new tasks → REASONING tier.
+
+Live smoke (LM Studio, gpt-oss-120b, all 3 signed at proofs/llm_calls/2026-05-20/):
+
+- **prereg on a deliberately-broken claim** (null threshold, h0/h1
+  overlap, vague metric/scope/operationalization): correctly emitted
+  `severity=block`, caught 6/6 designed flaws, proposed 6 concrete
+  recommendations. 15.8 s. Audit: `21b0e7f42a3e85fa.json`.
+- **prereg on a real shipped VALIDATED claim** (sinew conservation
+  R<0.10, 2026-05-17): correctly emitted `severity=warn` with one
+  legitimate flag — claim doesn't specify N trajectories / minimum
+  events / inclusion criteria. 6.1 s. Audit:
+  `99596745732bfa7f.json`. The agent's flag is substantive, not
+  pedantic.
+- **confounds on the same sinew_conservation proof**: 4 substantive
+  confounds — bootstrap-resampling-bias (2000 resamples on 105
+  events), event-selection-bias (M4 definition may favor low-stress
+  cycles), norm-aggregation-artifact (std-norm before sum may cancel
+  correlated scaling), caching-determinism-artifact (cached totals
+  reuse). Each with a concrete disambiguating test. 9.3 s. Audit:
+  `6fe3cc36ec036a99.json`.
+
+What this enables for operators:
+
+- `ophamin agent prereg <claim.json>` BEFORE running a scenario:
+  catches p-hacking surfaces, vague operationalizations, h0≡h1, and
+  metric mismatches at the cheapest possible point in the loop.
+- `ophamin agent confounds <validated.json>` AFTER a result lands:
+  applies zetetic refutation pressure on VALIDATED claims by
+  enumerating alternative explanations + the test that would tell
+  them apart from the substrate explanation.
+
+Constraints preserved (per CLAUDE.md):
+
+- No LLM in Kimera substrate (this is Ophamin layer).
+- No LLM-graded verdicts (`Verdict.decide` remains the only
+  authoritative path).
+- All agent output is advisory; operator decides whether to act.
+- Every call signed under `proofs/llm_calls/<date>/<short>.json`.
+- Default off — agents fire only on explicit CLI invocation.
 
 ## [0.63.1] — 2026-05-20
 
