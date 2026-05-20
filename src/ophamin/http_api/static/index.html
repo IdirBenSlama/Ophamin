@@ -22,29 +22,45 @@
         </div>
     </header>
 
-    <nav class="tabs">
-        <button class="tab active" data-tab="proofs">Proofs</button>
-        <button class="tab" data-tab="scenarios">Scenarios</button>
-        <button class="tab" data-tab="metrics">Metrics</button>
-        <button class="tab" data-tab="run">Run</button>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+        <button class="tab active" data-tab="proofs" role="tab"
+                id="tab-btn-proofs" aria-controls="tab-proofs" aria-selected="true">Proofs</button>
+        <button class="tab" data-tab="scenarios" role="tab"
+                id="tab-btn-scenarios" aria-controls="tab-scenarios" aria-selected="false" tabindex="-1">Scenarios</button>
+        <button class="tab" data-tab="metrics" role="tab"
+                id="tab-btn-metrics" aria-controls="tab-metrics" aria-selected="false" tabindex="-1">Metrics</button>
+        <button class="tab" data-tab="run" role="tab"
+                id="tab-btn-run" aria-controls="tab-run" aria-selected="false" tabindex="-1">Run</button>
     </nav>
 
     <main class="content">
         <!-- ============================ PROOFS TAB ============================ -->
-        <section id="tab-proofs" class="tab-panel active">
+        <section id="tab-proofs" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-proofs">
             <div class="split">
                 <aside class="tree-pane">
                     <div class="pane-header">
                         <span>Bundle tree</span>
-                        <button class="icon-btn" id="refresh-tree" title="Refresh">⟳</button>
+                        <button class="icon-btn" id="refresh-tree" title="Refresh" aria-label="Refresh bundle tree">⟳</button>
                     </div>
-                    <div id="bundle-tree" class="tree"></div>
+                    <div class="tree-filter">
+                        <input type="search" id="tree-search" class="tree-search"
+                               placeholder="Filter scenarios / hashes…"
+                               aria-label="Filter bundles by scenario or hash" autocomplete="off">
+                        <div class="verdict-chips" role="group" aria-label="Filter by verdict">
+                            <button class="chip active" data-verdict="all">All</button>
+                            <button class="chip" data-verdict="validated">Validated</button>
+                            <button class="chip" data-verdict="refuted">Refuted</button>
+                            <button class="chip" data-verdict="inconclusive">Inconclusive</button>
+                        </div>
+                        <div class="tree-filter-count muted" id="tree-filter-count"></div>
+                    </div>
+                    <div id="bundle-tree" class="tree" role="tree" aria-label="Proof bundles"></div>
                 </aside>
                 <section class="detail-pane">
                     <div class="pane-header">
                         <span id="detail-path">Select a bundle</span>
                     </div>
-                    <nav class="format-tabs" id="format-tabs"></nav>
+                    <nav class="format-tabs" id="format-tabs" role="tablist" aria-label="Bundle formats"></nav>
                     <div id="detail-view" class="detail-view">
                         <div class="empty-state">
                             <p>Click any bundle in the tree on the left.</p>
@@ -56,7 +72,7 @@
         </section>
 
         <!-- =========================== SCENARIOS TAB ========================== -->
-        <section id="tab-scenarios" class="tab-panel">
+        <section id="tab-scenarios" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-scenarios">
             <div class="pane-header">
                 <span>Registered scenarios</span>
                 <span class="muted" id="scenarios-count"></span>
@@ -65,7 +81,7 @@
         </section>
 
         <!-- ============================ METRICS TAB =========================== -->
-        <section id="tab-metrics" class="tab-panel">
+        <section id="tab-metrics" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-metrics">
             <div class="pane-header">
                 <span>Prometheus exposition (/metrics)</span>
                 <button class="icon-btn" id="refresh-metrics" title="Refresh">⟳</button>
@@ -78,13 +94,14 @@
         </section>
 
         <!-- ============================== RUN TAB ============================= -->
-        <section id="tab-run" class="tab-panel">
+        <section id="tab-run" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-run">
             <div class="pane-header"><span>Run a scenario</span></div>
             <form class="run-form" id="run-form">
                 <label>
                     Scenario name
                     <select id="run-scenario" required></select>
                 </label>
+                <div class="run-claim" id="run-claim" aria-live="polite"></div>
                 <label>
                     Constructor kwargs (JSON)
                     <textarea id="run-kwargs" placeholder='{ "param": "value" }'>{}</textarea>

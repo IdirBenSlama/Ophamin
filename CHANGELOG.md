@@ -7,7 +7,73 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.63.6] below for the latest cut.)
+(empty — see [0.64.0] below for the latest cut.)
+
+## [0.64.0] — 2026-05-20
+
+**Headline:** GUI optimize + enhance pass, driven by a from-scratch
+evaluation. The provisional GUI was solid (vanilla HTML/JS/CSS, no
+build step) but had concrete gaps: redundant boot fetches, eager
+loading of heavy tabs, no way to filter 33+ bundles, a
+keyboard-inaccessible bundle tree, and zero responsive support. All
+addressed; every change verified in-browser.
+
+Optimize:
+
+- **Deduped boot fetches.** Boot fetched `/scenarios` and
+  `/proofs/bundles/tree` **twice each** (header stats + their own tab).
+  Now a single `boot()` fetches the three boot resources once and
+  shares them via a `state` cache; the run-form select reads the same
+  cached scenarios.
+- **Lazy tab loading.** Metrics did a full Prometheus scrape + parse +
+  built 40+ DOM tiles **on boot**, before the user opened Metrics;
+  Scenarios rendered eagerly too. Both now load on first tab
+  activation. Verified: on boot the metrics + scenarios panels are
+  empty and only populate when their tab is clicked.
+
+Enhance — bundle filter:
+
+- **Search box** (matches scenario name / short-hash / verdict / date)
+  + **verdict filter chips** (All / Validated / Refuted / Inconclusive)
+  above the tree. Filtering hides non-matching rows, collapses empty
+  scenarios/tiers, auto-expands matches, and shows an "N of M bundles"
+  count. Verified: "sinew" → 6, Refuted → 10 (matches header), All → 33.
+
+Enhance — accessibility:
+
+- **Keyboard-usable tree.** Bundle rows were `<div>`s with click
+  handlers only — a keyboard / screen-reader user could not open a
+  proof. Now `role=treeitem`, `tabindex=0`, Enter/Space activate,
+  `aria-label` per row, visible focus ring.
+- **ARIA tabs.** The main tab row is a `role=tablist` with
+  `role=tab` + `aria-selected` + roving `tabindex` + Arrow/Home/End
+  keyboard navigation; panels are `role=tabpanel`. Format tabs get
+  `role=tab` + `aria-selected` too.
+
+Enhance — deep-linking:
+
+- **Hash routing.** Active tab + selected bundle are encoded in
+  `location.hash` (`#tab=metrics`, `#bundle=<tier>/<scenario>/<bundle>`)
+  — shareable + reload-safe. Verified: selecting a bundle updates the
+  hash; loading a `#bundle=…` URL auto-selects it and renders its detail.
+
+Enhance — responsive:
+
+- Media query (`max-width: 760px`) stacks the proofs split vertically,
+  wraps the header stats, and bounds the tree/detail panes for narrow
+  viewports. (Desktop layout unchanged at ≥760px.)
+
+Enhance — Run tab claim preview:
+
+- Selecting a scenario now shows its claim statement + threshold
+  (fetched from `/scenarios/{name}/claim`) so the operator knows what
+  it tests + what kwargs it needs, instead of guessing.
+
+Scope: client-only (`index.html`, `app.js`, `styles.css`) + version
+bumps. No server change, so the server hardening suite is unaffected
+(69 passed across http_api + bundle_browser). app.js node `--check`
+clean. Cache-buster (0.63.6) means upgrading browsers load the new
+JS/CSS on first fresh load.
 
 ## [0.63.6] — 2026-05-20
 

@@ -224,6 +224,56 @@ body {
 .tree-bundle.active { background: var(--accent); color: var(--accent-fg); }
 .tree-bundle .bundle-date { color: inherit; }
 .tree-bundle .bundle-hash { font-size: 10px; opacity: 0.7; margin-left: 6px; }
+/* Keyboard focus ring — the tree is now focusable + Enter/Space works. */
+.tree-bundle:focus-visible,
+.format-tab:focus-visible,
+.tab:focus-visible,
+.chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+/* Filter hides non-matching rows + empty scenarios/tiers. */
+.tree-bundle.filtered-out,
+.tree-scenario.filtered-out,
+.tree-tier.filtered-out { display: none; }
+
+/* ---- tree filter UI ---- */
+.tree-filter {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.tree-search {
+    width: 100%;
+    padding: 5px 8px;
+    font-family: var(--sans);
+    font-size: 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    background: var(--panel-bg);
+    color: var(--fg);
+}
+.tree-search:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.verdict-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip {
+    font-family: var(--sans);
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--panel-bg);
+    color: var(--fg-muted);
+    cursor: pointer;
+}
+.chip:hover { background: var(--bg); }
+.chip.active {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+}
+.tree-filter-count { font-size: 10.5px; }
 
 .verdict-tag {
     display: inline-block;
@@ -541,3 +591,50 @@ body {
 
 .muted { color: var(--fg-muted); font-size: 12px; }
 .error-text { color: var(--refuted); }
+
+/* ============================ Run claim preview ===================== */
+
+.run-claim {
+    font-size: 12px;
+    color: var(--fg-muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    line-height: 1.5;
+}
+.run-claim:empty { display: none; }
+.run-claim .claim-statement { color: var(--fg); margin-bottom: 6px; }
+.run-claim .claim-threshold code {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--panel-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+}
+
+/* ============================== Responsive ========================== */
+/* Narrow viewports: stack the proofs split vertically, wrap the header
+   stats, let the metrics tiles reflow. The desktop-first layout above
+   is unchanged at >= 760px. */
+
+@media (max-width: 760px) {
+    .header-stats {
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        justify-content: flex-start;
+    }
+    .split {
+        flex-direction: column;
+    }
+    .tree-pane {
+        max-width: none;
+        width: 100%;
+        max-height: 42vh;
+    }
+    .detail-pane {
+        min-height: 50vh;
+    }
+    .detail-view .embed-wrap { min-height: 60vh; }
+}
