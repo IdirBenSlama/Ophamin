@@ -361,7 +361,7 @@ xarray==2026.4.0
 xarray-einstats==0.10.0
 xgboost==3.2.0
 y-py==0.6.2
-yarl==1.23.0
+yarl==1.24.2
 z3-solver==4.16.0.0
 zc.lockfile==4.0
 zipp==3.23.1
