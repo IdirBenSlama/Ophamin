@@ -7,7 +7,60 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.63.3] below for the latest cut.)
+(empty — see [0.63.4] below for the latest cut.)
+
+## [0.63.4] — 2026-05-20
+
+**Headline:** Loop-composition hardening. No behavior change — the
+0.63.0-0.63.3 agentic layer's central claim (that the 7 agents
+COMPOSE into an operator loop) now has integration tests proving it,
+plus a verification pass confirming the three rapid cuts didn't crack
+the wider foundation.
+
+The campaign shipped 7 agents whose VALUE proposition is that they
+form a loop. Until now each agent had unit tests but the loop itself
+was only asserted in commit messages. This cut tests the composition.
+
+Added (`tests/test_agentic.py`, +4 integration tests; 67 → 71):
+
+- `test_loop_claim_flows_prereg_to_scenario_gen` — a claim that
+  passes prereg is consumable by scenario_gen unchanged. The claim
+  dict is shared currency across the BEFORE + SCAFFOLD steps; no
+  reshaping needed.
+- `test_loop_proof_feeds_brief_confounds_triage` — a single proof
+  dict is a valid input to brief, confounds, AND triage. The proof
+  shape flows to every post-run agent without reshaping.
+- `test_loop_confound_to_claim_bridge_is_operator_mediated` —
+  documents the loop's ONE manual bridge: a confound's
+  `disambiguating_test` is prose; lifting it into a claim five-tuple
+  for the next scenario_gen is operator-authored, NOT agent-automated.
+  An LLM auto-authoring the threshold here would be a p-hacking
+  surface (same reasoning as scenario_gen's score() stub).
+- `test_loop_full_chain_audit_records_accumulate` — across a full
+  loop pass (prereg → scenario_gen → confounds), each agent call
+  lands a distinct signed LLMCallRecord; all three signature-verify;
+  the task set matches the three loop steps. Proves the audit trail
+  captures the WHOLE loop.
+
+Honest finding surfaced by the integration test:
+
+- The loop is NOT fully automated. The confound→claim step is a
+  deliberate manual bridge — the operator turns a confound's prose
+  disambiguating_test into a structured claim. This is by design (the
+  alternative is an LLM authoring thresholds, which we forbid), but
+  it's worth naming: the loop is "7 agents + 1 operator judgment
+  step", not "7 agents end-to-end".
+
+Verification pass (post 0.63.1-0.63.3 rapid cuts):
+
+- Clean `import ophamin` (0.63.4) + all 7 agents import.
+- CLI top-level + all 7 `agent` subcommands parse (`--help` each).
+- 104 passed across `test_agentic.py` + `test_cli_scenario.py` +
+  `test_cli_schema.py` + `test_cli_api_stability.py` — the cli.py
+  edits for the new subcommands didn't regress sibling commands.
+
+No source changes; this is a tests-only + docs cut. appVersion bumped
+for CHANGELOG continuity.
 
 ## [0.63.3] — 2026-05-20
 

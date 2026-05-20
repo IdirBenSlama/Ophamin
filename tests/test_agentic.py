@@ -16,6 +16,10 @@ Pins:
   audit=False)
 - Bundle-query: apply_filter pure-code path with synthetic trees
   + _sanitize_spec rejects bad inputs
+- Loop composition (0.63.4): the 7 agents compose into the operator
+  loop — each agent's output shape is a valid input to the next;
+  the confound→claim step is documented as an operator-mediated
+  manual bridge; the audit trail accumulates across a full pass.
 """
 
 from __future__ import annotations
@@ -1152,3 +1156,177 @@ def test_scenario_gen_audit_can_be_disabled(mock_llm, tmp_path):
                   audit=False, proofs_root=str(tmp_path))
     assert r.call_record_path == ""
     assert not (tmp_path / "llm_calls").exists()
+
+
+# ===========================================================================
+# 0.63.4 — end-to-end loop composition (integration)
+# ===========================================================================
+# The campaign's central claim is that the 7 agents COMPOSE into an
+# operator loop:
+#
+#   prereg(claim) → scenario_gen(claim) → [operator fills score(); run]
+#     → confounds(proof) / brief(proof) / triage(proof) / query(bundles)
+#
+# Each agent has unit tests above. These integration tests prove the
+# data SHAPES flow between agents — one agent's output is a valid input
+# to the next — and document the one place the loop has a MANUAL bridge
+# (a confound's disambiguating_test is prose; turning it into a claim
+# for the next scenario_gen is operator-mediated, not automated).
+#
+# Still mocked LLM (deterministic); this is composition hardening, not
+# a live-model test.
+
+
+def test_loop_claim_flows_prereg_to_scenario_gen(mock_llm, tmp_path):
+    """A claim that passes prereg is directly consumable by scenario_gen.
+    Proves the claim dict is a shared currency across the BEFORE +
+    SCAFFOLD steps — no reshaping needed between them."""
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    from ophamin.agentic.agents.scenario_gen import generate
+
+    claim = _good_claim()
+
+    # Step 1 — prereg vets the SAME claim object.
+    mock_llm(_mock_chat_body(json.dumps({
+        "severity": "ok", "is_falsifiable": True,
+        "issues": [], "recommendations": [],
+    }), model="gpt-oss-120b"))
+    pre = validate_preregistration(claim, proofs_root=str(tmp_path))
+    assert pre.severity == "ok"
+    assert pre.is_falsifiable is True
+
+    # Step 2 — the IDENTICAL claim object scaffolds a scenario.
+    mock_llm(_mock_chat_body(_FAKE_SCENARIO_SOURCE, model="qwen3-coder-next"))
+    scaf = generate(name="loop-scenario", family="test", claim=claim,
+                    proofs_root=str(tmp_path))
+    assert "class FakeScenario" in scaf.source
+    assert "raise NotImplementedError" in scaf.source
+
+
+def test_loop_proof_feeds_brief_confounds_triage(mock_llm, tmp_path):
+    """A single proof dict is a valid input to brief, confounds, AND
+    triage. Proves the proof shape flows to every post-run agent
+    without reshaping."""
+    from ophamin.agentic.agents.proof_brief import write_brief
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    from ophamin.agentic.agents.refuted_triage import propose_followups
+
+    proof = _validated_proof()
+
+    # brief
+    mock_llm(_mock_chat_body("## Brief\n\nThe scenario validated cleanly.",
+                             model="qwen3.5-35b-a3b"))
+    b = write_brief(proof, proofs_root=str(tmp_path))
+    assert "validated" in b.brief_markdown.lower()
+
+    # confounds (same proof object)
+    mock_llm(_mock_chat_body(json.dumps({"confounds": [
+        {"name": "caching", "mechanism": "m", "disambiguating_test": "t"},
+    ]}), model="gpt-oss-120b"))
+    c = enumerate_confounds(proof, proofs_root=str(tmp_path))
+    assert len(c.confounds) == 1
+
+    # triage (same proof object; works on any proof shape)
+    mock_llm(_mock_chat_body(json.dumps({"followups": [
+        {"title": "f", "claim_statement": "Z >= 1", "operationalization": "noop",
+         "threshold_metric": "z", "threshold_op": ">=", "threshold_value": 1.0,
+         "h0": "Z < 1", "h1": "Z >= 1", "rationale": "x"},
+    ]}), model="gpt-oss-120b"))
+    t = propose_followups(proof, proofs_root=str(tmp_path))
+    assert len(t.followups) == 1
+
+
+def test_loop_confound_to_claim_bridge_is_operator_mediated(mock_llm, tmp_path):
+    """The confound→claim step is the loop's ONE manual bridge.
+
+    A confound's `disambiguating_test` is prose (one sentence). To feed
+    it back into scenario_gen the operator must lift it into a full
+    claim five-tuple. This test documents that bridge explicitly: the
+    confound output is a string; the claim is operator-authored; the
+    bridged claim is then scenario_gen-consumable. The agents do NOT
+    auto-bridge this (an LLM auto-authoring the threshold here would be
+    a p-hacking surface, same reasoning as scenario_gen's score() stub)."""
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    from ophamin.agentic.agents.scenario_gen import generate
+
+    # confounds emits a prose disambiguating_test
+    mock_llm(_mock_chat_body(json.dumps({"confounds": [
+        {"name": "deterministic-dispatch",
+         "mechanism": "Same input → same cached output; Jaccard=1.0 with "
+                      "no real computation.",
+         "disambiguating_test": "Re-run with PYTHONHASHSEED varying; expect "
+                                "Jaccard drop if dispatch is the source."},
+    ]}), model="gpt-oss-120b"))
+    c = enumerate_confounds(_validated_proof(), proofs_root=str(tmp_path))
+    disambig = c.confounds[0]["disambiguating_test"]
+    assert isinstance(disambig, str) and disambig  # prose, not a claim
+
+    # OPERATOR bridges prose → claim five-tuple (this step is manual).
+    operator_authored_claim = {
+        "statement": f"Probing the deterministic-dispatch confound: {disambig}",
+        "operationalization": "Re-run the trajectory under 10 distinct "
+                              "PYTHONHASHSEED values; record Jaccard each.",
+        "threshold": {"metric": "jaccard_under_hashseed_variation",
+                      "comparator": "<", "value": 0.5, "units": "proportion"},
+        "h0": "jaccard >= 0.5 — result survives seed variation (not dispatch).",
+        "h1": "jaccard < 0.5 — result was a dispatch artifact.",
+    }
+
+    # the operator-authored claim is now scenario_gen-consumable — loop closes.
+    mock_llm(_mock_chat_body(_FAKE_SCENARIO_SOURCE, model="qwen3-coder-next"))
+    scaf = generate(name="probe-dispatch-confound", family="recognition",
+                    claim=operator_authored_claim, proofs_root=str(tmp_path))
+    assert "class FakeScenario" in scaf.source
+
+
+def test_loop_full_chain_audit_records_accumulate(mock_llm, tmp_path):
+    """Across a full loop pass, every agent call that runs with audit=True
+    lands a distinct signed record under proofs/llm_calls/. Proves the
+    audit trail captures the WHOLE loop, not just individual calls."""
+    from ophamin.agentic.agents.prereg_validator import validate_preregistration
+    from ophamin.agentic.agents.scenario_gen import generate
+    from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
+    from ophamin.agentic.audit import LLMCallRecord
+
+    proofs_root = str(tmp_path)
+
+    mock_llm(_mock_chat_body(json.dumps({
+        "severity": "ok", "is_falsifiable": True, "issues": [],
+        "recommendations": [],
+    })))
+    validate_preregistration(_good_claim(), proofs_root=proofs_root)
+
+    mock_llm(_mock_chat_body(_FAKE_SCENARIO_SOURCE))
+    generate(name="x", family="test", claim=_good_claim(), proofs_root=proofs_root)
+
+    mock_llm(_mock_chat_body(json.dumps({"confounds": [
+        {"name": "c", "mechanism": "m", "disambiguating_test": "t"},
+    ]})))
+    enumerate_confounds(_validated_proof(), proofs_root=proofs_root)
+
+    # Three distinct signed records should now exist under llm_calls/.
+    records = list((tmp_path / "llm_calls").rglob("*.json"))
+    assert len(records) == 3
+    # Each is a valid, signature-verifying LLMCallRecord.
+    for rec_path in records:
+        data = json.loads(rec_path.read_text())
+        rec = LLMCallRecord(
+            task=data["task"], runtime=data["runtime"],
+            model=data["request"]["model"],
+            messages=data["request"]["messages"],
+            max_tokens=data["request"]["max_tokens"],
+            temperature=data["request"]["temperature"],
+            response_format=data["request"]["response_format"],
+            content=data["response"]["content"],
+            finish_reason=data["response"]["finish_reason"],
+            prompt_tokens=data["response"]["prompt_tokens"],
+            completion_tokens=data["response"]["completion_tokens"],
+            latency_ms=data["response"]["latency_ms"],
+            ophamin_version=data["identity"]["ophamin_version"],
+            created_at=data["created_at"],
+            signature=data["signature"],
+        )
+        assert rec.verify_signature()
+    # The three tasks are the three loop steps that ran.
+    tasks = {json.loads(p.read_text())["task"] for p in records}
+    assert tasks == {"prereg_validator", "scenario_gen", "confound_enumerator"}
