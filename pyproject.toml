@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ophamin"
-version = "0.64.4"
+version = "0.64.5"
 description = "An empirical observatory wrapped around a substrate under test — six wheels, signed proofs, falsifiable claims."
 readme = "README.md"
 requires-python = ">=3.10"

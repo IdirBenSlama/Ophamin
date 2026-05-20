@@ -82,7 +82,7 @@ Config composition / merge / dotted access is delegated to **OmegaConf**.
 
 ---
 
-## Five experimentation tiers — 32 shipped scenarios
+## Five experimentation tiers — 33 shipped scenarios
 
 The original three tiers (Scientific / Engineering / Philosophical)
 have been joined by an **empirical-deep tier** (Family A–V in Kimera's
@@ -172,7 +172,7 @@ python3.12 -m venv .venv             # Python 3.10+ required; 3.12 recommended
 # or shorthand:
 .venv/bin/python -m pip install -e ".[all,dev]"
 
-.venv/bin/python -m pytest -q                      # 842+ tests, all green
+.venv/bin/python -m pytest -q                      # 2,400+ tests, all green
 .venv/bin/python examples/run_mock_experiment.py   # end-to-end, no Kimera needed
 ```
 
@@ -237,7 +237,69 @@ ophamin report <record.json> --format html|markdown|latex
 
 # interop/ — standard-format export
 ophamin export <record.json> --format sarif|junit-xml|mlflow|cyclonedx
+
+# serving surfaces — REST API, web GUI, MCP
+ophamin http serve [--port 8000]              # FastAPI REST API + the web console at /ui
+ophamin mcp                                   # Model Context Protocol server (STDIO / SSE)
+ophamin self-test                             # dogfood: run substrate-free scenarios on Ophamin itself
+
+# agentic/ — local-LLM observatory tooling (default off; opt-in per call)
+ophamin agent prereg <claim_or_proof>         # vet a claim's falsifiability before running
+ophamin agent scenario-gen <name> <claim>     # scaffold a Scenario subclass from a claim
+ophamin agent brief <proof.json>              # plain-English brief for a signed proof
+ophamin agent triage <refuted-proof.json>     # propose follow-up scenarios for a REFUTED proof
+ophamin agent confounds <validated-proof>     # red-team a VALIDATED proof (alternative explanations)
+ophamin agent query "<natural-language>"      # NL query over the proof-bundle tree
+ophamin agent adapt --name … --description …  # generate a Foreign-Corpus adapter module
 ```
+
+---
+
+## Serving surfaces — REST API, web console, MCP
+
+`ophamin http serve` exposes the read-mostly surface over HTTP (FastAPI):
+`/scenarios`, `/proofs/bundles/tree`, `/proofs/bundles/file`,
+`/metrics` (Prometheus), `/verify`, `/canonicalize`, plus one write
+endpoint `POST /scenarios/{name}/run`. A **provisional web console**
+ships at `/ui` — a zero-build vanilla HTML/JS/CSS SPA that browses the
+proof-bundle tree (filter + verdict chips + keyboard-navigable +
+deep-linkable), renders each bundle in all five formats (JSON / MD /
+HTML / LaTeX / PDF, with embedded charts), shows the `/metrics`
+exposition as cards, and triggers scenario runs. A design brief for a
+heavier production console (Ubiquiti/UniFi style) lives at
+[`docs/OPHAMIN_GUI_DESIGN_BRIEF.md`](docs/OPHAMIN_GUI_DESIGN_BRIEF.md).
+
+`ophamin mcp` serves the same logical surface over the Model Context
+Protocol (STDIO / SSE) for AI agents — **no external LLM runs inside
+Ophamin's measurement path**; MCP is a transport, not a brain.
+
+`ophamin self-test` runs Ophamin against *itself*: ~10 substrate-free
+scenarios that produce signed proof bundles under `proofs/ophamin-self/`,
+proving the framework's own pipeline end-to-end (also wired as a CI gate).
+
+## Agentic layer — local-LLM observatory tooling
+
+`ophamin agent …` adds **LLM-assisted tooling** that sits beside the
+measurement engine — never inside it. Seven single-purpose agents
+close the operator loop (vet → scaffold → run → red-team → brief):
+
+| agent | tier | what it does |
+|---|---|---|
+| `prereg` | reasoning | flags whether a claim is actually falsifiable, *before* a run |
+| `scenario-gen` | coder | scaffolds a `Scenario` subclass from a claim (leaves `score()` a stub) |
+| `adapt` | coder | generates a Foreign-Corpus adapter module |
+| `brief` | workhorse | plain-English brief for a signed proof |
+| `triage` | reasoning | proposes follow-up scenarios for a REFUTED proof |
+| `confounds` | reasoning | red-teams a VALIDATED proof — alternative explanations + disambiguating tests |
+| `query` | fast | natural-language query over the proof-bundle tree |
+
+Runs against any OpenAI-compatible local runtime — **Ollama**, **MLX-LM**,
+or **LM Studio** — via `OPHAMIN_LLM_BASE_URL` (see `config/lmstudio.env`).
+Every call persists a content-hashed, HMAC-signed `LLMCallRecord` under
+`proofs/llm_calls/`, so LLM-assisted output stays as auditable as a
+normal proof. Hard rules: LLMs **never** override `Verdict.decide(...)`,
+never author statistical scoring, and never run inside the substrate's
+measurement path — all output is advisory, default-off, opt-in per call.
 
 ---
 
@@ -295,7 +357,7 @@ Ophamin/
 │   │   └── wiring/                          WiringProbe — orphan / WIRE_CANDIDATE / wired classifier
 │   ├── measuring/                         # Wheel 2 — pre-registered measurement
 │   │   ├── proof/                           the 9-section Empirical Proof Record
-│   │   ├── scenarios/                       32 scenarios across 5 tiers + authoring helpers
+│   │   ├── scenarios/                       33 scenarios across 5 tiers + authoring helpers
 │   │   ├── metrics/                         three-tier metric model
 │   │   ├── pillars/                         O · F · A · M · I · N (statsmodels / scikit-learn / scipy / …)
 │   │   └── *_helpers.py                     analytic / bayesian / causal / graph / sat_smt / timeseries
@@ -316,10 +378,14 @@ Ophamin/
 │   ├── inspecting/                        # per-primitive profile (composes the wheels)
 │   │                                        catalog + inspector + locator + primitive_profile
 │   ├── interop/                           # SARIF / JUnit XML / MLflow / CycloneDX exporters
+│   ├── agentic/                           # local-LLM agent layer (Ollama / MLX-LM / LM Studio)
+│   │                                        7 agents + signed LLMCallRecord audit
+│   ├── http_api/                          # FastAPI REST surface + provisional web GUI (/ui)
+│   ├── mcp/                               # Model Context Protocol server (STDIO / SSE)
 │   ├── protocols.py                       # plug-in protocols (Pillar / DatasetConnector / …)
 │   ├── verify.py                          # install self-check + CI fast-fail gate
 │   └── cli.py                             # the unified `ophamin` command-line
-├── tests/                                 # 842+ tests, all green
+├── tests/                                 # 2,400+ tests, all green
 └── examples/                              # one runner per scenario + mock end-to-end
 ```
 

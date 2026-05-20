@@ -7,7 +7,37 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.64.4] below for the latest cut.)
+(empty — see [0.64.5] below for the latest cut.)
+
+## [0.64.5] — 2026-05-20
+
+**Docs refresh** — the narrative docs had fallen behind a fast
+versioning campaign + three whole user-facing surfaces shipped this
+cycle (agentic layer, HTTP API + web console, self-test). Brought them
+current, verified against the live CLI / API.
+
+- **README.md**: documented the agentic layer (`ophamin agent` — 7
+  agents + signed `LLMCallRecord` audit + local-runtime support),
+  the serving surfaces (`ophamin http serve` REST + web console at
+  `/ui`, `ophamin mcp`, `ophamin self-test`), and added
+  `agentic/` + `http_api/` + `mcp/` to the structure tree. Fixed stale
+  counts: scenarios 32 → 33, test count 842+ → 2,400+.
+- **ROADMAP.md**: version anchor 0.10.x → 0.64.x + a note that rapid
+  per-cut releases outran the phase numbering (read phases, not tags);
+  a "shipped since" section (serving + agentic surfaces, 33 scenarios);
+  and reconciled "no external LLM in the runtime" with the agentic
+  layer ("no LLM in the *measurement path*"; agents are advisory
+  tooling beside the engine, never inside it).
+- **docs/index.md**: scenarios 32 → 33 + a concise agentic-layer note.
+- **docs/reference/api.md**: added the agentic public API section
+  (`LLMClient` / `pick_model` / `LLMCallRecord` / `persist_call` + the
+  seven agents).
+- **mkdocs.yml**: added the GUI design brief to the Architecture nav;
+  all nav links verified to resolve.
+
+Already current (no change): `CHANGELOG.md` (maintained through every
+cut); `docs/changelog.md` (live include of CHANGELOG); the six-wheels /
+six-pillars / tiers architecture prose.
 
 ## [0.64.4] — 2026-05-20
 

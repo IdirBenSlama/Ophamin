@@ -144,3 +144,30 @@ follow the [semver promise](https://github.com/IdirBenSlama/Ophamin/blob/main/SC
         - Finding
         - FindingSeverity
         - PillarResult
+
+## Agentic layer (local-LLM tooling)
+
+LLM-assisted observatory tooling that sits *beside* the measurement
+engine — advisory, default-off, opt-in per call, and never inside a
+scenario's measurement path. Targets any OpenAI-compatible local
+runtime (Ollama / MLX-LM / LM Studio) via `OPHAMIN_LLM_BASE_URL`; every
+call persists a signed [`LLMCallRecord`](#agentic-layer-local-llm-tooling)
+under `proofs/llm_calls/`.
+
+::: ophamin.agentic
+    options:
+      members:
+        - LLMClient
+        - LLMClientError
+        - TaskTier
+        - TASK_ROUTING
+        - pick_model
+        - LLMCallRecord
+        - persist_call
+
+The seven agents live under `ophamin.agentic.agents` — `adapter_gen`,
+`proof_brief`, `refuted_triage`, `bundle_query`, `prereg_validator`,
+`confound_enumerator`, `scenario_gen` — each exposing a single
+entry-point function. They are driven through the
+`ophamin agent {adapt, brief, triage, query, prereg, confounds, scenario-gen}`
+CLI rather than imported directly.

@@ -110,6 +110,7 @@ nav:
       - Extended audit (2026-05-16): ARCHITECTURE_EXTENDED_AUDIT_2026_05_16.md
       - Intent vs reality (2026-05-16): ARCHITECTURE_INTENT_VS_REALITY_2026_05_16.md
       - Scenario authoring: SCENARIO_AUTHORING.md
+      - Web console (GUI design brief): OPHAMIN_GUI_DESIGN_BRIEF.md
       - Plugin catalog: PLUGIN_CATALOG_2026_05_15.md
       - Kimera observational surface: KIMERA_OBSERVATIONAL_SURFACE_2026_05_15.md
   - Interop:

@@ -45,8 +45,19 @@ signed [Empirical Proof Record](reference/schemas.md):
 - **Measurement-machinery** — claims about the *measurement apparatus*
 - **Structural** — claims about *what the substrate is*, not what it does
 
-32 scenarios ship today. See [`SCENARIO_AUTHORING.md`](SCENARIO_AUTHORING.md)
+33 scenarios ship today. See [`SCENARIO_AUTHORING.md`](SCENARIO_AUTHORING.md)
 for the authoring path.
+
+## Local-LLM agentic layer
+
+`ophamin agent …` adds seven single-purpose, LLM-assisted tools that sit
+*beside* the measurement engine — `prereg` (vet a claim's
+falsifiability), `scenario-gen` / `adapt` (scaffold code), `brief`,
+`triage`, `confounds` (red-team a VALIDATED proof), and `query`. Runs on
+any OpenAI-compatible local runtime (Ollama / MLX-LM / LM Studio); every
+call lands a signed `LLMCallRecord`. LLMs never override a verdict, never
+author scoring, and never run inside the substrate's measurement path —
+all output is advisory + default-off.
 
 ## The load-bearing promise
 

@@ -6,8 +6,15 @@
 > This file is the **year-focused readable summary** for downstream
 > consumers; revisit at every major release.
 
-> **Last updated:** 2026-05-17, against `v0.10.x`. Refresh per
+> **Last updated:** 2026-05-20, against `v0.64.x`. Refresh per
 > [GOVERNANCE.md § Amending this document](https://github.com/IdirBenSlama/Ophamin/blob/main/GOVERNANCE.md).
+>
+> **Version note:** rapid per-cut autonomous-campaign releases pushed the
+> package version far ahead of this roadmap's phase numbering
+> (`0.10.x` → `0.64.x` over days). The **E-series phase plan below is the
+> load-bearing sequencing**, not the version numbers — read phases, not
+> tags. The forward-plan sections (`0.11.x`–`1.0.0`) predate the 0.64
+> reality and are due an owner refresh.
 
 ## What Ophamin is (in one paragraph)
 
@@ -32,7 +39,25 @@ done; Stages 5–6 are landing in `0.9.x` + `0.10.x`.
 | **5** Scientific SOTA | Cross-framework validation, FWER correction, open data, research-grade reproducibility, peer review | 🟡 in flight | 0.9.x – ? |
 | **6** Engineering SOTA | PyPI, SLSA, API stability, cross-language read APIs, community infra | 🟡 in flight | 0.9.x – 0.10.x |
 
-## Where we are: `0.10.x` (May 2026)
+## Where we are: `0.64.x` (May 2026)
+
+### Shipped since this roadmap's last refresh (0.10.x → 0.64.x)
+
+Beyond the elevation-stage work, three operator-facing surfaces landed:
+
+- **Serving surfaces** — `ophamin http serve` (FastAPI REST API + a
+  provisional web console at `/ui`), `ophamin mcp` (MCP server),
+  `ophamin self-test` (dogfood: substrate-free scenarios → signed
+  bundles, also a CI gate).
+- **Local-LLM agentic layer** — `ophamin agent {prereg, scenario-gen,
+  adapt, brief, triage, confounds, query}`: seven advisory tools on any
+  OpenAI-compatible local runtime (Ollama / MLX-LM / LM Studio), each
+  call signed as an `LLMCallRecord`. **Consistent with "no external LLM
+  in the runtime" below** — these are opt-in tooling beside the engine,
+  never inside the measurement / proof path.
+- **Scenario count** grew to 33 across the five tiers.
+
+### Path to 1.0.0
 
 The two prerequisites for `1.0.0` per [RFC 0002 §3.2 Phase E8](docs/rfc/0002-sota-elevation-stages-5-and-6.md)
 are both met:
@@ -81,9 +106,13 @@ When E4 closes + E5 has reviewer feedback, the owner cuts `1.0.0`.
 
 ## What we are NOT doing
 
-- **No external LLM in the runtime.** The framework is library code +
-  pre-registered scientific scenarios; an LLM-in-the-loop would
-  contaminate every signed proof's reproducibility claim.
+- **No external LLM in the measurement path.** An LLM-in-the-loop
+  would contaminate every signed proof's reproducibility claim, so
+  `Verdict.decide(...)` and the statistical pillars never call a model.
+  The `ophamin agent` layer (local LLMs) is *observatory tooling beside*
+  the engine — advisory, default-off, opt-in per call, and every call is
+  itself signed + audited. It never authors verdicts or scoring and
+  never runs inside a scenario's measurement path.
 - **No surveillance / behavioural-modification scenarios.** The
   framework's scope is empirical measurement of substrates that
   consent to being measured. Scenarios that target unconsenting
