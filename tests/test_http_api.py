@@ -412,6 +412,57 @@ class TestBundlesEndpoints:
         assert r.headers["content-type"] == "application/json"
         assert r.json() == {"hello": "world"}
 
+    def test_bundles_file_serves_html_inline_not_attachment(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """proof.html MUST be served Content-Disposition: inline so the
+        GUI's iframe RENDERS it instead of triggering a download.
+
+        Regression guard (0.63.5): passing `filename=` to FileResponse
+        defaults the disposition to `attachment`, which blanks the
+        GUI's HTML/PDF iframe (browser downloads rather than displays).
+        The file endpoint's docstring contract is "the browser renders
+        HTML/PDF natively" — that depends on inline disposition.
+        """
+        bundle = tmp_path / "scientific" / "rosetta-scaling" / "2026-05-19_validated_abcdef012345"
+        bundle.mkdir(parents=True)
+        (bundle / "proof.html").write_text("<!doctype html><title>Proof</title><body>x</body>")
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "scientific", "scenario": "rosetta-scaling",
+            "bundle": "2026-05-19_validated_abcdef012345",
+            "filename": "proof.html",
+            "proofs_root": str(tmp_path),
+        })
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("text/html")
+        disp = r.headers.get("content-disposition", "")
+        assert disp.startswith("inline"), (
+            f"proof.html must be inline so the iframe renders it, got: {disp!r}"
+        )
+        assert "attachment" not in disp
+
+    def test_bundles_file_serves_pdf_inline_not_attachment(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """proof.pdf likewise must be inline so the PDF iframe renders
+        it in-browser rather than downloading."""
+        bundle = tmp_path / "scientific" / "rosetta-scaling" / "2026-05-19_validated_abcdef012345"
+        bundle.mkdir(parents=True)
+        # Minimal PDF header is enough for the disposition assertion.
+        (bundle / "proof.pdf").write_bytes(b"%PDF-1.4\n%%EOF\n")
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "scientific", "scenario": "rosetta-scaling",
+            "bundle": "2026-05-19_validated_abcdef012345",
+            "filename": "proof.pdf",
+            "proofs_root": str(tmp_path),
+        })
+        assert r.status_code == 200
+        disp = r.headers.get("content-disposition", "")
+        assert disp.startswith("inline"), (
+            f"proof.pdf must be inline so the iframe renders it, got: {disp!r}"
+        )
+        assert "attachment" not in disp
+
 
 class TestProvisionalGUIMount:
     """The /ui endpoint serves the bundled SPA when the static dir exists."""

@@ -428,6 +428,15 @@ def build_app() -> FastAPI:
             path,
             media_type=_BUNDLE_FILE_MEDIATYPE.get(filename, "application/octet-stream"),
             filename=filename,
+            # `inline` so proof.html / proof.pdf RENDER inside the GUI's
+            # iframe instead of triggering a browser download. Passing
+            # `filename=` alone defaults the disposition to `attachment`,
+            # which blanks the iframe (the browser downloads rather than
+            # displays). The docstring's "renders HTML/PDF natively"
+            # contract depends on this. JSON/MD/TEX are fetched via
+            # fetch() so the disposition is moot for them; inline is
+            # harmless there and keeps one code path.
+            content_disposition_type="inline",
         )
 
     # ------------------------------------------------------------------

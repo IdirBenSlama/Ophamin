@@ -7,7 +7,57 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.63.4] below for the latest cut.)
+(empty — see [0.63.5] below for the latest cut.)
+
+## [0.63.5] — 2026-05-20
+
+**Headline:** Two GUI bug fixes found by actually driving the
+provisional GUI in a browser: the bundle viewer's HTML/PDF tabs
+rendered blank, and `python -m ophamin` (which `.claude/launch.json`
+depends on) was broken.
+
+Fix 1 — HTML/PDF format tabs rendered blank:
+
+- `GET /proofs/bundles/file` served `proof.html` / `proof.pdf` with
+  `Content-Disposition: attachment` (a side effect of passing
+  `filename=` to Starlette's `FileResponse`, which defaults the
+  disposition to `attachment`). An `<iframe>` pointed at an
+  `attachment` response stays blank — the browser downloads instead
+  of rendering. The endpoint's own docstring contract says "the
+  browser renders HTML/PDF natively"; the implementation contradicted
+  it.
+- Fix: pass `content_disposition_type="inline"` so the iframe renders
+  the proof. Verified in-browser: the HTML tab now shows the styled
+  proof record AND its embedded matplotlib CI chart
+  (`walker_m4_conservation_ratio: observed value vs pre-registered
+  threshold`). JSON/MD/TEX are fetched via `fetch()` so the
+  disposition was always moot for them; inline is harmless and keeps
+  one code path.
+- 2 hardening pins (`tests/test_http_api.py`, `TestBundlesEndpoints`):
+  `test_bundles_file_serves_html_inline_not_attachment` +
+  `test_bundles_file_serves_pdf_inline_not_attachment`. 43 passed.
+
+Fix 2 — `python -m ophamin` was broken:
+
+- `src/ophamin/__main__.py` didn't exist, so `python -m ophamin`
+  raised `No module named ophamin.__main__`. `.claude/launch.json`'s
+  preview config uses `runtimeArgs: ["-m", "ophamin", ...]` — it
+  would have failed if invoked. The `ophamin` console-script entry
+  point worked; the module-execution path didn't.
+- Fix: add a 3-line `__main__.py` that delegates to
+  `ophamin.cli:main` (the same target as `[project.scripts]`), so
+  `python -m ophamin <args>` and `ophamin <args>` behave identically.
+
+Notes:
+
+- The blank tab in an UPGRADING browser session can persist one extra
+  reload due to HTTP cache (the pre-fix `attachment` response is
+  cached). A fresh browser, or one hard reload, renders correctly.
+  Confirmed via a cache-bypassing fetch returning `inline` + a 31 KB
+  valid HTML body.
+- PDF tab presence is per-bundle: bundles render 4 or 5 format tabs
+  depending on whether `proof.pdf` was generated for that run. Not a
+  bug — just an observation surfaced during the GUI tour.
 
 ## [0.63.4] — 2026-05-20
 
