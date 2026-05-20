@@ -527,13 +527,26 @@
         if (!box || !name) return;
         box.innerHTML = '<span class="muted">Loading claim…</span>';
         try {
-            const claim = await fetchJSON(`/scenarios/${encodeURIComponent(name)}/claim`);
-            const t = claim.threshold || {};
+            // Shape: { name, metadata, claim_available, claim?, claim_unavailable_reason? }
+            // The claim five-tuple is nested under `.claim` and gated by
+            // `claim_available` (some scenarios need constructor args
+            // before a claim can be materialised from defaults).
+            const resp = await fetchJSON(`/scenarios/${encodeURIComponent(name)}/claim`);
+            const goal = (resp.metadata && resp.metadata.goal) || "";
+            if (!resp.claim_available) {
+                box.innerHTML =
+                    (goal ? `<div class="claim-statement">${escapeHtml(goal)}</div>` : "")
+                    + `<div class="claim-threshold muted">claim needs constructor args`
+                    + `${resp.claim_unavailable_reason ? " — set them in kwargs below" : ""}</div>`;
+                return;
+            }
+            const c = resp.claim || {};
+            const t = c.threshold || {};
             const thr = t.metric
                 ? `${t.metric} ${t.comparator || ""} ${t.value}${t.units ? " " + t.units : ""}`
                 : "—";
             box.innerHTML =
-                `<div class="claim-statement">${escapeHtml(claim.statement || "")}</div>`
+                `<div class="claim-statement">${escapeHtml(c.statement || goal)}</div>`
                 + `<div class="claim-threshold"><strong>threshold:</strong> `
                 + `<code>${escapeHtml(thr)}</code></div>`;
         } catch (e) {

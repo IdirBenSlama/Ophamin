@@ -7,7 +7,23 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.64.0] below for the latest cut.)
+(empty — see [0.64.1] below for the latest cut.)
+
+## [0.64.1] — 2026-05-20
+
+**Fix:** the 0.64.0 Run-tab claim preview read the wrong response
+shape. `GET /scenarios/{name}/claim` returns
+`{ metadata, claim_available, claim?, claim_unavailable_reason? }`
+with the claim five-tuple nested under `.claim` and gated by
+`claim_available` — but `showRunClaim` read `claim.threshold` /
+`claim.statement` at the top level, so it always rendered an empty
+statement + "—" threshold regardless of scenario. (The 0.64.0
+in-browser check gave a false positive because the threshold `<div>`
+always renders.) Now reads the real nested/gated shape: shows the
+claim statement + threshold when available, falls back to the
+scenario goal + a "claim needs constructor args" note when not.
+Verified in-browser: anova-crosscheck shows
+`max_absolute_anova_difference <= 1e-9 F_or_p`. Client-only.
 
 ## [0.64.0] — 2026-05-20
 
