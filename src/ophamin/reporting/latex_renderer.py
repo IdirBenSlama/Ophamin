@@ -56,14 +56,124 @@ def _write_chart(
     return f"assets/{out.stem}"
 
 
-_DOC_PREAMBLE = (
+# ---------------------------------------------------------------------------
+# Unicode handling
+# ---------------------------------------------------------------------------
+#
+# Proof statements routinely carry Greek + mathematical notation as raw
+# Unicode (e.g. "Normal(mu_g, sigma^2)" written with the literal glyphs
+# "Normal(μ_g, σ²)", "Φ ≥ 0.62", "Δ ∈
+# [−1, 1]"). pdflatex with inputenc cannot typeset those codepoints and
+# hard-fails with "Unicode character μ (U+03BC) not set up for use with
+# LaTeX". Two things fix this together:
+#
+# 1. The PDF compile prefers a Unicode-native engine (xelatex / lualatex);
+#    see :mod:`ophamin.reporting.pdf_renderer`. Those engines never
+#    hard-fail on a stray codepoint — at worst an unmapped glyph is a
+#    "Missing character" warning, not a compile error.
+# 2. Every Greek letter / math relation we expect is mapped here via
+#    ``\newunicodechar`` to an ``\ensuremath{...}`` command, so it typesets
+#    through the math fonts — which every TeX install ships, with no
+#    system-font discovery (works identically on macOS dev + Linux CI).
+#    Text punctuation maps to text commands. This mapping ALSO lets a plain
+#    pdflatex run compile the mapped subset, so the standalone ``.tex``
+#    output degrades gracefully when only pdflatex is available.
+
+#: Unicode char -> LaTeX math command (emitted inside ``\ensuremath{...}``
+#: so it works whether the surrounding context is text or math mode).
+_UNICODE_MATH: dict[str, str] = {
+    # Lowercase Greek
+    "α": r"\alpha", "β": r"\beta", "γ": r"\gamma",
+    "δ": r"\delta", "ε": r"\varepsilon", "ζ": r"\zeta",
+    "η": r"\eta", "θ": r"\theta", "ι": r"\iota",
+    "κ": r"\kappa", "λ": r"\lambda", "μ": r"\mu",
+    "ν": r"\nu", "ξ": r"\xi", "π": r"\pi",
+    "ρ": r"\rho", "ς": r"\varsigma", "σ": r"\sigma",
+    "τ": r"\tau", "υ": r"\upsilon", "φ": r"\varphi",
+    "χ": r"\chi", "ψ": r"\psi", "ω": r"\omega",
+    # Uppercase Greek with distinct LaTeX commands
+    "Γ": r"\Gamma", "Δ": r"\Delta", "Θ": r"\Theta",
+    "Λ": r"\Lambda", "Ξ": r"\Xi", "Π": r"\Pi",
+    "Σ": r"\Sigma", "Υ": r"\Upsilon", "Φ": r"\Phi",
+    "Ψ": r"\Psi", "Ω": r"\Omega",
+    # Relations / operators
+    "≤": r"\leq", "≥": r"\geq", "≈": r"\approx",
+    "≠": r"\neq", "≡": r"\equiv", "∝": r"\propto",
+    "∈": r"\in", "∉": r"\notin", "⊂": r"\subset",
+    "⊃": r"\supset", "⊆": r"\subseteq", "⊇": r"\supseteq",
+    "∪": r"\cup", "∩": r"\cap", "∅": r"\emptyset",
+    "∀": r"\forall", "∃": r"\exists", "√": r"\surd",
+    "∑": r"\sum", "∏": r"\prod", "∫": r"\int",
+    "∞": r"\infty", "∂": r"\partial", "∇": r"\nabla",
+    "→": r"\rightarrow", "←": r"\leftarrow",
+    "↔": r"\leftrightarrow", "⇒": r"\Rightarrow",
+    "⇐": r"\Leftarrow", "⇔": r"\Leftrightarrow",
+    "−": "-", "±": r"\pm", "∓": r"\mp",
+    "×": r"\times", "÷": r"\div", "⋅": r"\cdot",
+    "∘": r"\circ", "⊗": r"\otimes", "⊕": r"\oplus",
+    "′": r"\prime",
+    # Blackboard-bold number sets
+    "ℝ": r"\mathbb{R}", "ℕ": r"\mathbb{N}",
+    "ℤ": r"\mathbb{Z}", "ℚ": r"\mathbb{Q}",
+    "ℂ": r"\mathbb{C}",
+}
+
+#: Unicode char -> LaTeX text command (emitted verbatim in text mode).
+_UNICODE_TEXT: dict[str, str] = {
+    "—": r"\textemdash{}", "–": r"\textendash{}",
+    "…": r"\ldots{}", "§": r"\S{}", "¶": r"\P{}",
+    "·": r"\textperiodcentered{}", "°": r"\textdegree{}",
+    "²": r"\textsuperscript{2}", "³": r"\textsuperscript{3}",
+    "¹": r"\textsuperscript{1}", "⁰": r"\textsuperscript{0}",
+    "⁴": r"\textsuperscript{4}", "⁵": r"\textsuperscript{5}",
+    "⁶": r"\textsuperscript{6}", "⁷": r"\textsuperscript{7}",
+    "⁸": r"\textsuperscript{8}", "⁹": r"\textsuperscript{9}",
+    "‘": r"\textquoteleft{}", "’": r"\textquoteright{}",
+    "“": r"\textquotedblleft{}", "”": r"\textquotedblright{}",
+}
+
+
+def _unicode_setup() -> str:
+    """Build the ``\\newunicodechar`` block mapping every known Greek /
+    math / punctuation codepoint to a font-independent LaTeX command.
+
+    Loaded after ``inputenc`` (pdflatex branch) and ``amssymb`` so the
+    ``\\mathbb`` mappings resolve. Engine-agnostic — ``newunicodechar``
+    works under pdflatex, xelatex and lualatex alike.
+    """
+    lines = ["\\usepackage{newunicodechar}"]
+    for ch, cmd in _UNICODE_MATH.items():
+        lines.append(f"\\newunicodechar{{{ch}}}{{\\ensuremath{{{cmd}}}}}")
+    for ch, cmd in _UNICODE_TEXT.items():
+        lines.append(f"\\newunicodechar{{{ch}}}{{{cmd}}}")
+    return "\n".join(lines) + "\n"
+
+
+# Preamble is split head / unicode-setup / tail so the generated
+# \newunicodechar block (which must not be subject to Python ``%``
+# substitution) sits between the static head and the title/date tail.
+_DOC_PREAMBLE_HEAD = (
     "\\documentclass{article}\n"
-    "\\usepackage[utf8]{inputenc}\n"
-    "\\usepackage[T1]{fontenc}\n"
+    # iftex lets one preamble serve every engine: pdflatex gets the
+    # legacy inputenc/fontenc stack; xelatex/lualatex (the engines the
+    # PDF compile prefers) get fontspec for native Unicode.
+    "\\usepackage{iftex}\n"
+    "\\ifPDFTeX\n"
+    "  \\usepackage[utf8]{inputenc}\n"
+    "  \\usepackage[T1]{fontenc}\n"
+    "  \\usepackage{lmodern}\n"
+    "  \\usepackage{textcomp}\n"
+    "\\else\n"
+    "  \\usepackage{fontspec}\n"
+    "\\fi\n"
+    "\\usepackage{amssymb}\n"
     "\\usepackage{booktabs}\n"
     "\\usepackage{graphicx}\n"
     "\\usepackage{hyperref}\n"
     "\\usepackage{xcolor}\n"
+)
+
+_DOC_PREAMBLE_TAIL = (
     "\\definecolor{validated}{HTML}{047857}\n"
     "\\definecolor{refuted}{HTML}{B91C1C}\n"
     "\\definecolor{inconclusive}{HTML}{9A3412}\n"
@@ -78,7 +188,9 @@ def _wrap_document(title: str, date: str, body: str, *, stand_alone: bool = True
     if not stand_alone:
         return body
     return (
-        _DOC_PREAMBLE % {"title": _esc(title), "date": _esc(date)}
+        _DOC_PREAMBLE_HEAD
+        + _unicode_setup()
+        + _DOC_PREAMBLE_TAIL % {"title": _esc(title), "date": _esc(date)}
         + body
         + "\n\\end{document}\n"
     )

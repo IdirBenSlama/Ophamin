@@ -24,7 +24,9 @@ from ophamin.reporting.runner import DEFAULT_RENDERERS
 
 
 def _toolchain_present() -> bool:
-    return any(shutil.which(c) for c in ("latexmk", "pdflatex"))
+    # A PDF can be produced as long as SOME engine is available; latexmk
+    # is only the optional driver.
+    return any(shutil.which(c) for c in ("xelatex", "lualatex", "pdflatex"))
 
 
 pdf_only = pytest.mark.skipif(
@@ -118,7 +120,9 @@ def minimal_proof() -> dict:
 @pdf_only
 def test_pdfreporter_constructs_when_toolchain_present():
     reporter = PDFReporter()
-    assert reporter.compiler in ("latexmk", "pdflatex")
+    # Unicode-native engines are preferred; pdflatex is the last resort.
+    assert reporter.compiler in ("xelatex", "lualatex", "pdflatex")
+    assert isinstance(reporter.uses_latexmk, bool)
 
 
 def test_pdfreporter_raises_when_toolchain_missing(monkeypatch):
@@ -271,3 +275,111 @@ def test_with_pdf_extension_idempotent():
 def test_with_pdf_extension_swaps_suffix():
     p = Path("/tmp/foo.tex")
     assert PDFReporter._with_pdf_extension(p) == Path("/tmp/foo.pdf")
+
+
+# --------------------------------------------------------------------------
+# Unicode / Greek-math compile (0.62.0 contract)
+#
+# Statistics scenarios emit raw Greek + math notation ("Normal(μ_g, σ²)",
+# "Φ ≥ 0.62", "Δ ∈ [−1, 1]"). Before the Unicode-engine fix these
+# hard-failed every PDF compile with:
+#   ! LaTeX Error: Unicode character μ (U+03BC) not set up for use with LaTeX.
+# These tests pin the fix so that regression is caught.
+# --------------------------------------------------------------------------
+
+
+@pytest.fixture
+def greek_proof(minimal_proof) -> dict:
+    """A proof carrying Greek + math Unicode in statement / operationalisation
+    / reasoning — the exact shape that hard-failed pdflatex pre-fix."""
+    proof = dict(minimal_proof)
+    proof["claim"] = {
+        **minimal_proof["claim"],
+        "statement": (
+            "Posterior mean μ_g of Normal(μ, σ²) with Φ ≥ 0.62; "
+            "Δ ∈ [−1, 1], ρ ≈ 0.8, α-level 0.05."
+        ),
+        "operationalization": "estimate μ ± σ via NUTS; report Φ fixed-point.",
+    }
+    proof["verdict"] = {
+        **minimal_proof["verdict"],
+        "reasoning": "μ=0.62, σ=0.03 → Φ ≥ threshold; ρ ∈ ℝ, √n scaling.",
+    }
+    return proof
+
+
+@pdf_only
+def test_render_proof_with_unicode_greek_math(tmp_path, greek_proof):
+    """A proof containing μ / σ / Φ (and ≤ ∈ Δ ρ √ …) must compile to a
+    valid PDF. This is the 0.62.0 self-test contract."""
+    out = tmp_path / "greek.pdf"
+    result = PDFReporter().render_proof(greek_proof, out)
+    assert result == out
+    assert out.is_file()
+    assert out.read_bytes()[:4] == b"%PDF", "output is not a valid PDF"
+    assert out.stat().st_size > 10_000
+    # The raw Greek must survive into the .tex sidecar (escaped text, not
+    # stripped) — the preamble's \newunicodechar maps it at typeset time.
+    tex = (tmp_path / "greek.tex").read_text(encoding="utf-8")
+    for ch in ("μ", "σ", "Φ", "Δ", "ρ"):
+        assert ch in tex, f"Greek glyph {ch!r} missing from rendered .tex"
+
+
+@pdf_only
+def test_unicode_glyphs_not_silently_dropped(tmp_path, greek_proof):
+    """Beyond 'it compiles': assert ZERO 'Missing character' warnings in the
+    TeX log — every Greek/math glyph must actually render, not blank. A
+    silently-dropped glyph would violate the no-silent-degradation rule
+    (the PDF would be 'valid' but its content corrupted)."""
+    out = tmp_path / "greek.pdf"
+    PDFReporter(keep_artifacts=True).render_proof(greek_proof, out)
+    logs = list((tmp_path / ".pdfbuild").glob("*.log"))
+    assert logs, "expected a TeX .log in the kept build dir"
+    log_text = logs[0].read_text(errors="replace")
+    missing = [ln for ln in log_text.splitlines() if "Missing character" in ln]
+    assert not missing, f"glyphs silently dropped (font lacks them): {missing[:5]}"
+
+
+def test_latex_preamble_is_unicode_engine_aware():
+    """The standalone .tex preamble must branch on engine (iftex) and load
+    the \\newunicodechar mappings so Greek/math compiles under xelatex
+    (native) and degrades gracefully under pdflatex. No toolchain needed."""
+    from ophamin.reporting.latex_renderer import _wrap_document
+
+    doc = _wrap_document("Title", "2026-05-20", "body", stand_alone=True)
+    assert "\\documentclass{article}" in doc
+    assert "\\usepackage{iftex}" in doc
+    assert "\\ifPDFTeX" in doc
+    assert "\\usepackage{fontspec}" in doc          # xelatex/lualatex branch
+    assert "\\usepackage{newunicodechar}" in doc
+    # The exact codepoints from the failing report must be mapped.
+    for ch in ("μ", "σ", "Φ"):
+        assert f"\\newunicodechar{{{ch}}}" in doc, f"{ch!r} not mapped"
+    # Fragment mode stays preamble-free (unchanged contract).
+    assert "\\documentclass" not in _wrap_document("T", "D", "b", stand_alone=False)
+
+
+def test_engine_detection_prefers_unicode_native(monkeypatch):
+    """Toolchain detection must prefer a Unicode-native engine
+    (xelatex > lualatex > pdflatex) so Greek typesets natively, and report
+    latexmk as the driver when present. No toolchain needed."""
+    import ophamin.reporting.pdf_renderer as mod
+
+    # All present → xelatex wins, latexmk drives.
+    monkeypatch.setattr(mod.shutil, "which", lambda n: f"/bin/{n}")
+    r = PDFReporter()
+    assert r.compiler == "xelatex"
+    assert r.uses_latexmk is True
+
+    # xelatex absent → lualatex.
+    present = {"lualatex", "pdflatex", "latexmk"}
+    monkeypatch.setattr(mod.shutil, "which",
+                        lambda n: f"/bin/{n}" if n in present else None)
+    assert PDFReporter().compiler == "lualatex"
+
+    # Only pdflatex, no latexmk → pdflatex, direct invocation.
+    monkeypatch.setattr(mod.shutil, "which",
+                        lambda n: f"/bin/{n}" if n == "pdflatex" else None)
+    r = PDFReporter()
+    assert r.compiler == "pdflatex"
+    assert r.uses_latexmk is False

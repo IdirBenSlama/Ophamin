@@ -2,7 +2,11 @@
 
 Delegates LaTeX rendering to :class:`LaTeXReporter` (so the same
 table / figure shape used for `.tex` output is used here), then shells
-out to ``latexmk -pdf`` or ``pdflatex`` to produce the PDF.
+out to a TeX engine to produce the PDF. A Unicode-native engine
+(``xelatex`` / ``lualatex``) is preferred so Greek + math glyphs in proof
+statements (μ, σ, Φ, ≤, …) typeset natively; ``pdflatex`` is the last
+resort. ``latexmk`` drives the chosen engine when present (multi-pass +
+cleanup), otherwise the engine is invoked directly.
 
 Failure mode (per the framework's no-fallback rule):
 
@@ -32,8 +36,20 @@ from ophamin.reporting.base import ReportFormat, ReportRenderer
 from ophamin.reporting.latex_renderer import LaTeXReporter
 
 
-#: Preferred compiler chain — latexmk first (handles multi-pass), pdflatex fallback.
-_COMPILERS: tuple[str, ...] = ("latexmk", "pdflatex")
+#: TeX engines we can drive, in preference order. Unicode-native engines
+#: (xelatex, lualatex) come first so Greek / math glyphs in proof
+#: statements (μ, σ, Φ, ≤, …) typeset natively. pdflatex is the last
+#: resort — it relies on the inputenc + \newunicodechar mappings the
+#: template emits and hard-fails on any Unicode char outside that set.
+_ENGINES: tuple[str, ...] = ("xelatex", "lualatex", "pdflatex")
+
+#: latexmk is the preferred *driver* (handles multi-pass + cleanup) when
+#: present; this maps each engine to the latexmk flag that selects it.
+_LATEXMK_FLAG: dict[str, str] = {
+    "xelatex": "-xelatex",
+    "lualatex": "-lualatex",
+    "pdflatex": "-pdf",
+}
 
 
 class PDFToolchainMissingError(RuntimeError):
@@ -76,15 +92,22 @@ class PDFCompileError(RuntimeError):
         )
 
 
-def _detect_compiler() -> str:
-    """Return the name of the first available compiler in :data:`_COMPILERS`.
+def _detect_toolchain() -> tuple[str, bool]:
+    """Return ``(engine, use_latexmk)`` for the best available toolchain.
 
-    Loud-fails with :class:`PDFToolchainMissingError` if none are found.
+    ``engine`` is the first available of :data:`_ENGINES` (Unicode-native
+    engines preferred). ``use_latexmk`` is True when ``latexmk`` is on PATH
+    and will be used as the driver (``latexmk -<engine>``); otherwise the
+    engine is invoked directly.
+
+    Loud-fails with :class:`PDFToolchainMissingError` if no engine is found
+    — the framework's no-fallback rule forbids silent degradation to
+    "just emit .tex".
     """
-    for name in _COMPILERS:
-        if shutil.which(name):
-            return name
-    raise PDFToolchainMissingError(_COMPILERS)
+    engine = next((name for name in _ENGINES if shutil.which(name)), None)
+    if engine is None:
+        raise PDFToolchainMissingError(_ENGINES)
+    return engine, shutil.which("latexmk") is not None
 
 
 class PDFReporter(ReportRenderer):
@@ -104,15 +127,26 @@ class PDFReporter(ReportRenderer):
     format = ReportFormat.PDF
 
     def __init__(self, *, keep_artifacts: bool = False) -> None:
-        # Detect compiler eagerly — fail fast if missing.
-        self._compiler = _detect_compiler()
+        # Detect toolchain eagerly — fail fast if missing.
+        self._engine, self._use_latexmk = _detect_toolchain()
         self._keep_artifacts = bool(keep_artifacts)
         self._latex = LaTeXReporter(stand_alone=True)
 
     @property
     def compiler(self) -> str:
-        """The selected TeX compiler (``latexmk`` or ``pdflatex``)."""
-        return self._compiler
+        """The selected TeX engine (``xelatex``, ``lualatex`` or ``pdflatex``).
+
+        Unicode-native engines are preferred so Greek / math glyphs in proof
+        statements typeset correctly; ``pdflatex`` is the last resort.
+        """
+        return self._engine
+
+    @property
+    def uses_latexmk(self) -> bool:
+        """Whether ``latexmk`` drives the compile (vs. invoking the engine
+        directly). ``latexmk`` is preferred for multi-pass + cleanup when
+        present, but the engine still determines Unicode behaviour."""
+        return self._use_latexmk
 
     def render_proof(self, record: dict[str, Any], out_path: Path) -> Path:
         return self._render(record, out_path, kind="proof")
@@ -140,23 +174,28 @@ class PDFReporter(ReportRenderer):
             raise ValueError(f"unknown record kind: {kind!r}")
 
         # Run the compiler in the build dir so its working dir is right.
-        if self._compiler == "latexmk":
+        # latexmk (when present) drives the chosen engine and handles
+        # multi-pass + cleanup; otherwise invoke the engine directly.
+        if self._use_latexmk:
             cmd = [
-                "latexmk", "-pdf", "-interaction=nonstopmode",
-                "-halt-on-error", "-quiet", tex_path.name,
-            ]
-        else:  # pdflatex — run twice for refs / TOC, though our doc has none today
-            cmd = [
-                "pdflatex", "-interaction=nonstopmode", "-halt-on-error",
+                "latexmk", _LATEXMK_FLAG[self._engine],
+                "-interaction=nonstopmode", "-halt-on-error", "-quiet",
                 tex_path.name,
             ]
+            compiler_label = f"latexmk {_LATEXMK_FLAG[self._engine]}"
+        else:  # invoke the engine directly — our doc has no refs/TOC to resolve
+            cmd = [
+                self._engine, "-interaction=nonstopmode", "-halt-on-error",
+                tex_path.name,
+            ]
+            compiler_label = self._engine
 
         completed = subprocess.run(
             cmd, cwd=build_dir, capture_output=True, text=True, check=False,
         )
         if completed.returncode != 0:
             raise PDFCompileError(
-                tex_path, self._compiler, completed.returncode,
+                tex_path, compiler_label, completed.returncode,
                 completed.stderr + "\n--- STDOUT ---\n" + completed.stdout,
             )
 
@@ -164,7 +203,7 @@ class PDFReporter(ReportRenderer):
         built_pdf = build_dir / (tex_path.stem + ".pdf")
         if not built_pdf.is_file():
             raise PDFCompileError(
-                tex_path, self._compiler, 0,
+                tex_path, compiler_label, 0,
                 f"compiler reported success but {built_pdf} was not produced",
             )
         shutil.move(str(built_pdf), str(out_path))

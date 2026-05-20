@@ -7,7 +7,33 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.64.5] below for the latest cut.)
+(empty — see [0.64.6] below for the latest cut.)
+
+## [0.64.6] — 2026-05-20
+
+**Fix:** PDF reporting now compiles proofs containing Greek / math
+Unicode. Previously `ophamin self-test` ERRORed on most scenarios with
+`PDFCompileError: latexmk returned 12` — root cause
+`LaTeX Error: Unicode character μ (U+03BC)`: the `.tex` template emitted
+raw Greek (e.g. "Normal(μ_g, σ²)", "Φ ≥ 0.62") but the compile targeted
+pdflatex without Unicode support. (Surfaced during the 0.64.2 dependency
+validation; tracked + fixed in a dedicated session.)
+
+- **`reporting/pdf_renderer.py`**: `_detect_toolchain()` picks the best
+  available engine in preference order `xelatex → lualatex → pdflatex`
+  (Unicode-native engines first), driven by `latexmk` when present
+  (multi-pass + cleanup) or invoked directly otherwise.
+- **`reporting/latex_renderer.py`**: emits a `\newunicodechar` block
+  mapping Greek/math codepoints to `\ensuremath{…}` commands (μ→\mu,
+  Φ→\Phi, …) so even the pdflatex fallback typesets them; hard-fails
+  loudly on any Unicode char outside the known set.
+- **CI** (`self-test.yml`): installs a Unicode-capable TeX engine so the
+  self-test PDF gate passes in CI.
+- Hardening: `tests/test_pdf_renderer.py` extended (17 passed) — includes
+  compiling a proof with μ/σ/Φ to PDF and asserting success.
+
+Verified: `ophamin self-test` now reports **10 VALIDATED / 0 errored**
+(was 9 ERROR + 1 VALIDATED), each bundle carrying a valid `proof.pdf`.
 
 ## [0.64.5] — 2026-05-20
 

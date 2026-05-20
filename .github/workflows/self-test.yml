@@ -58,12 +58,21 @@ jobs:
       - name: Install LaTeX toolchain (for PDF renders)
         run: |
           # We want the full bundle (incl. proof.pdf) so the bundle
-          # tree the GUI browses is complete. apt's texlive-base +
-          # latexmk is enough for the simple proof.tex template.
+          # tree the GUI browses is complete. Proof statements carry raw
+          # Greek + math Unicode (μ, σ, Φ, ≤, …), so we need:
+          #   - texlive-xetex     : xelatex, the Unicode-native engine the
+          #                         PDF renderer prefers (typesets Greek
+          #                         natively instead of hard-failing).
+          #   - texlive-latex-extra: newunicodechar, which the .tex preamble
+          #                         loads to map Greek/math codepoints to
+          #                         math-font commands (used under BOTH
+          #                         xelatex and the pdflatex fallback).
+          # fontspec / iftex / amsfonts ship with the recommended/base sets.
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
               texlive-latex-base texlive-latex-recommended \
-              texlive-fonts-recommended latexmk
+              texlive-fonts-recommended texlive-latex-extra \
+              texlive-xetex latexmk
 
       - name: Run self-test (writes signed bundles)
         id: selftest
