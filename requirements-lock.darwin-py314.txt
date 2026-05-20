@@ -347,7 +347,7 @@ starlette==0.52.1
 starlette-testclient==0.4.1
 statsforecast==2.0.3
 statsmodels==0.14.6
-stevedore==5.7.0
+stevedore==5.8.0
 stumpy==1.14.1
 sympy==1.14.0
 tabulate==0.10.0
