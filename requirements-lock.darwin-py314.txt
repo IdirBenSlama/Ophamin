@@ -60,7 +60,7 @@ celery==5.6.3
 certifi==2026.4.22
 cffi==2.0.0
 charset-normalizer==3.4.7
-click==8.3.3
+click==8.4.0
 click-didyoumean==0.3.1
 click-option-group==0.5.9
 click-plugins==1.1.1.2
