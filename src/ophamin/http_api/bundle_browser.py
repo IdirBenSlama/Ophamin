@@ -36,6 +36,17 @@ ALLOWED_BUNDLE_FILES: frozenset[str] = frozenset({
     "proof.json", "proof.md", "proof.html", "proof.tex", "proof.pdf",
 })
 
+#: Bundle assets live in `<bundle>/assets/<name>.<ext>` (matplotlib
+#: charts referenced by proof.md's relative `![](assets/...)` links;
+#: proof.html embeds them as data-URIs so it's self-contained, but the
+#: MD view needs them served). Only image extensions, only a single
+#: `assets/` segment, only a safe basename charset. The `.resolve()` +
+#: containment check in safe_bundle_file_path is the second line of
+#: defense; this regex is the first.
+_ASSET_FILE_RE = re.compile(
+    r"^assets/[A-Za-z0-9][A-Za-z0-9._-]*\.(png|jpg|jpeg|svg|webp|gif)$"
+)
+
 #: A bundle dir's name is `<YYYY-MM-DD>_<verdict>_<short-hash>`.
 #: Match strictly so a stray sibling dir doesn't get picked up as a bundle.
 _BUNDLE_DIR_RE = re.compile(
@@ -206,10 +217,16 @@ def safe_bundle_file_path(
         raise BundlePathError(f"invalid scenario name: {scenario!r}")
     if not _BUNDLE_DIR_RE.match(bundle):
         raise BundlePathError(f"invalid bundle dir name: {bundle!r}")
-    if filename not in ALLOWED_BUNDLE_FILES:
+    # filename is either one of the canonical five proof.* files OR a
+    # bundle asset (assets/<name>.<img-ext>). ".." is refused outright
+    # even though the containment check below would also catch it —
+    # belt and suspenders for the one path that accepts a slash.
+    is_proof_file = filename in ALLOWED_BUNDLE_FILES
+    is_asset = bool(_ASSET_FILE_RE.match(filename)) and ".." not in filename
+    if not (is_proof_file or is_asset):
         raise BundlePathError(
             f"refusing to serve {filename!r}; allowed: "
-            f"{sorted(ALLOWED_BUNDLE_FILES)}"
+            f"{sorted(ALLOWED_BUNDLE_FILES)} or assets/<name>.<png|jpg|jpeg|svg|webp|gif>"
         )
 
     root = Path(proofs_root).resolve()

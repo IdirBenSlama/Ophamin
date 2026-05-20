@@ -463,6 +463,86 @@ class TestBundlesEndpoints:
         )
         assert "attachment" not in disp
 
+    def _bundle_with_asset(self, tmp_path):
+        bundle = tmp_path / "scientific" / "rosetta-scaling" / "2026-05-19_validated_abcdef012345"
+        (bundle / "assets").mkdir(parents=True)
+        (bundle / "proof.md").write_text(
+            "# Proof\n\n![chart](assets/ci_metric.png)\n"
+        )
+        # 1x1 transparent PNG (valid header is enough for the assertions).
+        png = bytes.fromhex(
+            "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489"
+            "0000000a49444154789c6300010000050001"
+            "0d0a2db40000000049454e44ae426082"
+        )
+        (bundle / "assets" / "ci_metric.png").write_bytes(png)
+        return bundle
+
+    def test_bundles_file_serves_asset_png_inline(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """Bundle assets (charts referenced by proof.md) are served with
+        image/* mime + inline disposition so the MD view can render them.
+        Regression guard (0.63.6): before this, the endpoint allow-listed
+        only proof.{json,md,html,tex,pdf} and there was NO asset route —
+        the MD chart 404'd."""
+        self._bundle_with_asset(tmp_path)
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "scientific", "scenario": "rosetta-scaling",
+            "bundle": "2026-05-19_validated_abcdef012345",
+            "filename": "assets/ci_metric.png",
+            "proofs_root": str(tmp_path),
+        })
+        assert r.status_code == 200
+        assert r.headers["content-type"] == "image/png"
+        disp = r.headers.get("content-disposition", "")
+        assert disp.startswith("inline")
+        assert r.content[:8] == b"\x89PNG\r\n\x1a\n"
+
+    def test_bundles_file_refuses_non_image_asset(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """An asset path with a non-image extension is refused — the
+        asset route is for charts, not arbitrary file reads."""
+        bundle = self._bundle_with_asset(tmp_path)
+        (bundle / "assets" / "secret.txt").write_text("nope")
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "scientific", "scenario": "rosetta-scaling",
+            "bundle": "2026-05-19_validated_abcdef012345",
+            "filename": "assets/secret.txt",
+            "proofs_root": str(tmp_path),
+        })
+        assert r.status_code == 400
+        assert "refusing to serve" in r.json()["detail"]
+
+    def test_bundles_file_refuses_asset_path_traversal(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """`assets/../../etc` style traversal in the asset path is
+        refused at the boundary."""
+        self._bundle_with_asset(tmp_path)
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "scientific", "scenario": "rosetta-scaling",
+            "bundle": "2026-05-19_validated_abcdef012345",
+            "filename": "assets/../../../../etc/passwd",
+            "proofs_root": str(tmp_path),
+        })
+        assert r.status_code == 400
+
+    def test_bundles_file_refuses_nested_asset_subdir(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """Only a single `assets/<name>` segment is allowed — no deeper
+        nesting that could walk into unexpected dirs."""
+        self._bundle_with_asset(tmp_path)
+        r = client.get("/proofs/bundles/file", params={
+            "tier": "scientific", "scenario": "rosetta-scaling",
+            "bundle": "2026-05-19_validated_abcdef012345",
+            "filename": "assets/sub/dir/x.png",
+            "proofs_root": str(tmp_path),
+        })
+        assert r.status_code == 400
+
 
 class TestProvisionalGUIMount:
     """The /ui endpoint serves the bundled SPA when the static dir exists."""
@@ -474,6 +554,27 @@ class TestProvisionalGUIMount:
         assert "Ophamin" in r.text
         assert "/ui/static/styles.css" in r.text
         assert "/ui/static/app.js" in r.text
+
+    def test_ui_static_assets_are_cache_busted_by_version(
+        self, client: TestClient,
+    ) -> None:
+        """The /ui HTML stamps app.js + styles.css with ?v=<version> so
+        an upgrading browser loads fresh JS/CSS instead of a stale
+        cached copy (regression guard, 0.63.6)."""
+        from ophamin import __version__
+        r = client.get("/ui")
+        assert r.status_code == 200
+        assert f"/ui/static/app.js?v={__version__}" in r.text
+        assert f"/ui/static/styles.css?v={__version__}" in r.text
+
+    def test_ui_html_is_not_cacheable(self, client: TestClient) -> None:
+        """The /ui HTML must be no-store: it carries the version stamp,
+        so a stale cached copy would point at an old app.js and defeat
+        the cache-buster (regression guard, 0.63.6)."""
+        r = client.get("/ui")
+        assert r.status_code == 200
+        cc = r.headers.get("cache-control", "")
+        assert "no-store" in cc
 
     def test_ui_static_styles_served(self, client: TestClient) -> None:
         r = client.get("/ui/static/styles.css")

@@ -188,10 +188,18 @@
 
         const url = fileURL(filename);
         try {
-            if (filename === "proof.html") {
-                view.innerHTML = `<iframe src="${url}"></iframe>`;
-            } else if (filename === "proof.pdf") {
-                view.innerHTML = `<iframe src="${url}#view=FitH" type="application/pdf"></iframe>`;
+            if (filename === "proof.html" || filename === "proof.pdf") {
+                // HTML/PDF render in an iframe. Always pair it with a
+                // direct "open in new tab" link so a blank preview
+                // (stale cache after an upgrade, a browser without a
+                // built-in PDF viewer, etc.) is never a dead end.
+                const hash = filename === "proof.pdf" ? "#view=FitH" : "";
+                view.innerHTML = `<div class="embed-wrap">`
+                    + `<div class="format-note">Preview blank? `
+                    + `<a href="${url}" target="_blank" rel="noopener noreferrer">`
+                    + `open ${escapeHtml(filename)} in a new tab ↗</a></div>`
+                    + `<iframe src="${url}${hash}" title="${escapeHtml(filename)}"></iframe>`
+                    + `</div>`;
             } else if (filename === "proof.md") {
                 const md = await fetchText(url);
                 view.innerHTML = `<div class="markdown-render">${markdownToHTML(md)}</div>`;
@@ -287,11 +295,39 @@
     }
 
     function inline(s) {
-        // escape first, then re-introduce <strong> + <code> markup.
+        // escape first, then re-introduce markup. escapeHtml only
+        // touches < > & " ' — the markdown delimiters ` * ! [ ] ( )
+        // survive, so we can match them on the escaped string safely.
         let escaped = escapeHtml(s);
         escaped = escaped.replace(/`([^`]+)`/g, "<code>$1</code>");
         escaped = escaped.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        // images: ![alt](src). Relative `assets/...` paths are rewritten
+        // to the bundle-file endpoint so the MD view can show charts
+        // (proof.html embeds them as data-URIs; proof.md references them
+        // by relative path — without rewriting they 404 against /ui).
+        escaped = escaped.replace(
+            /!\[([^\]]*)\]\(([^)\s]+)\)/g,
+            (_m, alt, src) =>
+                `<img alt="${alt}" src="${rewriteAssetSrc(src)}" loading="lazy" />`,
+        );
+        // links: [text](href). Open in a new tab; noopener for safety.
+        escaped = escaped.replace(
+            /\[([^\]]+)\]\(([^)\s]+)\)/g,
+            (_m, text, href) =>
+                `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`,
+        );
         return escaped;
+    }
+
+    // Rewrite a markdown image/link target that points at a bundle
+    // asset (relative `assets/<name>`) to the absolute bundle-file
+    // endpoint URL for the currently-selected bundle. Absolute URLs
+    // (http, data:, /...) are left untouched.
+    function rewriteAssetSrc(src) {
+        if (selectedBundle && /^assets\//.test(src)) {
+            return fileURL(src);
+        }
+        return src;
     }
 
     // ---------------------- scenarios tab ----------------------

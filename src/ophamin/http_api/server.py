@@ -16,7 +16,12 @@ from typing import Any
 from pathlib import Path as _Path
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+)
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
@@ -63,6 +68,32 @@ _BUNDLE_FILE_MEDIATYPE: dict[str, str] = {
     "proof.tex": "text/x-tex; charset=utf-8",
     "proof.pdf": "application/pdf",
 }
+
+#: Media types for bundle assets (charts referenced by proof.md). Keyed
+#: by lowercased extension. Derived explicitly rather than via the
+#: stdlib `mimetypes` module so the surface is deterministic across
+#: platforms (mimetypes reads OS-specific /etc/mime.types).
+_ASSET_MEDIATYPE: dict[str, str] = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".svg": "image/svg+xml",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+}
+
+
+def _bundle_file_media_type(filename: str) -> str:
+    """Pick the media type for a bundle file or asset by name."""
+    if filename in _BUNDLE_FILE_MEDIATYPE:
+        return _BUNDLE_FILE_MEDIATYPE[filename]
+    # asset: derive from extension
+    dot = filename.rfind(".")
+    if dot != -1:
+        ext = filename[dot:].lower()
+        if ext in _ASSET_MEDIATYPE:
+            return _ASSET_MEDIATYPE[ext]
+    return "application/octet-stream"
 
 #: Public server identity. Reused by ``ophamin.http_api.__init__`` and the CLI.
 SERVER_NAME: str = "ophamin-http-api"
@@ -426,7 +457,7 @@ def build_app() -> FastAPI:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         return FileResponse(
             path,
-            media_type=_BUNDLE_FILE_MEDIATYPE.get(filename, "application/octet-stream"),
+            media_type=_bundle_file_media_type(filename),
             filename=filename,
             # `inline` so proof.html / proof.pdf RENDER inside the GUI's
             # iframe instead of triggering a browser download. Passing
@@ -458,19 +489,46 @@ def build_app() -> FastAPI:
                 "scenarios + the proofs/ bundle tree + the /metrics "
                 "exposition. Vanilla HTML/JS/CSS, no framework, no build "
                 "step. Read-only by default; the `Run` tab POSTs to "
-                "/scenarios/{name}/run when invoked."
+                "/scenarios/{name}/run when invoked.\n\n"
+                "The app.js / styles.css references are stamped with a "
+                "`?v=<framework_version>` cache-buster so an upgrading "
+                "browser always loads the matching JS/CSS instead of a "
+                "stale cached copy."
             ),
             tags=["ui"],
-            response_class=FileResponse,
+            response_class=HTMLResponse,
         )
-        def get_ui_root() -> FileResponse:
+        def get_ui_root() -> HTMLResponse:
             index = _STATIC_DIR / "index.html"
             if not index.is_file():
                 raise HTTPException(
                     status_code=500,
                     detail=f"static/index.html missing under {_STATIC_DIR}",
                 )
-            return FileResponse(index, media_type="text/html; charset=utf-8")
+            html = index.read_text(encoding="utf-8")
+            # Cache-bust the static asset references on every version
+            # bump. Without this, a browser that loaded a prior version
+            # serves the cached app.js/styles.css and misses the new
+            # behaviour (the exact failure mode that hid the 0.63.6
+            # markdown-image renderer until a hard reload).
+            html = html.replace(
+                "/ui/static/styles.css",
+                f"/ui/static/styles.css?v={__version__}",
+            ).replace(
+                "/ui/static/app.js",
+                f"/ui/static/app.js?v={__version__}",
+            )
+            # The HTML carries the version stamp, so it must NEVER be
+            # served stale — otherwise the browser keeps an old copy
+            # that points at the old (cached) app.js and the stamp is
+            # moot. Two-tier caching: this HTML is no-store; the
+            # versioned static assets it references are cacheable
+            # forever because their URL changes per release.
+            return HTMLResponse(
+                content=html,
+                media_type="text/html; charset=utf-8",
+                headers={"Cache-Control": "no-store, must-revalidate"},
+            )
 
         @app.get(
             "/",

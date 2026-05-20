@@ -7,7 +7,73 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.63.5] below for the latest cut.)
+(empty — see [0.63.6] below for the latest cut.)
+
+## [0.63.6] — 2026-05-20
+
+**Headline:** Proper remediation of the GUI bundle viewer. 0.63.5 fixed
+the blank HTML/PDF tabs (disposition); this cut fixes the *deeper*
+issues that surfaced from there: bundle chart assets weren't served at
+all, the MD view couldn't render images, and stale browser caches kept
+serving old GUI code. All three are root-caused and fixed, not papered
+over.
+
+Fix 1 — bundle chart assets had no route:
+
+- The bundle-file endpoint allow-listed only `proof.{json,md,html,tex,pdf}`.
+  Matplotlib charts live in `<bundle>/assets/*.png` and were unreachable.
+  proof.html worked only because it *embeds* the chart as a base64
+  data-URI; proof.md references it by relative path (`![](assets/...)`)
+  which 404'd.
+- Fix: `safe_bundle_file_path` now also accepts
+  `assets/<name>.<png|jpg|jpeg|svg|webp|gif>` — single segment, safe
+  basename charset, `..` refused, plus the existing `.resolve()` +
+  containment check as the second line of defense. Media type derived
+  from extension; served inline.
+- 4 hardening pins: asset PNG served `image/png` inline; non-image
+  asset refused (400); `assets/../../etc` traversal refused; nested
+  `assets/sub/dir/x.png` refused.
+
+Fix 2 — MD view didn't render images:
+
+- The GUI's minimal markdown renderer (`inline()`) handled only
+  `` `code` `` and `**bold**`. `![alt](src)` rendered as literal text.
+- Fix: added `![](...)` image + `[](...)` link support to `inline()`,
+  with relative `assets/...` targets rewritten to the bundle-file
+  endpoint for the selected bundle (`rewriteAssetSrc`). CSS bounds
+  chart images to the pane width. **Verified in-browser**: the MD tab
+  now renders the CI chart inline (observed 0.087 vs the 0.100
+  threshold line).
+
+Fix 3 — stale GUI caches (the recurring "blank until hard reload"):
+
+- Two-tier caching architecture. The `/ui` HTML is now served
+  `Cache-Control: no-store, must-revalidate` AND stamps its asset
+  references with `?v=<framework_version>`. The HTML must never be
+  stale because it carries the version stamp; the versioned static
+  assets (`app.js?v=X`, `styles.css?v=X`) are then safely cacheable
+  forever — their URL changes every release, so an upgrading browser
+  always fetches the matching JS/CSS. This is the root fix for the
+  class of "fixed the server but the browser shows the old behaviour"
+  problems noted in 0.63.5.
+- 2 hardening pins: `/ui` HTML carries `?v=<version>` on both assets;
+  `/ui` response is `no-store`.
+
+Fix 4 — iframe never a dead end:
+
+- HTML/PDF render in an `<iframe>` paired with a thin always-visible
+  "Preview blank? open <file> in a new tab ↗" note (`embed-wrap` +
+  `format-note`). Any failure mode (cache, no built-in PDF viewer)
+  now has a working escape hatch instead of a silent blank pane.
+
+Hardening: `tests/test_http_api.py` + `tests/test_bundle_browser.py`
+68 passed (+8 new pins since 0.63.5); 140 passed across http_api +
+bundle_browser + agentic. No regressions.
+
+Verification: full GUI re-toured in-browser — asset endpoint serves
+the real 866×185 chart PNG (image/png, inline); the MD tab renders it
+inline; `/ui` carries the version stamp + no-store; the version chip
+reads v0.63.6.
 
 ## [0.63.5] — 2026-05-20
 
