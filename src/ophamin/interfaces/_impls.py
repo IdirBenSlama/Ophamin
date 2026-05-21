@@ -109,6 +109,149 @@ def list_scenarios_impl() -> dict[str, Any]:
     }
 
 
+# --------------------------------------------------------------------------
+# Agentic layer — read-only surfaces.
+#
+# The agent layer is advisory + default-off + opt-in per call, and never
+# inside a scenario's measurement path (no external LLM ever authors a
+# verdict). These two impls expose it *read-only* over HTTP/MCP: the
+# catalogue of agents, and the signed `LLMCallRecord` audit trail that
+# every agent invocation persists. Neither runs an agent.
+# --------------------------------------------------------------------------
+
+#: The seven agents, by CLI subcommand. ``task`` is the internal routing
+#: key in :data:`ophamin.agentic.models.TASK_ROUTING` (which is the
+#: authoritative source for each agent's model *tier*).
+_AGENT_CATALOG: tuple[tuple[str, str, str, str], ...] = (
+    ("prereg", "prereg_validator", "Prereg validator",
+     "Flags whether a claim is actually falsifiable before a run."),
+    ("scenario-gen", "scenario_gen", "Scenario generator",
+     "Scaffolds a Scenario subclass from a claim (leaves score() a stub)."),
+    ("adapt", "adapter_gen", "Adapter generator",
+     "Generates a Foreign-Corpus adapter module."),
+    ("brief", "proof_brief", "Proof brief",
+     "Plain-English brief for a signed proof."),
+    ("triage", "refuted_triage", "Refuted triage",
+     "Proposes follow-up scenarios for a REFUTED proof."),
+    ("confounds", "confound_enumerator", "Confound enumerator",
+     "Red-teams a VALIDATED proof — surfaces alternative explanations."),
+    ("query", "bundle_query", "Bundle query",
+     "Natural-language query over the proof-bundle tree."),
+)
+
+
+def list_agents_impl() -> dict[str, Any]:
+    """Enumerate the seven agentic-layer agents with their model tier.
+
+    Read-only. The tier per agent is sourced from
+    :data:`ophamin.agentic.models.TASK_ROUTING` so this never duplicates
+    the routing table — it reflects it. Importing from the dep-light
+    ``models`` module avoids pulling the LLM-client extras.
+    """
+    from ophamin.agentic.models import TASK_ROUTING
+
+    agents: list[dict[str, Any]] = []
+    for cli_id, task, label, desc in _AGENT_CATALOG:
+        tier = TASK_ROUTING.get(task)
+        agents.append({
+            "id": cli_id,
+            "task": task,
+            "label": label,
+            "desc": desc,
+            "tier": tier.value if tier is not None else "",
+            "cli": f"ophamin agent {cli_id}",
+        })
+    return {
+        "count": len(agents),
+        "agents": agents,
+        "framework_version": __version__,
+    }
+
+
+def list_llm_calls_impl(
+    proofs_root: str | Path = "proofs",
+    limit: int = 200,
+) -> dict[str, Any]:
+    """Walk ``<proofs_root>/llm_calls/`` and return signed-call summaries.
+
+    Each agent invocation persists a content-addressed, HMAC-signed
+    ``LLMCallRecord`` under ``llm_calls/<YYYY-MM-DD>/<short-id>.json``.
+    This returns a newest-first summary of each (no prompt ``messages``
+    or response ``content`` — just the audit metadata) plus a ``verified``
+    flag from re-checking the HMAC against the default audit key.
+
+    Read-only + best-effort: a record that fails to parse is skipped (the
+    enumeration must not 500 on one malformed file). Returns an empty
+    list when no calls have been recorded yet — not an error.
+    """
+    from ophamin.agentic.audit import DEFAULT_LLM_AUDIT_KEY, LLMCallRecord
+
+    root = Path(proofs_root) / "llm_calls"
+    calls: list[dict[str, Any]] = []
+    if not root.is_dir():
+        return {"count": 0, "calls": [], "framework_version": __version__}
+
+    for date_dir in sorted(root.iterdir(), reverse=True):
+        if not date_dir.is_dir():
+            continue
+        for f in sorted(date_dir.glob("*.json"), reverse=True):
+            try:
+                d = json.loads(f.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            req = d.get("request", {}) or {}
+            resp = d.get("response", {}) or {}
+            verified = False
+            try:
+                rec = LLMCallRecord(
+                    task=d.get("task", ""),
+                    runtime=d.get("runtime", ""),
+                    model=req.get("model", ""),
+                    messages=req.get("messages", []),
+                    max_tokens=req.get("max_tokens", 0),
+                    temperature=req.get("temperature", 0.0),
+                    response_format=req.get("response_format", ""),
+                    content=resp.get("content", ""),
+                    finish_reason=resp.get("finish_reason", ""),
+                    prompt_tokens=resp.get("prompt_tokens", 0),
+                    completion_tokens=resp.get("completion_tokens", 0),
+                    latency_ms=resp.get("latency_ms", 0.0),
+                    ophamin_version=(d.get("identity", {}) or {}).get(
+                        "ophamin_version", ""
+                    ),
+                    created_at=d.get("created_at", ""),
+                    signature=d.get("signature", ""),
+                )
+                verified = rec.verify_signature(DEFAULT_LLM_AUDIT_KEY)
+            except (TypeError, KeyError, ValueError):
+                verified = False
+            calls.append({
+                "call_id": d.get("call_id", ""),
+                "task": d.get("task", ""),
+                "runtime": d.get("runtime", ""),
+                "model": req.get("model", ""),
+                "created_at": d.get("created_at", ""),
+                "latency_ms": resp.get("latency_ms"),
+                "prompt_tokens": resp.get("prompt_tokens"),
+                "completion_tokens": resp.get("completion_tokens"),
+                "finish_reason": resp.get("finish_reason", ""),
+                "signature_prefix": (d.get("signature", "") or "")[:16],
+                "verified": verified,
+                "date": date_dir.name,
+            })
+            if len(calls) >= limit:
+                return {
+                    "count": len(calls),
+                    "calls": calls,
+                    "framework_version": __version__,
+                }
+    return {
+        "count": len(calls),
+        "calls": calls,
+        "framework_version": __version__,
+    }
+
+
 def get_scenario_claim_impl(name: str) -> dict[str, Any]:
     """Return a scenario's falsifiable claim + metadata.
 

@@ -7,6 +7,14 @@ function AgentsScreen() {
   const D = OPHAMIN;
   const [active, setActive] = useAgState(D.agents[0].id);
   const agent = D.agents.find(a => a.id === active);
+  // Signed LLM-call audit trail (live from /agents/calls; [] until a
+  // call is recorded). Filter to the selected agent's task when we can
+  // map it, else show all.
+  const allCalls = D.agentCalls || [];
+  const calls = allCalls.filter(c => c.task === (agent && agent.task)).length
+    ? allCalls.filter(c => c.task === (agent && agent.task))
+    : allCalls;
+  const auditCell = { padding: '7px 12px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' };
 
   return (
     <div className="content-inner page">
@@ -94,6 +102,47 @@ function AgentsScreen() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="card" style={{ marginTop: 16, overflow: 'hidden' }}>
+        <div className="card-header">
+          <div>
+            <div className="card-title">Signed LLM-call audit</div>
+            <div className="micro" style={{ marginTop: 2 }}>
+              every agent invocation persists a content-hashed, HMAC-signed <span className="mono">LLMCallRecord</span> under <span className="mono">proofs/llm_calls/</span>{agent ? ` · filtered to ${agent.label.toLowerCase()}` : ''}
+            </div>
+          </div>
+          <span className="chip">{calls.length} of {allCalls.length}</span>
+        </div>
+
+        {allCalls.length === 0 ? (
+          <div style={{ padding: 20, fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+            No agent calls recorded yet. Run one with <span className="mono">ophamin agent &lt;name&gt;</span> (advisory, opt-in) — each call writes a signed <span className="mono">LLMCallRecord</span> that surfaces here.
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px,1fr) minmax(160px,1.4fr) 0.8fr 0.8fr 0.7fr 1fr 1.1fr', fontSize: 12 }}>
+              {['task', 'model', 'runtime', 'tok in→out', 'latency', 'when', 'signature'].map(h => (
+                <div key={h} className="micro" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)', position: 'sticky', top: 0 }}>{h}</div>
+              ))}
+              {calls.map((c, i) => (
+                <React.Fragment key={c.call_id || i}>
+                  <div style={auditCell}><span className="mono">{c.task || '—'}</span></div>
+                  <div style={auditCell}><span className="mono">{c.model || '—'}</span></div>
+                  <div style={auditCell}><span className="mono faint">{c.runtime || '—'}</span></div>
+                  <div style={auditCell}><span className="mono">{c.prompt_tokens != null ? c.prompt_tokens : '—'}→{c.completion_tokens != null ? c.completion_tokens : '—'}</span></div>
+                  <div style={auditCell}><span className="mono">{c.latency_ms != null ? (c.latency_ms / 1000).toFixed(2) + 's' : '—'}</span></div>
+                  <div style={auditCell}><span className="mono faint" style={{ fontSize: 10 }}>{(c.created_at || '').replace('T', ' ').slice(0, 19) || '—'}</span></div>
+                  <div style={auditCell}>
+                    <span className="mono" style={{ fontSize: 10, color: c.verified ? 'var(--validated)' : 'var(--refuted)' }} title={c.verified ? 'HMAC verified' : 'signature NOT verified'}>
+                      {c.verified ? '✓ ' : '✗ '}{c.signature_prefix || '—'}…
+                    </span>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

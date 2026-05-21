@@ -48,6 +48,8 @@ from ophamin.http_api.metrics import (
 from ophamin.interfaces._impls import (
     canonicalize_value_impl,
     get_scenario_claim_impl,
+    list_agents_impl,
+    list_llm_calls_impl,
     list_scenarios_impl,
     read_proof_index_impl,
     run_scenario_impl,
@@ -316,6 +318,50 @@ def build_app() -> FastAPI:
             return get_scenario_claim_impl(name)
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    # ------------------------------------------------------------------
+    # Agentic layer — read-only surfaces
+    #
+    # The agent layer is advisory + default-off + opt-in per call, and no
+    # external LLM ever authors a verdict. These endpoints expose it
+    # read-only: the agent catalogue, and the signed LLMCallRecord audit
+    # trail. Neither runs an agent (agents are CLI-driven, by design).
+    # ------------------------------------------------------------------
+
+    @app.get(
+        "/agents",
+        summary="List the agentic-layer agents",
+        description=(
+            "Enumerate the seven advisory agents (prereg / scenario-gen "
+            "/ adapt / brief / triage / confounds / query) with their "
+            "model tier (sourced from `TASK_ROUTING`) and CLI command. "
+            "Read-only — this does NOT run an agent. Agents are invoked "
+            "via the `ophamin agent …` CLI; no external LLM ever touches "
+            "a scenario's measurement path."
+        ),
+        tags=["agents"],
+    )
+    def get_agents() -> dict[str, Any]:
+        return list_agents_impl()
+
+    @app.get(
+        "/agents/calls",
+        summary="Signed LLM-call audit trail",
+        description=(
+            "Walk `<proofs_root>/llm_calls/` and return a newest-first "
+            "summary of every agent invocation's content-addressed, "
+            "HMAC-signed `LLMCallRecord` — task / runtime / model / "
+            "tokens / latency / signature prefix + a `verified` flag from "
+            "re-checking the HMAC. Prompt messages + response content are "
+            "NOT included (audit metadata only). Returns an empty list "
+            "when no agent has been run yet."
+        ),
+        tags=["agents"],
+    )
+    def get_agent_calls(
+        proofs_root: str = "proofs", limit: int = 200,
+    ) -> dict[str, Any]:
+        return list_llm_calls_impl(proofs_root, limit)
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints

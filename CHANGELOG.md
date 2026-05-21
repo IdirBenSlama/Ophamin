@@ -7,7 +7,47 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.65.0] below for the latest cut.)
+(empty — see [0.66.0] below for the latest cut.)
+
+## [0.66.0] — 2026-05-21
+
+**Feature — the agentic layer goes read-only over HTTP, and the Console's
+Agents screen surfaces the signed LLM-call audit trail.** The advisory
+agent layer (7 agents, default-off, opt-in, never in a measurement path)
+previously had no web presence at all — and its signed `LLMCallRecord`
+audit trail lived only on disk. Both are now visible.
+
+- **`GET /agents`** (new, read-only): enumerates the seven agents
+  (prereg / scenario-gen / adapt / brief / triage / confounds / query)
+  with each one's model tier — **sourced from `TASK_ROUTING`** so it
+  reflects the routing table rather than duplicating it — plus the CLI
+  command. Does not run an agent.
+- **`GET /agents/calls`** (new, read-only): walks
+  `<proofs_root>/llm_calls/` and returns a newest-first summary of every
+  agent invocation's content-addressed, HMAC-signed `LLMCallRecord` —
+  task / runtime / model / tokens / latency / signature prefix + a
+  **`verified`** flag from re-checking the HMAC. Prompt `messages` and
+  response `content` are deliberately **not** included (audit metadata
+  only). Empty list (not an error) when no agent has run yet.
+- **`interfaces/_impls.py`**: `list_agents_impl()` + `list_llm_calls_impl()`
+  — transport-agnostic, so the same surfaces are available to the MCP
+  server too. Best-effort enumeration: a malformed record is skipped, not
+  fatal.
+- **Console Agents screen** (`console/app/agents.jsx`): the 7-agent
+  catalogue now hydrates from `/agents`, and a new **"Signed LLM-call
+  audit"** card renders the real records from `/agents/calls` — task,
+  model, runtime, tokens in→out, latency, timestamp, and a ✓/✗
+  HMAC-verified signature badge — filtered to the selected agent. Clear
+  empty state when no calls exist. `console/app/data.js` `hydrate()`
+  overlays `agents` + the new `agentCalls`, each independently guarded.
+- **Tests**: `TestAgentsEndpoints` in `tests/test_http_api.py` pins the
+  catalogue (7 agents, tier-from-routing), the audit summary (verified
+  flag, tamper → `verified: False`, no message/content leak, limit), and
+  OpenAPI advertisement.
+
+No external LLM is invoked by either endpoint — these expose the agentic
+layer's *records*, not its execution. Agents remain CLI-driven and
+advisory, exactly as before.
 
 ## [0.65.0] — 2026-05-21
 

@@ -267,9 +267,11 @@ same origin (no CORS, no separate deploy):
   React single-page app (React 18 + Babel-standalone, compiled in the
   browser — **no build step**), built from
   [`docs/OPHAMIN_GUI_DESIGN_BRIEF.md`](docs/OPHAMIN_GUI_DESIGN_BRIEF.md).
-  Eighteen screens; Overview / Proofs / Scenarios / Run / Telemetry
-  live-wire to the REST surface (the Proofs detail view renders the real
-  signed `proof.json`), and the rest render grounded illustrative state.
+  Eighteen screens; Overview / Proofs / Scenarios / Run / Telemetry /
+  Agents live-wire to the REST surface (the Proofs detail view renders
+  the real signed `proof.json`; the Agents screen surfaces the signed,
+  HMAC-verified `LLMCallRecord` audit trail), and the rest render
+  grounded illustrative state.
   Degrades to the bundled mock per-endpoint so it renders against a live
   server, a fresh instance with no proofs yet, or straight off disk.
 - **`/ui` — the provisional console.** A zero-build vanilla HTML/JS/CSS

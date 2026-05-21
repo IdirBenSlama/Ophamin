@@ -313,6 +313,8 @@ class TestOpenAPI:
             "/version",
             "/scenarios",
             "/scenarios/{name}/claim",
+            "/agents",
+            "/agents/calls",
             "/verify",
             "/canonicalize",
             "/proofs/index",
@@ -683,3 +685,146 @@ class TestConsoleMount:
         r = client.get("/openapi.json")
         assert r.status_code == 200
         assert "/app" in r.json()["paths"]
+
+
+class TestAgentsEndpoints:
+    """Read-only surfaces over the advisory agentic layer: the agent
+    catalogue (/agents) + the signed LLM-call audit trail (/agents/calls).
+    Neither runs an agent or touches a measurement path."""
+
+    def test_agents_returns_seven_with_metadata(self, client: TestClient) -> None:
+        r = client.get("/agents")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["count"] == 7
+        assert body["framework_version"] == __version__
+        ids = {a["id"] for a in body["agents"]}
+        assert ids == {
+            "prereg", "scenario-gen", "adapt", "brief",
+            "triage", "confounds", "query",
+        }
+        for a in body["agents"]:
+            for k in ("id", "task", "label", "desc", "tier", "cli"):
+                assert k in a, f"agent missing {k}: {a}"
+            assert a["tier"] in {"fast", "workhorse", "coder", "reasoning"}
+            assert a["cli"] == f"ophamin agent {a['id']}"
+
+    def test_agents_tier_sourced_from_routing(self, client: TestClient) -> None:
+        """Tiers reflect TASK_ROUTING (not a hardcoded dup)."""
+        from ophamin.agentic.models import TASK_ROUTING
+        body = client.get("/agents").json()
+        by_id = {a["id"]: a for a in body["agents"]}
+        # Spot-check the routing-derived tier for two agents.
+        assert by_id["query"]["tier"] == TASK_ROUTING["bundle_query"].value
+        assert by_id["prereg"]["tier"] == TASK_ROUTING["prereg_validator"].value
+
+    def test_agents_in_openapi(self, client: TestClient) -> None:
+        paths = client.get("/openapi.json").json()["paths"]
+        assert "/agents" in paths
+        assert "/agents/calls" in paths
+
+    def test_agent_calls_empty_when_no_llm_calls_dir(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """A proofs tree with no llm_calls/ yields an empty list, not an
+        error (fresh instance has run no agents)."""
+        r = client.get("/agents/calls", params={"proofs_root": str(tmp_path)})
+        assert r.status_code == 200
+        body = r.json()
+        assert body["count"] == 0
+        assert body["calls"] == []
+
+    def test_agent_calls_summarizes_signed_record(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """A real signed LLMCallRecord on disk surfaces as a verified
+        summary — and prompt messages + response content are NOT leaked."""
+        from ophamin.agentic.audit import LLMCallRecord
+
+        rec = LLMCallRecord(
+            task="proof_brief",
+            runtime="ollama",
+            model="llama3.3:70b",
+            messages=[{"role": "user", "content": "SECRET PROMPT TEXT"}],
+            max_tokens=512,
+            temperature=0.2,
+            response_format="text",
+            content="SECRET RESPONSE TEXT",
+            finish_reason="stop",
+            prompt_tokens=120,
+            completion_tokens=88,
+            latency_ms=1840.0,
+            ophamin_version=__version__,
+        ).sign()
+        call_dir = tmp_path / "llm_calls" / "2026-05-21"
+        call_dir.mkdir(parents=True)
+        (call_dir / f"{rec.call_id[:16]}.json").write_text(
+            json.dumps(rec.to_dict()), encoding="utf-8",
+        )
+
+        r = client.get("/agents/calls", params={"proofs_root": str(tmp_path)})
+        assert r.status_code == 200
+        body = r.json()
+        assert body["count"] == 1
+        call = body["calls"][0]
+        assert call["task"] == "proof_brief"
+        assert call["model"] == "llama3.3:70b"
+        assert call["runtime"] == "ollama"
+        assert call["verified"] is True
+        assert call["prompt_tokens"] == 120
+        assert call["completion_tokens"] == 88
+        assert call["signature_prefix"] == rec.signature[:16]
+        # No prompt / response payload leaks into the audit summary.
+        assert "messages" not in call
+        assert "content" not in call
+        assert "SECRET" not in json.dumps(body)
+
+    def test_agent_calls_flags_tampered_signature_unverified(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """A record whose signature doesn't match its body surfaces as
+        verified=False — the audit trail is HMAC-checked, not trusted."""
+        from ophamin.agentic.audit import LLMCallRecord
+
+        rec = LLMCallRecord(
+            task="bundle_query", runtime="mlx-lm", model="llama3.1:8b",
+            messages=[{"role": "user", "content": "q"}], max_tokens=64,
+            temperature=0.0, response_format="json_object", content="{}",
+            finish_reason="stop", prompt_tokens=10, completion_tokens=4,
+            latency_ms=120.0, ophamin_version=__version__,
+        ).sign()
+        d = rec.to_dict()
+        d["signature"] = "00" * 32  # tamper
+        call_dir = tmp_path / "llm_calls" / "2026-05-21"
+        call_dir.mkdir(parents=True)
+        (call_dir / "tampered.json").write_text(json.dumps(d), encoding="utf-8")
+
+        body = client.get(
+            "/agents/calls", params={"proofs_root": str(tmp_path)},
+        ).json()
+        assert body["count"] == 1
+        assert body["calls"][0]["verified"] is False
+
+    def test_agent_calls_respects_limit(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        from ophamin.agentic.audit import LLMCallRecord
+
+        call_dir = tmp_path / "llm_calls" / "2026-05-21"
+        call_dir.mkdir(parents=True)
+        for i in range(5):
+            rec = LLMCallRecord(
+                task="proof_brief", runtime="ollama", model="m",
+                messages=[{"role": "user", "content": f"q{i}"}],
+                max_tokens=8, temperature=0.0, response_format="text",
+                content="a", finish_reason="stop", prompt_tokens=1,
+                completion_tokens=1, latency_ms=1.0,
+                ophamin_version=__version__,
+            ).sign()
+            (call_dir / f"{i}_{rec.call_id[:8]}.json").write_text(
+                json.dumps(rec.to_dict()), encoding="utf-8",
+            )
+        body = client.get(
+            "/agents/calls", params={"proofs_root": str(tmp_path), "limit": 3},
+        ).json()
+        assert body["count"] == 3

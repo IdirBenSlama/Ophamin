@@ -801,11 +801,42 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       if (m && m.trim().length) { api.metricsText = m; live.metrics = true; }
     } catch (e) { console.warn('[ophamin] hydrate /metrics skipped:', e.message); }
 
+    // --- /agents (merge; keep mock label/desc when richer) -------
+    try {
+      const a = await getJSON('/agents');
+      if (a && Array.isArray(a.agents) && a.agents.length) {
+        const mockById = {};
+        agents.forEach((ag) => { mockById[ag.id] = ag; });
+        api.agents = a.agents.map((ra) => {
+          const m = mockById[ra.id];
+          return {
+            id: ra.id,
+            label: ra.label || (m && m.label) || ra.id,
+            tier: ra.tier || (m && m.tier) || 'fast',
+            desc: ra.desc || (m && m.desc) || '',
+            task: ra.task || '',
+            cli: ra.cli || ('ophamin agent ' + ra.id),
+          };
+        });
+        live.agents = true;
+      }
+    } catch (e) { console.warn('[ophamin] hydrate /agents skipped:', e.message); }
+
+    // --- /agents/calls (signed LLM-call audit trail) -------------
+    try {
+      const c = await getJSON('/agents/calls?limit=200');
+      if (c && Array.isArray(c.calls)) {
+        api.agentCalls = c.calls;
+        live.agentCalls = true;
+      }
+    } catch (e) { console.warn('[ophamin] hydrate /agents/calls skipped:', e.message); }
+
     return live;
   }
 
   const api = {
     wheels, pillars, tiers, corpora, scenarios, bundles, totals, activity, agents,
+    agentCalls: [],
     substrateStamps,
     buildProof, formatThreshold,
     metricsText,
@@ -814,7 +845,10 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     substrate: 'kimera-swm',
     substrate_commit: '4552de7e',
     hydrate,
-    live: { version: false, scenarios: false, bundles: false, proofs: false, metrics: false },
+    live: {
+      version: false, scenarios: false, bundles: false, proofs: false,
+      metrics: false, agents: false, agentCalls: false,
+    },
   };
   return api;
 })();
