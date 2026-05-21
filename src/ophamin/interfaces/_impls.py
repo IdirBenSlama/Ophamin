@@ -252,6 +252,79 @@ def list_llm_calls_impl(
     }
 
 
+# --------------------------------------------------------------------------
+# Integrations — the "route, don't reinvent" surface.
+#
+# Ophamin wraps mature OSS, each with its own battle-tested UI. Rather than
+# re-skin Grafana / MLflow / DVC / SARIF viewers / the docs site, the
+# Console routes to them. This impl reports which external tools the
+# operator has wired up (via env vars). Bring-your-own: nothing is
+# configured by default, and that's the honest state.
+# --------------------------------------------------------------------------
+
+#: Each integration: (id, name, env_vars [first set wins], replaces, description).
+_INTEGRATIONS_CATALOG: tuple[tuple[str, str, tuple[str, ...], str, str], ...] = (
+    ("grafana", "Grafana", ("OPHAMIN_GRAFANA_URL",),
+     "Telemetry / drift dashboards",
+     "Scrapes Ophamin's /metrics (Prometheus exposition); the canonical "
+     "metrics + streaming-drift UI."),
+    ("mlflow", "MLflow", ("OPHAMIN_MLFLOW_URL", "MLFLOW_TRACKING_URI"),
+     "Run tracking / comparison",
+     "Experiment-tracking UI — runs, params, metrics, artifacts, registry."),
+    ("dvc", "DVC Studio", ("OPHAMIN_DVC_URL",),
+     "Data lineage",
+     "Data versioning + pipeline DAG (dvc dag / DVC Studio)."),
+    ("provenance", "Provenance viewer", ("OPHAMIN_PROV_URL",),
+     "Lineage graph",
+     "PROV-O graph viewer for each proof's provenance section."),
+    ("code_scanning", "Code scanning (SARIF)", ("OPHAMIN_SARIF_URL",),
+     "Static-analysis audit",
+     "SARIF viewer / code-scanning for the audit wheel's ruff/bandit/mypy "
+     "output."),
+    ("docs", "Documentation", ("OPHAMIN_DOCS_URL",),
+     "Roadmap / governance",
+     "The mkdocs documentation site (roadmap, governance, reference)."),
+)
+
+
+def list_integrations_impl() -> dict[str, Any]:
+    """Report which external tools the operator has wired up.
+
+    Read-only. Each integration is configured by an env var (e.g.
+    ``OPHAMIN_GRAFANA_URL``); MLflow also honours its canonical
+    ``MLFLOW_TRACKING_URI``. Nothing is configured by default — the
+    Console shows a "how to wire this" card in that case rather than a
+    re-implementation of the tool.
+    """
+    import os
+
+    items: list[dict[str, Any]] = []
+    for iid, name, env_vars, replaces, desc in _INTEGRATIONS_CATALOG:
+        url = ""
+        src_env = ""
+        for ev in env_vars:
+            v = os.environ.get(ev, "").strip()
+            if v:
+                url, src_env = v, ev
+                break
+        items.append({
+            "id": iid,
+            "name": name,
+            "configured": bool(url),
+            "url": url,
+            "env_var": env_vars[0],
+            "env_var_source": src_env,
+            "replaces": replaces,
+            "description": desc,
+        })
+    return {
+        "count": len(items),
+        "configured_count": sum(1 for i in items if i["configured"]),
+        "integrations": items,
+        "framework_version": __version__,
+    }
+
+
 def get_scenario_claim_impl(name: str) -> dict[str, Any]:
     """Return a scenario's falsifiable claim + metadata.
 

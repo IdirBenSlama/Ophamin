@@ -315,6 +315,7 @@ class TestOpenAPI:
             "/scenarios/{name}/claim",
             "/agents",
             "/agents/calls",
+            "/integrations",
             "/verify",
             "/canonicalize",
             "/proofs/index",
@@ -828,3 +829,62 @@ class TestAgentsEndpoints:
             "/agents/calls", params={"proofs_root": str(tmp_path), "limit": 3},
         ).json()
         assert body["count"] == 3
+
+
+class TestIntegrationsEndpoint:
+    """`/integrations` — the 'route, don't reinvent' surface. Reports which
+    external tools (Grafana / MLflow / DVC / SARIF / docs) the operator has
+    wired up via env vars. Read-only; nothing configured by default."""
+
+    _ENV_VARS = (
+        "OPHAMIN_GRAFANA_URL", "OPHAMIN_MLFLOW_URL", "MLFLOW_TRACKING_URI",
+        "OPHAMIN_DVC_URL", "OPHAMIN_PROV_URL", "OPHAMIN_SARIF_URL",
+        "OPHAMIN_DOCS_URL",
+    )
+
+    def test_returns_catalog_shape(self, monkeypatch, client: TestClient) -> None:
+        for ev in self._ENV_VARS:
+            monkeypatch.delenv(ev, raising=False)
+        r = client.get("/integrations")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["count"] == 6
+        assert body["framework_version"] == __version__
+        for it in body["integrations"]:
+            for k in ("id", "name", "configured", "url", "env_var",
+                      "replaces", "description"):
+                assert k in it, f"integration missing {k}: {it}"
+
+    def test_unconfigured_by_default(self, monkeypatch, client: TestClient) -> None:
+        for ev in self._ENV_VARS:
+            monkeypatch.delenv(ev, raising=False)
+        body = client.get("/integrations").json()
+        assert body["configured_count"] == 0
+        assert all(not it["configured"] and it["url"] == ""
+                   for it in body["integrations"])
+
+    def test_picks_up_env_var(self, monkeypatch, client: TestClient) -> None:
+        for ev in self._ENV_VARS:
+            monkeypatch.delenv(ev, raising=False)
+        monkeypatch.setenv("OPHAMIN_GRAFANA_URL", "http://localhost:3000")
+        body = client.get("/integrations").json()
+        graf = next(i for i in body["integrations"] if i["id"] == "grafana")
+        assert graf["configured"] is True
+        assert graf["url"] == "http://localhost:3000"
+        assert graf["env_var_source"] == "OPHAMIN_GRAFANA_URL"
+        assert body["configured_count"] == 1
+
+    def test_mlflow_honours_canonical_env(
+        self, monkeypatch, client: TestClient,
+    ) -> None:
+        """MLflow falls back to its own MLFLOW_TRACKING_URI."""
+        for ev in self._ENV_VARS:
+            monkeypatch.delenv(ev, raising=False)
+        monkeypatch.setenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
+        body = client.get("/integrations").json()
+        ml = next(i for i in body["integrations"] if i["id"] == "mlflow")
+        assert ml["configured"] is True
+        assert ml["env_var_source"] == "MLFLOW_TRACKING_URI"
+
+    def test_in_openapi(self, client: TestClient) -> None:
+        assert "/integrations" in client.get("/openapi.json").json()["paths"]

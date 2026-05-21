@@ -831,12 +831,22 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       }
     } catch (e) { console.warn('[ophamin] hydrate /agents/calls skipped:', e.message); }
 
+    // --- /integrations (external tools the operator wired up) ----
+    try {
+      const g = await getJSON('/integrations');
+      if (g && Array.isArray(g.integrations)) {
+        api.integrations = g.integrations;
+        live.integrations = true;
+      }
+    } catch (e) { console.warn('[ophamin] hydrate /integrations skipped:', e.message); }
+
     return live;
   }
 
   const api = {
     wheels, pillars, tiers, corpora, scenarios, bundles, totals, activity, agents,
     agentCalls: [],
+    integrations: [],
     substrateStamps,
     buildProof, formatThreshold,
     metricsText,
@@ -847,7 +857,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     hydrate,
     live: {
       version: false, scenarios: false, bundles: false, proofs: false,
-      metrics: false, agents: false, agentCalls: false,
+      metrics: false, agents: false, agentCalls: false, integrations: false,
     },
   };
   return api;

@@ -49,6 +49,7 @@ from ophamin.interfaces._impls import (
     canonicalize_value_impl,
     get_scenario_claim_impl,
     list_agents_impl,
+    list_integrations_impl,
     list_llm_calls_impl,
     list_scenarios_impl,
     read_proof_index_impl,
@@ -362,6 +363,23 @@ def build_app() -> FastAPI:
         proofs_root: str = "proofs", limit: int = 200,
     ) -> dict[str, Any]:
         return list_llm_calls_impl(proofs_root, limit)
+
+    @app.get(
+        "/integrations",
+        summary="External tools the operator has wired up",
+        description=(
+            "Ophamin wraps mature OSS (MLflow, Grafana, DVC, SARIF "
+            "viewers, the docs site) — each with its own UI. Rather than "
+            "re-skin them, the Console routes to them. This returns which "
+            "tools are configured (via env vars such as "
+            "`OPHAMIN_GRAFANA_URL`; MLflow also honours "
+            "`MLFLOW_TRACKING_URI`) and what each replaces. Bring-your-own: "
+            "nothing is configured by default."
+        ),
+        tags=["integrations"],
+    )
+    def get_integrations() -> dict[str, Any]:
+        return list_integrations_impl()
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints

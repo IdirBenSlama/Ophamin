@@ -69,8 +69,9 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
     { id: 'audit',     label: 'Audit',     icon: 'cpu' },
   ];
   const navBottom = [
-    { id: 'agents',    label: 'Agents',    icon: 'agents' },
-    { id: 'settings',  label: 'Settings',  icon: 'settings' },
+    { id: 'agents',       label: 'Agents',       icon: 'agents' },
+    { id: 'integrations', label: 'Integrations', icon: 'external' },
+    { id: 'settings',     label: 'Settings',     icon: 'settings' },
   ];
 
   const activeItem = [...navItems, ...navBottom].find(i => i.id === active);

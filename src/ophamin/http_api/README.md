@@ -25,6 +25,7 @@ drift between the two is structurally impossible.
 | `GET` | `/scenarios/{name}/claim` | Get a scenario's falsifiable claim. | ✓ |
 | `GET` | `/agents` | List the 7 advisory agents + model tier (read-only). | ✓ |
 | `GET` | `/agents/calls` | Signed `LLMCallRecord` audit trail (read-only). | ✓ |
+| `GET` | `/integrations` | External tools wired via env (route, don't reinvent). | ✓ |
 | `POST` | `/verify` | Verify a wire-form signed proof. Body: `{proof_json, sign_key_b64?}`. | ✓ |
 | `POST` | `/canonicalize` | Canonical UTF-8 bytes + HMAC for any value. Body: `{value_json, sign_key_b64?}`. | ✓ |
 | `POST` | `/proofs/index` | Walk a server-side directory. Body: `{directory}`. | ✓ |

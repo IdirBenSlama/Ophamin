@@ -7,7 +7,34 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.66.1] below for the latest cut.)
+(empty — see [0.67.0] below for the latest cut.)
+
+## [0.67.0] — 2026-05-21
+
+**Feature — Integrations (Phase 2 of the architecture spec: "route, don't
+reinvent").** Ophamin wraps mature OSS, each with its own battle-tested UI.
+Rather than re-skin Grafana / MLflow / DVC / SARIF viewers / the docs site,
+the Console now *routes* to whichever the operator has wired up.
+
+- **`GET /integrations`** (new, read-only): reports the catalogue of
+  external tools and which are configured. Each is wired via an env var
+  (`OPHAMIN_GRAFANA_URL`, `OPHAMIN_MLFLOW_URL`, `OPHAMIN_DVC_URL`,
+  `OPHAMIN_PROV_URL`, `OPHAMIN_SARIF_URL`, `OPHAMIN_DOCS_URL`); MLflow also
+  honours its canonical `MLFLOW_TRACKING_URI`. **Bring-your-own — nothing
+  is configured by default**, and each item carries what it *replaces*.
+  `interfaces/_impls.py` `list_integrations_impl()` (transport-agnostic).
+- **Console Integrations app** (`console/app/integrations.jsx`, nav entry
+  next to Settings): a UniFi-style card per tool — `connected` with an
+  "Open in <tool>" deep-link when configured, or the `export OPHAMIN_…`
+  env-var hint + what-it-replaces when not. Hydrated from `/integrations`.
+- **Tests**: `TestIntegrationsEndpoint` pins the catalogue shape,
+  unconfigured-by-default, env-var pickup, MLflow's canonical-env
+  fallback, and OpenAPI advertisement.
+
+This is the mechanism the later phases lean on: Telemetry → Grafana,
+lineage → prov/DVC, audit → SARIF, roadmap → docs all become deep-links
+here instead of re-implementations. No external tool is embedded or
+required; the Console degrades to a "how to wire this" card.
 
 ## [0.66.1] — 2026-05-21
 
