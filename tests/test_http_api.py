@@ -316,6 +316,7 @@ class TestOpenAPI:
             "/agents",
             "/agents/calls",
             "/integrations",
+            "/substrate",
             "/verify",
             "/canonicalize",
             "/proofs/index",
@@ -888,3 +889,68 @@ class TestIntegrationsEndpoint:
 
     def test_in_openapi(self, client: TestClient) -> None:
         assert "/integrations" in client.get("/openapi.json").json()["paths"]
+
+
+class TestSubstrateEndpoint:
+    """`/substrate` — substrate-organ state aggregated from the SIGNED proof
+    corpus, grouped by scenario family. Read-only; organs with no proofs
+    surface as `no_data`, not an error."""
+
+    def test_returns_organs(self, client: TestClient) -> None:
+        r = client.get("/substrate")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["count"] >= 8
+        assert body["framework_version"] == __version__
+        for o in body["organs"]:
+            for k in ("id", "name", "role", "scenarios", "proof_count",
+                      "latest", "status"):
+                assert k in o, f"organ missing {k}: {o}"
+            assert o["status"] in {
+                "validated", "refuted", "inconclusive", "no_data",
+            }
+        # The catalogue must cover the load-bearing Kimera organs.
+        ids = {o["id"] for o in body["organs"]}
+        assert {"immune", "walker", "prime", "memory", "phi"} <= ids
+
+    def test_empty_tree_all_no_data(self, tmp_path, client: TestClient) -> None:
+        body = client.get(
+            "/substrate", params={"proofs_root": str(tmp_path)},
+        ).json()
+        assert body["proofs_scanned"] == 0
+        assert all(o["status"] == "no_data" and o["latest"] is None
+                   for o in body["organs"])
+
+    def test_organ_reflects_signed_proof(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """A signed proof for an immune-family scenario surfaces under the
+        `immune` organ with its measured value."""
+        bundle = (tmp_path / "scientific" / "concentrated-immune-siege"
+                  / "2026-05-21_validated_abc123def456")
+        bundle.mkdir(parents=True)
+        proof = {
+            "verdict": {
+                "outcome": "VALIDATED",
+                "observed_value": 0.032,
+                "threshold": {"metric": "gwf_false_positive_rate",
+                              "comparator": "<=", "value": 0.10},
+            },
+            "data": {"substrate_name": "kimera-swm",
+                     "substrate_git_commit": "deadbeefcafe0000"},
+            "identity": {"created_at": "2026-05-21T12:00:00+00:00"},
+        }
+        (bundle / "proof.json").write_text(json.dumps(proof), encoding="utf-8")
+
+        body = client.get(
+            "/substrate", params={"proofs_root": str(tmp_path)},
+        ).json()
+        immune = next(o for o in body["organs"] if o["id"] == "immune")
+        assert immune["status"] == "validated"
+        assert immune["proof_count"] == 1
+        assert immune["latest"]["metric"] == "gwf_false_positive_rate"
+        assert immune["latest"]["observed"] == 0.032
+        assert immune["latest"]["substrate_commit"] == "deadbeefcafe"  # 12-char
+
+    def test_in_openapi(self, client: TestClient) -> None:
+        assert "/substrate" in client.get("/openapi.json").json()["paths"]

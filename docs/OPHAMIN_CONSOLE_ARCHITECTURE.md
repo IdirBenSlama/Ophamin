@@ -158,17 +158,25 @@ pixel of fabricated data may be indistinguishable from measured data.
 
 ## 9. Phased execution plan
 
-- **Phase 1 — honesty & restraint (no new backend):** provenance badges
-  from `live.*`; fix the gates bar; remove the fake agent-audit block; mark
-  illustrative screens `SAMPLE`.
-- **Phase 2 — route, don't reinvent:** Integrations app + `/integrations`
-  endpoint; substrate-commit selector; demote Telemetry/lineage/audit/
-  roadmap to deep-links; cut control/lab.
-- **Phase 3 — the Kimera observatory:** the **Substrate app** (organ cards
-  + manifold topology hero) backed by new `KimeraAdapter` endpoints;
-  per-proof construction-loop panel (measure → remediate → opportunity →
-  optimize → enhance); Campaigns (multiplicity correction); Verify
-  drop-zone.
+- **Phase 1 — honesty & restraint (no new backend) ✅ shipped (0.66.1):**
+  real status strip + LIVE/SAMPLE provenance pill; removed the fake
+  agent-audit block; illustrative screens marked `SAMPLE`.
+- **Phase 2 — route, don't reinvent ✅ shipped (0.67.0 / 0.68.0 / 0.69.0):**
+  Integrations app + `/integrations` endpoint (2a); real substrate
+  selector that scopes the corpus at the data layer (2b); demote + label
+  — central `ScreenBanner` deep-links routed screens + SAMPLE-labels
+  illustrative ones, non-destructively (2c).
+- **Phase 3 — the Kimera observatory (in progress):**
+  - **3a ✅ shipped (0.70.0):** the **Substrate app** — `GET /substrate`
+    aggregates substrate-organ state from the signed proof corpus (grouped
+    by scenario family); organ cards with the latest signed measurement.
+  - **3b (next):** the **manifold topology hero** (geoid graph + scar
+    network + β₀/β₁/β₂) — needs topology data (a topology-specific proof
+    or a live `KimeraAdapter` probe).
+  - **3c:** optional live `KimeraAdapter` probe (BYO Kimera repo);
+    per-proof construction-loop panel (measure → remediate → opportunity →
+    optimize → enhance); Campaigns (multiplicity correction); Verify
+    drop-zone.
 - **Phase 4 — SOTA polish:** SSE/WebSocket live updates (new proofs, run
   progress, streaming metrics); one-click reproduce-this-proof; optional
   production build (React prod UMD / prebuild) replacing the in-browser

@@ -61,6 +61,7 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
     { id: 'drift',     label: 'Drift',     icon: 'telemetry' },
     { id: 'topology',  label: 'Topology',  icon: 'scenarios' },
     { id: 'scenarios', label: 'Scenarios', icon: 'scenarios', count: totals.scenarios },
+    { id: 'substrate', label: 'Substrate', icon: 'cpu' },
     { id: 'run',       label: 'Run',       icon: 'run' },
     { id: 'telemetry', label: 'Telemetry', icon: 'telemetry' },
     { id: 'lab',       label: 'Lab',       icon: 'code' },

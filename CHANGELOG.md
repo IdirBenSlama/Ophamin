@@ -7,7 +7,39 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.69.0] below for the latest cut.)
+(empty — see [0.70.0] below for the latest cut.)
+
+## [0.70.0] — 2026-05-21
+
+**Feature — the Substrate app (Phase 3a: the keystone).** The one screen
+that is unmistakably a *Kimera* observatory: the substrate-under-test seen
+through what the **signed proofs measured about it**, as named organs.
+
+- **`GET /substrate`** (new, read-only): aggregates the latest signed
+  proof per scenario into substrate organs, grouped by the scenario's
+  **family** (authoritative from the registry, so it adapts to whatever
+  the corpus contains rather than hardcoding scenario names) — GWF
+  (immune), Walker (traversal), prime apparatus, quantum basis, scar/vault
+  memory, Φ (integration), dissonance, Rosetta (language), Sinew
+  (conservation), proprioception, self-reference, completeness, interface
+  contract, throughput. Each organ carries its headline metric + verdict +
+  substrate commit. Families that are measurement-validation machinery
+  (cross_framework / crdt / etc.) are excluded. Best-effort: malformed
+  records skipped; organs with no proof surface as `no_data`, not an error.
+  `interfaces/_impls.py` `list_substrate_impl()` (transport-agnostic).
+- **Console Substrate app** (`console/app/substrate.jsx`, nav after
+  Scenarios): a UniFi-style card per organ — status pill
+  (validated/refuted/inconclusive/no-proof), role, and the latest signed
+  measurement (`metric = observed (comparator threshold)`) with scenario,
+  proof count, and `substrate @ commit`. Hydrated from `/substrate`.
+- **Tests**: `TestSubstrateEndpoint` pins the catalogue, empty-tree
+  all-`no_data`, a signed-proof reflecting into its organ, and OpenAPI.
+
+This observes the substrate honestly: real, signed, always available —
+no live Kimera required. The manifold-topology hero and an optional live
+`KimeraAdapter` probe are the remaining Phase 3 slices. Verified
+in-browser: 9 of 14 organs measured (immune 0.032, walker 0.399, Φ 0.277,
+dissonance 0.964, sinew/conservation 4 proofs, throughput p95 2.36s).
 
 ## [0.69.0] — 2026-05-21
 

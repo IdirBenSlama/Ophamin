@@ -325,6 +325,114 @@ def list_integrations_impl() -> dict[str, Any]:
     }
 
 
+# --------------------------------------------------------------------------
+# Substrate — organ state from the SIGNED proof corpus.
+#
+# The substrate-under-test (Kimera) is observed through what the signed
+# proofs measured about it. Rather than require a live Kimera (heavy +
+# deployment-specific via the KimeraAdapter subprocess), this aggregates
+# the latest signed proof per scenario into named substrate organs —
+# real, signed, always available. A live adapter probe is a separate
+# opt-in path (Phase 3c).
+# --------------------------------------------------------------------------
+
+#: Substrate organs keyed by the scenario *family* (authoritative from
+#: the registry) — so the mapping adapts to whatever scenarios the corpus
+#: actually contains rather than hardcoding scenario names. Families not
+#: listed here (cross_framework, crdt, mutual_information, causal,
+#: code_quality, reproducibility) are Ophamin's measurement-validation
+#: tier, not Kimera substrate organs, and are excluded from this view.
+_ORGAN_FAMILIES: dict[str, tuple[str, str]] = {
+    "immune": ("GWF · immune membrane", "Blocks adversarial / manipulative input."),
+    "walker": ("Walker · traversal", "Traverses the manifold to resolve contradictions."),
+    "prime": ("Prime apparatus", "Content-addressed meaning — the substrate's vocabulary."),
+    "quantum": ("Quantum basis", "Quantum-style prime state composition."),
+    "memory": ("Scar / Vault · memory", "Experience deforms the manifold."),
+    "phi": ("Φ · integration", "Integrated information over the substrate."),
+    "dissonance": ("Dissonance", "Senses contradiction on cleared input."),
+    "rosetta": ("Rosetta · language", "Cross-lingual canonicalization to one prime."),
+    "conservation": ("Sinew · conservation", "Conserved quantities of substrate dynamics."),
+    "self_discovery": ("Proprioception", "The substrate models its own state."),
+    "self_reference": ("Self-reference", "Self-referential / recursive cognition."),
+    "completeness": ("Completeness", "No hidden dead code at canonical names."),
+    "interface": ("Interface contract", "Self-interface integrity."),
+    "throughput": ("Throughput · cost", "Per-cycle wall-time + resource envelope."),
+}
+
+
+def list_substrate_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
+    """Aggregate substrate-organ state from the signed proof corpus.
+
+    Groups the latest signed proof per scenario into named substrate
+    organs (GWF / Walker / prime apparatus / scar-vault memory / Φ /
+    dissonance / Rosetta / interface contract). Read-only + best-effort:
+    a malformed record is skipped. Returns ``no_data`` organs (not an
+    error) when the corpus hasn't exercised that organ yet.
+    """
+    from ophamin.measuring.proof.codec import iter_proofs
+
+    # Authoritative scenario -> family map from the registry.
+    scen_family = {name: getattr(SCENARIOS[name], "family", "") for name in SCENARIOS}
+
+    latest: dict[str, dict[str, Any]] = {}
+    scanned = 0
+    root = Path(proofs_root)
+    if root.is_dir():
+        for p in iter_proofs(root):
+            try:
+                d = json.loads(p.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            scanned += 1
+            scenario = p.parent.parent.name
+            v = d.get("verdict", {}) or {}
+            thr = v.get("threshold", {}) or {}
+            data = d.get("data", {}) or {}
+            created = (d.get("identity", {}) or {}).get("created_at", "")
+            prev = latest.get(scenario)
+            if prev and str(prev.get("created_at", "")) >= str(created):
+                continue
+            latest[scenario] = {
+                "scenario": scenario,
+                "family": scen_family.get(scenario, ""),
+                "outcome": v.get("outcome", ""),
+                "observed": v.get("observed_value"),
+                "metric": thr.get("metric", ""),
+                "comparator": thr.get("comparator", ""),
+                "threshold": thr.get("value"),
+                "created_at": created,
+                "substrate_name": data.get("substrate_name", ""),
+                "substrate_commit": str(data.get("substrate_git_commit", ""))[:12],
+            }
+
+    organs: list[dict[str, Any]] = []
+    for fam, (name, role) in _ORGAN_FAMILIES.items():
+        found = [s for s in latest.values() if s.get("family") == fam]
+        found.sort(key=lambda x: str(x.get("created_at", "")), reverse=True)
+        head = found[0] if found else None
+        outcome = (head or {}).get("outcome", "")
+        organs.append({
+            "id": fam,
+            "name": name,
+            "role": role,
+            "scenarios": sorted(s["scenario"] for s in found),
+            "proof_count": len(found),
+            "latest": head,
+            "status": (
+                "validated" if outcome == "VALIDATED"
+                else "refuted" if outcome == "REFUTED"
+                else "inconclusive" if head
+                else "no_data"
+            ),
+        })
+    return {
+        "count": len(organs),
+        "organs": organs,
+        "proofs_scanned": scanned,
+        "framework_version": __version__,
+    }
+
+
 def get_scenario_claim_impl(name: str) -> dict[str, Any]:
     """Return a scenario's falsifiable claim + metadata.
 

@@ -868,6 +868,17 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       }
     } catch (e) { console.warn('[ophamin] hydrate /integrations skipped:', e.message); }
 
+    // --- /substrate (organ state from the signed proof corpus) ---
+    // Note: api.substrate is the active-substrate *name* (status strip);
+    // the organ array lives under api.substrate_organs to avoid clashing.
+    try {
+      const su = await getJSON('/substrate');
+      if (su && Array.isArray(su.organs)) {
+        api.substrate_organs = su.organs;
+        live.substrate_organs = true;
+      }
+    } catch (e) { console.warn('[ophamin] hydrate /substrate skipped:', e.message); }
+
     return live;
   }
 
@@ -908,6 +919,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     wheels, pillars, tiers, corpora, scenarios, bundles, totals, activity, agents,
     agentCalls: [],
     integrations: [],
+    substrate_organs: [],
     substrates: [],
     activeSubstrate: null,
     _allBundles: bundles,
@@ -922,7 +934,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     live: {
       version: false, scenarios: false, bundles: false, proofs: false,
       metrics: false, agents: false, agentCalls: false, integrations: false,
-      substrates: false,
+      substrates: false, substrate_organs: false,
     },
   };
   return api;

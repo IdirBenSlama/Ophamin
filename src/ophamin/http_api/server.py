@@ -52,6 +52,7 @@ from ophamin.interfaces._impls import (
     list_integrations_impl,
     list_llm_calls_impl,
     list_scenarios_impl,
+    list_substrate_impl,
     read_proof_index_impl,
     run_scenario_impl,
     verify_proof_impl,
@@ -380,6 +381,24 @@ def build_app() -> FastAPI:
     )
     def get_integrations() -> dict[str, Any]:
         return list_integrations_impl()
+
+    @app.get(
+        "/substrate",
+        summary="Substrate-organ state from the signed proof corpus",
+        description=(
+            "Observes the substrate-under-test (Kimera) through what the "
+            "signed proofs measured about it. Groups the latest proof per "
+            "scenario into named substrate organs — GWF (immune), Walker "
+            "(traversal), prime apparatus, scar/vault memory, Φ "
+            "(integration), dissonance, Rosetta (language), interface "
+            "contract — each with its headline metric + verdict. Real + "
+            "signed + always available (no live Kimera required). A live "
+            "`KimeraAdapter` probe is a separate opt-in path."
+        ),
+        tags=["substrate"],
+    )
+    def get_substrate(proofs_root: str = "proofs") -> dict[str, Any]:
+        return list_substrate_impl(proofs_root)
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints
