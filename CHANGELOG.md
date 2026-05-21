@@ -7,7 +7,39 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.70.0] below for the latest cut.)
+(empty — see [0.71.0] below for the latest cut.)
+
+## [0.71.0] — 2026-05-21
+
+**Feature — manifold topology becomes measurable + surfaced (Phase 3b).**
+Makes the manifold-topology hero real *the right way*: a new falsifiable
+scenario measures the topology, a substrate organ surfaces it, and the
+Console hero renders it from the signed proof — never faked.
+
+- **`ManifoldTopologyScenario`** (new, `family="topology"`): pre-registers
+  "Kimera's semantic manifold stays a single connected component — median
+  β₀ == 1". Reads Betti numbers (β₀/β₁/β₂) from the cycle result under a
+  documented key-fallback (`topology` / `betti_numbers` / flat
+  `betti_0/1/2`); reports β₁ (loops) + β₂ (voids) + geoid-graph size as
+  descriptive evidence. Returns **inconclusive** (never a wrong verdict)
+  when the substrate doesn't expose topology — safe to register before a
+  live-Kimera run validates the exact keys. Auto-registers (now 34
+  scenarios).
+- **`topology` organ** added to `/substrate` (15 organs).
+- **Console Substrate app**: a **Manifold topology hero** panel — renders
+  β₀ + connected/fragmented status from the topology proof when present,
+  with an honest "no manifold-topology proof yet — generate one with
+  `ophamin scenario manifold-topology`" empty state otherwise. (β₁/β₂ +
+  the full geoid-graph viz land as the topology proof gains those fields.)
+- **Tests**: `tests/test_manifold_topology.py` pins the metadata contract,
+  the claim, and scoring across all three regimes — connected (validated),
+  fragmented (refuted), no-topology-exposed (inconclusive).
+
+The honest boundary: a real β₀/β₁/β₂ value requires a topology proof
+generated against a live Kimera substrate (Kimera's own environment) —
+the one step that can't run from Ophamin's sandbox. Everything *up to*
+that is shipped: the measurement, the organ, the hero. The hero lights up
+the moment such a proof lands in the corpus.
 
 ## [0.70.0] — 2026-05-21
 

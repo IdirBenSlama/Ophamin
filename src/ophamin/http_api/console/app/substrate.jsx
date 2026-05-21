@@ -12,6 +12,8 @@ function SubstrateScreen() {
   const D = OPHAMIN;
   const organs = D.substrate_organs || [];
   const measured = organs.filter(o => o.status !== 'no_data').length;
+  const topology = organs.find(o => o.id === 'topology') || null;
+  const gridOrgans = organs.filter(o => o.id !== 'topology');
 
   const statusColor = (s) =>
     s === 'validated' ? 'var(--validated, #2dd4bf)'
@@ -44,12 +46,59 @@ function SubstrateScreen() {
         </div>
       </div>
 
+      {topology && (() => {
+        const lt = topology.latest;
+        const b0 = lt && typeof lt.observed === 'number' ? Math.round(lt.observed) : null;
+        const connected = b0 === 1;
+        const heroColor = b0 == null ? 'var(--text-muted)'
+          : connected ? 'var(--validated, #2dd4bf)' : 'var(--refuted, #ef5b5b)';
+        return (
+          <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
+            <div className="card-header">
+              <div>
+                <div className="card-title">Manifold topology</div>
+                <div className="micro" style={{ marginTop: 2 }}>connectivity of the geoid manifold (β₀ / β₁ / β₂)</div>
+              </div>
+              <span className="live-pill" style={{ color: heroColor }}>
+                <span className="dot" style={{ background: heroColor }}></span>
+                {b0 == null ? 'no proof yet' : connected ? 'connected' : 'fragmented'}
+              </span>
+            </div>
+            <div style={{ padding: 20 }}>
+              {b0 == null ? (
+                <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+                  No manifold-topology proof in the corpus yet. Generate one with{' '}
+                  <span className="mono">ophamin scenario manifold-topology</span>{' '}
+                  against a Kimera substrate — this panel renders β₀ / β₁ / β₂ and the
+                  geoid graph from the signed proof the moment it lands.
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span className="mono" style={{ fontSize: 40, fontWeight: 700, color: heroColor, lineHeight: 1 }}>β₀ = {b0}</span>
+                    <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                      {connected ? 'single connected component' : b0 + ' disconnected components'}
+                    </span>
+                  </div>
+                  <div className="mono faint" style={{ fontSize: 11, marginTop: 10 }}>
+                    {lt.scenario} · {topology.proof_count} proof{topology.proof_count === 1 ? '' : 's'} · {(lt.substrate_name || 'kimera-swm')}{lt.substrate_commit ? ' @ ' + lt.substrate_commit : ''}
+                  </div>
+                  <div className="micro" style={{ marginTop: 12, color: 'var(--text-muted)' }}>
+                    β₁ (loops) + β₂ (voids) + the geoid/scar graph render here from the proof's evidence — coming as the topology proof gains those fields.
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 }}>
-        {organs.length === 0 ? (
+        {gridOrgans.length === 0 ? (
           <div style={{ padding: 20, color: 'var(--text-muted)', fontSize: 13 }}>
             No substrate organs available (backend not reached).
           </div>
-        ) : organs.map(o => {
+        ) : gridOrgans.map(o => {
           const lt = o.latest;
           const color = statusColor(o.status);
           return (

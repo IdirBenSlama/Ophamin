@@ -170,9 +170,12 @@ pixel of fabricated data may be indistinguishable from measured data.
   - **3a ✅ shipped (0.70.0):** the **Substrate app** — `GET /substrate`
     aggregates substrate-organ state from the signed proof corpus (grouped
     by scenario family); organ cards with the latest signed measurement.
-  - **3b (next):** the **manifold topology hero** (geoid graph + scar
-    network + β₀/β₁/β₂) — needs topology data (a topology-specific proof
-    or a live `KimeraAdapter` probe).
+  - **3b ✅ shipped (0.71.0):** topology made measurable + surfaced — a
+    `ManifoldTopologyScenario` (falsifiable β₀ == 1 claim), a `topology`
+    organ on `/substrate`, and the **manifold-topology hero** that renders
+    β₀ + connectivity from the signed proof (honest empty state until one
+    exists). The full geoid-graph + β₁/β₂ viz lands once a topology proof
+    is generated against a live Kimera substrate.
   - **3c:** optional live `KimeraAdapter` probe (BYO Kimera repo);
     per-proof construction-loop panel (measure → remediate → opportunity →
     optimize → enhance); Campaigns (multiplicity correction); Verify

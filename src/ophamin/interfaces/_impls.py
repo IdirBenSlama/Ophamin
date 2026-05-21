@@ -345,6 +345,7 @@ def list_integrations_impl() -> dict[str, Any]:
 _ORGAN_FAMILIES: dict[str, tuple[str, str]] = {
     "immune": ("GWF · immune membrane", "Blocks adversarial / manipulative input."),
     "walker": ("Walker · traversal", "Traverses the manifold to resolve contradictions."),
+    "topology": ("Manifold topology", "Connectivity (β₀/β₁/β₂) of the geoid manifold."),
     "prime": ("Prime apparatus", "Content-addressed meaning — the substrate's vocabulary."),
     "quantum": ("Quantum basis", "Quantum-style prime state composition."),
     "memory": ("Scar / Vault · memory", "Experience deforms the manifold."),
