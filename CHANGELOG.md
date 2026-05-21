@@ -7,7 +7,22 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.73.0] below for the latest cut.)
+(empty — see [0.74.0] below for the latest cut.)
+
+## [0.74.0] — 2026-05-21
+
+**Perf — Console loads production React (Phase 4).** The Console pinned
+the React *development* UMD (`react-dom.development.js` alone is ~1.05MB,
+with dev-mode runtime checks). Swapped to the **production** UMD.
+
+- **`console/app` index.html**: `react@18.3.1` + `react-dom@18.3.1`
+  now load `*.production.min.js` with freshly-computed SRI sha384 hashes.
+  React payload: **~1.16MB → ~138KB (88% smaller)**, plus production React
+  skips dev-mode checks at runtime. Babel-standalone is unchanged — JSX
+  still compiles in-browser, so the no-build philosophy is preserved.
+
+Verified in-browser: the app renders identically under production React
+(SRI passes, full hydration, all screens). Console-only — no API change.
 
 ## [0.73.0] — 2026-05-21
 
