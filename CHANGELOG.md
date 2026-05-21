@@ -7,7 +7,35 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.80.0] below for the latest cut.)
+(empty — see [0.81.0] below for the latest cut.)
+
+## [0.81.0] — 2026-05-22
+
+**Feature — the cross-domain map (glanceable spectrum) + two more domains.**
+With eight flow proofs in the corpus, scrolling cards to compare floors was
+the wrong UX. The Flow screen now opens with a sorted floor-by-domain band.
+
+- **Cross-domain map** at the top of the Flow screen: per invariant, a
+  sorted horizontal bar of the floor across every corpus it's been measured
+  on, with the threshold marker and a `gaps` annotation (exposures that
+  produced no concept set — e.g. GWF blocking). The whole spectrum in one
+  glance, above the per-proof detail cards.
+- **Two more domains measured @ kimera-swm 674ae6b7b402** (parametric
+  runner, all VALIDATED):
+  - **cyber (Metasploit security text)**: recognition floor **0.870**, but
+    **6 of 24 exposures produced no concept set** — the highest gap rate of
+    any domain. The GWF security-membrane signal: where the substrate
+    processes security text it recognises it, but ~25% of exposures are
+    suppressed (consistent with the known GWF false-positive edge on
+    security vocabulary).
+  - **financial (structured time-series)**: recognition floor **1.000** —
+    perfect, because highly-structured numeric tokens carry no semantic
+    ambiguity to drift.
+- **The recognition spectrum is now visible end to end**: financial 1.00
+  (structured) > genesis 0.95 > linux 0.947 > flores 0.870 ≈ cyber 0.870
+  (+25% GWF gaps) > enron 0.864 (natural prose). Recognition weakens as text
+  gets less structured / more semantically ambiguous; cyber adds GWF gaps.
+  Eight flow proofs total across six corpora.
 
 ## [0.80.0] — 2026-05-22
 

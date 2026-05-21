@@ -23,6 +23,15 @@ function FlowScreen() {
   };
   const pct = (v) => (typeof v === 'number' ? Math.max(0, Math.min(1, v)) * 100 : 0);
 
+  // Group flows by their measured metric so each invariant gets one
+  // floor-by-domain comparison row — the cross-domain map at a glance.
+  const byMetric = {};
+  flows.forEach((f) => {
+    const k = f.metric_label || 'recognition Jaccard';
+    (byMetric[k] = byMetric[k] || []).push(f);
+  });
+  const metricGroups = Object.keys(byMetric).sort();
+
   return (
     <div className="content-inner page">
       <div className="page-header">
@@ -48,6 +57,46 @@ function FlowScreen() {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 14 }}>
+
+          {/* Cross-domain map: each invariant's floor across the corpora it's
+              been measured on — the spectrum at a glance, above the cards. */}
+          {flows.length > 1 && (
+            <div className="card" style={{ padding: 16 }}>
+              <div className="card-title">Cross-domain map</div>
+              <div className="micro" style={{ marginTop: 2, marginBottom: 12 }}>
+                Each flow invariant's floor across the corpora it's been measured on. Lower = the dynamics weaken on that data; <span className="mono">gaps</span> = exposures that produced no concept set (e.g. GWF blocking).
+              </div>
+              {metricGroups.map((label) => {
+                const group = byMetric[label].slice().sort((a, b) => (b.floor || 0) - (a.floor || 0));
+                return (
+                  <div key={label} style={{ marginBottom: 14 }}>
+                    <div className="micro" style={{ margin: '4px 0 6px' }}>{label.toUpperCase()} · floor by domain</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      {group.map((f, i) => {
+                        const thr = typeof f.threshold === 'number' ? f.threshold : null;
+                        const ok = thr === null ? true : (f.floor || 0) >= thr;
+                        const barColor = ok ? 'var(--validated, #2dd4bf)' : 'var(--refuted, #ef5b5b)';
+                        return (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div className="mono faint" style={{ fontSize: 10, width: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={f.corpus_label}>{f.corpus_label}</div>
+                            <div style={{ flex: 1, height: 14, background: 'var(--surface-2, #161b22)', borderRadius: 'var(--r-sm)', overflow: 'hidden', position: 'relative' }}>
+                              <div style={{ width: pct(f.floor) + '%', height: '100%', background: barColor, opacity: 0.85 }}></div>
+                              {thr !== null && (
+                                <div title={'threshold ' + fmt(thr)} style={{ position: 'absolute', top: 0, left: pct(thr) + '%', width: 1, height: '100%', background: 'var(--text-muted)' }}></div>
+                              )}
+                            </div>
+                            <div className="mono" style={{ fontSize: 11, width: 52, textAlign: 'right', color: barColor }}>{fmt(f.floor)}</div>
+                            <div className="mono faint" style={{ fontSize: 9, width: 56 }}>{f.n_failed_exposures > 0 ? ('· ' + f.n_failed_exposures + ' gaps') : ''}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {flows.map((f, fi) => {
             const color = outColor(f.outcome);
             const stim = f.per_stimulus_floor || {};
