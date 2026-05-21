@@ -7,7 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.81.0] below for the latest cut.)
+(empty — see [0.82.0] below for the latest cut.)
+
+## [0.82.0] — 2026-05-22
+
+**Data — Φ-stability map completed across all six domains; the first
+REFUTED flow proofs.** Φ-stability now spans the same six corpora as
+recognition. Two domains REFUTE the invariant — and the refutations are the
+most informative result of the campaign.
+
+- **Φ-stability by domain @ kimera-swm 674ae6b7b402:**
+  - genesis **0.660**, enron **0.616**, financial **0.613**, flores
+    **0.600** — all 100% non-collapse, VALIDATED.
+  - **linux REFUTED** — Φ floor **0.000**, non-collapse 87.5% (3 of 24
+    cycles went to Φ=0).
+  - **cyber REFUTED** — Φ floor **0.000**, non-collapse 75.0% (6 of 24
+    cycles went to Φ=0).
+- **The cross-finding (why this matters):** the Φ=0 collapses correlate
+  *exactly* with the recognition gaps measured in 0.81.0 — linux had 3
+  recognition gaps ↔ 3 Φ=0 cycles; cyber had 6 ↔ 6. They are the same
+  phenomenon measured two ways: when a cycle produces no concept set (a
+  short merge-commit, or GWF-blocked security text), there is nothing to
+  integrate, so Φ=0 — the substrate is cognitively dark on that cycle.
+  Recognition stays high on the cycles that *do* produce concepts; the
+  invariant fails only on the degenerate-input cycles.
+- **Construction brief (per the refutations):** Φ=0 is correct behaviour for
+  empty-concept input, not a substrate bug — so the fix is upstream
+  (filter/handle degenerate inputs) or a refined invariant (Φ ≥ floor *for
+  non-empty-concept cycles*). The honest red bars are now visible in the
+  Flow cross-domain map.
+- Twelve flow proofs total (2 invariants × 6 corpora), 10 holding, 2
+  refuted — the first REFUTED flow proofs in the corpus. Ophamin surfacing a
+  real, non-obvious dynamics property, not a confirmation.
 
 ## [0.81.0] — 2026-05-22
 
