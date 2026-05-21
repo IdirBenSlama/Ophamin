@@ -1,0 +1,832 @@
+{
+  "proof_id": "60914772e4dc3962001501ed3bb8b0a8072a4e70be1ccb6cdf30ca22e24ccb4f",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.75.0",
+    "ophamin_git_commit": "6bb657cedda6ade8dde02ca1db9926ea451aaab6",
+    "created_at": "2026-05-21T21:53:24.985176+00:00"
+  },
+  "claim": {
+    "statement": "Across all 9 KimeraInventory strata, the aggregate orphan rate is \u2264 20.0%. An orphan is a Python module in the inventory that has zero incoming imports from any other file in the Kimera repo AND is not explicitly annotated as WIRE_CANDIDATE / WIRED / ARCHIVED.",
+    "operationalization": "Build an import graph by walking every .py file under kimera_swm/ and parsing ``import`` / ``from ... import`` statements. For each inventoried surface, count incoming edges. Combine with annotation scanning (``.. note:: WIRE_CANDIDATE`` etc.) to produce one of {wired, wire_candidate, orphan, archived, parse_error, config}. orphan_rate = n_orphan / n_total_python_surfaces.",
+    "threshold": {
+      "metric": "aggregate_orphan_rate",
+      "comparator": "<=",
+      "value": 0.2,
+      "units": "proportion"
+    },
+    "h0": "H0: orphan rate > 20.0% \u2014 load-bearing infrastructure is sitting unwired; fix list is non-empty",
+    "h1": "H1: orphan rate \u2264 20.0% \u2014 substrate completeness within target band"
+  },
+  "preregistration": {
+    "config_hash": "c0fd9cc53c786b0fb80f5ca5cab5c6f30ce671d494ebea10832ed9cbd1e42c88",
+    "data_hash": "76543e1c4be6bcde01d8c66ab84d6245155ed9225991d5d810ce89b878fa4b9f",
+    "analysis_plan": "Run KimeraInventory.discover_all against /Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory), then build a repo-wide import graph and classify each surface per the operationalization. Aggregate orphan_rate across all strata; decide against threshold \u2264 20.00%. Wilson 95% CI on the proportion. Per-stratum breakdown and the orphan / WIRE_CANDIDATE action lists are in the proof evidence.",
+    "sweep_grid": {},
+    "preregistered_at": "2026-05-21T21:53:24.638778+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "674ae6b7b40205d161a92af9a5f812479ac7d977",
+    "datasets": [
+      {
+        "name": "kimera-substrate-completeness-probe",
+        "content_hash": "76543e1c4be6bcde01d8c66ab84d6245155ed9225991d5d810ce89b878fa4b9f",
+        "n_records": 325,
+        "source": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+        "kind": "static-inventory+import-graph"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "import_graph_static",
+      "statistic_name": "aggregate_orphan_rate",
+      "statistic_value": 0.08,
+      "library": "statsmodels",
+      "library_version": "0.14.6",
+      "effect_size": null,
+      "ci_low": 0.05517669748559364,
+      "ci_high": 0.11463601110946994,
+      "p_value": null,
+      "cross_check": "n/a",
+      "detail": {
+        "n_python_surfaces_total": 325,
+        "n_orphan_total": 26,
+        "n_wired_total": 291,
+        "n_wire_candidate_total": 8,
+        "n_archived_total": 0,
+        "n_parse_error_total": 0,
+        "ci_method": "wilson_95%",
+        "per_stratum": [
+          {
+            "stratum": "cognitive",
+            "n_total": 9,
+            "n_wired": 9,
+            "n_wire_candidate": 0,
+            "n_orphan": 0,
+            "n_archived": 0,
+            "n_parse_error": 0,
+            "n_with_stubs": 0,
+            "sum_incoming_imports": 96,
+            "wired_rate": 1.0,
+            "orphan_rate": 0.0,
+            "wire_candidate_rate": 0.0
+          },
+          {
+            "stratum": "interface",
+            "n_total": 100,
+            "n_wired": 99,
+            "n_wire_candidate": 0,
+            "n_orphan": 1,
+            "n_archived": 0,
+            "n_parse_error": 0,
+            "n_with_stubs": 3,
+            "sum_incoming_imports": 160,
+            "wired_rate": 0.99,
+            "orphan_rate": 0.01,
+            "wire_candidate_rate": 0.0
+          },
+          {
+            "stratum": "transport",
+            "n_total": 8,
+            "n_wired": 8,
+            "n_wire_candidate": 0,
+            "n_orphan": 0,
+            "n_archived": 0,
+            "n_parse_error": 0,
+            "n_with_stubs": 0,
+            "sum_incoming_imports": 8,
+            "wired_rate": 1.0,
+            "orphan_rate": 0.0,
+            "wire_candidate_rate": 0.0
+          },
+          {
+            "stratum": "persistence",
+            "n_total": 41,
+            "n_wired": 34,
+            "n_wire_candidate": 0,
+            "n_orphan": 7,
+            "n_archived": 0,
+            "n_parse_error": 0,
+            "n_with_stubs": 1,
+            "sum_incoming_imports": 93,
+            "wired_rate": 0.8292682926829268,
+            "orphan_rate": 0.17073170731707318,
+            "wire_candidate_rate": 0.0
+          },
+          {
+            "stratum": "reconciliation",
+            "n_total": 8,
+            "n_wired": 8,
+            "n_wire_candidate": 0,
+            "n_orphan": 0,
+            "n_archived": 0,
+            "n_parse_error": 0,
+            "n_with_stubs": 0,
+            "sum_incoming_imports": 19,
+            "wired_rate": 1.0,
+            "orphan_rate": 0.0,
+            "wire_candidate_rate": 0.0
+          },
+          {
+            "stratum": "temporal",
+            "n_total": 36,
+            "n_wired": 32,
+            "n_wire_candidate": 0,
+            "n_orphan": 4,
+            "n_archived": 0,
+            "n_parse_error": 0,
+            "n_with_stubs": 1,
+            "sum_incoming_imports": 97,
+            "wired_rate": 0.8888888888888888,
+            "orphan_rate": 0.1111111111111111,
+            "wire_candidate_rate": 0.0
+          },
+          {
+            "stratum": "security",
+            "n_total": 66,
+            "n_wired": 52,
+            "n_wire_candidate": 8,
+            "n_orphan": 6,
+            "n_archived": 0,
+            "n_parse_error": 0,
+            "n_with_stubs": 1,
+            "sum_incoming_imports": 130,
+            "wired_rate": 0.7878787878787878,
+            "orphan_rate": 0.09090909090909091,
+            "wire_candidate_rate": 0.12121212121212122
+          },
+          {
+            "stratum": "telemetry",
+            "n_total": 29,
+            "n_wired": 28,
+            "n_wire_candidate": 0,
+            "n_orphan": 1,
+            "n_archived": 0,
+            "n_parse_error": 0,
+            "n_with_stubs": 0,
+            "sum_incoming_imports": 60,
+            "wired_rate": 0.9655172413793104,
+            "orphan_rate": 0.034482758620689655,
+            "wire_candidate_rate": 0.0
+          },
+          {
+            "stratum": "lifecycle",
+            "n_total": 28,
+            "n_wired": 21,
+            "n_wire_candidate": 0,
+            "n_orphan": 7,
+            "n_archived": 0,
+            "n_parse_error": 0,
+            "n_with_stubs": 0,
+            "sum_incoming_imports": 47,
+            "wired_rate": 0.75,
+            "orphan_rate": 0.25,
+            "wire_candidate_rate": 0.0
+          }
+        ],
+        "orphan_action_list": [
+          {
+            "stratum": "interface",
+            "file_path": "kimera_swm/api/routers/monitoring_router.py"
+          },
+          {
+            "stratum": "persistence",
+            "file_path": "kimera_swm/infrastructure/database/connection_manager.py"
+          },
+          {
+            "stratum": "persistence",
+            "file_path": "kimera_swm/infrastructure/database/database_configs.py"
+          },
+          {
+            "stratum": "persistence",
+            "file_path": "kimera_swm/infrastructure/database/database_production_manager.py"
+          },
+          {
+            "stratum": "persistence",
+            "file_path": "kimera_swm/infrastructure/database/enhanced_database_optimizer_fixed.py"
+          },
+          {
+            "stratum": "persistence",
+            "file_path": "kimera_swm/infrastructure/database/postgres_insight_repository.py"
+          },
+          {
+            "stratum": "persistence",
+            "file_path": "kimera_swm/infrastructure/persistence/database.py"
+          },
+          {
+            "stratum": "persistence",
+            "file_path": "kimera_swm/infrastructure/persistence/repository.py"
+          },
+          {
+            "stratum": "temporal",
+            "file_path": "kimera_swm/infrastructure/temporal/kccl_integration.py"
+          },
+          {
+            "stratum": "temporal",
+            "file_path": "kimera_swm/infrastructure/temporal/scale5_adapters.py"
+          },
+          {
+            "stratum": "temporal",
+            "file_path": "kimera_swm/infrastructure/temporal/spde_integration.py"
+          },
+          {
+            "stratum": "temporal",
+            "file_path": "kimera_swm/infrastructure/temporal/surfacing.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/authentication_manager_simple.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/exceptions.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/safety_init.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/security_manager_simple.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/infrastructure/security/enterprise_encryption_system.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/infrastructure/security/security.py"
+          },
+          {
+            "stratum": "telemetry",
+            "file_path": "kimera_swm/infrastructure/monitoring/monitoring.py"
+          },
+          {
+            "stratum": "lifecycle",
+            "file_path": "kimera_swm/infrastructure/encoder_snapshot/builder.py"
+          },
+          {
+            "stratum": "lifecycle",
+            "file_path": "kimera_swm/infrastructure/memory/advanced_memory_optimizer.py"
+          },
+          {
+            "stratum": "lifecycle",
+            "file_path": "kimera_swm/infrastructure/memory/enhanced_gc_optimizer.py"
+          },
+          {
+            "stratum": "lifecycle",
+            "file_path": "kimera_swm/infrastructure/memory/enhanced_memory_analytics.py"
+          },
+          {
+            "stratum": "lifecycle",
+            "file_path": "kimera_swm/infrastructure/memory/enhanced_memory_leak_detector.py"
+          },
+          {
+            "stratum": "lifecycle",
+            "file_path": "kimera_swm/infrastructure/memory/enhanced_memory_monitor.py"
+          },
+          {
+            "stratum": "lifecycle",
+            "file_path": "kimera_swm/infrastructure/memory/test_memory_management.py"
+          }
+        ],
+        "wire_candidate_action_list": [
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/consolidated_security_service.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/encryption_engine.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/enhanced_audit_compliance.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/enhanced_authentication_manager.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/enhanced_data_protection.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/security_config.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/security_service_factory.py"
+          },
+          {
+            "stratum": "security",
+            "file_path": "kimera_swm/domain/security/use_cases.py"
+          }
+        ],
+        "completeness_report_id": "d898c1d2503aaafeb263faffd2b622b23efe079770c1db52ed72b1f3770f33a5"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 0.08,
+    "threshold": {
+      "metric": "aggregate_orphan_rate",
+      "comparator": "<=",
+      "value": 0.2,
+      "units": "proportion"
+    },
+    "reasoning": "26/325 surfaces classified orphan (0.0800); Wilson 95% CI [0.0552, 0.1146]"
+  },
+  "reproduction": {
+    "command": "PYTHONPATH=src .venv/bin/python -c \"from ophamin.measuring.scenarios.substrate_completeness import SubstrateCompletenessScenario as S; from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY; from ophamin.seeing.substrate import MockSubstrate; r = S(kimera_repo='/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)').run(substrate=MockSubstrate(seed=1)).sign(DEFAULT_SIGN_KEY); print(r.proof_id)\"",
+    "environment": {
+      "python": "3.14.3",
+      "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+      "adagio": "0.2.6",
+      "aiohappyeyeballs": "2.6.1",
+      "aiohttp": "3.13.5",
+      "aiohttp-retry": "2.9.1",
+      "aiosignal": "1.4.0",
+      "alembic": "1.18.4",
+      "amqp": "5.3.1",
+      "annotated-doc": "0.0.4",
+      "annotated-types": "0.7.0",
+      "antlr4-python3-runtime": "4.9.3",
+      "anyio": "4.13.0",
+      "appdirs": "1.4.4",
+      "arviz": "1.1.0",
+      "arviz-base": "1.1.0",
+      "arviz-plots": "1.1.0",
+      "arviz-stats": "1.1.0",
+      "ast_serialize": "0.5.0",
+      "astroid": "4.0.4",
+      "asyncssh": "2.23.0",
+      "atpublic": "7.0.0",
+      "attrs": "26.1.0",
+      "babel": "2.18.0",
+      "backrefs": "7.0",
+      "bandit": "1.9.4",
+      "billiard": "4.2.4",
+      "black": "26.3.1",
+      "blinker": "1.9.0",
+      "boltons": "21.0.0",
+      "boolean.py": "5.0",
+      "bracex": "2.6",
+      "build": "1.5.0",
+      "CacheControl": "0.14.4",
+      "cachetools": "6.2.6",
+      "causalml": "0.16.0",
+      "CausalPy": "0.8.1",
+      "celery": "5.6.3",
+      "certifi": "2026.4.22",
+      "cffi": "2.0.0",
+      "cfgv": "3.5.0",
+      "charset-normalizer": "3.4.7",
+      "click": "8.4.0",
+      "click-didyoumean": "0.3.1",
+      "click-option-group": "0.5.9",
+      "click-plugins": "1.1.1.2",
+      "click-repl": "0.3.0",
+      "cloudpickle": "3.1.2",
+      "colorama": "0.4.6",
+      "configobj": "5.0.9",
+      "cons": "0.4.7",
+      "contourpy": "1.3.3",
+      "coreforecast": "0.0.17",
+      "cosmic_ray": "8.4.6",
+      "coverage": "7.14.0",
+      "crepes": "0.9.0",
+      "cryptography": "46.0.7",
+      "cvc5": "1.3.4",
+      "cycler": "0.12.1",
+      "cyclonedx-python-lib": "11.7.0",
+      "Cython": "3.2.4",
+      "darts": "0.44.1",
+      "databricks-sdk": "0.108.0",
+      "datasets": "4.8.5",
+      "debtcollector": "3.1.0",
+      "decorator": "5.2.1",
+      "defusedxml": "0.7.1",
+      "Deprecated": "1.3.1",
+      "deptry": "0.25.1",
+      "dictdiffer": "0.9.0",
+      "dill": "0.4.1",
+      "diskcache": "5.6.3",
+      "distlib": "0.4.0",
+      "distro": "1.9.0",
+      "dnspython": "2.8.0",
+      "docker": "7.1.0",
+      "docutils": "0.22.4",
+      "dowhy": "0.8",
+      "dpath": "2.2.0",
+      "duckdb": "1.5.2",
+      "dulwich": "1.2.1",
+      "dvc": "3.67.1",
+      "dvc-data": "3.18.3",
+      "dvc-http": "2.32.0",
+      "dvc-objects": "5.2.0",
+      "dvc-render": "1.0.2",
+      "dvc-studio-client": "0.22.0",
+      "dvc-task": "0.40.2",
+      "econml": "0.16.0",
+      "ennemi": "1.6.0",
+      "entrypoints": "0.4",
+      "etuples": "0.3.10",
+      "exceptiongroup": "1.2.2",
+      "face": "26.0.0",
+      "faiss-cpu": "1.13.2",
+      "fastapi": "0.136.1",
+      "fawltydeps": "0.20.0",
+      "filelock": "3.29.0",
+      "Flask": "3.1.3",
+      "flask-cors": "6.0.2",
+      "flatten-dict": "0.5.0",
+      "flufl.lock": "9.1.0",
+      "fonttools": "4.63.0",
+      "forestci": "0.6",
+      "frozenlist": "1.8.0",
+      "fsspec": "2026.2.0",
+      "fugue": "0.9.7",
+      "funcy": "2.0",
+      "ghp-import": "2.1.0",
+      "gitdb": "4.0.12",
+      "GitPython": "3.1.50",
+      "glom": "25.12.0",
+      "google-auth": "2.52.0",
+      "googleapis-common-protos": "1.75.0",
+      "grandalf": "0.8",
+      "graphene": "3.4.3",
+      "graphql-core": "3.2.8",
+      "graphql-relay": "3.2.0",
+      "graphviz": "0.21",
+      "griffelib": "2.0.2",
+      "gto": "1.9.0",
+      "gudhi": "3.12.0",
+      "gunicorn": "25.3.0",
+      "h11": "0.16.0",
+      "h5py": "3.16.0",
+      "harfile": "0.4.0",
+      "hf-xet": "1.5.0",
+      "holidays": "0.96",
+      "hopcroftkarp": "1.2.5",
+      "httpcore": "1.0.9",
+      "httpx": "0.28.1",
+      "httpx-sse": "0.4.3",
+      "huey": "2.6.0",
+      "huggingface_hub": "1.14.0",
+      "hydra-core": "1.3.2",
+      "hypothesis": "6.152.7",
+      "hypothesis-graphql": "0.12.0",
+      "hypothesis-jsonschema": "0.23.1",
+      "id": "1.6.1",
+      "identify": "2.6.19",
+      "idna": "3.15",
+      "igraph": "1.0.0",
+      "importlib_metadata": "8.7.1",
+      "infomeasure": "0.6.0",
+      "iniconfig": "2.3.0",
+      "interrogate": "1.7.0",
+      "isort": "8.0.1",
+      "iterative-telemetry": "0.0.10",
+      "itsdangerous": "2.2.0",
+      "jaraco.classes": "3.4.0",
+      "jaraco.context": "6.1.2",
+      "jaraco.functools": "4.5.0",
+      "jax": "0.10.0",
+      "jaxlib": "0.10.0",
+      "Jinja2": "3.1.6",
+      "joblib": "1.5.3",
+      "jsonschema": "4.25.1",
+      "jsonschema-specifications": "2025.9.1",
+      "jsonschema_rs": "0.46.5",
+      "junit-xml": "1.9",
+      "keyring": "25.7.0",
+      "kiwisolver": "1.5.0",
+      "kmapper": "2.1.0",
+      "kombu": "5.6.2",
+      "lazy-loader": "0.5",
+      "libcst": "1.8.6",
+      "librt": "0.11.0",
+      "license-expression": "30.4.4",
+      "lightgbm": "4.6.0",
+      "linkify-it-py": "2.1.0",
+      "llvmlite": "0.47.0",
+      "logical-unification": "0.4.7",
+      "lxml": "6.1.0",
+      "Mako": "1.3.12",
+      "mando": "0.7.1",
+      "MAPIE": "1.4.0",
+      "Markdown": "3.10.2",
+      "markdown-it-py": "4.2.0",
+      "MarkupSafe": "3.0.3",
+      "matplotlib": "3.10.9",
+      "mccabe": "0.7.0",
+      "mcp": "1.23.3",
+      "mdit-py-plugins": "0.6.1",
+      "mdurl": "0.1.2",
+      "memray": "1.19.3",
+      "mergedeep": "1.3.4",
+      "miniKanren": "1.0.5",
+      "mkdocs": "1.6.1",
+      "mkdocs-autorefs": "1.4.4",
+      "mkdocs-get-deps": "0.2.2",
+      "mkdocs-include-markdown-plugin": "7.3.0",
+      "mkdocs-material": "9.7.6",
+      "mkdocs-material-extensions": "1.3.1",
+      "mkdocstrings": "1.0.4",
+      "mkdocstrings-python": "2.0.3",
+      "ml_dtypes": "0.5.4",
+      "mlflow": "3.12.0",
+      "mlflow-skinny": "3.12.0",
+      "mlflow-tracing": "3.12.0",
+      "more-itertools": "11.0.2",
+      "mpmath": "1.3.0",
+      "msgpack": "1.1.2",
+      "multidict": "6.7.1",
+      "multipledispatch": "1.0.0",
+      "multiprocess": "0.70.19",
+      "mutmut": "3.5.0",
+      "mypy": "2.1.0",
+      "mypy_extensions": "1.1.0",
+      "narwhals": "2.21.0",
+      "networkx": "3.6.1",
+      "nh3": "0.3.5",
+      "nodeenv": "1.10.0",
+      "NPEET": "1.0.1",
+      "numba": "0.65.1",
+      "numpy": "2.4.4",
+      "numpyro": "0.21.0",
+      "omegaconf": "2.3.0",
+      "opentelemetry-api": "1.37.0",
+      "opentelemetry-exporter-otlp-proto-common": "1.37.0",
+      "opentelemetry-exporter-otlp-proto-http": "1.37.0",
+      "opentelemetry-instrumentation": "0.58b0",
+      "opentelemetry-instrumentation-requests": "0.58b0",
+      "opentelemetry-instrumentation-threading": "0.58b0",
+      "opentelemetry-proto": "1.37.0",
+      "opentelemetry-sdk": "1.37.0",
+      "opentelemetry-semantic-conventions": "0.58b0",
+      "opentelemetry-util-http": "0.58b0",
+      "ophamin": "0.7.0",
+      "opt_einsum": "3.4.0",
+      "orjson": "3.11.9",
+      "packageurl-python": "0.17.6",
+      "packaging": "26.2",
+      "pacmap": "0.9.1",
+      "paginate": "0.5.7",
+      "pandas": "2.3.3",
+      "pandas-flavor": "0.8.1",
+      "pathos": "0.2.9",
+      "pathspec": "1.1.1",
+      "patsy": "1.0.2",
+      "peewee": "3.19.0",
+      "persim": "0.3.8",
+      "pillow": "12.2.0",
+      "pingouin": "0.6.1",
+      "pip": "26.1.1",
+      "pip-api": "0.0.34",
+      "pip-requirements-parser": "32.0.1",
+      "pip_audit": "2.10.0",
+      "platformdirs": "4.9.6",
+      "pluggy": "1.6.0",
+      "polars": "1.40.1",
+      "polars-runtime-32": "1.40.1",
+      "POT": "0.9.6.post1",
+      "pox": "0.3.7",
+      "ppft": "1.7.8",
+      "pre_commit": "4.6.0",
+      "prettytable": "3.17.0",
+      "prometheus_client": "0.25.0",
+      "prompt_toolkit": "3.0.52",
+      "propcache": "0.5.2",
+      "prospector": "1.18.0",
+      "protobuf": "6.33.6",
+      "prov": "2.1.1",
+      "psutil": "7.2.2",
+      "puncc": "0.9.1",
+      "py": "1.11.0",
+      "py-cpuinfo": "9.0.0",
+      "py-serializable": "2.1.0",
+      "py-spy": "0.4.2",
+      "pyarrow": "23.0.1",
+      "pyasn1": "0.6.3",
+      "pyasn1_modules": "0.4.2",
+      "pycparser": "3.0",
+      "pycrdt": "0.13.0",
+      "pydantic": "2.13.4",
+      "pydantic-settings": "2.14.1",
+      "pydantic_core": "2.46.4",
+      "pydot": "4.0.1",
+      "pydotplus": "2.0.2",
+      "pyemd": "2.0.0",
+      "pygit2": "1.19.2",
+      "Pygments": "2.20.0",
+      "pygtrie": "2.5.0",
+      "pyitlib": "0.3.1",
+      "PyJWT": "2.12.1",
+      "pylint": "4.0.5",
+      "pymc": "6.0.0",
+      "pymdown-extensions": "10.21.3",
+      "pymongo": "4.17.0",
+      "pynndescent": "0.6.0",
+      "pyod": "3.5.1",
+      "pyparsing": "3.3.2",
+      "pyphi": "1.2.0",
+      "pyproject_hooks": "1.2.0",
+      "pyrate-limiter": "4.1.0",
+      "pyright": "1.1.409",
+      "PySMT": "0.9.6",
+      "pytensor": "3.0.2",
+      "pytest": "9.0.3",
+      "pytest-benchmark": "5.2.3",
+      "pytest-cov": "7.1.0",
+      "python-dateutil": "2.9.0.post0",
+      "python-discovery": "1.3.1",
+      "python-dotenv": "1.2.2",
+      "python-igraph": "1.0.0",
+      "python-multipart": "0.0.28",
+      "pytokens": "0.4.1",
+      "pytz": "2026.2",
+      "PyWavelets": "1.9.0",
+      "PyYAML": "6.0.3",
+      "pyyaml_env_tag": "1.1",
+      "radon": "6.0.1",
+      "rdflib": "7.6.0",
+      "readme_renderer": "44.0",
+      "redis": "7.4.0",
+      "referencing": "0.37.0",
+      "refurb": "2.3.1",
+      "regex": "2026.5.9",
+      "requests": "2.34.1",
+      "requests-toolbelt": "1.0.0",
+      "requirements-parser": "0.13.0",
+      "rfc3986": "2.0.0",
+      "rich": "15.0.0",
+      "ripser": "0.6.14",
+      "river": "0.24.2",
+      "rpds-py": "0.30.0",
+      "ruamel.yaml": "0.19.1",
+      "ruamel.yaml.clib": "0.2.15",
+      "ruff": "0.15.13",
+      "safetensors": "0.7.0",
+      "safety": "3.7.0",
+      "schemathesis": "4.18.5",
+      "scikit-learn": "1.6.1",
+      "scikit-tda": "1.1.1",
+      "scipy": "1.17.1",
+      "scmrepo": "3.6.2",
+      "seaborn": "0.13.2",
+      "semantic-version": "2.10.0",
+      "semgrep": "1.163.0",
+      "semver": "3.0.4",
+      "sentence-transformers": "5.5.0",
+      "setproctitle": "1.3.7",
+      "setuptools": "81.0.0",
+      "shap": "0.48.0",
+      "shellingham": "1.5.4",
+      "shortuuid": "1.0.13",
+      "shtab": "1.8.0",
+      "six": "1.17.0",
+      "skops": "0.14.0",
+      "sktime": "0.40.1",
+      "slicer": "0.0.8",
+      "slipcover": "1.0.18",
+      "smmap": "5.0.3",
+      "sortedcontainers": "2.4.0",
+      "sparse": "0.18.0",
+      "spdx-tools": "0.8.5",
+      "SQLAlchemy": "2.0.49",
+      "sqlparse": "0.5.5",
+      "sqltrie": "0.11.2",
+      "sse-starlette": "3.4.4",
+      "starlette": "0.52.1",
+      "starlette-testclient": "0.4.1",
+      "statsforecast": "2.0.3",
+      "statsmodels": "0.14.6",
+      "stevedore": "5.7.0",
+      "stumpy": "1.14.1",
+      "sympy": "1.14.0",
+      "tabulate": "0.10.0",
+      "tadasets": "0.2.2",
+      "tblib": "3.2.2",
+      "tenacity": "9.1.4",
+      "texttable": "1.7.0",
+      "textual": "8.2.6",
+      "threadpoolctl": "3.6.0",
+      "tigramite": "5.2.10.1",
+      "tokenizers": "0.22.2",
+      "tomli": "2.4.1",
+      "tomli_w": "1.2.0",
+      "tomlkit": "0.15.0",
+      "toolz": "1.1.0",
+      "torch": "2.12.0",
+      "tqdm": "4.67.3",
+      "transformers": "5.8.1",
+      "triad": "1.0.2",
+      "tsfresh": "0.21.1",
+      "twine": "6.2.0",
+      "typer": "0.25.1",
+      "typing-inspection": "0.4.2",
+      "typing_extensions": "4.15.0",
+      "tzdata": "2026.2",
+      "tzlocal": "5.3.1",
+      "uc-micro-py": "2.0.0",
+      "umap-learn": "0.5.12",
+      "urllib3": "2.7.0",
+      "utilsforecast": "0.2.16",
+      "uvicorn": "0.46.0",
+      "vine": "5.1.0",
+      "virtualenv": "21.3.3",
+      "voluptuous": "0.16.0",
+      "vulture": "2.16",
+      "watchdog": "6.0.0",
+      "wcmatch": "8.5.2",
+      "wcwidth": "0.7.0",
+      "Werkzeug": "3.1.8",
+      "wrapt": "1.17.3",
+      "xarray": "2026.4.0",
+      "xarray-einstats": "0.10.0",
+      "xgboost": "3.2.0",
+      "xxhash": "3.7.0",
+      "y-py": "0.6.2",
+      "yarl": "1.23.0",
+      "z3-solver": "4.16.0.0",
+      "zc.lockfile": "4.0",
+      "zipp": "3.23.1"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {
+    "prefix": {
+      "ophamin": "https://ophamin.example/"
+    },
+    "agent": {
+      "ophamin:ophamin": {
+        "ophamin:role": "experimentation_framework",
+        "ophamin:version": "0.75.0"
+      },
+      "ophamin:kimera-swm": {
+        "ophamin:role": "substrate_under_static_audit"
+      }
+    },
+    "entity": {
+      "ophamin:corpus_kimera-substrate-completeness-probe": {
+        "ophamin:content_hash": "76543e1c4be6bcde01d8c66ab84d6245155ed9225991d5d810ce89b878fa4b9f",
+        "ophamin:n_records": {
+          "$": 325,
+          "type": "xsd:int"
+        },
+        "ophamin:kind": "static-inventory+import-graph"
+      },
+      "ophamin:proof_substrate-completeness": {}
+    },
+    "activity": {
+      "ophamin:scenario_substrate-completeness": {
+        "ophamin:target": "all_strata_static_probe",
+        "ophamin:n_modules": {
+          "$": 325,
+          "type": "xsd:int"
+        }
+      }
+    },
+    "used": {
+      "_:id1": {
+        "prov:activity": "ophamin:scenario_substrate-completeness",
+        "prov:entity": "ophamin:corpus_kimera-substrate-completeness-probe"
+      }
+    },
+    "wasAssociatedWith": {
+      "_:id2": {
+        "prov:activity": "ophamin:scenario_substrate-completeness",
+        "prov:agent": "ophamin:ophamin"
+      },
+      "_:id3": {
+        "prov:activity": "ophamin:scenario_substrate-completeness",
+        "prov:agent": "ophamin:kimera-swm"
+      }
+    },
+    "wasGeneratedBy": {
+      "_:id4": {
+        "prov:entity": "ophamin:proof_substrate-completeness",
+        "prov:activity": "ophamin:scenario_substrate-completeness"
+      }
+    },
+    "wasAttributedTo": {
+      "_:id5": {
+        "prov:entity": "ophamin:proof_substrate-completeness",
+        "prov:agent": "ophamin:kimera-swm"
+      }
+    },
+    "wasDerivedFrom": {
+      "_:id6": {
+        "prov:generatedEntity": "ophamin:proof_substrate-completeness",
+        "prov:usedEntity": "ophamin:corpus_kimera-substrate-completeness-probe"
+      }
+    }
+  },
+  "signature": "8f37647d5187132c99a5a15e57f16aa806362a4696aff0e0e6780bc8cd5542b7"
+}
