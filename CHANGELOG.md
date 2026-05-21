@@ -7,7 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.74.0] below for the latest cut.)
+(empty — see [0.75.0] below for the latest cut.)
+
+## [0.75.0] — 2026-05-21
+
+**Feature — the Build Cockpit (engineering facet).** The first Console
+screen built to the Ophamin Protocol: Kimera's engineering health tracked
+as a **timeline across substrate commits**, so the vision-holder and their
+code model can see whether Kimera is getting healthier or drifting *while
+it's being built*. Every check is a signed proof from the corpus — no
+synthesized data.
+
+- **New `GET /cockpit`** (read-only): aggregates the engineering-facet
+  scenarios into five build-health checks — architectural completeness,
+  interface contract, code quality, throughput/cost, reproducibility —
+  each gathering **all** its signed proofs into a time-ordered, per-commit
+  series. Checks with no proof surface as `no_data`, not an error. Wraps
+  `list_cockpit_impl` (transport-agnostic, shared with MCP).
+- **New `console/app/cockpit.jsx`** + nav item: each check is a card
+  showing the latest measurement vs threshold and a row of per-commit
+  tiles (verdict-colored, oldest→newest) so the trend is visible at a
+  glance. `no_data` checks show the exact `ophamin scenario <name>` CTA to
+  run them into the corpus.
+- **`console/app/data.js`**: hydrates `/cockpit` into `OPHAMIN.cockpit`
+  with a `live.cockpit` flag, mirroring the established hydrate pattern.
+- Honest by construction: with today's corpus the Cockpit reports **2 of 5
+  checks passing** (throughput has a real 3-commit timeline; reproducibility
+  one) and the other three as `no proof yet` — the screen reflects exactly
+  what's been measured, nothing more.
+
+Verified in-browser (live hydration, timeline tiles render) and pinned by
+`TestCockpitEndpoint` (5 tests: shape, empty-tree all-`no_data`, signed-proof
+timeline ordering, OpenAPI presence).
 
 ## [0.74.0] — 2026-05-21
 

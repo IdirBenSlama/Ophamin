@@ -434,6 +434,104 @@ def list_substrate_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
     }
 
 
+# --------------------------------------------------------------------------
+# Build Cockpit — engineering-facet health of the substrate-under-test,
+# tracked OVER substrate commits (the trend Kimera's development needs).
+#
+# Protocol facet: `engineering`. Same signed-corpus source as /substrate,
+# but where /substrate shows the latest organ state, the cockpit shows the
+# per-commit TIMELINE for each engineering check — so the operator (and
+# their code model) can see whether Kimera is getting healthier or worse
+# as it's built. Real + signed + always available.
+# --------------------------------------------------------------------------
+
+#: The engineering-facet checks, keyed by the scenario family.
+_COCKPIT_CHECKS: dict[str, tuple[str, str]] = {
+    "completeness": ("Architectural completeness",
+                     "Orphan rate in canonical-named modules — Kimera's hidden dead code."),
+    "interface": ("Interface contract",
+                  "OrchestratorResult field-contract violations — does the substrate keep its own API."),
+    "code_quality": ("Code quality",
+                     "SonarQube static-analysis scan of the substrate."),
+    "throughput": ("Throughput / cost",
+                   "Per-cycle wall-time ceiling — cost-regression watch."),
+    "reproducibility": ("Reproducibility",
+                        "Deterministic-seed audit — same seed, same result."),
+}
+
+
+def list_cockpit_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
+    """Engineering-facet health, with a per-commit timeline per check.
+
+    Read-only + best-effort. Each check gathers *all* its signed proofs
+    (not just the latest) into a time-ordered series so the console can
+    show the trend across substrate commits. Checks with no proof surface
+    as ``no_data`` — not an error.
+    """
+    from ophamin.measuring.proof.codec import iter_proofs
+
+    scen_family = {name: getattr(SCENARIOS[name], "family", "") for name in SCENARIOS}
+    series_by_family: dict[str, list[dict[str, Any]]] = {f: [] for f in _COCKPIT_CHECKS}
+    scanned = 0
+    root = Path(proofs_root)
+    if root.is_dir():
+        for p in iter_proofs(root):
+            try:
+                d = json.loads(p.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            scanned += 1
+            fam = scen_family.get(p.parent.parent.name, "")
+            if fam not in _COCKPIT_CHECKS:
+                continue
+            v = d.get("verdict", {}) or {}
+            thr = v.get("threshold", {}) or {}
+            data = d.get("data", {}) or {}
+            series_by_family[fam].append({
+                "scenario": p.parent.parent.name,
+                "outcome": v.get("outcome", ""),
+                "observed": v.get("observed_value"),
+                "metric": thr.get("metric", ""),
+                "comparator": thr.get("comparator", ""),
+                "threshold": thr.get("value"),
+                "created_at": (d.get("identity", {}) or {}).get("created_at", ""),
+                "substrate_commit": str(data.get("substrate_git_commit", ""))[:12],
+            })
+
+    checks: list[dict[str, Any]] = []
+    passing = 0
+    for fam, (name, desc) in _COCKPIT_CHECKS.items():
+        series = sorted(series_by_family[fam], key=lambda x: str(x.get("created_at", "")))
+        latest = series[-1] if series else None
+        outcome = (latest or {}).get("outcome", "")
+        status = (
+            "validated" if outcome == "VALIDATED"
+            else "refuted" if outcome == "REFUTED"
+            else "inconclusive" if latest
+            else "no_data"
+        )
+        if status == "validated":
+            passing += 1
+        checks.append({
+            "id": fam,
+            "name": name,
+            "desc": desc,
+            "status": status,
+            "latest": latest,
+            "series": series,
+            "proof_count": len(series),
+        })
+
+    return {
+        "count": len(checks),
+        "checks": checks,
+        "passing": passing,
+        "measured": sum(1 for c in checks if c["status"] != "no_data"),
+        "proofs_scanned": scanned,
+        "framework_version": __version__,
+    }
+
+
 def get_scenario_claim_impl(name: str) -> dict[str, Any]:
     """Return a scenario's falsifiable claim + metadata.
 

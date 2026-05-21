@@ -49,6 +49,7 @@ from ophamin.interfaces._impls import (
     canonicalize_value_impl,
     get_scenario_claim_impl,
     list_agents_impl,
+    list_cockpit_impl,
     list_integrations_impl,
     list_llm_calls_impl,
     list_scenarios_impl,
@@ -399,6 +400,23 @@ def build_app() -> FastAPI:
     )
     def get_substrate(proofs_root: str = "proofs") -> dict[str, Any]:
         return list_substrate_impl(proofs_root)
+
+    @app.get(
+        "/cockpit",
+        summary="Engineering-facet health, tracked over substrate commits",
+        description=(
+            "The Build Cockpit: the `engineering` facet of the protocol. "
+            "Aggregates the engineering checks (architectural completeness "
+            "/ orphan rate, interface contract, code quality, throughput, "
+            "reproducibility) from the signed proof corpus into a "
+            "per-substrate-commit timeline, so the trend is visible as "
+            "Kimera is built. Read-only; checks with no proof yet surface "
+            "as `no_data`."
+        ),
+        tags=["cockpit"],
+    )
+    def get_cockpit(proofs_root: str = "proofs") -> dict[str, Any]:
+        return list_cockpit_impl(proofs_root)
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints

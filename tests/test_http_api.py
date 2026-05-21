@@ -317,6 +317,7 @@ class TestOpenAPI:
             "/agents/calls",
             "/integrations",
             "/substrate",
+            "/cockpit",
             "/verify",
             "/canonicalize",
             "/proofs/index",
@@ -954,3 +955,92 @@ class TestSubstrateEndpoint:
 
     def test_in_openapi(self, client: TestClient) -> None:
         assert "/substrate" in client.get("/openapi.json").json()["paths"]
+
+
+class TestCockpitEndpoint:
+    """`/cockpit` — the engineering-facet Build Cockpit. Each of the five
+    checks gathers ALL its signed proofs into a per-commit timeline so the
+    console can show whether Kimera is getting healthier as it's built.
+    Checks with no proof surface as `no_data`, not an error."""
+
+    _CHECK_IDS = {
+        "completeness", "interface", "code_quality",
+        "throughput", "reproducibility",
+    }
+
+    def test_returns_checks(self, client: TestClient) -> None:
+        r = client.get("/cockpit")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["count"] == 5
+        assert body["framework_version"] == __version__
+        ids = {c["id"] for c in body["checks"]}
+        assert ids == self._CHECK_IDS
+        for c in body["checks"]:
+            for k in ("id", "name", "desc", "status", "latest",
+                      "series", "proof_count"):
+                assert k in c, f"check missing {k}: {c}"
+            assert c["status"] in {
+                "validated", "refuted", "inconclusive", "no_data",
+            }
+            assert c["proof_count"] == len(c["series"])
+        # `passing` counts only validated checks; `measured` counts non-no_data.
+        assert body["passing"] <= body["measured"] <= body["count"]
+
+    def test_empty_tree_all_no_data(self, tmp_path, client: TestClient) -> None:
+        body = client.get(
+            "/cockpit", params={"proofs_root": str(tmp_path)},
+        ).json()
+        assert body["proofs_scanned"] == 0
+        assert body["passing"] == 0
+        assert all(
+            c["status"] == "no_data"
+            and c["latest"] is None
+            and c["series"] == []
+            for c in body["checks"]
+        )
+
+    def test_check_reflects_signed_proof_timeline(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """Two signed throughput proofs at different commits surface under
+        the `throughput` check as a time-ordered series; the latest drives
+        the status."""
+        def _drop(commit: str, when: str, observed: float, outcome: str) -> None:
+            bundle = (tmp_path / "engineering" / "throughput-ceiling"
+                      / f"{when[:10]}_{outcome.lower()}_{commit}")
+            bundle.mkdir(parents=True)
+            proof = {
+                "verdict": {
+                    "outcome": outcome,
+                    "observed_value": observed,
+                    "threshold": {"metric": "p95_cycle_wall_time_s",
+                                  "comparator": "<=", "value": 3.0},
+                },
+                "data": {"substrate_name": "kimera-swm",
+                         "substrate_git_commit": commit},
+                "identity": {"created_at": when},
+            }
+            (bundle / "proof.json").write_text(
+                json.dumps(proof), encoding="utf-8")
+
+        _drop("aaaa11112222", "2026-05-14T10:00:00+00:00", 0.57, "VALIDATED")
+        _drop("bbbb33334444", "2026-05-20T10:00:00+00:00", 2.36, "VALIDATED")
+
+        body = client.get(
+            "/cockpit", params={"proofs_root": str(tmp_path)},
+        ).json()
+        tp = next(c for c in body["checks"] if c["id"] == "throughput")
+        assert tp["status"] == "validated"
+        assert tp["proof_count"] == 2
+        # Series is oldest -> newest; the latest is the most recent commit.
+        commits = [pt["substrate_commit"] for pt in tp["series"]]
+        assert commits == ["aaaa11112222", "bbbb33334444"]
+        assert tp["latest"]["observed"] == 2.36
+        assert tp["latest"]["substrate_commit"] == "bbbb33334444"
+        # Other checks remain no_data — the proof only fed `throughput`.
+        others = [c for c in body["checks"] if c["id"] != "throughput"]
+        assert all(c["status"] == "no_data" for c in others)
+
+    def test_in_openapi(self, client: TestClient) -> None:
+        assert "/cockpit" in client.get("/openapi.json").json()["paths"]

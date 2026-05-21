@@ -879,6 +879,17 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       }
     } catch (e) { console.warn('[ophamin] hydrate /substrate skipped:', e.message); }
 
+    // --- /cockpit (engineering-facet health over substrate commits) ---
+    // Kimera's build-health: each check is a signed proof from the corpus,
+    // shown as a timeline across substrate commits so drift is visible.
+    try {
+      const co = await getJSON('/cockpit');
+      if (co && Array.isArray(co.checks)) {
+        api.cockpit = co;
+        live.cockpit = true;
+      }
+    } catch (e) { console.warn('[ophamin] hydrate /cockpit skipped:', e.message); }
+
     return live;
   }
 
@@ -921,6 +932,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     integrations: [],
     substrate_organs: [],
     substrates: [],
+    cockpit: {},
     activeSubstrate: null,
     _allBundles: bundles,
     substrateStamps,
@@ -934,7 +946,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     live: {
       version: false, scenarios: false, bundles: false, proofs: false,
       metrics: false, agents: false, agentCalls: false, integrations: false,
-      substrates: false, substrate_organs: false,
+      substrates: false, substrate_organs: false, cockpit: false,
     },
   };
   return api;
