@@ -7,7 +7,40 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.79.0] below for the latest cut.)
+(empty — see [0.80.0] below for the latest cut.)
+
+## [0.80.0] — 2026-05-22
+
+**Feature — parametric corpus runner + the cross-domain flow map.** One
+runner, any invariant × any corpus — the platform thesis as a tool. The
+same flow invariants now run across real domains, building a map of where
+Kimera's dynamics hold and where they weaken.
+
+- **New `examples/run_flow_on_corpus.py`** `<invariant> <corpus>`: runs
+  `recognition` (memory-as-deformation) or `phi` (Φ-stability) on any of
+  Ophamin's real corpora (enron / linux / flores / cyber / financial),
+  selecting substantial records as stimuli and tagging the proof with the
+  corpus label. No new scenario, no new Console code — the extensible Flow
+  surface renders it.
+- **Cross-domain map measured @ kimera-swm 674ae6b7b402** (all VALIDATED):
+
+  *Recognition (memory-as-deformation) floor by domain:*
+  - kimera-genesis: **0.95** (mean 0.996)
+  - linux (technical commits): **0.947** (mean 0.995)
+  - flores (multilingual news): **0.870** (mean 0.985)
+  - enron (business email): **0.864** (mean 0.963)
+
+  *Φ-stability (cognitive non-collapse) floor by domain:*
+  - kimera-genesis: **0.660** (mean 0.689)
+  - enron (business email): **0.616** (mean 0.656)
+
+- **Findings**: memory-as-deformation holds across *every* real domain
+  tested (floor 0.86–0.95, all > 0.80) — technical text recognizes nearly
+  as well as curated vocabulary; natural prose (email, news) is measurably
+  weaker but still validated. Φ stays above the collapse floor on real
+  business email too (0.616, 100% non-collapse) — the substrate stays
+  cognitively alive on real data, not just genesis. The Flow screen now
+  shows six proofs, each tagged by domain.
 
 ## [0.79.0] — 2026-05-21
 
