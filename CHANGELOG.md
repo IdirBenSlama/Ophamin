@@ -7,7 +7,41 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.75.0] below for the latest cut.)
+(empty — see [0.76.0] below for the latest cut.)
+
+## [0.76.0] — 2026-05-21
+
+**Feature — the first FLOW-scope proof (memory-as-deformation).** Every
+prior scenario is a *point* proof: one property at one substrate state.
+This is the first proof of a property of a *trajectory* — the L5 "Flow"
+scope of the Ophamin Protocol, and the dynamics-validation the vision-holder
+named as the real frontier ("Kimera is all about flow, like biology").
+
+- **New `MemoryDeformationFlowScenario`** (`memory-deformation-flow`,
+  scope=flow, family=memory): runs a Kimera trajectory where each genesis
+  concept is shown 3× and interleaved (gap = #stimuli), so every
+  re-exposure lands *after* intervening cycles have deformed the manifold.
+  It then tests a temporal-logic safety invariant:
+
+      □ ( for every same-stimulus re-exposure pair (i,j):
+          Jaccard(concepts_i, concepts_j) ≥ θ )
+
+  The reported floor is the worst re-exposure pair across the whole run; a
+  single violation falsifies the invariant. θ defaults to **0.80** —
+  anchored to Kimera's own documented record (Session 013 ≥0.94; Round G
+  worst 0.8462; Round M V1 threshold 0.80), not an invented bar.
+- **Measured against real Kimera @ 674ae6b7b402**: recognition floor
+  **0.9500**, mean **0.9958**, 7 of 8 stimuli perfectly stable → VALIDATED.
+  Cross-confirms Session 013 (≥0.94). The signed proof is in the corpus and
+  surfaces under Proofs / Scenarios / Substrate (memory organ).
+- **New `examples/run_memory_deformation_flow.py`** runner + 11 tests
+  pinning the invariant semantics (identical→1.0→VALIDATED;
+  one-divergent→REFUTED; failed-exposure-is-gap-not-zero;
+  too-few-pairs→INCONCLUSIVE; schedule spacing; loud-fail on missing
+  substrate).
+
+This opens the Flow scope: subsequent flow proofs (phi-trajectory bounds,
+halt-mode stability, cross-modal coherence over time) follow the same shape.
 
 ## [0.75.0] — 2026-05-21
 

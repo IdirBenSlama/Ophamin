@@ -144,6 +144,9 @@ from ophamin.measuring.scenarios.logic_topology_siege import (  # noqa: E402
 from ophamin.measuring.scenarios.manifold_topology import (  # noqa: E402
     ManifoldTopologyScenario,
 )
+from ophamin.measuring.scenarios.memory_deformation_flow import (  # noqa: E402
+    MemoryDeformationFlowScenario,
+)
 from ophamin.measuring.scenarios.organizational_dissonance import (  # noqa: E402
     OrganizationalDissonanceScenario,
 )
@@ -165,6 +168,7 @@ __all__ = [
     "InterfaceContractStabilityScenario",
     "LogicTopologySiegeScenario",
     "ManifoldTopologyScenario",
+    "MemoryDeformationFlowScenario",
     "OrganizationalDissonanceScenario",
     "PhilosophicalSelfReferenceScenario",
     "RosettaScalingScenario",
