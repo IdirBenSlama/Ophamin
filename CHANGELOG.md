@@ -7,7 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.78.0] below for the latest cut.)
+(empty — see [0.79.0] below for the latest cut.)
+
+## [0.79.0] — 2026-05-21
+
+**Feature — flow proofs on REAL data (memory-as-deformation on Enron
+email).** Every flow proof so far used curated Kimera-vocabulary stimuli.
+This runs the *same* memory-as-deformation invariant on a real corpus —
+substantial Enron business emails — answering the load-bearing question:
+does the substrate's recognition stability hold on messy real-world text, or
+only on hand-picked vocabulary?
+
+- **Measured @ kimera-swm 674ae6b7b402** on 8 real Enron emails (3
+  re-exposures each): recognition floor **0.8636**, mean **0.9629** →
+  **VALIDATED**. Memory-as-deformation **generalises to real business
+  text**. It is measurably weaker than on curated vocabulary (floor
+  0.95 → 0.86, mean 0.996 → 0.963) — the honest nuance — but holds above
+  the 0.80 threshold. The first real-use-case validation of a Kimera flow
+  property.
+- **`corpus_label` on the flow scenarios** (default `"kimera-genesis"`):
+  flows into the evidence (`flow_corpus_label`), the `/flow` payload, and a
+  chip on the Console Flow card — so a genesis run and a real-corpus run of
+  the *same* invariant are visually distinguished. The Flow screen now shows
+  three proofs: memory-deformation [genesis] 0.95, memory-deformation [enron]
+  0.86, Φ-stability [genesis] 0.66.
+- **New `examples/run_memory_deformation_flow_enron.py`** loads real Enron
+  emails (via the existing `enron` corpus connector) as re-exposure probes —
+  no new scenario, just real stimuli through the extensible Flow surface.
+- Test added pinning `corpus_label` flows into the evidence detail.
+
+This is the start of real-corpus validation: the same flow invariants can
+now run on enron / linux / financial / flores corpora, each tagged so the
+Console keeps them distinct.
 
 ## [0.78.0] — 2026-05-21
 

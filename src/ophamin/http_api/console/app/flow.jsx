@@ -64,7 +64,12 @@ function FlowScreen() {
               <div key={fi} className="card" style={{ overflow: 'hidden' }}>
                 <div className="card-header">
                   <div>
-                    <div className="card-title">{f.scenario}</div>
+                    <div className="card-title">
+                      {f.scenario}
+                      {f.corpus_label && (
+                        <span className="chip" style={{ marginLeft: 8, fontSize: 10, verticalAlign: 'middle' }}>{f.corpus_label}</span>
+                      )}
+                    </div>
                     <div className="micro" style={{ marginTop: 2, maxWidth: 680 }}>{f.claim_statement}</div>
                   </div>
                   <span className="live-pill" style={{ color }}>

@@ -199,3 +199,17 @@ class TestContract:
         rec = s.run(_PlannedAdapter(_STIM, plan))
         assert rec.signature
         assert rec.verify_signature(DEFAULT_SIGN_KEY) is True
+
+    def test_corpus_label_flows_into_evidence(self):
+        # Default label, then a custom one (e.g. a real-corpus run).
+        plan = {i: [["x", "y", "z"]] * 3 for i in range(len(_STIM))}
+        default = _scenario().run(_PlannedAdapter(_STIM, plan))
+        assert default.evidence[0].detail["flow_corpus_label"] == "kimera-genesis"
+
+        labelled = MemoryDeformationFlowScenario(
+            stimuli=_STIM, n_exposures=3, min_pairs=3,
+            corpus_label="enron (real business email)",
+        ).run(_PlannedAdapter(_STIM, plan))
+        assert labelled.evidence[0].detail["flow_corpus_label"] == (
+            "enron (real business email)"
+        )

@@ -587,6 +587,7 @@ def list_flow_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
                 # scenario-specific Console code.
                 "metric_label": detail.get("flow_metric_label", "recognition Jaccard"),
                 "unit_label": detail.get("flow_unit_label", "stimulus"),
+                "corpus_label": detail.get("flow_corpus_label", "kimera-genesis"),
                 "floor": flow_ev.get("statistic_value"),
                 "comparator": thr.get("comparator", ""),
                 "threshold": thr.get("value"),

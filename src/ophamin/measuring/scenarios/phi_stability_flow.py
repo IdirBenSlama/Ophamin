@@ -124,6 +124,7 @@ class PhiStabilityFlowScenario(Scenario):
         n_passes: int = 3,
         phi_floor: float = 0.05,
         min_cycles: int = 6,
+        corpus_label: str = "kimera-genesis",
     ) -> None:
         if n_passes < 1:
             raise ValueError(f"n_passes must be >= 1, got {n_passes}")
@@ -135,6 +136,7 @@ class PhiStabilityFlowScenario(Scenario):
         self.n_passes = int(n_passes)
         self.phi_floor = float(phi_floor)
         self.min_cycles = int(min_cycles)
+        self.corpus_label = str(corpus_label)
         self.n_cycles = len(self.stimuli) * self.n_passes
 
     # ------------------------------------------------------------- schedule --
@@ -340,6 +342,7 @@ class PhiStabilityFlowScenario(Scenario):
                     "scope": "flow",
                     "flow_metric_label": "Φ (integrated information)",
                     "flow_unit_label": "stimulus",
+                    "flow_corpus_label": self.corpus_label,
                     "flow_mean": phi_mean,
                     "ltl_invariant": "ALWAYS(phi >= phi_floor) over the trajectory",
                     "phi_min": floor,

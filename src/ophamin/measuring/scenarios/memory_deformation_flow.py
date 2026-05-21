@@ -156,6 +156,7 @@ class MemoryDeformationFlowScenario(Scenario):
         n_exposures: int = 3,
         recognition_floor: float = 0.80,
         min_pairs: int = 6,
+        corpus_label: str = "kimera-genesis",
     ) -> None:
         if n_exposures < 2:
             raise ValueError(f"n_exposures must be >= 2, got {n_exposures}")
@@ -169,6 +170,9 @@ class MemoryDeformationFlowScenario(Scenario):
         self.n_exposures = int(n_exposures)
         self.recognition_floor = float(recognition_floor)
         self.min_pairs = int(min_pairs)
+        # Where the stimuli came from — lets the Flow surface distinguish a
+        # run on curated Kimera vocabulary from one on a real corpus.
+        self.corpus_label = str(corpus_label)
         # Static-trajectory scenario — base.run() is overridden.
         self.n_cycles = len(self.stimuli) * self.n_exposures
 
@@ -414,6 +418,9 @@ class MemoryDeformationFlowScenario(Scenario):
                 cross_check="n/a",
                 detail={
                     "scope": "flow",
+                    "flow_metric_label": "recognition Jaccard",
+                    "flow_unit_label": "stimulus",
+                    "flow_corpus_label": self.corpus_label,
                     "ltl_invariant": (
                         "ALWAYS(jaccard(concepts_i, concepts_j) >= theta) "
                         "over same-stimulus re-exposure pairs"
