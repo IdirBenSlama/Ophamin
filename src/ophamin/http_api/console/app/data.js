@@ -791,8 +791,36 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
         }
         const ev0 = (proof.evidence || [])[0];
         if (ev0 && (ev0.ci_low != null || ev0.ci_high != null)) b.ci = [ev0.ci_low, ev0.ci_high];
+        const pdata = proof.data || {};
+        if (pdata.substrate_name) b.substrate_name = pdata.substrate_name;
+        if (pdata.substrate_git_commit) b.substrate_commit = pdata.substrate_git_commit;
       }));
       if (settled.some((r) => r.status === 'fulfilled')) live.proofs = true;
+
+      // Derive the real substrate catalogue from the prefetched proofs,
+      // and keep the full bundle list so the substrate selector can scope
+      // the corpus (data-layer filter — every screen that reads
+      // api.bundles re-scopes for free).
+      api._allBundles = liveBundles;
+      const subMap = new Map();
+      liveBundles.forEach((b) => {
+        const name = b.substrate_name || '(unspecified)';
+        const e = subMap.get(name) || { name, bundles: 0, commits: new Set() };
+        e.bundles += 1;
+        if (b.substrate_commit) e.commits.add(b.substrate_commit);
+        subMap.set(name, e);
+      });
+      if (subMap.size) {
+        api.substrates = [...subMap.values()]
+          .map((e) => ({
+            name: e.name,
+            bundles: e.bundles,
+            commitCount: e.commits.size,
+            commit: e.commits.size === 1 ? String([...e.commits][0]).slice(0, 12) : '',
+          }))
+          .sort((a, b) => b.bundles - a.bundles);
+        live.substrates = true;
+      }
     }
 
     // --- /metrics ------------------------------------------------
@@ -843,12 +871,48 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     return live;
   }
 
+  // Scope the corpus to one substrate (by name) — the UniFi "console
+  // picker". Filters at the data layer + recomputes bundle-derived totals,
+  // so Proofs / Overview / Insights (all read api.bundles / api.totals)
+  // re-scope without per-screen changes. name=null restores "all".
+  function setActiveSubstrate(name) {
+    api.activeSubstrate = name || null;
+    const src = api._allBundles || api.bundles || [];
+    const filtered = name
+      ? src.filter((b) => (b.substrate_name || '(unspecified)') === name)
+      : src;
+    api.bundles = filtered;
+    const vc = filtered.reduce((acc, b) => {
+      acc[b.verdict] = (acc[b.verdict] || 0) + 1; return acc;
+    }, {});
+    api.totals = Object.assign({}, api.totals, {
+      bundles: filtered.length,
+      verdicts: {
+        validated: vc.validated || 0,
+        refuted: vc.refuted || 0,
+        inconclusive: vc.inconclusive || 0,
+      },
+    });
+    const sub = (api.substrates || []).find((s) => s.name === name);
+    if (sub) {
+      api.substrate = sub.name;
+      api.substrate_commit = sub.commitCount === 1 ? sub.commit : (sub.commitCount + ' commits');
+    } else {
+      api.substrate = 'all substrates';
+      api.substrate_commit = '';
+    }
+    return api.totals;
+  }
+
   const api = {
     wheels, pillars, tiers, corpora, scenarios, bundles, totals, activity, agents,
     agentCalls: [],
     integrations: [],
+    substrates: [],
+    activeSubstrate: null,
+    _allBundles: bundles,
     substrateStamps,
-    buildProof, formatThreshold,
+    buildProof, formatThreshold, setActiveSubstrate,
     metricsText,
     version: '0.64.1',
     git_commit: '3f0763aa468566729f3e2f795cfb5f433457534d',
@@ -858,6 +922,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     live: {
       version: false, scenarios: false, bundles: false, proofs: false,
       metrics: false, agents: false, agentCalls: false, integrations: false,
+      substrates: false,
     },
   };
   return api;

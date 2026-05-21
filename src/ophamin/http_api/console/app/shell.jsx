@@ -44,12 +44,11 @@ function Icon({ name, size = 18 }) {
 }
 window.Icon = Icon;
 
-function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme, children }) {
+function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme, onSubstrateChange, children }) {
   const [substrateOpen, setSubstrateOpen] = useShellState(false);
   const [activeSubstrate, setActiveSubstrate] = useShellState({
-    name: 'kimera-swm',
-    commit: '6e4477ebb',
-    version: '0.8.5',
+    name: 'all substrates',
+    commit: '',
   });
   const navItems = [
     { id: 'control',   label: 'Control',   icon: 'cpu' },
@@ -76,10 +75,20 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
 
   const activeItem = [...navItems, ...navBottom].find(i => i.id === active);
 
+  // Real substrate catalogue, derived from the proof corpus by hydrate
+  // (api.substrates). Falls back to a single grounded entry off disk.
+  // The "all substrates" head entry clears the scope.
+  const O = window.OPHAMIN || {};
+  const realSubs = O.substrates || [];
+  const allCount = (O._allBundles && O._allBundles.length) || (totals && totals.bundles) || 0;
   const substrates = [
-    { name: 'kimera-swm',     commit: '6e4477ebb', version: '0.8.5',  bundles: 33, status: 'healthy', active: true },
-    { name: 'kimera-swm-dev', commit: 'a78c0e2', version: '0.9.0b', bundles: 12, status: 'healthy', active: false },
-    { name: 'ophamin-self',   commit: '7f1ad9c', version: '0.64.1', bundles: 4,  status: 'healthy', active: false },
+    { name: 'all substrates', commit: '', bundles: allCount, status: 'healthy', all: true },
+    ...realSubs.map((s) => ({
+      name: s.name,
+      commit: s.commitCount === 1 ? s.commit : (s.commitCount + ' commits'),
+      bundles: s.bundles,
+      status: 'healthy',
+    })),
   ];
 
   return (
@@ -110,18 +119,21 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
                   <div key={s.name}
                     className={'substrate-item' + (s.name === activeSubstrate.name ? ' active' : '')}
                     onClick={() => {
-                      setActiveSubstrate({ name: s.name, commit: s.commit, version: s.version });
+                      setActiveSubstrate({ name: s.name, commit: s.commit });
                       setSubstrateOpen(false);
-                      window.toast && window.toast({ kind: 'success', title: 'Substrate switched', msg: s.name + ' @ ' + s.commit });
+                      if (window.OPHAMIN && window.OPHAMIN.setActiveSubstrate) {
+                        window.OPHAMIN.setActiveSubstrate(s.all ? null : s.name);
+                      }
+                      if (onSubstrateChange) onSubstrateChange();
+                      window.toast && window.toast({ kind: 'success', title: 'Now observing', msg: s.all ? 'all substrates' : (s.name + (s.commit ? ' · ' + s.commit : '')) });
                     }}>
                     <span className="substrate-item-dot" style={{ background: s.status === 'healthy' ? 'var(--validated)' : 'var(--inconclusive)' }}/>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                         <span style={{ fontWeight: 500 }}>{s.name}</span>
-                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>v{s.version}</span>
                       </div>
                       <div className="mono" style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                        {s.commit} · {s.bundles} bundles
+                        {s.commit ? s.commit + ' · ' : ''}{s.bundles} bundles
                       </div>
                     </div>
                     {s.name === activeSubstrate.name && <Icon name="check" size={13}/>}
@@ -259,7 +271,7 @@ function GatesBanner() {
         <span className="dot" style={{ background: accent }}></span>{isLive ? 'LIVE' : 'SAMPLE'}
       </span>
       <span style={{ flex: 1 }}/>
-      <span className="gates-meta">substrate · {D.substrate || 'kimera-swm'} @ {D.substrate_commit || '—'}</span>
+      <span className="gates-meta">substrate · {D.substrate || 'kimera-swm'}{D.substrate_commit ? ' @ ' + D.substrate_commit : ''}</span>
     </div>
   );
 }

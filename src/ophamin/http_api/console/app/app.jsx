@@ -52,6 +52,9 @@ function App() {
   const [proofFilter, setProofFilter] = useAppState(null);
   const [proofBundle, setProofBundle] = useAppState(null);
   const [runScenario, setRunScenario] = useAppState(null);
+  // Bumped when the substrate selector scopes the corpus (data-layer
+  // filter on OPHAMIN.bundles/totals) so the screens re-read it.
+  const [, setSubstrateScope] = useAppState(0);
 
   // Apply tweaks to root
   useAppEffect(() => {
@@ -94,6 +97,7 @@ function App() {
       <AppShell
         active={screen}
         onNav={nav}
+        onSubstrateChange={() => { setProofBundle(null); setSubstrateScope(n => n + 1); }}
         totals={OPHAMIN.totals}
         theme={t.theme}
         density={t.density}

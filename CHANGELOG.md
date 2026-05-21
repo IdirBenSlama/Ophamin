@@ -7,7 +7,35 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.67.0] below for the latest cut.)
+(empty — see [0.68.0] below for the latest cut.)
+
+## [0.68.0] — 2026-05-21
+
+**Console — real substrate-commit selector (Phase 2b: the UniFi "console
+picker").** The top-bar substrate selector was hardcoded to three
+fabricated substrates (`kimera-swm-dev`, `ophamin-self` at made-up
+commits) that filtered nothing. It is now derived from the real proof
+corpus and actually scopes the view.
+
+- **`console/app/data.js`**: `hydrate()` tags each prefetched bundle with
+  its `substrate_name` + `substrate_git_commit` (from the signed proof),
+  derives `OPHAMIN.substrates` (distinct substrate-under-test with bundle
+  count + commit count), and keeps the full list as `_allBundles`. New
+  `OPHAMIN.setActiveSubstrate(name)` filters `bundles` + recomputes
+  bundle-derived `totals` **at the data layer** — so Proofs, Overview, and
+  the status strip re-scope with no per-screen changes.
+- **`console/app/shell.jsx`**: the dropdown lists the real substrates
+  (e.g. `kimera-swm · 7 commits · 24 bundles`, the cross-framework
+  measurement substrates, `instrumented(kimera-swm)`) plus an "all
+  substrates" head entry. Selecting one scopes the corpus; the status
+  strip reflects the active `substrate @ commit`.
+- **`console/app/app.jsx`**: a re-render bump (`onSubstrateChange`) so the
+  data-layer scope change reflects across screens.
+
+Verified in-browser: selecting `kimera-swm` scopes 33 → 24 bundles (Proofs
+"24 of 24", totals + verdicts recomputed, status strip "24 signed proofs ·
+kimera-swm @ 7 commits"); "all substrates" restores 33. Console-only — no
+API change.
 
 ## [0.67.0] — 2026-05-21
 
