@@ -7,7 +7,27 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.72.0] below for the latest cut.)
+(empty — see [0.73.0] below for the latest cut.)
+
+## [0.73.0] — 2026-05-21
+
+**Feature — reproduce-this-proof (Console).** The proof detail's "Reproduce
+this proof" receipt already showed each proof's exact
+`reproduction.command` + locked environment — but the copy button was a
+dead mock. Now it works.
+
+- **`console/app/proofs.jsx`**: the copy button copies the real reproduce
+  command to the clipboard with toast feedback. Robust: tries the async
+  Clipboard API, then falls back to a temporary-textarea `execCommand`
+  (works in older browsers / non-secure contexts / unfocused tabs where
+  `navigator.clipboard` is blocked).
+- **Robustness guard:** the receipt's substrate row no longer assumes
+  `data.substrate_git_commit` is present (`.slice` on a missing commit
+  would crash the proof detail) — it degrades to the substrate name alone.
+
+Reproducibility is core to a signed observatory: every proof now offers a
+one-click path back to the exact command + locked deps that produced it.
+Console-only — no API change.
 
 ## [0.72.0] — 2026-05-21
 

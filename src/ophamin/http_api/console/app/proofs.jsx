@@ -461,6 +461,36 @@ function ReproductionReceipt({ proof }) {
   const cmd = proof.reproduction?.command || '—';
   const env = proof.reproduction?.environment || {};
   const pkgs = Object.entries(env).filter(([k]) => k !== 'python' && k !== 'platform');
+  const substrateCommit = (proof.data?.substrate_git_commit || '').slice(0, 12);
+  const copyCmd = () => {
+    if (!cmd || cmd === '—') return;
+    const ok = () => window.toast && window.toast({ kind: 'success', title: 'Copied', msg: 'reproduce command' });
+    // Fallback: a temporary textarea + execCommand copies without the async
+    // Clipboard API or focus permission (older browsers, non-secure
+    // contexts, background tabs all block navigator.clipboard).
+    const fallback = () => {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = cmd;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const done = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (done) ok();
+        else window.toast && window.toast({ kind: 'warn', title: 'Select to copy', msg: 'clipboard blocked here' });
+      } catch (e) {
+        window.toast && window.toast({ kind: 'warn', title: 'Select to copy', msg: 'clipboard blocked here' });
+      }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(cmd).then(ok, fallback);
+    } else {
+      fallback();
+    }
+  };
   return (
     <div className="repro-card">
       <div className="micro" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -472,7 +502,7 @@ function ReproductionReceipt({ proof }) {
       <div className="repro-cmd">
         <span className="mono" style={{ color: 'var(--text-muted)' }}>$</span>
         <span className="mono" style={{ color: 'var(--text-primary)' }}>{cmd}</span>
-        <button className="btn ghost icon" title="Copy"><Icon name="copy" size={11}/></button>
+        <button className="btn ghost icon" title="Copy reproduce command" onClick={copyCmd}><Icon name="copy" size={11}/></button>
       </div>
       <div className="repro-env">
         <div className="repro-env-row">
@@ -489,7 +519,7 @@ function ReproductionReceipt({ proof }) {
         </div>
         <div className="repro-env-row">
           <span className="mono faint">substrate</span>
-          <span className="mono">{proof.data.substrate_name} @ {proof.data.substrate_git_commit.slice(0, 12)}</span>
+          <span className="mono">{proof.data?.substrate_name || 'kimera-swm'}{substrateCommit ? ' @ ' + substrateCommit : ''}</span>
         </div>
       </div>
       <details className="repro-pkgs">
