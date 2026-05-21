@@ -55,6 +55,7 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
     { id: 'chat',      label: 'Chat',      icon: 'agents' },
     { id: 'overview',  label: 'Overview',  icon: 'overview' },
     { id: 'cockpit',   label: 'Cockpit',   icon: 'cpu' },
+    { id: 'flow',      label: 'Flow',      icon: 'activity' },
     { id: 'roadmap',   label: 'Roadmap',   icon: 'rocket' },
     { id: 'discovery', label: 'Discovery', icon: 'eye' },
     { id: 'inspector', label: 'Inspector', icon: 'cpu' },

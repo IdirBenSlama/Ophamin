@@ -532,6 +532,81 @@ def list_cockpit_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
     }
 
 
+# --------------------------------------------------------------------------
+# Flow scope — proofs of properties over a TRAJECTORY (not a single point).
+#
+# Protocol scope: `flow`. A flow proof carries a temporal-logic invariant
+# (an LTL safety property) checked across a whole run of cycles. This impl
+# surfaces every flow-scope proof in the corpus with its recognition
+# trajectory so the Console can render the dynamics, not just a verdict.
+# Real + signed + read-only.
+# --------------------------------------------------------------------------
+
+def list_flow_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
+    """Surface every FLOW-scope proof with its trajectory evidence.
+
+    A flow proof is identified by a pillar-evidence entry whose
+    ``detail.scope == "flow"``. Read-only + best-effort: malformed proofs
+    are skipped, never raised. Newest-first.
+    """
+    from ophamin.measuring.proof.codec import iter_proofs
+
+    flows: list[dict[str, Any]] = []
+    scanned = 0
+    root = Path(proofs_root)
+    if root.is_dir():
+        for p in iter_proofs(root):
+            try:
+                d = json.loads(p.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            scanned += 1
+            evidence = d.get("evidence", []) or []
+            flow_ev = None
+            for ev in evidence:
+                detail = ev.get("detail", {}) or {}
+                if detail.get("scope") == "flow":
+                    flow_ev = ev
+                    break
+            if flow_ev is None:
+                continue
+            detail = flow_ev.get("detail", {}) or {}
+            v = d.get("verdict", {}) or {}
+            thr = v.get("threshold", {}) or {}
+            data = d.get("data", {}) or {}
+            flows.append({
+                "scenario": p.parent.parent.name,
+                "proof_id": d.get("proof_id", "")[:16],
+                "outcome": v.get("outcome", ""),
+                "created_at": (d.get("identity", {}) or {}).get("created_at", ""),
+                "substrate_commit": str(data.get("substrate_git_commit", ""))[:12],
+                "claim_statement": (d.get("claim", {}) or {}).get("statement", ""),
+                "metric": flow_ev.get("statistic_name", ""),
+                "floor": flow_ev.get("statistic_value"),
+                "comparator": thr.get("comparator", ""),
+                "threshold": thr.get("value"),
+                "mean": detail.get("recognition_jaccard_mean"),
+                "n_pairs": detail.get("n_pairs"),
+                "n_stimuli": detail.get("n_stimuli"),
+                "n_exposures": detail.get("n_exposures"),
+                "n_failed_exposures": detail.get("n_failed_exposures"),
+                "ltl_invariant": detail.get("ltl_invariant", ""),
+                "threshold_anchor": detail.get("threshold_anchor", ""),
+                "per_stimulus_floor": detail.get("per_stimulus_floor", {}),
+                "worst_pair": detail.get("worst_pair"),
+                "pair_series": detail.get("pair_series", []),
+            })
+
+    flows.sort(key=lambda f: str(f.get("created_at", "")), reverse=True)
+    return {
+        "count": len(flows),
+        "flows": flows,
+        "passing": sum(1 for f in flows if f["outcome"] == "VALIDATED"),
+        "proofs_scanned": scanned,
+        "framework_version": __version__,
+    }
+
+
 def get_scenario_claim_impl(name: str) -> dict[str, Any]:
     """Return a scenario's falsifiable claim + metadata.
 

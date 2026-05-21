@@ -318,6 +318,7 @@ class TestOpenAPI:
             "/integrations",
             "/substrate",
             "/cockpit",
+            "/flow",
             "/verify",
             "/canonicalize",
             "/proofs/index",
@@ -1044,3 +1045,97 @@ class TestCockpitEndpoint:
 
     def test_in_openapi(self, client: TestClient) -> None:
         assert "/cockpit" in client.get("/openapi.json").json()["paths"]
+
+
+class TestFlowEndpoint:
+    """`/flow` — FLOW-scope proofs: properties measured over a trajectory
+    (a temporal-logic invariant across a whole run), not at a single point.
+    Identified by a pillar-evidence entry with `detail.scope == "flow"`.
+    Read-only; an empty corpus is `count: 0`, not an error."""
+
+    def test_returns_flows_shape(self, client: TestClient) -> None:
+        r = client.get("/flow")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["framework_version"] == __version__
+        assert isinstance(body["flows"], list)
+        assert body["count"] == len(body["flows"])
+        assert body["passing"] <= body["count"]
+
+    def test_empty_tree_no_flows(self, tmp_path, client: TestClient) -> None:
+        body = client.get("/flow", params={"proofs_root": str(tmp_path)}).json()
+        assert body["proofs_scanned"] == 0
+        assert body["count"] == 0
+        assert body["flows"] == []
+        assert body["passing"] == 0
+
+    def test_flow_proof_surfaces_with_trajectory(
+        self, tmp_path, client: TestClient,
+    ) -> None:
+        """A signed proof carrying a flow-scope evidence pillar surfaces with
+        its recognition trajectory; a non-flow proof in the same tree does
+        not."""
+        flow_bundle = (tmp_path / "scientific" / "memory-deformation-flow"
+                       / "2026-05-21_validated_aaaa11112222")
+        flow_bundle.mkdir(parents=True)
+        flow_proof = {
+            "proof_id": "aaaa11112222deadbeef",
+            "claim": {"statement": "always recognition >= 0.80"},
+            "verdict": {
+                "outcome": "VALIDATED",
+                "observed_value": 0.95,
+                "threshold": {"metric": "recognition_jaccard_floor",
+                              "comparator": ">=", "value": 0.80},
+            },
+            "evidence": [{
+                "statistic_name": "recognition_jaccard_floor",
+                "statistic_value": 0.95,
+                "detail": {
+                    "scope": "flow",
+                    "recognition_jaccard_mean": 0.99,
+                    "n_pairs": 24,
+                    "n_stimuli": 8,
+                    "n_exposures": 3,
+                    "n_failed_exposures": 0,
+                    "ltl_invariant": "ALWAYS(jaccard >= theta)",
+                    "per_stimulus_floor": {"2": 0.95, "0": 1.0},
+                    "worst_pair": {"stimulus_index": 2, "cycle_a": 2,
+                                   "cycle_b": 10, "jaccard": 0.95},
+                    "pair_series": [{"stimulus_index": 2, "jaccard": 0.95}],
+                },
+            }],
+            "data": {"substrate_name": "kimera-swm",
+                     "substrate_git_commit": "674ae6b7b402aa"},
+            "identity": {"created_at": "2026-05-21T10:00:00+00:00"},
+        }
+        (flow_bundle / "proof.json").write_text(
+            json.dumps(flow_proof), encoding="utf-8")
+
+        # A non-flow (point) proof in the same tree must NOT surface here.
+        pt_bundle = (tmp_path / "scientific" / "manifold-topology"
+                     / "2026-05-21_validated_bbbb33334444")
+        pt_bundle.mkdir(parents=True)
+        (pt_bundle / "proof.json").write_text(json.dumps({
+            "proof_id": "bbbb33334444",
+            "verdict": {"outcome": "VALIDATED", "observed_value": 1,
+                        "threshold": {"metric": "betti0", "comparator": "==",
+                                      "value": 1}},
+            "evidence": [{"statistic_name": "manifold_betti_0_median",
+                          "statistic_value": 1, "detail": {"distribution": {}}}],
+            "data": {}, "identity": {"created_at": "2026-05-21T09:00:00+00:00"},
+        }), encoding="utf-8")
+
+        body = client.get("/flow", params={"proofs_root": str(tmp_path)}).json()
+        assert body["count"] == 1
+        f = body["flows"][0]
+        assert f["scenario"] == "memory-deformation-flow"
+        assert f["outcome"] == "VALIDATED"
+        assert f["floor"] == 0.95
+        assert f["mean"] == 0.99
+        assert f["n_pairs"] == 24
+        assert f["substrate_commit"] == "674ae6b7b402"  # 12-char
+        assert f["worst_pair"]["stimulus_index"] == 2
+        assert f["per_stimulus_floor"]["2"] == 0.95
+
+    def test_in_openapi(self, client: TestClient) -> None:
+        assert "/flow" in client.get("/openapi.json").json()["paths"]

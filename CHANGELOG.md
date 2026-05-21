@@ -7,7 +7,33 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.76.0] below for the latest cut.)
+(empty — see [0.77.0] below for the latest cut.)
+
+## [0.77.0] — 2026-05-21
+
+**Feature — the Flow Console screen (visualize trajectory proofs).** The
+0.76.0 flow scope was measurable but only visible as raw proof JSON. This
+makes it a screen: the dynamics you can see at a glance.
+
+- **New `GET /flow`** (read-only): surfaces every flow-scope proof in the
+  corpus (identified by an evidence pillar with `detail.scope == "flow"`)
+  with its full recognition trajectory — floor, mean, per-stimulus floors,
+  the worst re-exposure pair, the LTL invariant, the per-pair series. Wraps
+  `list_flow_impl` (shared with MCP).
+- **New `console/app/flow.jsx`** + nav item: each flow proof is a card with
+  the recognition-floor headline (vs threshold) + mean + pair count +
+  substrate commit, and — the visual centerpiece — a **per-stimulus
+  recognition-floor bar chart** (worst first, threshold marker line, green
+  if holding / red if violating). The worst-pair callout names exactly which
+  concept destabilised and at which cycles.
+- **`console/app/data.js`**: hydrates `/flow` into `OPHAMIN.flow` + a
+  `live.flow` flag, mirroring the established pattern.
+- Pinned by `TestFlowEndpoint` (4 tests: shape, empty-tree, flow-proof
+  surfaces-with-trajectory while a point proof in the same tree does not,
+  OpenAPI presence).
+
+The Flow scope is now end-to-end: a scenario measures a trajectory invariant
+(0.76.0) → signs it into the corpus → the Console renders the dynamics.
 
 ## [0.76.0] — 2026-05-21
 

@@ -890,6 +890,17 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       }
     } catch (e) { console.warn('[ophamin] hydrate /cockpit skipped:', e.message); }
 
+    // --- /flow (trajectory proofs — temporal-logic invariants) ---
+    // Flow-scope proofs measure a property across a whole run of cycles
+    // (memory-as-deformation recognition stability), not at a single point.
+    try {
+      const fw = await getJSON('/flow');
+      if (fw && Array.isArray(fw.flows)) {
+        api.flow = fw;
+        live.flow = true;
+      }
+    } catch (e) { console.warn('[ophamin] hydrate /flow skipped:', e.message); }
+
     return live;
   }
 
@@ -933,6 +944,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     substrate_organs: [],
     substrates: [],
     cockpit: {},
+    flow: {},
     activeSubstrate: null,
     _allBundles: bundles,
     substrateStamps,
@@ -946,7 +958,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     live: {
       version: false, scenarios: false, bundles: false, proofs: false,
       metrics: false, agents: false, agentCalls: false, integrations: false,
-      substrates: false, substrate_organs: false, cockpit: false,
+      substrates: false, substrate_organs: false, cockpit: false, flow: false,
     },
   };
   return api;

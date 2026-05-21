@@ -50,6 +50,7 @@ from ophamin.interfaces._impls import (
     get_scenario_claim_impl,
     list_agents_impl,
     list_cockpit_impl,
+    list_flow_impl,
     list_integrations_impl,
     list_llm_calls_impl,
     list_scenarios_impl,
@@ -417,6 +418,23 @@ def build_app() -> FastAPI:
     )
     def get_cockpit(proofs_root: str = "proofs") -> dict[str, Any]:
         return list_cockpit_impl(proofs_root)
+
+    @app.get(
+        "/flow",
+        summary="Flow-scope proofs (properties over a trajectory)",
+        description=(
+            "The `flow` scope of the protocol: proofs of a temporal-logic "
+            "invariant checked across a whole trajectory of cycles, not at "
+            "a single point — e.g. memory-as-deformation recognition "
+            "stability under re-exposure. Returns each flow proof's "
+            "recognition trajectory (floor, mean, per-stimulus floors, the "
+            "worst pair, the full per-pair series) so the dynamics are "
+            "visible, not just the verdict. Read-only + signed."
+        ),
+        tags=["flow"],
+    )
+    def get_flow(proofs_root: str = "proofs") -> dict[str, Any]:
+        return list_flow_impl(proofs_root)
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints
