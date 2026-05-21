@@ -7,7 +7,34 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.66.0] below for the latest cut.)
+(empty — see [0.66.1] below for the latest cut.)
+
+## [0.66.1] — 2026-05-21
+
+**Console — honesty pass (Phase 1 of the architecture spec).** Removes
+fabricated values that were indistinguishable from measured data, and
+introduces a global provenance signal. Adds
+[`docs/OPHAMIN_CONSOLE_ARCHITECTURE.md`](docs/OPHAMIN_CONSOLE_ARCHITECTURE.md)
+— the UniFi-faithful information architecture (own the signed-proof +
+substrate spine; route to mature OSS for the rest; ~9 deep apps, not 18
+dashboards) and the phased plan this release begins.
+
+- **Global status strip** (`console/app/shell.jsx`) no longer hardcodes
+  `hardening 2,944` (which was *Kimera's* number) + fake CI pills. It now
+  reports Ophamin's own real, hydrated facts — version, signed-proof
+  count, scenario count, agent count — plus a **LIVE / SAMPLE** provenance
+  pill driven by `OPHAMIN.live.*` (LIVE when overlaid with REST data,
+  SAMPLE when the backend wasn't reached). The substrate meta shows the
+  real `substrate @ commit`.
+- **Agents screen** (`console/app/agents.jsx`): removed the hardcoded
+  "AUDIT TRAIL FOR THIS CALL" block (fake model / content-hash /
+  signature / token counts) that sat next to the *real* signed-audit
+  table. The illustrative reply is now labelled `EXAMPLE REPLY · SAMPLE`
+  and points to the live `/agents/calls` table below.
+
+No backend or API change — provenance-honesty only. Subsequent phases
+(Integrations routing, the substrate-commit selector, the Substrate app
+with manifold topology) are specced in the architecture document.
 
 ## [0.66.0] — 2026-05-21
 

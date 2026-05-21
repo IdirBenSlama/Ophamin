@@ -84,20 +84,14 @@ function AgentsScreen() {
             </div>
 
             <div>
-              <div className="micro" style={{ marginBottom: 6 }}>WHAT THE AGENT REPLIES</div>
+              <div className="micro" style={{ marginBottom: 6 }}>EXAMPLE REPLY <span style={{ color: 'var(--inconclusive, #ffa726)' }}>· SAMPLE</span></div>
               <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: 12, fontFamily: 'JetBrains Mono, monospace', fontSize: 11.5, lineHeight: 1.65, color: 'var(--text-primary)', minHeight: 220 }}>
                 {agentExampleOutput(agent.id)}
               </div>
 
-              <div className="micro" style={{ margin: '14px 0 6px' }}>AUDIT TRAIL FOR THIS CALL</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '4px 12px', fontSize: 12 }}>
-                <span className="mono faint">model</span><span className="mono">qwen2.5-coder:14b-instruct</span>
-                <span className="mono faint">base_url</span><span className="mono">http://localhost:11434/v1</span>
-                <span className="mono faint">content_hash</span><span className="mono" style={{ wordBreak: 'break-all', fontSize: 10 }}>sha256:4a8e1f…d203</span>
-                <span className="mono faint">signature</span><span className="mono" style={{ wordBreak: 'break-all', fontSize: 10 }}>04c1b2be…ba9c71</span>
-                <span className="mono faint">tokens_in</span><span className="mono">412</span>
-                <span className="mono faint">tokens_out</span><span className="mono">186</span>
-                <span className="mono faint">latency_s</span><span className="mono">1.84</span>
+              <div className="micro" style={{ margin: '14px 0 6px' }}>AUDIT TRAIL</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                Real signed <span className="mono">LLMCallRecord</span>s for this agent appear in the <b>Signed LLM-call audit</b> table below — model, tokens, latency, and an HMAC-verified signature, live from <span className="mono">/agents/calls</span>.
               </div>
             </div>
           </div>

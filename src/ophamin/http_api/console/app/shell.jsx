@@ -235,19 +235,30 @@ function BrandMark() {
 
 
 // =============================================================
-// GatesBanner — continuous gates strip per the Kimera roadmap.
+// GatesBanner — live status strip. Every value is real + hydrated
+// (version, signed-proof count, scenario count, agent count) plus a
+// LIVE/SAMPLE provenance pill driven by OPHAMIN.live.* — so the strip
+// never shows fabricated numbers. (It previously hardcoded a Kimera
+// hardening count; Ophamin reports its own state here instead.)
 // =============================================================
 function GatesBanner() {
+  const D = window.OPHAMIN || {};
+  const t = D.totals || {};
+  const live = D.live || {};
+  const isLive = Object.values(live).some(Boolean);
+  const accent = isLive ? 'var(--validated, #2dd4bf)' : 'var(--inconclusive, #ffa726)';
   return (
     <div className="gates-banner">
-      <span className="gates-label">CONTINUOUS GATES</span>
-      <span className="gates-pill ok"><span className="dot"></span>hardening 2,944</span>
-      <span className="gates-pill ok"><span className="dot"></span>smoke 5-cycle</span>
-      <span className="gates-pill ok"><span className="dot"></span>Ophamin signed 8/8</span>
-      <span className="gates-pill ok"><span className="dot"></span>broad-except 4/4</span>
-      <span className="gates-pill ok"><span className="dot"></span>non-deletion</span>
+      <span className="gates-label">OPHAMIN</span>
+      <span className="gates-pill ok"><span className="dot"></span>v{D.version || '—'}</span>
+      <span className="gates-pill ok"><span className="dot"></span>{t.bundles != null ? t.bundles : '—'} signed proofs</span>
+      <span className="gates-pill ok"><span className="dot"></span>{t.scenarios != null ? t.scenarios : '—'} scenarios</span>
+      <span className="gates-pill ok"><span className="dot"></span>{(D.agents || []).length} agents</span>
+      <span className="gates-pill" style={{ color: accent }} title={isLive ? 'overlaid with live REST data' : 'showing grounded sample data (backend not reached)'}>
+        <span className="dot" style={{ background: accent }}></span>{isLive ? 'LIVE' : 'SAMPLE'}
+      </span>
       <span style={{ flex: 1 }}/>
-      <span className="gates-meta">substrate · BGE-M3 @ 6e4477ebb · family EE</span>
+      <span className="gates-meta">substrate · {D.substrate || 'kimera-swm'} @ {D.substrate_commit || '—'}</span>
     </div>
   );
 }
