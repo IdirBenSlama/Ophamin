@@ -7,7 +7,32 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.68.0] below for the latest cut.)
+(empty — see [0.69.0] below for the latest cut.)
+
+## [0.69.0] — 2026-05-21
+
+**Console — demote + label (Phase 2c, non-destructive).** Completes the
+"route, don't reinvent" arc without removing any screen. A single central
+`ScreenBanner` in the app shell labels each screen by what it is:
+
+- **Routed screens** (Telemetry, Drift → Grafana; Audit, Interop → SARIF
+  code-scanning; Roadmap → docs; Inspector → provenance viewer) show a
+  banner: "This view is rendered better by *<tool>*" with **Open in
+  *<tool>* ↗** when that integration is configured, or **Wire it in
+  Integrations →** when it isn't.
+- **Illustrative screens** (topology, lab, control, chat, discovery) show
+  an "Illustrative — sample data, not live measurements" banner with a
+  `SAMPLE` provenance badge.
+- **Live screens** (Overview, Proofs, Scenarios, Run, Telemetry-data,
+  Agents, Integrations) show no banner.
+
+Every screen stays reachable — this labels + routes rather than deleting,
+honouring the architecture spec's intent while keeping the interface
+intact. One file (`console/app/shell.jsx`); reversible. Verified
+in-browser across all four banner states. Console-only — no API change.
+
+This closes Phase 2. Phase 3 (the Substrate app: organ cards + manifold
+topology) is next and needs new read-only KimeraAdapter endpoints.
 
 ## [0.68.0] — 2026-05-21
 

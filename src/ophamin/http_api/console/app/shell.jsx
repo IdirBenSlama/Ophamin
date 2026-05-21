@@ -214,6 +214,7 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
 
       <main className="content">
         <GatesBanner/>
+        <ScreenBanner active={active} onNav={onNav}/>
         {children}
       </main>
 
@@ -276,6 +277,64 @@ function GatesBanner() {
   );
 }
 window.GatesBanner = GatesBanner;
+
+
+// =============================================================
+// ScreenBanner — Phase 2c "demote + label" (non-destructive). For a
+// screen a mature OSS tool renders better, show a deep-link CTA into that
+// tool (via the Integrations config); for purely illustrative screens,
+// show a SAMPLE provenance badge. Every screen stays reachable — this
+// labels + routes rather than removing.
+// =============================================================
+const SCREEN_ROUTE = {
+  telemetry: 'grafana', drift: 'grafana',
+  audit: 'code_scanning', interop: 'code_scanning',
+  roadmap: 'docs', inspector: 'provenance',
+};
+const SCREEN_SAMPLE = ['topology', 'lab', 'control', 'chat', 'discovery'];
+
+function SampleBadge() {
+  return (
+    <span style={{
+      marginLeft: 'auto', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
+      color: 'var(--inconclusive, #ffa726)', border: '1px solid var(--inconclusive, #ffa726)',
+      borderRadius: 4, padding: '2px 7px', textTransform: 'uppercase', whiteSpace: 'nowrap',
+    }}>Sample</span>
+  );
+}
+
+function ScreenBanner({ active, onNav }) {
+  const O = window.OPHAMIN || {};
+  const toolId = SCREEN_ROUTE[active];
+  if (toolId) {
+    const integ = (O.integrations || []).find(i => i.id === toolId);
+    const name = integ ? integ.name : toolId;
+    const url = integ && integ.configured ? integ.url : '';
+    return (
+      <div className="agent-banner" style={{ alignItems: 'center' }}>
+        <Icon name="external" size={15}/>
+        <div>
+          This view is rendered better by <b>{name}</b> — Ophamin routes to it rather than re-skinning it.{' '}
+          {url
+            ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>Open in {name} ↗</a>
+            : <a onClick={() => onNav && onNav('integrations')} style={{ color: 'var(--accent)', cursor: 'pointer' }}>Wire it in Integrations →</a>}
+        </div>
+        <SampleBadge/>
+      </div>
+    );
+  }
+  if (SCREEN_SAMPLE.indexOf(active) !== -1) {
+    return (
+      <div className="agent-banner" style={{ alignItems: 'center' }}>
+        <Icon name="eye" size={15}/>
+        <div>Illustrative — this screen shows <b>sample</b> data, not live measurements.</div>
+        <SampleBadge/>
+      </div>
+    );
+  }
+  return null;
+}
+window.ScreenBanner = ScreenBanner;
 
 window.AppShell = AppShell;
 window.BrandMark = BrandMark;
