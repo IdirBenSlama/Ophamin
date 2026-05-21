@@ -11,6 +11,7 @@ to it and shapes the responses for FastAPI's OpenAPI generator.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from pathlib import Path as _Path
@@ -57,6 +58,19 @@ from ophamin.measuring.scenarios import SCENARIOS
 #: Path to the bundled static-asset directory (index.html + app.js + styles.css)
 #: served at `/ui/` when the SPA is enabled.
 _STATIC_DIR: _Path = _Path(__file__).parent / "static"
+
+#: Path to the React "Ophamin Console" bundle (Claude Design export:
+#: index.html + app/*.jsx + app/styles.css + app/data.js) served at
+#: `/app` when present. React + Babel-standalone in-browser, no build
+#: step — matches the framework's no-build GUI philosophy. The five
+#: backed screens (Overview / Proofs / Scenarios / Run / Telemetry)
+#: live-wire to the REST surface via data.js's hydrate(); the rest
+#: render grounded illustrative state.
+_CONSOLE_DIR: _Path = _Path(__file__).parent / "console"
+
+#: Rewrites the design bundle's relative asset refs (``src/href="app/…"``)
+#: to absolute ``/app/static/app/…`` with a per-version cache-buster.
+_CONSOLE_ASSET_RE = re.compile(r'(src|href)="app/([^"]+)"')
 
 #: MIME-type lookup for the five canonical bundle files. Browsers render
 #: HTML / PDF / plain-text natively; JSON / Markdown / LaTeX are served
@@ -538,6 +552,79 @@ def build_app() -> FastAPI:
         def root_redirect():
             from fastapi.responses import RedirectResponse
             return RedirectResponse(url="/ui", status_code=302)
+
+    # ------------------------------------------------------------------
+    # Ophamin Console — the serious React GUI (Claude Design export).
+    # Served alongside the provisional /ui SPA. React + Babel-standalone
+    # in-browser (no build step). The Overview / Proofs / Scenarios / Run
+    # / Telemetry screens live-wire to this server's REST endpoints via
+    # data.js's hydrate(); the remaining screens render grounded mock.
+    # ------------------------------------------------------------------
+
+    if _CONSOLE_DIR.is_dir():
+        app.mount(
+            "/app/static",
+            StaticFiles(directory=str(_CONSOLE_DIR)),
+            name="ophamin-console-static",
+        )
+
+        @app.get(
+            "/app",
+            summary="Ophamin Console (React GUI)",
+            description=(
+                "Serves the React 'Ophamin Console' — the production GUI "
+                "exported from Claude Design. React 18 + Babel-standalone "
+                "compile in the browser; no build step, matching the "
+                "framework's no-build philosophy.\n\n"
+                "The bundle's relative `app/…` asset references are "
+                "rewritten to absolute `/app/static/app/…` and stamped "
+                "with a `?v=<framework_version>` cache-buster (same "
+                "discipline as `/ui`). The HTML itself is served "
+                "`no-store` so an upgrading browser never pairs new HTML "
+                "with stale, cached JS.\n\n"
+                "On boot, `data.js`'s `hydrate()` overlays the live REST "
+                "surface (`/version`, `/scenarios`, `/proofs/bundles/tree` "
+                "+ `/proofs/bundles/file`, `/metrics`) onto the grounded "
+                "illustrative defaults — falling back to the mock per "
+                "endpoint when a fetch fails (offline / fresh instance)."
+            ),
+            tags=["ui"],
+            response_class=HTMLResponse,
+        )
+        def get_console_root() -> HTMLResponse:
+            index = _CONSOLE_DIR / "index.html"
+            if not index.is_file():
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"console/index.html missing under {_CONSOLE_DIR}",
+                )
+            html = index.read_text(encoding="utf-8")
+            # Absolutize + cache-bust every bundle asset reference so the
+            # page loads its JS/CSS/data from /app/static and an upgrade
+            # never serves a stale mix.
+            html = _CONSOLE_ASSET_RE.sub(
+                lambda m: (
+                    f'{m.group(1)}="/app/static/app/{m.group(2)}'
+                    f'?v={__version__}"'
+                ),
+                html,
+            )
+            # Tell the bundle where its assets + REST surface live. The
+            # force-load fallback in app.jsx reads OPHAMIN_ASSET_BASE; the
+            # hydrate() in data.js reads OPHAMIN_API_BASE. Injected right
+            # after <body> so it runs before any bundle script.
+            inject = (
+                "<script>"
+                "window.OPHAMIN_ASSET_BASE='/app/static/app/';"
+                "window.OPHAMIN_API_BASE='';"
+                "</script>"
+            )
+            html = html.replace("<body>", "<body>\n" + inject, 1)
+            return HTMLResponse(
+                content=html,
+                media_type="text/html; charset=utf-8",
+                headers={"Cache-Control": "no-store, must-revalidate"},
+            )
 
     # ------------------------------------------------------------------
     # Unified error envelope — any uncaught exception becomes a

@@ -606,3 +606,80 @@ class TestProvisionalGUIMount:
         assert "/proofs/bundles/tree" in paths
         assert "/proofs/bundles/file" in paths
         assert "/ui" in paths
+
+
+class TestConsoleMount:
+    """The /app endpoint serves the React 'Ophamin Console' (Claude
+    Design export) when the console/ bundle dir exists. Mirrors the
+    /ui discipline: relative `app/…` refs rewritten to absolute
+    /app/static/app/… + per-version cache-buster + no-store HTML."""
+
+    def test_console_index_returns_html(self, client: TestClient) -> None:
+        r = client.get("/app")
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("text/html")
+        assert "Ophamin Console" in r.text
+
+    def test_console_asset_refs_are_absolutized(self, client: TestClient) -> None:
+        """The design bundle's relative `app/…` refs must be rewritten to
+        absolute `/app/static/app/…` so they resolve when served at /app
+        (a page at /app would otherwise resolve `app/x` to /app/x)."""
+        r = client.get("/app")
+        assert r.status_code == 200
+        # No leftover relative refs.
+        assert 'src="app/' not in r.text
+        assert 'href="app/' not in r.text
+        # Absolutized refs for the data layer + stylesheet + entry script.
+        assert "/app/static/app/data.js" in r.text
+        assert "/app/static/app/styles.css" in r.text
+        assert "/app/static/app/app.jsx" in r.text
+
+    def test_console_assets_are_cache_busted_by_version(
+        self, client: TestClient,
+    ) -> None:
+        """Every bundle asset ref carries ?v=<version> so an upgrading
+        browser loads fresh JS/CSS/data instead of a stale cached copy
+        (same discipline as /ui)."""
+        from ophamin import __version__
+        r = client.get("/app")
+        assert r.status_code == 200
+        assert f"/app/static/app/data.js?v={__version__}" in r.text
+        assert f"/app/static/app/styles.css?v={__version__}" in r.text
+        assert f"/app/static/app/app.jsx?v={__version__}" in r.text
+
+    def test_console_html_is_not_cacheable(self, client: TestClient) -> None:
+        """The /app HTML must be no-store: it carries the version stamp,
+        so a stale cached copy would point at old assets and defeat the
+        cache-buster."""
+        r = client.get("/app")
+        assert r.status_code == 200
+        assert "no-store" in r.headers.get("cache-control", "")
+
+    def test_console_injects_asset_and_api_base(self, client: TestClient) -> None:
+        """The route injects OPHAMIN_ASSET_BASE (force-load fallback) and
+        OPHAMIN_API_BASE (data.js hydrate target) so the bundle resolves
+        its assets + REST surface against this server."""
+        r = client.get("/app")
+        assert r.status_code == 200
+        assert "window.OPHAMIN_ASSET_BASE='/app/static/app/'" in r.text
+        assert "window.OPHAMIN_API_BASE=''" in r.text
+
+    def test_console_static_data_js_served_with_hydrate(
+        self, client: TestClient,
+    ) -> None:
+        r = client.get("/app/static/app/data.js")
+        assert r.status_code == 200
+        assert "javascript" in r.headers["content-type"]
+        # The live-wiring contract: data.js exposes hydrate().
+        assert "hydrate" in r.text
+        assert "window.OPHAMIN" in r.text
+
+    def test_console_static_styles_served(self, client: TestClient) -> None:
+        r = client.get("/app/static/app/styles.css")
+        assert r.status_code == 200
+        assert "text/css" in r.headers["content-type"]
+
+    def test_console_in_openapi(self, client: TestClient) -> None:
+        r = client.get("/openapi.json")
+        assert r.status_code == 200
+        assert "/app" in r.json()["paths"]

@@ -27,9 +27,37 @@ drift between the two is structurally impossible.
 | `POST` | `/canonicalize` | Canonical UTF-8 bytes + HMAC for any value. Body: `{value_json, sign_key_b64?}`. | ✓ |
 | `POST` | `/proofs/index` | Walk a server-side directory. Body: `{directory}`. | ✓ |
 | `POST` | `/scenarios/{name}/run` | **Heavyweight** — run a scenario. Body: `{kwargs_json?}`. | ✗ |
+| `GET` | `/metrics` | Prometheus text exposition. | ✓ |
+| `GET` | `/proofs/bundles/tree` | Walk `proofs/` as nested tier→scenario→bundles. | ✓ |
+| `GET` | `/proofs/bundles/file` | Serve one file from inside a proof bundle. | ✓ |
 | `GET` | `/openapi.json` | OpenAPI 3.x spec, FastAPI-generated. | ✓ |
 | `GET` | `/docs` | Swagger UI, interactive. | ✓ |
 | `GET` | `/redoc` | ReDoc, alternative renderer. | ✓ |
+| `GET` | `/ui` | Provisional read-mostly SPA (vanilla JS, no build). | ✓ |
+| `GET` | `/app` | **Ophamin Console** — the React GUI (no build step). | ✓ |
+
+## Browser GUIs
+
+Two browser surfaces ship with the server, both served from the same
+origin as the REST API (no CORS, no separate deploy):
+
+- **`/app` — the Ophamin Console.** The production GUI: a UniFi-styled
+  React single-page app (React 18 + Babel-standalone, compiled in the
+  browser — no build step). Eighteen screens; Overview, Proofs,
+  Scenarios, Run, and Telemetry **live-wire** to the REST surface above
+  (the Proofs detail view renders the real signed `proof.json`), and the
+  rest render grounded illustrative state. Falls back to the bundled mock
+  per-endpoint when a fetch fails, so it renders against a live server, a
+  fresh instance with no proofs yet, or straight off disk.
+- **`/ui` — the provisional SPA.** A lighter vanilla-HTML/JS/CSS app that
+  browses scenarios + the proof bundle tree + the `/metrics` exposition.
+  Kept alongside `/app`. `GET /` redirects here.
+
+Both stamp their static assets with a `?v=<version>` cache-buster and
+serve their HTML `no-store`, so an upgrading browser never pairs new HTML
+with stale, cached JS. Neither GUI puts an external LLM in the
+measurement path — they are read-mostly views over the signed-proof
+surface plus the one state-changing `Run` action.
 
 ## Starting the server
 

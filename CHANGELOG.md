@@ -7,7 +7,59 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.64.6] below for the latest cut.)
+(empty — see [0.65.0] below for the latest cut.)
+
+## [0.65.0] — 2026-05-21
+
+**Feature — the Ophamin Console (React GUI) at `/app`.** A serious,
+UniFi-styled single-page console implemented from a Claude Design export,
+served alongside the provisional `/ui` SPA (which stays as-is). React 18 +
+Babel-standalone compile in the browser — **no build step**, matching the
+framework's no-build GUI philosophy. Eighteen screens; the five
+data-backed ones live-wire to this server's REST surface, the rest render
+grounded illustrative state.
+
+- **`http_api/console/`** (new): the design bundle — `index.html` +
+  `app/*.jsx` (24 components) + `app/styles.css` + `app/data.js`.
+- **`GET /app`** (new route in `http_api/server.py`): serves the console.
+  Rewrites the bundle's relative `app/…` asset refs to absolute
+  `/app/static/app/…` with a `?v=<version>` cache-buster, injects
+  `OPHAMIN_ASSET_BASE` + `OPHAMIN_API_BASE`, and serves the HTML
+  `no-store` — the same two-tier caching discipline as `/ui`.
+  `/app/static` mounts the bundle via `StaticFiles`. The root redirect
+  (`/` → `/ui`) is unchanged.
+- **Live wiring (`console/app/data.js` `OPHAMIN.hydrate(apiBase)`)**:
+  overlays the live REST surface onto the grounded mock —
+  `/version`, `/scenarios` (merged, mock claims preserved),
+  `/proofs/bundles/tree` (flattened) + `/proofs/bundles/file` (the
+  **real signed `proof.json`** is fetched + rendered in the Proofs
+  detail view), and `/metrics`. Every endpoint is independently
+  guarded: a failed or empty fetch leaves that slice as the mock, so
+  the console renders fully against a live server, a fresh instance with
+  no proofs, or straight off disk.
+- **`console/app/run.jsx`**: the Run screen fires a real
+  `POST /scenarios/{name}/run` and maps the signed-proof summary into a
+  bundle row; falls back to a clearly-labelled simulation when no
+  backend answers.
+- **Robust two-phase boot (`console/app/app.jsx`)**: render the mock
+  immediately for instant first paint, then hydrate in the background
+  and re-render (React reconciles the same root, preserving screen
+  state). Component mount uses one short grace + parallel force-load
+  rather than a long 30 ms poll, so a backgrounded tab (setTimeout
+  throttling) still mounts in ~1 s. Render references the error boundary
+  defensively and surfaces any failure loudly instead of blanking.
+- **`pyproject.toml`**: `[tool.setuptools.package-data]` now ships both
+  GUIs (`static/*`, `console/*.html`, `console/app/*`) inside the wheel.
+- **`http_api/metrics.py`**: the HTTP-metrics middleware skips
+  `/app/static/` (as it already did `/ui/static/`) to avoid
+  label-cardinality churn from static-asset fetches.
+- **Tests**: `TestConsoleMount` in `tests/test_http_api.py` pins the
+  route (HTML, asset absolutization, per-version cache-buster, no-store,
+  base injection, static serving, OpenAPI advertisement).
+
+No external LLM touches the measurement path; the console is a
+read-mostly view over the existing signed-proof surface plus the one
+state-changing Run action, exactly as `/ui`.
 
 ## [0.64.6] — 2026-05-20
 

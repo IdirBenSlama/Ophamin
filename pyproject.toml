@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ophamin"
-version = "0.64.6"
+version = "0.65.0"
 description = "An empirical observatory wrapped around a substrate under test — six wheels, signed proofs, falsifiable claims."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -262,6 +262,18 @@ ophamin = "ophamin.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+# Ship the bundled GUIs inside the wheel/sdist. The provisional /ui SPA
+# lives under http_api/static/; the React "Ophamin Console" (/app) lives
+# under http_api/console/ (index.html + app/*.jsx + styles.css + data.js).
+# Editable installs find these in place; this entry makes a built wheel
+# carry them too so the GUIs work for `pip install ophamin` consumers.
+[tool.setuptools.package-data]
+"ophamin.http_api" = [
+    "static/*",
+    "console/*.html",
+    "console/app/*",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

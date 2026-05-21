@@ -238,8 +238,8 @@ ophamin report <record.json> --format html|markdown|latex
 # interop/ — standard-format export
 ophamin export <record.json> --format sarif|junit-xml|mlflow|cyclonedx
 
-# serving surfaces — REST API, web GUI, MCP
-ophamin http serve [--port 8000]              # FastAPI REST API + the web console at /ui
+# serving surfaces — REST API, web GUIs, MCP
+ophamin http serve [--port 8000]              # FastAPI REST API + Ophamin Console at /app (+ provisional /ui)
 ophamin mcp                                   # Model Context Protocol server (STDIO / SSE)
 ophamin self-test                             # dogfood: run substrate-free scenarios on Ophamin itself
 
@@ -260,14 +260,24 @@ ophamin agent adapt --name … --description …  # generate a Foreign-Corpus ad
 `ophamin http serve` exposes the read-mostly surface over HTTP (FastAPI):
 `/scenarios`, `/proofs/bundles/tree`, `/proofs/bundles/file`,
 `/metrics` (Prometheus), `/verify`, `/canonicalize`, plus one write
-endpoint `POST /scenarios/{name}/run`. A **provisional web console**
-ships at `/ui` — a zero-build vanilla HTML/JS/CSS SPA that browses the
-proof-bundle tree (filter + verdict chips + keyboard-navigable +
-deep-linkable), renders each bundle in all five formats (JSON / MD /
-HTML / LaTeX / PDF, with embedded charts), shows the `/metrics`
-exposition as cards, and triggers scenario runs. A design brief for a
-heavier production console (Ubiquiti/UniFi style) lives at
-[`docs/OPHAMIN_GUI_DESIGN_BRIEF.md`](docs/OPHAMIN_GUI_DESIGN_BRIEF.md).
+endpoint `POST /scenarios/{name}/run`. Two browser GUIs ship from the
+same origin (no CORS, no separate deploy):
+
+- **`/app` — the Ophamin Console.** The production GUI: a UniFi-styled
+  React single-page app (React 18 + Babel-standalone, compiled in the
+  browser — **no build step**), built from
+  [`docs/OPHAMIN_GUI_DESIGN_BRIEF.md`](docs/OPHAMIN_GUI_DESIGN_BRIEF.md).
+  Eighteen screens; Overview / Proofs / Scenarios / Run / Telemetry
+  live-wire to the REST surface (the Proofs detail view renders the real
+  signed `proof.json`), and the rest render grounded illustrative state.
+  Degrades to the bundled mock per-endpoint so it renders against a live
+  server, a fresh instance with no proofs yet, or straight off disk.
+- **`/ui` — the provisional console.** A zero-build vanilla HTML/JS/CSS
+  SPA that browses the proof-bundle tree (filter + verdict chips +
+  keyboard-navigable + deep-linkable), renders each bundle in all five
+  formats (JSON / MD / HTML / LaTeX / PDF, with embedded charts), shows
+  the `/metrics` exposition as cards, and triggers scenario runs. Kept
+  alongside `/app`; `GET /` redirects here.
 
 `ophamin mcp` serves the same logical surface over the Model Context
 Protocol (STDIO / SSE) for AI agents — **no external LLM runs inside
@@ -380,7 +390,7 @@ Ophamin/
 │   ├── interop/                           # SARIF / JUnit XML / MLflow / CycloneDX exporters
 │   ├── agentic/                           # local-LLM agent layer (Ollama / MLX-LM / LM Studio)
 │   │                                        7 agents + signed LLMCallRecord audit
-│   ├── http_api/                          # FastAPI REST surface + provisional web GUI (/ui)
+│   ├── http_api/                          # FastAPI REST surface + GUIs: Console (/app) + provisional SPA (/ui)
 │   ├── mcp/                               # Model Context Protocol server (STDIO / SSE)
 │   ├── protocols.py                       # plug-in protocols (Pillar / DatasetConnector / …)
 │   ├── verify.py                          # install self-check + CI fast-fail gate

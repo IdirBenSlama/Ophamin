@@ -539,7 +539,11 @@ def http_metrics_middleware_factory():
         # label set (FastAPI doesn't template these — they'd land as
         # `/ui/static/styles.css`, `/ui/static/app.js`, etc.).
         path_str = request.url.path
-        if path_str == "/metrics" or path_str.startswith("/ui/static/"):
+        if (
+            path_str == "/metrics"
+            or path_str.startswith("/ui/static/")
+            or path_str.startswith("/app/static/")
+        ):
             return await call_next(request)
 
         method = request.method
