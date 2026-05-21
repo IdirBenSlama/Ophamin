@@ -609,6 +609,8 @@ def list_flow_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
                     else detail.get("n_failed_cycles")
                 ),
                 "non_collapse_rate": detail.get("non_collapse_rate"),
+                "empty_input_rate": detail.get("empty_input_rate"),
+                "phi_floor_strict": detail.get("phi_floor_strict"),
                 "per_pass_mean": detail.get("per_pass_mean"),
                 "ltl_invariant": detail.get("ltl_invariant", ""),
                 "threshold_anchor": detail.get("threshold_anchor", ""),
@@ -620,10 +622,21 @@ def list_flow_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
             })
 
     flows.sort(key=lambda f: str(f.get("created_at", "")), reverse=True)
+    # De-duplicate by (scenario, corpus_label) keeping the newest — a
+    # re-measurement of the same invariant on the same corpus supersedes the
+    # old proof in the live view (both stay in the corpus for audit). This is
+    # what lets a refined re-run replace an earlier verdict cleanly.
+    latest: dict[tuple[str, str], dict[str, Any]] = {}
+    for f in flows:  # already newest-first
+        key = (f["scenario"], f["corpus_label"])
+        if key not in latest:
+            latest[key] = f
+    deduped = list(latest.values())
     return {
-        "count": len(flows),
-        "flows": flows,
-        "passing": sum(1 for f in flows if f["outcome"] == "VALIDATED"),
+        "count": len(deduped),
+        "flows": deduped,
+        "passing": sum(1 for f in deduped if f["outcome"] == "VALIDATED"),
+        "superseded": len(flows) - len(deduped),
         "proofs_scanned": scanned,
         "framework_version": __version__,
     }

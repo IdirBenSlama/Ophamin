@@ -46,20 +46,28 @@ class _PhiAdapter(SubstrateUnderTest):
         return self.run_batch([stimulus])[0]
 
     def run_batch(self, stimuli, params=None) -> list[CycleResult]:
+        # plan entry: float -> real cycle (phi + concepts); None -> failed
+        # cycle (no Φ); ("empty", float) -> empty-input cycle (Φ present but
+        # no concept set — the degenerate-input case the refined invariant
+        # excludes from the floor).
         out: list[CycleResult] = []
         for i, text in enumerate(stimuli):
             idx = self._stimuli.index(text)
             p = self._seen.get(idx, 0)
             self._seen[idx] = p + 1
-            phi = self._plan[idx][p]
-            if phi is None:
+            entry = self._plan[idx][p]
+            if entry is None:
                 out.append(CycleResult(
                     cycle_index=i, success=False, raw={},
                     halt_mode="adapter_error", error="planned-fail"))
+            elif isinstance(entry, tuple) and entry[0] == "empty":
+                out.append(CycleResult(
+                    cycle_index=i, success=True, halt_mode="exhausted",
+                    raw={"phi": entry[1], "concepts": []}))
             else:
                 out.append(CycleResult(
                     cycle_index=i, success=True, halt_mode="exhausted",
-                    raw={"phi": phi}))
+                    raw={"phi": entry, "concepts": ["a", "b", "c"]}))
         return out
 
 
@@ -147,6 +155,38 @@ class TestRunVerdict:
         assert pp["0"] == pytest.approx(0.8)
         assert pp["1"] == pytest.approx(0.6)
         assert pp["2"] == pytest.approx(0.4)
+
+    def test_empty_input_cycle_excluded_from_floor(self):
+        # Refined invariant: a cycle that produced no concept set has Φ=0 by
+        # construction (nothing to integrate). It must NOT refute the floor —
+        # it's counted as empty-input, and the over-all-cycles strict floor
+        # records the 0.0 as a canary. This is the linux/cyber case.
+        plan = {
+            0: [0.7, ("empty", 0.0), 0.7],   # one degenerate cycle
+            1: [0.7, 0.7, 0.7],
+            2: [0.7, 0.7, 0.7],
+        }
+        s = _scenario(phi_floor=0.05)
+        rec = s.run(_PhiAdapter(_STIM, plan))
+        ev = rec.evidence[0]
+        # Verdict holds on real-input cycles ...
+        assert rec.verdict.outcome == "VALIDATED"
+        assert ev.statistic_value == pytest.approx(0.7)
+        # ... while the degeneracy is reported, not hidden.
+        assert ev.detail["empty_input_cycles"] == 1
+        assert ev.detail["empty_input_rate"] == pytest.approx(1 / 9)
+        assert ev.detail["phi_floor_strict"] == pytest.approx(0.0)
+        assert ev.detail["n_measured"] == 8        # real-input cycles
+        assert ev.detail["n_returned"] == 9        # cycles that returned a Φ
+
+    def test_all_empty_input_inconclusive(self):
+        # If every cycle is degenerate, there are no real-input cycles to
+        # decide on -> INCONCLUSIVE, not a false VALIDATED/REFUTED.
+        plan = {i: [("empty", 0.0)] * 3 for i in range(len(_STIM))}
+        s = _scenario(phi_floor=0.05)
+        rec = s.run(_PhiAdapter(_STIM, plan))
+        assert rec.verdict.outcome == "INCONCLUSIVE"
+        assert rec.evidence[0].detail["empty_input_cycles"] == 9
 
 
 class TestContract:

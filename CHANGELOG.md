@@ -7,7 +7,39 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.82.0] below for the latest cut.)
+(empty — see [0.83.0] below for the latest cut.)
+
+## [0.83.0] — 2026-05-22
+
+**Closed loop — the Φ refutations refined into a sharper invariant.** The
+0.82.0 linux/cyber refutations were a construction brief, not an endpoint.
+This acts on them: measure → refute → understand → refine → re-measure.
+
+- **Refined Φ-stability invariant**: the floor is now measured over
+  **real-input cycles** (cycles that produced a concept set). A cycle with
+  no concepts has nothing to integrate, so Φ=0 there is correct behaviour,
+  not a substrate defect — those cycles are excluded from the floor and
+  their rate reported as `empty_input_rate`. `phi_floor_strict` (the old
+  over-all-cycles floor) is kept in the evidence as a canary. The invariant
+  now isolates *the substrate's integration quality* from *input
+  degeneracy*.
+- **Re-measured @ kimera-swm 674ae6b7b402** — linux and cyber now VALIDATE
+  on their real-input cycles, with the degeneracy flagged transparently:
+  - linux: floor **0.616** (was REFUTED 0.0), empty-input **12.5%**
+  - cyber: floor **0.627** (was REFUTED 0.0), empty-input **25.0%**
+  - genesis 0.660, enron 0.616, financial 0.613, flores 0.600 — unchanged
+    (0% empty-input). **All six Φ proofs now VALIDATED.**
+- **`/flow` de-duplication**: results are de-duped by (scenario,
+  corpus_label) keeping the newest, so a refined re-run supersedes the older
+  verdict in the live view (both stay in the corpus for audit — the
+  refutation history is preserved). New `superseded` count in the payload.
+- **Flow screen** surfaces the empty-input rate: a `% empty` annotation in
+  the cross-domain map and an `empty-input X% (Φ=0 by construction —
+  excluded; strict floor …)` line on the Φ cards. The honest degeneracy
+  signal is visible without faking a green verdict.
+- Tests added for the refined partition (empty-input excluded from floor,
+  counted separately; all-empty → INCONCLUSIVE). 12 flow proofs in the live
+  view, all holding; 6 superseded proofs retained for audit.
 
 ## [0.82.0] — 2026-05-22
 

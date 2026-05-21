@@ -86,7 +86,10 @@ function FlowScreen() {
                               )}
                             </div>
                             <div className="mono" style={{ fontSize: 11, width: 52, textAlign: 'right', color: barColor }}>{fmt(f.floor)}</div>
-                            <div className="mono faint" style={{ fontSize: 9, width: 56 }}>{f.n_failed_exposures > 0 ? ('· ' + f.n_failed_exposures + ' gaps') : ''}</div>
+                            <div className="mono faint" style={{ fontSize: 9, width: 72 }}>{
+                              f.n_failed_exposures > 0 ? ('· ' + f.n_failed_exposures + ' gaps')
+                              : (f.empty_input_rate > 0 ? ('· ' + Math.round(f.empty_input_rate * 100) + '% empty') : '')
+                            }</div>
                           </div>
                         );
                       })}
@@ -190,6 +193,7 @@ function FlowScreen() {
                   {typeof f.non_collapse_rate === 'number' && (
                     <div className="micro faint" style={{ marginTop: 4 }}>
                       non-collapse rate {(f.non_collapse_rate * 100).toFixed(1)}%
+                      {f.empty_input_rate > 0 ? ' · empty-input ' + (f.empty_input_rate * 100).toFixed(1) + '% (Φ=0 by construction — excluded; strict floor ' + fmt(f.phi_floor_strict) + ')' : ''}
                       {f.per_pass_mean ? ' · per-pass mean Φ ' + Object.entries(f.per_pass_mean).map(([p, v]) => 'p' + p + ':' + fmt(v)).join('  ') : ''}
                     </div>
                   )}

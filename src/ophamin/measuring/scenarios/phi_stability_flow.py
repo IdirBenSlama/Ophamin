@@ -104,12 +104,17 @@ class PhiStabilityFlowScenario(Scenario):
         "Ophamin's second Flow-scope proof. memory-deformation-flow tests "
         "WHAT the substrate recalls; this tests whether it stays "
         "cognitively alive. Φ is Kimera's IIT integrated-information signal. "
-        "The LTL invariant is □ (Φ ≥ φ_floor) over a sustained-load run — a "
-        "single collapse falsifies it. φ_floor defaults to 0.05, anchored "
-        "to Kimera's record (substantive stimuli cluster Φ in ~[0.2, 0.8]; "
-        "Round M Φ essentially stable) — it is the 'alive at all' bar, not a "
-        "performance target. The worst cycle is the counterexample; the Φ "
-        "band + per-pass means are descriptive."
+        "The LTL invariant is □ (Φ ≥ φ_floor) over the sustained-load run, "
+        "measured on REAL-INPUT cycles only: a cycle that produced no "
+        "concept set has nothing to integrate, so Φ=0 there is correct, not "
+        "a defect — those cycles are excluded from the floor and their rate "
+        "reported as empty_input_rate (with phi_floor_strict, the "
+        "over-all-cycles floor, kept as a canary). This refinement followed "
+        "the linux/cyber refutations, where Φ=0 collapses correlated exactly "
+        "with concept-extraction gaps. φ_floor defaults to 0.05, anchored to "
+        "Kimera's record (substantive stimuli cluster Φ in ~[0.2, 0.8]; "
+        "Round M Φ essentially stable) — the 'alive at all' bar, not a "
+        "performance target. The worst real cycle is the counterexample."
     )
     method = "phi_floor_over_trajectory"
     falsification_consequence = (
@@ -154,16 +159,21 @@ class PhiStabilityFlowScenario(Scenario):
     def build_claim(self) -> Claim:
         return Claim(
             statement=(
-                "Under sustained load, the substrate stays cognitively alive: "
-                "□ (for every cycle in the trajectory, Φ ≥ "
-                f"{self.phi_floor:.2f}). The reported floor is the lowest-Φ "
-                "cycle across the whole run."
+                "Under sustained load, the substrate stays cognitively alive "
+                "on real input: □ (for every cycle that produced a concept "
+                f"set, Φ ≥ {self.phi_floor:.2f}). Empty-concept cycles are "
+                "excluded — with nothing to integrate, Φ=0 is correct, not a "
+                "defect; their rate is reported separately. The floor is the "
+                "lowest-Φ real-input cycle across the run."
             ),
             operationalization=(
                 f"Stream {self.n_passes} passes over {len(self.stimuli)} "
                 "substantive stimuli through Kimera's entity target (Takwin); "
-                "read the per-cycle ``phi``. phi_floor_observed = min Φ over "
-                "all cycles; the LTL □ invariant holds iff min Φ ≥ φ_floor."
+                "read the per-cycle ``phi`` and ``concepts``. Partition cycles "
+                "into real-input (concepts non-empty) and empty-input. "
+                "phi_floor = min Φ over real-input cycles; the LTL □ invariant "
+                "holds iff that floor ≥ φ_floor. empty_input_rate and the "
+                "over-all-cycles phi_floor_strict are reported alongside."
             ),
             threshold=Threshold(
                 metric="phi_floor",
@@ -172,13 +182,13 @@ class PhiStabilityFlowScenario(Scenario):
                 units="phi",
             ),
             h0=(
-                f"H0: min Φ < {self.phi_floor:.2f} — Φ collapses below the "
-                "non-collapse floor somewhere in the run"
+                f"H0: min Φ < {self.phi_floor:.2f} on real-input cycles — Φ "
+                "collapses below the floor despite the input producing concepts"
             ),
             h1=(
-                f"H1: min Φ ≥ {self.phi_floor:.2f} — Φ stays above the "
-                "collapse floor across the whole trajectory (substrate stays "
-                "cognitively alive under sustained load)"
+                f"H1: min Φ ≥ {self.phi_floor:.2f} on real-input cycles — the "
+                "substrate stays cognitively alive whenever it has something "
+                "to integrate"
             ),
         )
 
@@ -186,11 +196,13 @@ class PhiStabilityFlowScenario(Scenario):
         return (
             f"Build a sustained-load schedule ({self.n_passes} passes over "
             f"{len(self.stimuli)} stimuli = {self.n_cycles} cycles); stream "
-            f"it through Kimera's entity target. Read per-cycle Φ. Decide the "
-            f"LTL □ invariant: min Φ ≥ {self.phi_floor:.2f}. INCONCLUSIVE if "
-            f"fewer than {self.min_cycles} cycles produced a Φ. The Φ band, "
-            f"per-pass means, and per-cycle Φ series are descriptive; none "
-            f"post-hoc-claimable."
+            f"it through Kimera's entity target. Read per-cycle Φ + concepts; "
+            f"partition into real-input vs empty-input cycles. Decide the LTL "
+            f"□ invariant on real-input cycles: min Φ ≥ {self.phi_floor:.2f}. "
+            f"Report empty_input_rate + phi_floor_strict (over all cycles) "
+            f"alongside. INCONCLUSIVE if fewer than {self.min_cycles} "
+            f"real-input cycles. The Φ band, per-pass means, and per-cycle Φ "
+            f"series are descriptive; none post-hoc-claimable."
         )
 
     def score(
@@ -234,8 +246,17 @@ class PhiStabilityFlowScenario(Scenario):
         cycle_results = substrate.run_batch(stimuli_text)
 
         # Collect Φ per cycle, grouped by stimulus + by pass.
-        phi_values: list[float] = []
-        n_failed = 0
+        #
+        # Refined invariant (since the linux/cyber refutations): a cycle that
+        # produced NO concept set has nothing to integrate, so Φ=0 is correct
+        # behaviour, not a substrate defect. We therefore measure the floor
+        # over *real-input* cycles (concepts non-empty) and report the
+        # empty-input rate separately. ``phi_floor_strict`` keeps the old
+        # over-all-cycles floor as a canary in the evidence.
+        phi_real: list[float] = []      # Φ on cycles that produced concepts
+        phi_all: list[float] = []       # Φ on every cycle that returned a Φ
+        n_failed = 0                    # cycle failed entirely (no Φ)
+        n_empty_input = 0               # cycle ran but produced no concepts
         per_stimulus: dict[int, list[float]] = {
             i: [] for i in range(len(self.stimuli))
         }
@@ -246,15 +267,23 @@ class PhiStabilityFlowScenario(Scenario):
             if phi is None:
                 n_failed += 1
                 continue
-            phi_values.append(phi)
-            per_stimulus[idx].append(phi)
+            phi_all.append(phi)
+            raw = result.raw or {}
+            concepts = raw.get("concepts")
+            has_concepts = isinstance(concepts, list) and len(concepts) > 0
             pass_i = pos // len(self.stimuli)
             phi_series.append({
                 "cycle": result.cycle_index,
                 "pass": pass_i,
                 "stimulus_index": idx,
                 "phi": round(phi, 6),
+                "empty_input": not has_concepts,
             })
+            if not has_concepts:
+                n_empty_input += 1
+                continue
+            phi_real.append(phi)
+            per_stimulus[idx].append(phi)
             if worst_unit is None or phi < worst_unit["value"]:
                 worst_unit = {
                     "stimulus_index": idx,
@@ -263,21 +292,27 @@ class PhiStabilityFlowScenario(Scenario):
                     "value": round(phi, 6),
                 }
 
-        n_measured = len(phi_values)
-        floor = min(phi_values) if phi_values else 0.0
-        phi_mean = mean(phi_values) if phi_values else 0.0
-        phi_max = max(phi_values) if phi_values else 0.0
-        phi_std = pstdev(phi_values) if len(phi_values) > 1 else 0.0
+        n_measured = len(phi_real)
+        n_returned = len(phi_all)
+        floor = min(phi_real) if phi_real else 0.0
+        phi_mean = mean(phi_real) if phi_real else 0.0
+        phi_max = max(phi_real) if phi_real else 0.0
+        phi_std = pstdev(phi_real) if len(phi_real) > 1 else 0.0
+        phi_floor_strict = min(phi_all) if phi_all else 0.0
         non_collapse_rate = (
-            sum(1 for v in phi_values if v >= self.phi_floor) / n_measured
+            sum(1 for v in phi_real if v >= self.phi_floor) / n_measured
             if n_measured else 0.0
         )
+        empty_input_rate = (n_empty_input / n_returned) if n_returned else 0.0
         per_stimulus_floor = {
             str(i): min(vals) for i, vals in per_stimulus.items() if vals
         }
-        # per-pass mean Φ — exposes degradation across sustained load.
+        # per-pass mean Φ over real-input cycles — exposes degradation under
+        # sustained load.
         per_pass: dict[int, list[float]] = {}
         for pt in phi_series:
+            if pt.get("empty_input"):
+                continue
             per_pass.setdefault(pt["pass"], []).append(pt["phi"])
         per_pass_mean = {
             str(p): round(mean(v), 6) for p, v in sorted(per_pass.items())
@@ -308,20 +343,22 @@ class PhiStabilityFlowScenario(Scenario):
 
         claim = self.build_claim()
         reasoning = (
-            f"Φ floor {floor:.4f} over {n_measured} cycles "
+            f"Φ floor {floor:.4f} over {n_measured} real-input cycles "
             f"({self.n_passes} passes × {len(self.stimuli)} stimuli); "
             f"mean Φ {phi_mean:.4f}, band [{floor:.4f}, {phi_max:.4f}], "
             f"stdev {phi_std:.4f}; non-collapse rate {non_collapse_rate:.1%}; "
-            f"{n_failed} cycles produced no Φ"
+            f"{n_empty_input} empty-input cycles excluded "
+            f"({empty_input_rate:.1%}; strict floor over all cycles "
+            f"{phi_floor_strict:.4f}); {n_failed} cycles produced no Φ"
         )
         if worst_unit is not None:
             reasoning += (
-                f"; worst cycle: stimulus {worst_unit['stimulus_index']} "
+                f"; worst real cycle: stimulus {worst_unit['stimulus_index']} "
                 f"@ cycle {worst_unit['cycle']} = {worst_unit['value']:.4f}"
             )
         if inconclusive:
             reasoning += (
-                f"; too few cycles produced a Φ (<{self.min_cycles}) to decide"
+                f"; too few real-input cycles (<{self.min_cycles}) to decide"
             )
         verdict = Verdict.decide(
             observed=floor,
@@ -344,12 +381,20 @@ class PhiStabilityFlowScenario(Scenario):
                     "flow_unit_label": "stimulus",
                     "flow_corpus_label": self.corpus_label,
                     "flow_mean": phi_mean,
-                    "ltl_invariant": "ALWAYS(phi >= phi_floor) over the trajectory",
+                    "ltl_invariant": (
+                        "ALWAYS(phi >= phi_floor) over real-input cycles "
+                        "(empty-concept cycles excluded — Φ=0 there is "
+                        "correct, not a defect)"
+                    ),
                     "phi_min": floor,
                     "phi_max": phi_max,
                     "phi_stdev": phi_std,
+                    "phi_floor_strict": phi_floor_strict,
                     "non_collapse_rate": non_collapse_rate,
+                    "empty_input_cycles": n_empty_input,
+                    "empty_input_rate": empty_input_rate,
                     "n_measured": n_measured,
+                    "n_returned": n_returned,
                     "n_passes": self.n_passes,
                     "n_stimuli": len(self.stimuli),
                     "n_failed_cycles": n_failed,
