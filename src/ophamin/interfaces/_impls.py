@@ -582,18 +582,39 @@ def list_flow_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
                 "substrate_commit": str(data.get("substrate_git_commit", ""))[:12],
                 "claim_statement": (d.get("claim", {}) or {}).get("statement", ""),
                 "metric": flow_ev.get("statistic_name", ""),
+                # Human label for the measured quantity + the unit the bars
+                # group by — generic so any flow proof renders without
+                # scenario-specific Console code.
+                "metric_label": detail.get("flow_metric_label", "recognition Jaccard"),
+                "unit_label": detail.get("flow_unit_label", "stimulus"),
                 "floor": flow_ev.get("statistic_value"),
                 "comparator": thr.get("comparator", ""),
                 "threshold": thr.get("value"),
-                "mean": detail.get("recognition_jaccard_mean"),
+                # mean: recognition proofs use recognition_jaccard_mean;
+                # generic flow proofs use flow_mean.
+                "mean": (
+                    detail.get("recognition_jaccard_mean")
+                    if detail.get("recognition_jaccard_mean") is not None
+                    else detail.get("flow_mean")
+                ),
                 "n_pairs": detail.get("n_pairs"),
                 "n_stimuli": detail.get("n_stimuli"),
                 "n_exposures": detail.get("n_exposures"),
-                "n_failed_exposures": detail.get("n_failed_exposures"),
+                "n_passes": detail.get("n_passes"),
+                "n_measured": detail.get("n_measured"),
+                "n_failed_exposures": (
+                    detail.get("n_failed_exposures")
+                    if detail.get("n_failed_exposures") is not None
+                    else detail.get("n_failed_cycles")
+                ),
+                "non_collapse_rate": detail.get("non_collapse_rate"),
+                "per_pass_mean": detail.get("per_pass_mean"),
                 "ltl_invariant": detail.get("ltl_invariant", ""),
                 "threshold_anchor": detail.get("threshold_anchor", ""),
                 "per_stimulus_floor": detail.get("per_stimulus_floor", {}),
+                # worst_pair (recognition) OR worst_unit (single-cycle flow).
                 "worst_pair": detail.get("worst_pair"),
+                "worst_unit": detail.get("worst_unit"),
                 "pair_series": detail.get("pair_series", []),
             })
 

@@ -53,6 +53,13 @@ function FlowScreen() {
             const stim = f.per_stimulus_floor || {};
             const stimKeys = Object.keys(stim).sort((a, b) => (stim[a] - stim[b]));
             const thr = typeof f.threshold === 'number' ? f.threshold : null;
+            const metricLabel = (f.metric_label || 'recognition Jaccard').toUpperCase();
+            const unitLabel = (f.unit_label || 'stimulus').toUpperCase();
+            const countLabel = f.n_pairs != null ? 'RE-EXPOSURE PAIRS'
+              : f.n_measured != null ? 'CYCLES MEASURED' : 'SAMPLES';
+            const countVal = f.n_pairs != null ? f.n_pairs
+              : f.n_measured != null ? f.n_measured : '—';
+            const worst = f.worst_pair || f.worst_unit || null;
             return (
               <div key={fi} className="card" style={{ overflow: 'hidden' }}>
                 <div className="card-header">
@@ -70,7 +77,7 @@ function FlowScreen() {
                   {/* headline: floor vs threshold + mean */}
                   <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 14 }}>
                     <div>
-                      <div className="micro">RECOGNITION FLOOR (worst pair)</div>
+                      <div className="micro">{metricLabel} FLOOR (worst)</div>
                       <div className="mono" style={{ fontSize: 26, color, lineHeight: 1.1 }}>{fmt(f.floor)}</div>
                       <div className="mono faint" style={{ fontSize: 11 }}>
                         {f.comparator || '≥'} {fmt(f.threshold)} threshold
@@ -81,8 +88,8 @@ function FlowScreen() {
                       <div className="mono" style={{ fontSize: 18, color: 'var(--text-primary)' }}>{fmt(f.mean)}</div>
                     </div>
                     <div>
-                      <div className="micro">RE-EXPOSURE PAIRS</div>
-                      <div className="mono" style={{ fontSize: 18, color: 'var(--text-primary)' }}>{f.n_pairs ?? '—'}</div>
+                      <div className="micro">{countLabel}</div>
+                      <div className="mono" style={{ fontSize: 18, color: 'var(--text-primary)' }}>{countVal}</div>
                     </div>
                     <div>
                       <div className="micro">SUBSTRATE COMMIT</div>
@@ -91,8 +98,8 @@ function FlowScreen() {
                     </div>
                   </div>
 
-                  {/* the visual: per-stimulus recognition floor bars (worst first) */}
-                  <div className="micro" style={{ margin: '4px 0 8px' }}>PER-STIMULUS RECOGNITION FLOOR · worst first</div>
+                  {/* the visual: per-unit floor bars (worst first) */}
+                  <div className="micro" style={{ margin: '4px 0 8px' }}>PER-{unitLabel} {metricLabel} FLOOR · worst first</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {stimKeys.map((k) => {
                       const v = stim[k];
@@ -113,11 +120,23 @@ function FlowScreen() {
                     })}
                   </div>
 
-                  {/* worst pair + invariant */}
-                  {f.worst_pair && (
+                  {/* worst sample + invariant */}
+                  {worst && (worst.jaccard !== undefined ? (
                     <div className="micro" style={{ marginTop: 14 }}>
-                      WORST RE-EXPOSURE · stimulus {f.worst_pair.stimulus_index} · cycles {f.worst_pair.cycle_a}↔{f.worst_pair.cycle_b} ·
-                      <span className="mono" style={{ color }}> Jaccard {fmt(f.worst_pair.jaccard)}</span>
+                      WORST RE-EXPOSURE · stimulus {worst.stimulus_index} · cycles {worst.cycle_a}↔{worst.cycle_b} ·
+                      <span className="mono" style={{ color }}> Jaccard {fmt(worst.jaccard)}</span>
+                    </div>
+                  ) : (
+                    <div className="micro" style={{ marginTop: 14 }}>
+                      WORST CYCLE · stimulus {worst.stimulus_index} · cycle {worst.cycle}
+                      {worst.pass !== undefined ? ' (pass ' + worst.pass + ')' : ''} ·
+                      <span className="mono" style={{ color }}> {fmt(worst.value)}</span>
+                    </div>
+                  ))}
+                  {typeof f.non_collapse_rate === 'number' && (
+                    <div className="micro faint" style={{ marginTop: 4 }}>
+                      non-collapse rate {(f.non_collapse_rate * 100).toFixed(1)}%
+                      {f.per_pass_mean ? ' · per-pass mean Φ ' + Object.entries(f.per_pass_mean).map(([p, v]) => 'p' + p + ':' + fmt(v)).join('  ') : ''}
                     </div>
                   )}
                   {f.n_failed_exposures > 0 && (

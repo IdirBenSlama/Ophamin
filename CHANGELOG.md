@@ -7,7 +7,37 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.77.0] below for the latest cut.)
+(empty — see [0.78.0] below for the latest cut.)
+
+## [0.78.0] — 2026-05-21
+
+**Feature — second flow proof (Φ-stability) + the Flow scope is now
+extensible.** memory-deformation-flow tests *what* the substrate recalls;
+this tests whether it stays *cognitively alive* under sustained load — and
+makes the Flow surface generic so further flow proofs need no bespoke
+Console code.
+
+- **New `PhiStabilityFlowScenario`** (`phi-stability-flow`, scope=flow,
+  family=phi): streams several passes over substantive stimuli and tests
+  the LTL safety invariant `□ ( Φ ≥ φ_floor )` — a single collapse
+  falsifies it. φ_floor=0.05 (the "alive at all" bar) is anchored to
+  Kimera's Φ record (substantive stimuli cluster Φ in ~[0.2, 0.8]; Round M
+  Φ essentially stable), not invented.
+- **Measured @ kimera-swm 674ae6b7b402**: Φ band **[0.660, 0.702]**, mean
+  **0.689**, stdev **0.014**, **100% non-collapse**, per-pass means
+  essentially identical (0.6892 / 0.6892 / 0.6892) → **VALIDATED**. New
+  finding: **no cognitive degradation across sustained load** — Φ holds a
+  tight band pass-over-pass.
+- **Flow surface generalized**: `/flow` now carries `metric_label` /
+  `unit_label` and reads the mean from either key; the Console Flow screen
+  drives its headline + bar-chart labels from the metric, and renders a
+  per-cycle `worst_unit` (Φ) or a `worst_pair` (recognition) + the
+  non-collapse rate and per-pass means. Both flow metrics render in the same
+  UI with zero scenario-specific code — the Flow scope is now extensible.
+- **New `examples/run_phi_stability_flow.py`** runner + 11 tests pinning the
+  invariant (all-above→VALIDATED; one-collapse→REFUTED; failed-cycle-is-gap;
+  too-few→INCONCLUSIVE; per-pass-mean exposed; loud-fail on no substrate).
+  Verified in-browser: both flow proofs render correctly labeled.
 
 ## [0.77.0] — 2026-05-21
 

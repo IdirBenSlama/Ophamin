@@ -150,6 +150,9 @@ from ophamin.measuring.scenarios.memory_deformation_flow import (  # noqa: E402
 from ophamin.measuring.scenarios.organizational_dissonance import (  # noqa: E402
     OrganizationalDissonanceScenario,
 )
+from ophamin.measuring.scenarios.phi_stability_flow import (  # noqa: E402
+    PhiStabilityFlowScenario,
+)
 from ophamin.measuring.scenarios.philosophical_self_reference import (  # noqa: E402
     PhilosophicalSelfReferenceScenario,
     SELF_REFERENTIAL_TEXTS,
@@ -170,6 +173,7 @@ __all__ = [
     "ManifoldTopologyScenario",
     "MemoryDeformationFlowScenario",
     "OrganizationalDissonanceScenario",
+    "PhiStabilityFlowScenario",
     "PhilosophicalSelfReferenceScenario",
     "RosettaScalingScenario",
     "SCENARIOS",
