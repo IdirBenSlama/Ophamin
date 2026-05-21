@@ -63,6 +63,7 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
     { id: 'scenarios', label: 'Scenarios', icon: 'scenarios', count: totals.scenarios },
     { id: 'substrate', label: 'Substrate', icon: 'cpu' },
     { id: 'run',       label: 'Run',       icon: 'run' },
+    { id: 'verify',    label: 'Verify',    icon: 'proofs' },
     { id: 'telemetry', label: 'Telemetry', icon: 'telemetry' },
     { id: 'lab',       label: 'Lab',       icon: 'code' },
     { id: 'interop',   label: 'Interop',   icon: 'external' },

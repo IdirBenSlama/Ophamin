@@ -7,7 +7,29 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.71.0] below for the latest cut.)
+(empty — see [0.72.0] below for the latest cut.)
+
+## [0.72.0] — 2026-05-21
+
+**Feature — Verify drop-zone (Console).** Paste a signed proof record;
+the Console POSTs it to the existing `/verify` and shows the HMAC result.
+Signature verification is Ophamin-proper (custom canonicalization,
+SCHEMAS.md R1–R11) — nothing else verifies these signatures.
+
+- **`console/app/verify.jsx`** (new, nav after Run): a textarea + "Verify
+  signature" → `POST /verify`, rendering verified ✓/✗, `proof_id`, schema,
+  verdict outcome, claim, and reasoning. "Load a proof from the corpus"
+  pulls a real signed `proof.json` to try immediately.
+- **Byte-exact load (correctness):** the loader fetches the **raw bytes**
+  of `proof.json` (via `/proofs/bundles/file`), not a re-serialized
+  object — because `JSON.stringify` drops trailing `.0` on whole-number
+  floats (`500.0` → `500`), which changes the canonical form and makes a
+  valid signature spuriously fail. Verification is over bytes, so the
+  drop-zone preserves them.
+
+Verified in-browser end to end: loading a corpus proof → "✓ Signature
+verified" (real `proof_id`, VALIDATED). No new backend — `/verify` already
+existed. Console-only.
 
 ## [0.71.0] — 2026-05-21
 
