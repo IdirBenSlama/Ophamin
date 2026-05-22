@@ -912,6 +912,21 @@ def model_capabilities_impl(check_availability: bool = False) -> dict[str, Any]:
     return caps
 
 
+def toolkit_registry_impl() -> dict[str, Any]:
+    """The unified toolkit index: every external tool Ophamin wraps, its role,
+    installed version, and a route to its NATIVE interface (docs + a live UI
+    where one exists). Extensible via ``OPHAMIN_TOOLKITS``. Read-only.
+
+    This is the "unified interface" surface — Ophamin routes to each tool's own
+    interface rather than hiding it, so the operator has both views.
+    """
+    from ophamin.interop.toolkit_registry import toolkit_registry
+
+    reg = toolkit_registry()
+    reg["framework_version"] = __version__
+    return reg
+
+
 def validate_scenario_spec_impl(spec_json: str) -> dict[str, Any]:
     """Validate a scenario spec (JSON string) against the grounding gate.
 

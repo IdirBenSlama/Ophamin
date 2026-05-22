@@ -7,7 +7,33 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.104.0] below for the latest cut.)
+(empty — see [0.105.0] below for the latest cut.)
+
+## [0.105.0] — 2026-05-22
+
+**Toolkit registry — Ophamin as a unified index that routes to native UIs.**
+Per owner direction: the mature open-source tools Ophamin wraps have their own
+parameters, docs, and (sometimes) GUIs — surface direct links so the operator
+has BOTH Ophamin's view and the tool's native one, and so any external SDK can
+be plugged into the same index.
+
+- **`interop/toolkit_registry.py`** — `toolkit_registry()` returns every
+  wrapped tool with its role in Ophamin, the **actually-installed** version
+  (`importlib.metadata`, so an absent tool reports `installed:false`, never
+  silently assumed), and a route to its **native** interface: canonical docs +
+  homepage, and a live-UI launch route for the tools that have one (MLflow
+  `→ :5000`, DVC studio, Prometheus `→ :9090`).
+- **Extensible** — point `OPHAMIN_TOOLKITS` at a JSON list of custom toolkits
+  and they merge into the same index (loud failure on a malformed entry). This
+  is the "plug whatever you want to measure/experiment" surface.
+- **`GET /toolkits`** + `toolkit_registry_impl()` + a **Console "Toolkits"
+  screen** (R&D nav) — cards grouped by category, each linking to docs/home and
+  highlighting the live-UI tools. Ophamin routes to the native interface; it
+  does not hide it.
+- 29 core toolkits curated with canonical links across statistical / bayesian /
+  causal / provenance / config / instrumenting / audit / viz / validation /
+  security / interop. 17 tests pin resolution, well-formed links, the live-UI
+  routing, extensibility + loud-failure, and the impl.
 
 ## [0.104.0] — 2026-05-22
 

@@ -57,6 +57,7 @@ from ophamin.interfaces._impls import (
     management_status_impl,
     materialize_spec_impl,
     model_capabilities_impl,
+    toolkit_registry_impl,
     verify_grounding_impl,
     report_conformance_impl,
     report_standards_impl,
@@ -582,6 +583,22 @@ def build_app() -> FastAPI:
         # surface can show whether a configured (dedicated) model is actually
         # installed — best-effort network I/O, off by default.
         return model_capabilities_impl(check_availability=check_availability)
+
+    @app.get(
+        "/toolkits",
+        summary="Unified toolkit index — route to every wrapped tool's native interface",
+        description=(
+            "Every external open-source toolkit Ophamin builds on: its role, "
+            "installed version, and a direct link to its NATIVE interface "
+            "(docs, and a live UI where one exists — MLflow / DVC / "
+            "Prometheus). Ophamin routes to each tool's own interface rather "
+            "than hiding it. Extensible via the OPHAMIN_TOOLKITS env var "
+            "(a JSON list of custom toolkits)."
+        ),
+        tags=["toolkits"],
+    )
+    def get_toolkits() -> dict[str, Any]:
+        return toolkit_registry_impl()
 
     @app.get(
         "/reporting/standards",

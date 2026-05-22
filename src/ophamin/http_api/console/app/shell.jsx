@@ -39,6 +39,7 @@ function Icon({ name, size = 18 }) {
     calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></>,
     rocket:   <><path d="M4.5 16.5c-1.5 1-2 5-2 5s4-.5 5-2c.59-.85.58-2.14-.1-2.83a1.93 1.93 0 0 0-2.83-.1zM12 15l-3-3 7-7 3 3-7 7zM9 12l-1.5 1.5L9 15l1.5-1.5zM15 9l1.5-1.5L18 9l-1.5 1.5zM17 6l4 4"/></>,
     code:     <><path d="m18 16 4-4-4-4M6 8l-4 4 4 4M14.5 4l-5 16"/></>,
+    package:  <><path d="M21 8 12 3 3 8v8l9 5 9-5V8zM3 8l9 5 9-5M12 13v8"/></>,
   };
   return <svg {...common}>{paths[name] || paths.overview}</svg>;
 }
@@ -78,6 +79,7 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
       { id: 'verify',       label: 'Verify',       icon: 'proofs' },
       { id: 'agents',       label: 'Agents',       icon: 'agents' },
       { id: 'models',       label: 'Models',       icon: 'cpu' },
+      { id: 'toolkits',     label: 'Toolkits',     icon: 'package' },
       { id: 'integrations', label: 'Integrations', icon: 'external' },
     ]},
   ];

@@ -94,9 +94,17 @@ from ophamin.interop.sarif import (
     SARIFExporter,
     audit_record_to_sarif,
 )
+from ophamin.interop.toolkit_registry import (
+    Toolkit,
+    ToolkitConfigError,
+    toolkit_registry,
+)
 
 __all__ = [
     "CycloneDXExporter",
+    "Toolkit",
+    "ToolkitConfigError",
+    "toolkit_registry",
     "DEFAULT_NAMESPACE",
     "DEFAULT_PROOF_FILENAME",
     "DSSE_INTOTO_PAYLOAD_TYPE",

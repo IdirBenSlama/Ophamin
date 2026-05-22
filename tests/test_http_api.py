@@ -324,6 +324,7 @@ class TestOpenAPI:
             "/authoring/materialize",
             "/authoring/verify-grounding",
             "/models",
+            "/toolkits",
             "/reporting/standards",
             "/reporting/conformance",
             "/configuring/schema",

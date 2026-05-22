@@ -934,6 +934,12 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       if (mo) { api.models = mo; live.models = true; }
     } catch (e) { console.warn('[ophamin] hydrate /models skipped:', e.message); }
 
+    // --- /toolkits (R&D — unified index routing to native tool interfaces) ---
+    try {
+      const tk = await getJSON('/toolkits');
+      if (tk) { api.toolkits = tk; live.toolkits = true; }
+    } catch (e) { console.warn('[ophamin] hydrate /toolkits skipped:', e.message); }
+
     // --- /authoring/capabilities (R&D — the compose menu) ---
     try {
       const cap = await getJSON('/authoring/capabilities');
@@ -987,6 +993,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     substrateStatus: {},
     config: {},
     models: {},
+    toolkits: {},
     capabilities: {},
     activeSubstrate: null,
     _allBundles: bundles,
@@ -1002,7 +1009,8 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       version: false, scenarios: false, bundles: false, proofs: false,
       metrics: false, agents: false, agentCalls: false, integrations: false,
       substrates: false, substrate_organs: false, cockpit: false, flow: false,
-      managing: false, config: false, models: false, capabilities: false,
+      managing: false, config: false, models: false, toolkits: false,
+      capabilities: false,
     },
   };
   return api;
