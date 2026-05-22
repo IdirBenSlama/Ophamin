@@ -7,7 +7,50 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.109.0] below for the latest cut.)
+(empty — see [0.110.0] below for the latest cut.)
+
+## [0.110.0] — 2026-05-22
+
+**Memory-order-hysteresis — Kimera vs standard retrieval, the honest "how is
+this different from RAG?" proof.** The memory-permanence proofs (0.109.0)
+established that Kimera's memory is permanent and path-dependent. The investor's
+fair next question: how does that differ from retrieval-augmented memory the
+industry already has? This proof answers it on the one axis where the
+architectures structurally diverge — **order of experience**.
+
+A set-based retriever (TF-IDF, dense, BM25, FAISS) is a pure function of the
+document *set* and the query — ingestion order cannot change its ranking. Its
+memory is an order-blind inventory. Kimera's data model claims hysteresis. A
+live probe confirmed it where it lives: same documents in a different order, same
+query → recognition identical (concept Jaccard 1.0, Φ identical) but a different
+`prime_chain` (prime-address) and a differently-settled manifold.
+
+- **`memory-order-hysteresis`** (new scope `comparison`) runs three batches per
+  proof — order A, order A again (the determinism control / noise floor), and
+  order B (shuffled) — through Kimera's entity target, plus the same
+  docs/queries through a TF-IDF baseline:
+
+      order_hysteresis = mean(1 − J(prime_chain|A, prime_chain|B))
+                       − mean(1 − J(prime_chain|A1, prime_chain|A2))
+
+  VALIDATED iff `order_hysteresis > 0` with a significant paired
+  order_divergence > noise_floor test (scipy Wilcoxon). The determinism control
+  is what makes it airtight: a near-zero A-vs-A noise floor means an A-vs-B
+  divergence is the *order*, not run-noise. A commutative result (≤ 0) would be
+  an honest REFUTED (permanence, not hysteresis, is the differentiator).
+- **Live on real Kimera @ 949d9fc73: VALIDATED** — Kimera order-divergence 1.000,
+  noise floor 0.067, RAG (TF-IDF) order-divergence 0.000, **order_hysteresis
+  +0.933**, Wilcoxon p=0.016. Manifold-state order effect (coupling/mass) > the
+  noise floor. The same query, after the same documents in a different order,
+  gets a different prime-address from Kimera — impossible for set-based
+  retrieval. **Kimera's memory carries the order of experience; RAG carries only
+  the inventory.** Signed proof `f6af1a5c…`.
+- New: `src/ophamin/comparing/retrieval_baseline.py` (order-invariant TF-IDF +
+  dense retrievers, with `order_divergence` demonstrating the structural 0),
+  `examples/run_memory_order_hysteresis.py`,
+  `tests/test_memory_order_hysteresis.py` (14 tests; hysteresis→VALIDATED,
+  commutative→REFUTED, nondeterministic→not VALIDATED),
+  `tests/test_retrieval_baseline.py` (6 tests).
 
 ## [0.109.0] — 2026-05-22
 
