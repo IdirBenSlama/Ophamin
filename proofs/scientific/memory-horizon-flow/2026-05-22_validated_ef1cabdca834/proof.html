@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>ef1cabdca834fb1cce611630f3e1091eb6e5ab830edd30c4c39b0fff7bd1a1eb</code><br><strong>Created:</strong> 2026-05-22T16:01:39.308346+00:00</p><h2>1. Claim</h2><blockquote><p>Across a long single-pass stream, the substrate still recalls earlier experiences beyond a fixed context window: □ (for every probe whose lag exceeds window_ref=256, recall Jaccard ≥ 0.50). The reported floor is the worst beyond-window probe.</p></blockquote><ul><li><strong>Operationalisation:</strong> Stream 400 distinct stimuli once through Kimera&#x27;s entity target, then re-probe 20 positions spread over the stream. For each probe, recall = Jaccard(concept set at first exposure, concept set at probe); lag = intervening cycles. recall_floor_beyond_window = min recall over probes with lag &gt; 256; the □ invariant holds iff that floor ≥ 0.50.</li><li><strong>Threshold:</strong> <code>recall_floor_beyond_window &gt;= 0.5 jaccard</code></li><li><strong>H0:</strong> H0: recall &lt; 0.50 for some item recalled beyond window_ref=256 — the horizon is shorter than the reference window</li><li><strong>H1:</strong> H1: recall ≥ 0.50 for every beyond-window probe — memory reaches past a fixed window of that size</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>1.0</code></p><p>recall floor 1.0000 over 5 beyond-window probes (lag &gt; 256); mean recall 1.0000, stdev 0.0000; memory horizon (max lag with recall ≥ 0.50) = 360 cycles; max lag measured 360; 400-item single-pass stream; 5 probes produced no concept set; worst beyond-window probe: stimulus 42 @ lag 360 = 1.0000; control: beyond-window recall median 1.000 vs cross-item median 0.000, Mann-Whitney p=7.5e-06 (recall real beyond window)</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-22T16:01:39.048005+00:00</code></li><li>Config hash: <code>44cc9a3bf33f3a0b7bdab2a0977ca76fa4ea6bb51e6867d3edd781ff113fc6c4</code></li><li>Data hash: <code>ad79ab41ed3eb80cd1fbe8041eea8cc8ca0d7fe0595c54db2d634f2510514817</code></li></ul><p><em>Plan:</em> Stream 400 stimuli once, then re-probe 20 evenly-spread positions. Per probe compute recall = Jaccard(first exposure concepts, probe concepts) and lag = probe_cycle − exposure_cycle. Partition probes at window_ref=256. Decide □: min recall over beyond-window probes ≥ 0.50. INCONCLUSIVE if fewer than 3 beyond-window probes are valid. The lag→recall curve, memory horizon (max lag with recall ≥ floor), and the negative control are descriptive.</p><h2>4. Data</h2><ul><li>Substrate: <code>kimera-swm</code> @ <code>0092eb373087</code></li><li>Dataset: <code>kimera-memory-horizon-stream</code> (substrate-trajectory+single-pass-stream, 420 records, hash <code>ad79ab41ed3e…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>O.flow.memory_horizon</code></td><td><code>recall_floor_beyond_window</code></td><td><code>1.0</code></td><td>—</td><td>ophamin 0.103.0</td></tr></tbody></table><h2>6. Signature</h2><p><code>f8a384a68785c069f9c6e4d2e11d03c54d73f00d8348a35fb27acc27e158719b</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.103.0 @ <code>6cabf99bc6e1</code></footer></body></html>
