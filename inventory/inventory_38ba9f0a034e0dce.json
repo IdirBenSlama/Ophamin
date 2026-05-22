@@ -1,0 +1,3305 @@
+{
+  "inventory_id": "38ba9f0a034e0dcefebaceecf349d50d83055d9b44d6a560ae0b5808eb3d6fd6",
+  "schema_version": 1,
+  "ophamin_version": "0.113.0",
+  "ophamin_git_commit": "5615fccd3433c3c3e7426315398414af548f9f86",
+  "kimera_repo_path": "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)",
+  "kimera_git_commit": "a3befa25d9abdfe87b07782d7e2ba5a60e823c70",
+  "captured_at": "2026-05-22T23:28:20.717743+00:00",
+  "strata": [
+    {
+      "stratum": "cognitive",
+      "description": "Named cognitive primitives reachable as KimeraAdapter targets",
+      "expected_count": 8,
+      "count": 11,
+      "is_live": true,
+      "surfaces": [
+        {
+          "name": "takwin",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/cognitive/takwin.py",
+          "line_count": 36064,
+          "metadata": {
+            "target_key": "takwin"
+          }
+        },
+        {
+          "name": "geoid_1_3_1_enforcement",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/geoid/geoid_1_3_1_enforcement.py",
+          "line_count": 977,
+          "metadata": {
+            "target_key": "atlas"
+          }
+        },
+        {
+          "name": "spherical_5d_geometry",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/geoid/spherical_5d_geometry.py",
+          "line_count": 1438,
+          "metadata": {
+            "target_key": "astrolabe"
+          }
+        },
+        {
+          "name": "one_plus_three_plus_one_enforcer",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/linguistic/one_plus_three_plus_one_enforcer.py",
+          "line_count": 2340,
+          "metadata": {
+            "target_key": "pentecost"
+          }
+        },
+        {
+          "name": "ouroboros_kernel",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/mathematical/ouroboros_kernel.py",
+          "line_count": 642,
+          "metadata": {
+            "target_key": "ouroboros"
+          }
+        },
+        {
+          "name": "piovra",
+          "kind": "package_dir",
+          "file_path": "kimera_swm/domain/piovra",
+          "line_count": 0,
+          "metadata": {
+            "target_key": "piovra"
+          }
+        },
+        {
+          "name": "arachne_protocol",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/prime/arachne_protocol.py",
+          "line_count": 2666,
+          "metadata": {
+            "target_key": "arachne"
+          }
+        },
+        {
+          "name": "gwf",
+          "kind": "package_dir",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress",
+          "line_count": 0,
+          "metadata": {
+            "target_key": "gwf"
+          }
+        },
+        {
+          "name": "rosetta_service",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/semantic/rosetta_service.py",
+          "line_count": 1268,
+          "metadata": {
+            "target_key": "rosetta"
+          }
+        },
+        {
+          "name": "rosetta_stele",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/semantic/rosetta_stele.py",
+          "line_count": 698,
+          "metadata": {
+            "target_key": "rosetta_stele"
+          }
+        },
+        {
+          "name": "spde_engine",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/spde_engine.py",
+          "line_count": 259,
+          "metadata": {
+            "target_key": "spde"
+          }
+        }
+      ]
+    },
+    {
+      "stratum": "interface",
+      "description": "REST routers + controllers, GraphQL surface, MCP tools, CLI commands, WebSocket handlers",
+      "expected_count": 20,
+      "count": 104,
+      "is_live": true,
+      "surfaces": [
+        {
+          "name": "a2a",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/a2a.py",
+          "line_count": 136,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "api_infrastructure_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/api_infrastructure_router.py",
+          "line_count": 570,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "autonomous_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/autonomous_router.py",
+          "line_count": 417,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "boundary",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/boundary.py",
+          "line_count": 148,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "causality_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/causality_router.py",
+          "line_count": 313,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "chaos_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/chaos_router.py",
+          "line_count": 578,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "cognitive_field",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/cognitive_field.py",
+          "line_count": 74,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "cognitive_intelligence_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/cognitive_intelligence_router.py",
+          "line_count": 429,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "cognitive_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/cognitive_router.py",
+          "line_count": 536,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "computation_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/computation_router.py",
+          "line_count": 904,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "core_components",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/core_components.py",
+          "line_count": 730,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "cronos_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/cronos_router.py",
+          "line_count": 205,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "domain_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/domain_router.py",
+          "line_count": 959,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "ecoform",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/ecoform.py",
+          "line_count": 96,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "event_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/event_router.py",
+          "line_count": 301,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "form_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/form_router.py",
+          "line_count": 593,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "geoid",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/geoid.py",
+          "line_count": 16,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "gpu_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/gpu_router.py",
+          "line_count": 350,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "infrastructure_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/infrastructure_router.py",
+          "line_count": 522,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "insight_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/insight_router.py",
+          "line_count": 599,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "insight_schemas",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/insight_schemas.py",
+          "line_count": 242,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "insight_service_dependency",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/insight_service_dependency.py",
+          "line_count": 169,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "integration_communication_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/integration_communication_router.py",
+          "line_count": 599,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "integration_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/integration_router.py",
+          "line_count": 646,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "internal_diagnostics",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/internal_diagnostics.py",
+          "line_count": 162,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "lineage_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/lineage_router.py",
+          "line_count": 85,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "linguistic",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/linguistic.py",
+          "line_count": 323,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "machine_learning_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/machine_learning_router.py",
+          "line_count": 257,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "mathematical",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/mathematical.py",
+          "line_count": 507,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "monitoring_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/monitoring_router.py",
+          "line_count": 319,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "multimodal_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/multimodal_router.py",
+          "line_count": 33,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "performance_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/performance_router.py",
+          "line_count": 453,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "prime_indexing",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/prime_indexing.py",
+          "line_count": 392,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "production_intelligence_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/production_intelligence_router.py",
+          "line_count": 363,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "quality_assurance",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/quality_assurance.py",
+          "line_count": 137,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "quality_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/quality_router.py",
+          "line_count": 1258,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "query_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/query_router.py",
+          "line_count": 249,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "rosetta_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/rosetta_router.py",
+          "line_count": 120,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "sat_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/sat_router.py",
+          "line_count": 214,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "security_protection_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/security_protection_router.py",
+          "line_count": 776,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "security_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/security_router.py",
+          "line_count": 969,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "specialized_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/specialized_router.py",
+          "line_count": 1530,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "system_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/system_router.py",
+          "line_count": 787,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "system_update",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/system_update.py",
+          "line_count": 135,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "thermodynamic",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/thermodynamic.py",
+          "line_count": 294,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "vault_router",
+          "kind": "module",
+          "file_path": "kimera_swm/api/routers/vault_router.py",
+          "line_count": 251,
+          "metadata": {
+            "protocol": "rest",
+            "role": "router"
+          }
+        },
+        {
+          "name": "a2a_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/a2a_commands.py",
+          "line_count": 279,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "base",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/base.py",
+          "line_count": 393,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "cognitive_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/cognitive_commands.py",
+          "line_count": 142,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "cognitive_field_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/cognitive_field_commands.py",
+          "line_count": 76,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "contradiction_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/contradiction_commands.py",
+          "line_count": 76,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "derivable_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/derivable_commands.py",
+          "line_count": 76,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "developer_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/developer_commands.py",
+          "line_count": 76,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "echoform_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/echoform_commands.py",
+          "line_count": 76,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "ecoform_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/ecoform_commands.py",
+          "line_count": 76,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "geoid_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/geoid_commands.py",
+          "line_count": 101,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "linguistic_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/linguistic_commands.py",
+          "line_count": 100,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "mathematical_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/mathematical_commands.py",
+          "line_count": 453,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "quantum_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/quantum_commands.py",
+          "line_count": 381,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "registry",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/registry.py",
+          "line_count": 193,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "system_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/system_commands.py",
+          "line_count": 142,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "thermodynamic_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/thermodynamic_commands.py",
+          "line_count": 100,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "vault_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/vault_commands.py",
+          "line_count": 107,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "zetetic_commands",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/cli/commands/zetetic_commands.py",
+          "line_count": 341,
+          "metadata": {
+            "protocol": "cli",
+            "role": "command"
+          }
+        },
+        {
+          "name": "graphql_federation",
+          "kind": "package_dir",
+          "file_path": "kimera_swm/interfaces/graphql/federation",
+          "line_count": 0,
+          "metadata": {
+            "protocol": "graphql",
+            "role": "federation"
+          }
+        },
+        {
+          "name": "graphql_resolvers",
+          "kind": "package_dir",
+          "file_path": "kimera_swm/interfaces/graphql/resolvers",
+          "line_count": 0,
+          "metadata": {
+            "protocol": "graphql",
+            "role": "resolvers"
+          }
+        },
+        {
+          "name": "graphql_schema",
+          "kind": "package_dir",
+          "file_path": "kimera_swm/interfaces/graphql/schema",
+          "line_count": 0,
+          "metadata": {
+            "protocol": "graphql",
+            "role": "schema"
+          }
+        },
+        {
+          "name": "graphql_services",
+          "kind": "package_dir",
+          "file_path": "kimera_swm/interfaces/graphql/services",
+          "line_count": 0,
+          "metadata": {
+            "protocol": "graphql",
+            "role": "services"
+          }
+        },
+        {
+          "name": "memory_resources",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/resources/memory_resources.py",
+          "line_count": 176,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "resource"
+          }
+        },
+        {
+          "name": "state_resources",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/resources/state_resources.py",
+          "line_count": 188,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "resource"
+          }
+        },
+        {
+          "name": "server",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/server.py",
+          "line_count": 256,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "server"
+          }
+        },
+        {
+          "name": "a2a_tools",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/tools/a2a_tools.py",
+          "line_count": 108,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "tool"
+          }
+        },
+        {
+          "name": "advanced_tools",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/tools/advanced_tools.py",
+          "line_count": 422,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "tool"
+          }
+        },
+        {
+          "name": "autonomous_tools",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/tools/autonomous_tools.py",
+          "line_count": 357,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "tool"
+          }
+        },
+        {
+          "name": "boundary_tools",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/tools/boundary_tools.py",
+          "line_count": 59,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "tool"
+          }
+        },
+        {
+          "name": "cognitive_tools",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/tools/cognitive_tools.py",
+          "line_count": 204,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "tool"
+          }
+        },
+        {
+          "name": "geoid_tools",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/tools/geoid_tools.py",
+          "line_count": 269,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "tool"
+          }
+        },
+        {
+          "name": "linguistic_tools",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/tools/linguistic_tools.py",
+          "line_count": 406,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "tool"
+          }
+        },
+        {
+          "name": "mathematical_tools",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/tools/mathematical_tools.py",
+          "line_count": 406,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "tool"
+          }
+        },
+        {
+          "name": "system_tools",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/mcp/tools/system_tools.py",
+          "line_count": 282,
+          "metadata": {
+            "protocol": "mcp",
+            "role": "tool"
+          }
+        },
+        {
+          "name": "a2a_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/a2a_controller.py",
+          "line_count": 153,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "cognitive_enhancement_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/cognitive_enhancement_controller.py",
+          "line_count": 734,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "cognitive_field_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/cognitive_field_controller.py",
+          "line_count": 131,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "cognitive_infrastructure_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/cognitive_infrastructure_controller.py",
+          "line_count": 480,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "cognitive_intelligence_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/cognitive_intelligence_controller.py",
+          "line_count": 66,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "contradiction_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/contradiction_controller.py",
+          "line_count": 390,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "conversational_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/conversational_controller.py",
+          "line_count": 1096,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "derivable_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/derivable_controller.py",
+          "line_count": 869,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "echoform_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/echoform_controller.py",
+          "line_count": 1058,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "ecoform_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/ecoform_controller.py",
+          "line_count": 152,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "feature_integration_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/feature_integration_controller.py",
+          "line_count": 885,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "geoid_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/geoid_controller.py",
+          "line_count": 1221,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "mathematical_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/mathematical_controller.py",
+          "line_count": 767,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "mathematical_service_factory",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/mathematical_service_factory.py",
+          "line_count": 607,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "multimodal_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/multimodal_controller.py",
+          "line_count": 411,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "production_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/production_controller.py",
+          "line_count": 616,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "quantum_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/quantum_controller.py",
+          "line_count": 2086,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "reflective_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/reflective_controller.py",
+          "line_count": 703,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "security_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/security_controller.py",
+          "line_count": 242,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "thermodynamic_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/thermodynamic_controller.py",
+          "line_count": 1565,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "validation_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/validation_controller.py",
+          "line_count": 212,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "vault_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/vault_controller.py",
+          "line_count": 1309,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "zetetic_controller",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/rest/controllers/zetetic_controller.py",
+          "line_count": 724,
+          "metadata": {
+            "protocol": "rest",
+            "role": "controller"
+          }
+        },
+        {
+          "name": "app",
+          "kind": "module",
+          "file_path": "kimera_swm/interfaces/websocket/app.py",
+          "line_count": 650,
+          "metadata": {
+            "protocol": "websocket"
+          }
+        }
+      ]
+    },
+    {
+      "stratum": "transport",
+      "description": "Piovra L3 transport adapters wrapping ArchipelPeerRouter",
+      "expected_count": 4,
+      "count": 8,
+      "is_live": true,
+      "surfaces": [
+        {
+          "name": "async_queue",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/piovra/transports/async_queue.py",
+          "line_count": 210,
+          "metadata": {
+            "layer": "L3"
+          }
+        },
+        {
+          "name": "grpc",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/piovra/transports/grpc.py",
+          "line_count": 414,
+          "metadata": {
+            "layer": "L3"
+          }
+        },
+        {
+          "name": "kafka",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/piovra/transports/kafka.py",
+          "line_count": 341,
+          "metadata": {
+            "layer": "L3"
+          }
+        },
+        {
+          "name": "nats",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/piovra/transports/nats.py",
+          "line_count": 525,
+          "metadata": {
+            "layer": "L3"
+          }
+        },
+        {
+          "name": "network_emulator",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/piovra/transports/network_emulator.py",
+          "line_count": 462,
+          "metadata": {
+            "layer": "L3"
+          }
+        },
+        {
+          "name": "rabbitmq",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/piovra/transports/rabbitmq.py",
+          "line_count": 361,
+          "metadata": {
+            "layer": "L3"
+          }
+        },
+        {
+          "name": "tcp",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/piovra/transports/tcp.py",
+          "line_count": 464,
+          "metadata": {
+            "layer": "L3"
+          }
+        },
+        {
+          "name": "websocket",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/piovra/transports/websocket.py",
+          "line_count": 477,
+          "metadata": {
+            "layer": "L3"
+          }
+        }
+      ]
+    },
+    {
+      "stratum": "persistence",
+      "description": "PostgreSQL per-domain repos, ArangoDB, Redis, multi-level cache, vault, persistence layer",
+      "expected_count": 15,
+      "count": 42,
+      "is_live": true,
+      "surfaces": [
+        {
+          "name": "arangodb_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/arangodb_manager.py",
+          "line_count": 505,
+          "metadata": {
+            "backend": "arangodb"
+          }
+        },
+        {
+          "name": "async_arango_bridge",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/async_arango_bridge.py",
+          "line_count": 292,
+          "metadata": {
+            "backend": "unknown"
+          }
+        },
+        {
+          "name": "connection_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/connection_manager.py",
+          "line_count": 234,
+          "metadata": {
+            "backend": "unknown"
+          }
+        },
+        {
+          "name": "connection_pool_optimizer",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/connection_pool_optimizer.py",
+          "line_count": 489,
+          "metadata": {
+            "backend": "unknown"
+          }
+        },
+        {
+          "name": "database_configs",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/database_configs.py",
+          "line_count": 157,
+          "metadata": {
+            "backend": "unknown"
+          }
+        },
+        {
+          "name": "database_production_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/database_production_manager.py",
+          "line_count": 738,
+          "metadata": {
+            "backend": "unknown"
+          }
+        },
+        {
+          "name": "distributed_transaction_coordinator",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/distributed_transaction_coordinator.py",
+          "line_count": 611,
+          "metadata": {
+            "backend": "transaction"
+          }
+        },
+        {
+          "name": "enhanced_database_optimizer_fixed",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/enhanced_database_optimizer_fixed.py",
+          "line_count": 395,
+          "metadata": {
+            "backend": "unknown"
+          }
+        },
+        {
+          "name": "enhanced_query_cache",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/enhanced_query_cache.py",
+          "line_count": 667,
+          "metadata": {
+            "backend": "cache"
+          }
+        },
+        {
+          "name": "insight_schema",
+          "kind": "config_file",
+          "file_path": "kimera_swm/infrastructure/database/insight_schema.sql",
+          "line_count": 108,
+          "metadata": {
+            "backend": "schema_sql",
+            "format": "sql"
+          }
+        },
+        {
+          "name": "migration_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/migration_manager.py",
+          "line_count": 561,
+          "metadata": {
+            "backend": "schema_mgmt"
+          }
+        },
+        {
+          "name": "migration_planner",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/migration_planner.py",
+          "line_count": 296,
+          "metadata": {
+            "backend": "schema_mgmt"
+          }
+        },
+        {
+          "name": "multi_level_cache_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/multi_level_cache_manager.py",
+          "line_count": 472,
+          "metadata": {
+            "backend": "cache"
+          }
+        },
+        {
+          "name": "postgres_cognitive_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/postgres_cognitive_repository.py",
+          "line_count": 389,
+          "metadata": {
+            "backend": "postgres"
+          }
+        },
+        {
+          "name": "postgres_connection",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/postgres_connection.py",
+          "line_count": 333,
+          "metadata": {
+            "backend": "postgres"
+          }
+        },
+        {
+          "name": "postgres_contradiction_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/postgres_contradiction_repository.py",
+          "line_count": 1114,
+          "metadata": {
+            "backend": "postgres"
+          }
+        },
+        {
+          "name": "postgres_decision_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/postgres_decision_repository.py",
+          "line_count": 609,
+          "metadata": {
+            "backend": "postgres"
+          }
+        },
+        {
+          "name": "postgres_geoid_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/postgres_geoid_repository.py",
+          "line_count": 916,
+          "metadata": {
+            "backend": "postgres"
+          }
+        },
+        {
+          "name": "postgres_insight_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/postgres_insight_repository.py",
+          "line_count": 446,
+          "metadata": {
+            "backend": "postgres"
+          }
+        },
+        {
+          "name": "postgres_learning_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/postgres_learning_repository.py",
+          "line_count": 1013,
+          "metadata": {
+            "backend": "postgres"
+          }
+        },
+        {
+          "name": "postgresql_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/postgresql_manager.py",
+          "line_count": 121,
+          "metadata": {
+            "backend": "postgres"
+          }
+        },
+        {
+          "name": "production_wiring",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/production_wiring.py",
+          "line_count": 204,
+          "metadata": {
+            "backend": "unknown"
+          }
+        },
+        {
+          "name": "query_optimization_engine",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/query_optimization_engine.py",
+          "line_count": 669,
+          "metadata": {
+            "backend": "unknown"
+          }
+        },
+        {
+          "name": "redis_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/redis_manager.py",
+          "line_count": 140,
+          "metadata": {
+            "backend": "redis"
+          }
+        },
+        {
+          "name": "schema_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/schema_manager.py",
+          "line_count": 255,
+          "metadata": {
+            "backend": "schema_mgmt"
+          }
+        },
+        {
+          "name": "unified_database_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/database/unified_database_manager.py",
+          "line_count": 1188,
+          "metadata": {
+            "backend": "unknown"
+          }
+        },
+        {
+          "name": "database",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/database.py",
+          "line_count": 121,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "echoform_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/echoform_repository.py",
+          "line_count": 315,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "echoform_repository_fixed",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/echoform_repository_fixed.py",
+          "line_count": 368,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "ecoform_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/ecoform_repository.py",
+          "line_count": 52,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "in_memory_chaos_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/in_memory_chaos_repository.py",
+          "line_count": 172,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "postgresql_chaos_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/postgresql_chaos_repository.py",
+          "line_count": 517,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/repository.py",
+          "line_count": 304,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "sql_identifier",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/sql_identifier.py",
+          "line_count": 62,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "universal_database_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/universal_database_manager.py",
+          "line_count": 790,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "vault_persistence_adapter",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/vault_persistence_adapter.py",
+          "line_count": 616,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "vault_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/vault_repository.py",
+          "line_count": 93,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "zetetic_repository",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/persistence/zetetic_repository.py",
+          "line_count": 398,
+          "metadata": {
+            "backend": "persistence_layer"
+          }
+        },
+        {
+          "name": "vault_auditor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/vault/vault_auditor.py",
+          "line_count": 465,
+          "metadata": {
+            "backend": "vault"
+          }
+        },
+        {
+          "name": "vault_optimizer",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/vault/vault_optimizer.py",
+          "line_count": 770,
+          "metadata": {
+            "backend": "vault"
+          }
+        },
+        {
+          "name": "vault_router",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/vault/vault_router.py",
+          "line_count": 603,
+          "metadata": {
+            "backend": "vault"
+          }
+        },
+        {
+          "name": "vault_sync_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/vault/vault_sync_manager.py",
+          "line_count": 533,
+          "metadata": {
+            "backend": "vault"
+          }
+        }
+      ]
+    },
+    {
+      "stratum": "reconciliation",
+      "description": "Layer 4 CRDTs (G-Set, SCAR-DAG, Echoform-chain) + RIBLT + Bloom pre-flight + offline reconnect",
+      "expected_count": 5,
+      "count": 8,
+      "is_live": true,
+      "surfaces": [
+        {
+          "name": "bloom_preflight",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/reconciliation/bloom_preflight.py",
+          "line_count": 766,
+          "metadata": {
+            "family": "bloom"
+          }
+        },
+        {
+          "name": "echoform_chain",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/reconciliation/echoform_chain.py",
+          "line_count": 599,
+          "metadata": {
+            "family": "chain_crdt"
+          }
+        },
+        {
+          "name": "exceptions",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/reconciliation/exceptions.py",
+          "line_count": 54,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "g_set",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/reconciliation/g_set.py",
+          "line_count": 262,
+          "metadata": {
+            "family": "set_crdt"
+          }
+        },
+        {
+          "name": "offline_reconnect",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/reconciliation/offline_reconnect.py",
+          "line_count": 825,
+          "metadata": {
+            "family": "reconnect_protocol"
+          }
+        },
+        {
+          "name": "rateless_iblt",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/reconciliation/rateless_iblt.py",
+          "line_count": 578,
+          "metadata": {
+            "family": "riblt"
+          }
+        },
+        {
+          "name": "scar_dag",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/reconciliation/scar_dag.py",
+          "line_count": 637,
+          "metadata": {
+            "family": "dag_crdt"
+          }
+        },
+        {
+          "name": "strict_mode",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/reconciliation/strict_mode.py",
+          "line_count": 131,
+          "metadata": {
+            "family": "other"
+          }
+        }
+      ]
+    },
+    {
+      "stratum": "temporal",
+      "description": "Cronos atomic clock (6 layers), KCCL system, oscillator registry, SPDE engine variants",
+      "expected_count": 10,
+      "count": 36,
+      "is_live": true,
+      "surfaces": [
+        {
+          "name": "cip_metrics",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cip_metrics.py",
+          "line_count": 675,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "coordinator_service",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/coordinator_service.py",
+          "line_count": 462,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "cognitive_rhythm",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/cognitive_rhythm.py",
+          "line_count": 790,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "cronos_atomic_clock",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/cronos_atomic_clock.py",
+          "line_count": 476,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "cronos_integration_bridge",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/cronos_integration_bridge.py",
+          "line_count": 478,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "cronos_metrics",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/cronos_metrics.py",
+          "line_count": 228,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "cronos_sync",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/cronos_sync.py",
+          "line_count": 538,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "dtc_flywheel",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/dtc_flywheel.py",
+          "line_count": 362,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "global_phase_filter",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/global_phase_filter.py",
+          "line_count": 324,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "system_clock_reference",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/system_clock_reference.py",
+          "line_count": 110,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "thorium_core",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/thorium_core.py",
+          "line_count": 168,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "zeta_standard",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cronos/zeta_standard.py",
+          "line_count": 385,
+          "metadata": {
+            "family": "cronos"
+          }
+        },
+        {
+          "name": "cross_frequency_coupling",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/cross_frequency_coupling.py",
+          "line_count": 503,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "gpu_accelerated_spde",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/gpu_accelerated_spde.py",
+          "line_count": 419,
+          "metadata": {
+            "family": "spde"
+          }
+        },
+        {
+          "name": "kccl_integration",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/kccl_integration.py",
+          "line_count": 400,
+          "metadata": {
+            "family": "kccl"
+          }
+        },
+        {
+          "name": "kccl_oscillator_adapter",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/kccl_oscillator_adapter.py",
+          "line_count": 495,
+          "metadata": {
+            "family": "kccl"
+          }
+        },
+        {
+          "name": "kccl_phase_implementations",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/kccl_phase_implementations.py",
+          "line_count": 1423,
+          "metadata": {
+            "family": "kccl"
+          }
+        },
+        {
+          "name": "kccl_system",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/kccl_system.py",
+          "line_count": 517,
+          "metadata": {
+            "family": "kccl"
+          }
+        },
+        {
+          "name": "metrics",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/metrics.py",
+          "line_count": 395,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "optimized_spde_engine",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/optimized_spde_engine.py",
+          "line_count": 374,
+          "metadata": {
+            "family": "spde"
+          }
+        },
+        {
+          "name": "oscillator_registry",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/oscillator_registry.py",
+          "line_count": 485,
+          "metadata": {
+            "family": "oscillator"
+          }
+        },
+        {
+          "name": "oscillators",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/oscillators.py",
+          "line_count": 670,
+          "metadata": {
+            "family": "oscillator"
+          }
+        },
+        {
+          "name": "partitioned_spde",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/partitioned_spde.py",
+          "line_count": 463,
+          "metadata": {
+            "family": "spde"
+          }
+        },
+        {
+          "name": "prime_wave_cip_coordinator",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/prime_wave_cip_coordinator.py",
+          "line_count": 501,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "prime_wave_spde_engine",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/prime_wave_spde_engine.py",
+          "line_count": 356,
+          "metadata": {
+            "family": "spde"
+          }
+        },
+        {
+          "name": "reservoir_computing",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/reservoir_computing.py",
+          "line_count": 529,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "rhythm_generator",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/rhythm_generator.py",
+          "line_count": 205,
+          "metadata": {
+            "family": "rhythm"
+          }
+        },
+        {
+          "name": "scale5_adapters",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/scale5_adapters.py",
+          "line_count": 1244,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "spde_engine",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/spde_engine.py",
+          "line_count": 259,
+          "metadata": {
+            "family": "spde"
+          }
+        },
+        {
+          "name": "spde_integration",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/spde_integration.py",
+          "line_count": 250,
+          "metadata": {
+            "family": "spde"
+          }
+        },
+        {
+          "name": "spde_modulator",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/spde_modulator.py",
+          "line_count": 381,
+          "metadata": {
+            "family": "spde"
+          }
+        },
+        {
+          "name": "surfacing",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/surfacing.py",
+          "line_count": 496,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "temporal_initializer",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/temporal_initializer.py",
+          "line_count": 371,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "temporal_learning",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/temporal_learning.py",
+          "line_count": 541,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "time_provider",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/time_provider.py",
+          "line_count": 97,
+          "metadata": {
+            "family": "other"
+          }
+        },
+        {
+          "name": "watchdog",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/temporal/watchdog.py",
+          "line_count": 413,
+          "metadata": {
+            "family": "other"
+          }
+        }
+      ]
+    },
+    {
+      "stratum": "security",
+      "description": "A2A protocol, ed25519/HMAC, rate limiting, GWF anchors, encryption, auth managers",
+      "expected_count": 15,
+      "count": 66,
+      "is_live": true,
+      "surfaces": [
+        {
+          "name": "agent_models",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/autonomous/a2a/agent_models.py",
+          "line_count": 189,
+          "metadata": {
+            "family": "a2a",
+            "primitive": "agent_models"
+          }
+        },
+        {
+          "name": "agent_registry",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/autonomous/a2a/agent_registry.py",
+          "line_count": 212,
+          "metadata": {
+            "family": "a2a",
+            "primitive": "agent_registry"
+          }
+        },
+        {
+          "name": "capability_directory",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/autonomous/a2a/capability_directory.py",
+          "line_count": 104,
+          "metadata": {
+            "family": "a2a",
+            "primitive": "capability_directory"
+          }
+        },
+        {
+          "name": "conversation_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/autonomous/a2a/conversation_manager.py",
+          "line_count": 290,
+          "metadata": {
+            "family": "a2a",
+            "primitive": "conversation_manager"
+          }
+        },
+        {
+          "name": "policy_gatekeeper",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/autonomous/a2a/policy_gatekeeper.py",
+          "line_count": 313,
+          "metadata": {
+            "family": "a2a",
+            "primitive": "policy_gatekeeper"
+          }
+        },
+        {
+          "name": "task_orchestrator",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/autonomous/a2a/task_orchestrator.py",
+          "line_count": 215,
+          "metadata": {
+            "family": "a2a",
+            "primitive": "task_orchestrator"
+          }
+        },
+        {
+          "name": "authentication_manager_simple",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/authentication_manager_simple.py",
+          "line_count": 120,
+          "metadata": {
+            "family": "auth",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "compression_system",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/compression_system.py",
+          "line_count": 186,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "consolidated_security_service",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/consolidated_security_service.py",
+          "line_count": 417,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "divergence_detector",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/divergence_detector.py",
+          "line_count": 131,
+          "metadata": {
+            "family": "stability_check",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "encryption_engine",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/encryption_engine.py",
+          "line_count": 549,
+          "metadata": {
+            "family": "encryption",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "enhanced_audit_compliance",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/enhanced_audit_compliance.py",
+          "line_count": 601,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "enhanced_authentication_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/enhanced_authentication_manager.py",
+          "line_count": 648,
+          "metadata": {
+            "family": "auth",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "enhanced_data_protection",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/enhanced_data_protection.py",
+          "line_count": 503,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "exceptions",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/exceptions.py",
+          "line_count": 102,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "freeze_mechanism",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/freeze_mechanism.py",
+          "line_count": 223,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "abyssal_absorption_engine",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/abyssal_absorption_engine.py",
+          "line_count": 1291,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "chimera_state_detector",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/chimera_state_detector.py",
+          "line_count": 312,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "colony_coherence_gate",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/colony_coherence_gate.py",
+          "line_count": 401,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "colony_physics_defenses",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/colony_physics_defenses.py",
+          "line_count": 385,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "cross_request_quorum",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/cross_request_quorum.py",
+          "line_count": 354,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "escalation_detector",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/escalation_detector.py",
+          "line_count": 241,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "geodesic_integrity_verifier",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/geodesic_integrity_verifier.py",
+          "line_count": 234,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "gwf_protocol",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/gwf_protocol.py",
+          "line_count": 883,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "gyroscopic_core",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/gyroscopic_core.py",
+          "line_count": 363,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "marine_immune_system",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/marine_immune_system.py",
+          "line_count": 741,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "memory_b_cell",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/memory_b_cell.py",
+          "line_count": 224,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "models",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/models.py",
+          "line_count": 500,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "semantic_threat_detector",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/semantic_threat_detector.py",
+          "line_count": 1510,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "tidal_phi_breathing",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/tidal_phi_breathing.py",
+          "line_count": 332,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "viscous_fluid_layer",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/gyroscopic_water_fortress/viscous_fluid_layer.py",
+          "line_count": 288,
+          "metadata": {
+            "family": "gwf",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "instability_detector",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/instability_detector.py",
+          "line_count": 207,
+          "metadata": {
+            "family": "stability_check",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "intent_frame_analyzer",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/intent_frame_analyzer.py",
+          "line_count": 474,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "law_enforcer",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/law_enforcer.py",
+          "line_count": 244,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "law_registry",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/law_registry.py",
+          "line_count": 369,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "models",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/models.py",
+          "line_count": 572,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "reanchoring",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/reanchoring.py",
+          "line_count": 256,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "repositories",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/repositories.py",
+          "line_count": 267,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "safety_init",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/safety_init.py",
+          "line_count": 85,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "safety_interfaces",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/safety_interfaces.py",
+          "line_count": 220,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "safety_service_factory",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/safety_service_factory.py",
+          "line_count": 120,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "safety_services",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/safety_services.py",
+          "line_count": 518,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "security_config",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/security_config.py",
+          "line_count": 518,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "security_manager_simple",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/security_manager_simple.py",
+          "line_count": 125,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "security_service",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/security_service.py",
+          "line_count": 168,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "security_service_factory",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/security_service_factory.py",
+          "line_count": 208,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "services",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/services.py",
+          "line_count": 616,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "substrate_state_as_key",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/substrate_state_as_key.py",
+          "line_count": 333,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "use_cases",
+          "kind": "module",
+          "file_path": "kimera_swm/domain/security/use_cases.py",
+          "line_count": 512,
+          "metadata": {
+            "family": "domain_security",
+            "layer": "domain"
+          }
+        },
+        {
+          "name": "advanced_security_monitoring",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/advanced_security_monitoring.py",
+          "line_count": 280,
+          "metadata": {
+            "family": "other",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "ed25519_signing",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/ed25519_signing.py",
+          "line_count": 356,
+          "metadata": {
+            "family": "pki",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "encryption_service",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/encryption_service.py",
+          "line_count": 136,
+          "metadata": {
+            "family": "encryption",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "enterprise_encryption_system",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/enterprise_encryption_system.py",
+          "line_count": 394,
+          "metadata": {
+            "family": "encryption",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "input_validation",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/input_validation.py",
+          "line_count": 248,
+          "metadata": {
+            "family": "other",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "manipulation_detector_impl",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/manipulation_detector_impl.py",
+          "line_count": 90,
+          "metadata": {
+            "family": "other",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "rate_limiter",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/rate_limiter.py",
+          "line_count": 260,
+          "metadata": {
+            "family": "rate_limit",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "runtime_attestation_guard",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/runtime_attestation_guard.py",
+          "line_count": 1019,
+          "metadata": {
+            "family": "attestation",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "secret_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/secret_manager.py",
+          "line_count": 398,
+          "metadata": {
+            "family": "secret_mgmt",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "secret_rotation_webhook",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/secret_rotation_webhook.py",
+          "line_count": 170,
+          "metadata": {
+            "family": "secret_mgmt",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "secure_auth_service",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/secure_auth_service.py",
+          "line_count": 331,
+          "metadata": {
+            "family": "auth",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "secure_config_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/secure_config_manager.py",
+          "line_count": 268,
+          "metadata": {
+            "family": "other",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "secure_config_updater",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/secure_config_updater.py",
+          "line_count": 116,
+          "metadata": {
+            "family": "other",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "security",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/security.py",
+          "line_count": 277,
+          "metadata": {
+            "family": "other",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "security_hardener",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/security_hardener.py",
+          "line_count": 417,
+          "metadata": {
+            "family": "other",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "unified_security_service",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/unified_security_service.py",
+          "line_count": 1180,
+          "metadata": {
+            "family": "other",
+            "layer": "infra"
+          }
+        },
+        {
+          "name": "vulnerability_management_system",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/security/vulnerability_management_system.py",
+          "line_count": 530,
+          "metadata": {
+            "family": "vuln_mgmt",
+            "layer": "infra"
+          }
+        }
+      ]
+    },
+    {
+      "stratum": "telemetry",
+      "description": "Prometheus exporter + Grafana dashboards + Alertmanager + structured loggers + tracers",
+      "expected_count": 20,
+      "count": 35,
+      "is_live": true,
+      "surfaces": [
+        {
+          "name": "alert_rules",
+          "kind": "yaml_rule",
+          "file_path": "kimera_swm/infrastructure/monitoring/alert_rules.yml",
+          "line_count": 258,
+          "metadata": {
+            "family": "config_artifact"
+          }
+        },
+        {
+          "name": "alert_service",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/alert_service.py",
+          "line_count": 529,
+          "metadata": {
+            "family": "alerting"
+          }
+        },
+        {
+          "name": "alertmanager_config",
+          "kind": "yaml_config",
+          "file_path": "kimera_swm/infrastructure/monitoring/alertmanager.yml",
+          "line_count": 51,
+          "metadata": {
+            "family": "config_artifact"
+          }
+        },
+        {
+          "name": "centralized_logging_system",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/centralized_logging_system.py",
+          "line_count": 471,
+          "metadata": {
+            "family": "logging"
+          }
+        },
+        {
+          "name": "comprehensive_monitoring_endpoints",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/comprehensive_monitoring_endpoints.py",
+          "line_count": 138,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "comprehensive_monitoring_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/comprehensive_monitoring_manager.py",
+          "line_count": 166,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "consistency_monitor_impl",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/consistency_monitor_impl.py",
+          "line_count": 502,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "dashboard",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/dashboard.py",
+          "line_count": 559,
+          "metadata": {
+            "family": "dashboard"
+          }
+        },
+        {
+          "name": "database_health_monitor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/database_health_monitor.py",
+          "line_count": 334,
+          "metadata": {
+            "family": "health_check"
+          }
+        },
+        {
+          "name": "distributed_tracer",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/distributed_tracer.py",
+          "line_count": 397,
+          "metadata": {
+            "family": "tracing"
+          }
+        },
+        {
+          "name": "monitoring_compose",
+          "kind": "yaml_config",
+          "file_path": "kimera_swm/infrastructure/monitoring/docker-compose.monitoring.yml",
+          "line_count": 130,
+          "metadata": {
+            "family": "config_artifact"
+          }
+        },
+        {
+          "name": "grafana_dashboard_json",
+          "kind": "json_config",
+          "file_path": "kimera_swm/infrastructure/monitoring/grafana_dashboard.json",
+          "line_count": 589,
+          "metadata": {
+            "family": "config_artifact"
+          }
+        },
+        {
+          "name": "grafana_dashboard_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/grafana_dashboard_manager.py",
+          "line_count": 349,
+          "metadata": {
+            "family": "grafana"
+          }
+        },
+        {
+          "name": "grafana_dashboard_sync_service",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/grafana_dashboard_sync_service.py",
+          "line_count": 384,
+          "metadata": {
+            "family": "grafana"
+          }
+        },
+        {
+          "name": "kimera_alerts",
+          "kind": "yaml_rule",
+          "file_path": "kimera_swm/infrastructure/monitoring/kimera_alerts.yml",
+          "line_count": 188,
+          "metadata": {
+            "family": "config_artifact"
+          }
+        },
+        {
+          "name": "logging_system",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/logging_system.py",
+          "line_count": 177,
+          "metadata": {
+            "family": "logging"
+          }
+        },
+        {
+          "name": "metrics_collector",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/metrics_collector.py",
+          "line_count": 467,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "monitoring",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/monitoring.py",
+          "line_count": 135,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "monitoring_service",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/monitoring_service.py",
+          "line_count": 247,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "monitoring_system",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/monitoring_system.py",
+          "line_count": 320,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "observability_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/observability_manager.py",
+          "line_count": 92,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "performance_monitor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/performance_monitor.py",
+          "line_count": 402,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "prometheus_config",
+          "kind": "yaml_config",
+          "file_path": "kimera_swm/infrastructure/monitoring/prometheus_config.yml",
+          "line_count": 72,
+          "metadata": {
+            "family": "config_artifact"
+          }
+        },
+        {
+          "name": "prometheus_exporter",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/prometheus_exporter.py",
+          "line_count": 501,
+          "metadata": {
+            "family": "prometheus"
+          }
+        },
+        {
+          "name": "prometheus_metrics_collector",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/prometheus_metrics_collector.py",
+          "line_count": 185,
+          "metadata": {
+            "family": "prometheus"
+          }
+        },
+        {
+          "name": "structured_logger",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/structured_logger.py",
+          "line_count": 287,
+          "metadata": {
+            "family": "logging"
+          }
+        },
+        {
+          "name": "system_health_monitor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/system_health_monitor.py",
+          "line_count": 190,
+          "metadata": {
+            "family": "health_check"
+          }
+        },
+        {
+          "name": "system_homeostasis_monitor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/system_homeostasis_monitor.py",
+          "line_count": 159,
+          "metadata": {
+            "family": "homeostasis"
+          }
+        },
+        {
+          "name": "system_monitor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/monitoring/system_monitor.py",
+          "line_count": 181,
+          "metadata": {
+            "family": "monitoring_general"
+          }
+        },
+        {
+          "name": "alert_channels",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/observability/alert_channels.py",
+          "line_count": 734,
+          "metadata": {
+            "family": "alerting"
+          }
+        },
+        {
+          "name": "alerts",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/observability/alerts.py",
+          "line_count": 398,
+          "metadata": {
+            "family": "alerting"
+          }
+        },
+        {
+          "name": "health_monitor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/observability/health_monitor.py",
+          "line_count": 414,
+          "metadata": {
+            "family": "health_check"
+          }
+        },
+        {
+          "name": "kccl_tracer",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/observability/kccl_tracer.py",
+          "line_count": 423,
+          "metadata": {
+            "family": "tracing"
+          }
+        },
+        {
+          "name": "metrics_dashboard",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/observability/metrics_dashboard.py",
+          "line_count": 393,
+          "metadata": {
+            "family": "dashboard"
+          }
+        },
+        {
+          "name": "tracing",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/observability/tracing.py",
+          "line_count": 160,
+          "metadata": {
+            "family": "tracing"
+          }
+        }
+      ]
+    },
+    {
+      "stratum": "lifecycle",
+      "description": "Encoder snapshot lifecycle, frozen-on-fall persistence, memory pool + GC + leak detection",
+      "expected_count": 10,
+      "count": 28,
+      "is_live": true,
+      "surfaces": [
+        {
+          "name": "builder",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/encoder_snapshot/builder.py",
+          "line_count": 303,
+          "metadata": {
+            "family": "encoder_snapshot"
+          }
+        },
+        {
+          "name": "exceptions",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/encoder_snapshot/exceptions.py",
+          "line_count": 65,
+          "metadata": {
+            "family": "encoder_snapshot"
+          }
+        },
+        {
+          "name": "loader",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/encoder_snapshot/loader.py",
+          "line_count": 180,
+          "metadata": {
+            "family": "encoder_snapshot"
+          }
+        },
+        {
+          "name": "manifest",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/encoder_snapshot/manifest.py",
+          "line_count": 254,
+          "metadata": {
+            "family": "encoder_snapshot"
+          }
+        },
+        {
+          "name": "smoke_test",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/encoder_snapshot/smoke_test.py",
+          "line_count": 275,
+          "metadata": {
+            "family": "encoder_snapshot"
+          }
+        },
+        {
+          "name": "snapshot",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/encoder_snapshot/snapshot.py",
+          "line_count": 288,
+          "metadata": {
+            "family": "encoder_snapshot"
+          }
+        },
+        {
+          "name": "snapshot_encoder",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/encoder_snapshot/snapshot_encoder.py",
+          "line_count": 348,
+          "metadata": {
+            "family": "encoder_snapshot"
+          }
+        },
+        {
+          "name": "verifier",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/encoder_snapshot/verifier.py",
+          "line_count": 87,
+          "metadata": {
+            "family": "encoder_snapshot"
+          }
+        },
+        {
+          "name": "builder",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/frozen_on_fall/builder.py",
+          "line_count": 339,
+          "metadata": {
+            "family": "frozen_on_fall"
+          }
+        },
+        {
+          "name": "deployment_policy",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/frozen_on_fall/deployment_policy.py",
+          "line_count": 408,
+          "metadata": {
+            "family": "frozen_on_fall"
+          }
+        },
+        {
+          "name": "exceptions",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/frozen_on_fall/exceptions.py",
+          "line_count": 51,
+          "metadata": {
+            "family": "frozen_on_fall"
+          }
+        },
+        {
+          "name": "manifest",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/frozen_on_fall/manifest.py",
+          "line_count": 206,
+          "metadata": {
+            "family": "frozen_on_fall"
+          }
+        },
+        {
+          "name": "state",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/frozen_on_fall/state.py",
+          "line_count": 331,
+          "metadata": {
+            "family": "frozen_on_fall"
+          }
+        },
+        {
+          "name": "takwin_integration",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/frozen_on_fall/takwin_integration.py",
+          "line_count": 259,
+          "metadata": {
+            "family": "frozen_on_fall"
+          }
+        },
+        {
+          "name": "advanced_memory_optimizer",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/advanced_memory_optimizer.py",
+          "line_count": 541,
+          "metadata": {
+            "family": "memory_other"
+          }
+        },
+        {
+          "name": "enhanced_gc_optimizer",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/enhanced_gc_optimizer.py",
+          "line_count": 700,
+          "metadata": {
+            "family": "gc"
+          }
+        },
+        {
+          "name": "enhanced_memory_analytics",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/enhanced_memory_analytics.py",
+          "line_count": 117,
+          "metadata": {
+            "family": "analytics"
+          }
+        },
+        {
+          "name": "enhanced_memory_leak_detector",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/enhanced_memory_leak_detector.py",
+          "line_count": 111,
+          "metadata": {
+            "family": "leak_detection"
+          }
+        },
+        {
+          "name": "enhanced_memory_monitor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/enhanced_memory_monitor.py",
+          "line_count": 106,
+          "metadata": {
+            "family": "monitoring"
+          }
+        },
+        {
+          "name": "gc_optimizer",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/gc_optimizer.py",
+          "line_count": 405,
+          "metadata": {
+            "family": "gc"
+          }
+        },
+        {
+          "name": "holographic_manifold",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/holographic_manifold.py",
+          "line_count": 225,
+          "metadata": {
+            "family": "holographic"
+          }
+        },
+        {
+          "name": "maxwell_demon_governor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/maxwell_demon_governor.py",
+          "line_count": 275,
+          "metadata": {
+            "family": "maxwell_demon"
+          }
+        },
+        {
+          "name": "memory_analytics",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/memory_analytics.py",
+          "line_count": 562,
+          "metadata": {
+            "family": "analytics"
+          }
+        },
+        {
+          "name": "memory_leak_detector",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/memory_leak_detector.py",
+          "line_count": 437,
+          "metadata": {
+            "family": "leak_detection"
+          }
+        },
+        {
+          "name": "memory_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/memory_manager.py",
+          "line_count": 476,
+          "metadata": {
+            "family": "manager"
+          }
+        },
+        {
+          "name": "memory_monitor",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/memory_monitor.py",
+          "line_count": 433,
+          "metadata": {
+            "family": "monitoring"
+          }
+        },
+        {
+          "name": "memory_pool_manager",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/memory_pool_manager.py",
+          "line_count": 514,
+          "metadata": {
+            "family": "memory_pool"
+          }
+        },
+        {
+          "name": "test_memory_management",
+          "kind": "module",
+          "file_path": "kimera_swm/infrastructure/memory/test_memory_management.py",
+          "line_count": 269,
+          "metadata": {
+            "family": "memory_other"
+          }
+        }
+      ]
+    }
+  ],
+  "signature": "c3a00d06b0e2bad762119714de5bb6df06c831cbbc8cb638590c904fb56860e0"
+}
