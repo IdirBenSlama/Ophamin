@@ -7,7 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.93.0] below for the latest cut.)
+(empty — see [0.94.0] below for the latest cut.)
+
+## [0.94.0] — 2026-05-22
+
+**The live-model bridge works — real agentic diagnosis on local models.** The
+last capability gap. With Ollama + LMStudio running, the diagnosis agent now
+performs real analysis of a signed proof using a dedicated local model.
+
+- **Verified end-to-end**: `result_diagnosis` (the dedicated SCIENTIFIC tier)
+  routed to **LMStudio / qwen3.5-35b** diagnosed a real VALIDATED flow proof
+  (floor 0.95) and returned a genuinely sharp structured diagnosis — it
+  flagged that mean (0.9958) ≫ floor (0.95) implies variance, questioned the
+  pair-count derivation, noted undefined empty-set handling, and raised real
+  confounds (Jaccard may reflect *lexical* not *semantic* overlap; no CIs/
+  p-values). No LLM in the measurement path — analysis only, after the fact.
+- **Fix — reasoning-tier token headroom**: a reasoning model spends thousands
+  of tokens in its reasoning channel before the answer, and runtimes count
+  that against `max_tokens`. The 4096 budget left no room for the structured
+  answer (it came back truncated → no JSON). Bumped the reasoning-tier tasks
+  (`result_diagnosis` / `scientific_validation` / `engineering_diagnosis` /
+  `refuted_triage` / `confound_enumerator` / `report_synthesis`) to **8192**.
+- **`runtime_hint`** now recognises **LMStudio** (`:1234`) alongside Ollama
+  (`:11434`) and MLX-LM (`:8080`), so the signed call records label the
+  runtime correctly.
+- **New `examples/run_diagnosis.py`** `<proof.json> [--write]` — runs the
+  diagnosis on a proof via the configured local model and (with `--write`)
+  persists `diagnosis.json` next to the proof as an analysis artifact. Config
+  is pure env (point `OPHAMIN_LLM_BASE_URL` + `OPHAMIN_LLM_MODEL_SCIENTIFIC`
+  at Ollama or LMStudio).
+
+The owner's "analysis & diagnosis by the agentic system, with dedicated local
+models" is now live, not just scaffolded.
 
 ## [0.93.0] — 2026-05-22
 

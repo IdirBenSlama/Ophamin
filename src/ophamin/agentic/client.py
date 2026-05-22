@@ -125,6 +125,8 @@ class LLMClient:
         """Best-effort guess at which runtime we're targeting from base_url."""
         if "11434" in self.base_url:
             return "ollama"
+        if "1234" in self.base_url:
+            return "lmstudio"
         if "8080" in self.base_url:
             return "mlx-lm"
         return "unknown"

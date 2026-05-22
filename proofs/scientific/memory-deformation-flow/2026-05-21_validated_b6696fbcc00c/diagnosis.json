@@ -1,0 +1,30 @@
+{
+  "diagnosis": {
+    "summary": "The substrate demonstrates robust concept retention across spaced re-exposures, validating the claim with a Jaccard floor of 0.95 against a 0.8 threshold.",
+    "meaning": "Observed metric (0.95) exceeds threshold (0.8) by 17.5%; mean similarity is 0.9958 across 24 pairs, with the lowest stability occurring in stimulus 2 cycles 2\u219410.",
+    "construction_brief": "",
+    "anomalies": [
+      "Reasoning notes '0 exposures produced no concept set' yet floor remains 0.95; undefined handling of empty sets contradicts standard Jaccard definition.",
+      "Pair count logic ambiguous: 8 stimuli \u00d7 3 exposures implies 16 sequential transitions, but reasoning cites 24 pairs."
+    ],
+    "confounds": [
+      "No confidence intervals or p-values provided to assess statistical reliability.",
+      "Specific spacing duration between re-exposures not quantified in claim operationalization."
+    ],
+    "recommendations": [
+      "Clarify data handling for instances with empty concept sets.",
+      "Report confidence intervals for recognition metrics.",
+      "Test degradation thresholds by increasing inter-stimulus time intervals."
+    ],
+    "next_question": "What is the maximum temporal spacing between re-exposures before Jaccard similarity drops below 0.8?"
+  },
+  "proof_ids": [
+    "b6696fbcc00c69b0"
+  ],
+  "n_proofs": 1,
+  "model": "qwen/qwen3.5-35b-a3b",
+  "tier": "scientific",
+  "runtime": "lmstudio",
+  "latency_ms": 52968.21266715415,
+  "call_record_path": "proofs/llm_calls/2026-05-22/3a2658b9e335976f.json"
+}

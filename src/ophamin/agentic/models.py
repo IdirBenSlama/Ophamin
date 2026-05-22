@@ -161,13 +161,19 @@ DEFAULT_MAX_TOKENS: dict[str, int] = {
     "refuted_triage": 4096,        # reasoning chains can be long
     "bundle_query": 512,           # JSON filter is small
     "prereg_validator": 2048,      # structured JSON, modest size
-    "confound_enumerator": 4096,   # 3-5 confounds × mechanism + test
+    "confound_enumerator": 8192,   # 3-5 confounds × mechanism + test
     "scenario_gen": 6144,          # full Scenario subclass; docstring +
                                    # __init__ + build_claim() + score() stub
-    "scientific_validation": 4096,
-    "result_diagnosis": 4096,
-    "engineering_diagnosis": 4096,
-    "report_synthesis": 6144,
+    # Reasoning-tier tasks need headroom: a reasoning model (DeepSeek-R1,
+    # Qwen3.5, GPT-OSS-high) spends thousands of tokens in its reasoning
+    # channel BEFORE the answer, and runtimes count that against max_tokens.
+    # 4096 left no room for the structured answer after the thinking, so the
+    # JSON came back truncated/empty. 8192 fits thinking + the answer.
+    "scientific_validation": 8192,
+    "result_diagnosis": 8192,
+    "engineering_diagnosis": 8192,
+    "refuted_triage": 8192,
+    "report_synthesis": 8192,
 }
 
 
