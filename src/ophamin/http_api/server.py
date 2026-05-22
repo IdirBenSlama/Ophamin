@@ -57,6 +57,7 @@ from ophamin.interfaces._impls import (
     management_status_impl,
     materialize_spec_impl,
     model_capabilities_impl,
+    resolve_measurement_impl,
     toolkit_registry_impl,
     verify_grounding_impl,
     report_conformance_impl,
@@ -599,6 +600,22 @@ def build_app() -> FastAPI:
     )
     def get_toolkits() -> dict[str, Any]:
         return toolkit_registry_impl()
+
+    @app.get(
+        "/authoring/resolve-measurement",
+        summary="Route a missing-measurement need across compose / wire / synthesize",
+        description=(
+            "Given a stated measurement requirement (e.g. one a finished "
+            "experiment surfaced), assemble ranked candidates from the three "
+            "lists — the capability menu (compose), the toolkit registry "
+            "(wire), and recognised standards (ground) — with a heuristic "
+            "recommended path. The agent makes the final selection; the "
+            "grounding gate refuses an invented, ungrounded metric."
+        ),
+        tags=["authoring"],
+    )
+    def get_resolve_measurement(need: str) -> dict[str, Any]:
+        return resolve_measurement_impl(need)
 
     @app.get(
         "/reporting/standards",

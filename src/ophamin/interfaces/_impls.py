@@ -927,6 +927,22 @@ def toolkit_registry_impl() -> dict[str, Any]:
     return reg
 
 
+def resolve_measurement_impl(need: str) -> dict[str, Any]:
+    """Route a missing-measurement requirement across the three lists.
+
+    Given a stated measurement need (e.g. one a finished experiment surfaced),
+    returns ranked compose/wire candidates from the capability menu, the
+    pillars, and the toolkit registry, a heuristic recommended path, and the
+    grounding requirement. The agent makes the final selection; the grounding
+    gate enforces it. Raises ValueError on an empty need.
+    """
+    from ophamin.authoring.measurement_resolver import resolve_measurement
+
+    out = resolve_measurement(need)
+    out["framework_version"] = __version__
+    return out
+
+
 def validate_scenario_spec_impl(spec_json: str) -> dict[str, Any]:
     """Validate a scenario spec (JSON string) against the grounding gate.
 

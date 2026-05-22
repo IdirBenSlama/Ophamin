@@ -7,7 +7,39 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.105.0] below for the latest cut.)
+(empty — see [0.106.0] below for the latest cut.)
+
+## [0.106.0] — 2026-05-22
+
+**Measurement resolver — how Ophamin provides a measurement it doesn't have.**
+The memory-horizon proof surfaced a need for a measurement not yet present (a
+partial-cue recall metric to separate memory from deterministic re-derivation).
+This answers the general question: when an experiment needs a tool that isn't
+there, the agent doesn't invent a number — it routes the requirement across
+three real lists.
+
+- **`authoring/measurement_resolver.py`** — `resolve_measurement(need)` scores
+  the need against (1) the **capability menu** (invariant templates + pillars
+  to *compose* from), (2) the **toolkit registry** (external tools to *wire*),
+  and (3) the **recognised standards** (to *ground*), returning ranked
+  candidates per list + a recommended path:
+  - `compose-from-template` — an existing scenario already measures it (claimed
+    ONLY when the template's name/metric genuinely overlaps, never on ambient
+    words — a "GPU thermal load" need is not routed to the Φ template just
+    because both say "load").
+  - `compose-from-primitives` — author a NEW scenario from existing pillars
+    (the common case for a missing measurement).
+  - `wire-external-toolkit` — bring in a registry tool as a new pillar.
+  - `synthesize-grounded-primitive` — `scenario_gen` writes a new primitive
+    (last resort).
+- **The grounding gate is the guardrail across all paths**: a composed, wired,
+  or synthesized measurement must cite a resolvable paper/standard — an
+  invented, ungrounded metric is refused by construction. The resolver
+  assembles the *list*; the agent selects (under the zetetic directive); the
+  gate enforces. That is what keeps a self-extending observatory credible.
+- `GET /authoring/resolve-measurement?need=…` + `resolve_measurement_impl()`.
+  10 tests pin candidate assembly, the conservative routing, the spurious-match
+  guard, the always-on grounding requirement, and the impl.
 
 ## [0.105.0] — 2026-05-22
 
