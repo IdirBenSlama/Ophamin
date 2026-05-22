@@ -7,7 +7,26 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.91.0] below for the latest cut.)
+(empty — see [0.92.0] below for the latest cut.)
+
+## [0.92.0] — 2026-05-22
+
+**Console — header cleanup: drop the generic-bundle artifacts.** Follows the
+0.91.0 nav regroup with the top-bar pass.
+
+- Removed the orange **"design preview"** pill — a generic-bundle artifact
+  that implied the app is a mockup, and duplicated the help/intro button
+  right beside it (kept).
+- **Breadcrumb is now facet-aware**: `Ophamin / <facet> / <screen>` (e.g.
+  `Ophamin / Observatory / Flow`). Dropped the meaningless **"Fleet"** crumb
+  and the redundant substrate-name crumb (the substrate already shows in the
+  left selector).
+- Replaced the dead **"Add substrate" / "Manage fleet"** mock buttons in the
+  substrate dropdown with an honest note — substrates are derived from the
+  signed proof corpus, not manually managed.
+
+Console-only; no API change. The chrome now reads as Ophamin, not a generic
+template.
 
 ## [0.91.0] — 2026-05-22
 

@@ -86,6 +86,7 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
 
   const _allNav = [...navGroups.flatMap(g => g.items), ...navBottom];
   const activeItem = _allNav.find(i => i.id === active);
+  const activeGroup = navGroups.find(g => g.items.some(i => i.id === active));
 
   // Real substrate catalogue, derived from the proof corpus by hydrate
   // (api.substrates). Falls back to a single grounded entry off disk.
@@ -152,21 +153,20 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
                   </div>
                 ))}
                 <div className="substrate-dropdown-foot">
-                  <button className="link-btn"><Icon name="rocket" size={11}/> Add substrate</button>
-                  <button className="link-btn">Manage fleet</button>
+                  <span className="micro" style={{ opacity: 0.7 }}>Derived from the signed proof corpus</span>
                 </div>
               </div>
             </>
           )}
         </div>
 
-        {/* Centered brand + breadcrumb */}
+        {/* Centered brand + breadcrumb: Ophamin / <facet> / <screen>.
+            The substrate is shown in the left selector, so it's not repeated
+            here; the facet group gives the screen its context. */}
         <div className="topbar-title">
           <span className="brand-mark-text">Ophamin</span>
-          <span className="crumb-sep">/</span>
-          <span className="crumb">Fleet</span>
-          <span className="crumb-sep">/</span>
-          <span className="crumb">{activeSubstrate.name}</span>
+          {activeGroup && <span className="crumb-sep">/</span>}
+          {activeGroup && <span className="crumb">{activeGroup.group}</span>}
           <span className="crumb-sep">/</span>
           <span className="crumb current">{activeItem?.label || 'Console'}</span>
         </div>
@@ -178,9 +178,6 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
             <Icon name="search" size={13}/>
             <span className="mono" style={{ color: 'var(--text-muted)', fontSize: 10, padding: '0 4px', border: '1px solid var(--border)', borderRadius: 3 }}>⌘K</span>
           </button>
-          <span className="design-preview-pill" title="Click to re-open the intro" onClick={() => { try { localStorage.removeItem('ophamin_intro_seen'); } catch(e){} window.openIntro && window.openIntro(); }} style={{ cursor: 'pointer' }}>
-            <span className="dot"></span>design preview
-          </span>
           <button className="btn ghost icon" aria-label="Open intro" title="Open intro / help"
             onClick={() => { try { localStorage.removeItem('ophamin_intro_seen'); } catch(e){} window.openIntro && window.openIntro(); }}>
             <Icon name="eye" size={14}/>
