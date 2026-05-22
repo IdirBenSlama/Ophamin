@@ -51,6 +51,7 @@ from ophamin.interfaces._impls import (
     list_agents_impl,
     authoring_capabilities_impl,
     list_cockpit_impl,
+    materialize_spec_impl,
     model_capabilities_impl,
     report_conformance_impl,
     report_standards_impl,
@@ -505,6 +506,22 @@ def build_app() -> FastAPI:
     )
     def post_validate_spec(body: ValidateSpecRequest) -> dict[str, Any]:
         return validate_scenario_spec_impl(body.spec_json)
+
+    @app.post(
+        "/authoring/materialize",
+        summary="Dry-run: validate a spec + describe the scenario it would build",
+        description=(
+            "Closes the design loop: validates a ScenarioSpec against the "
+            "grounding gate and, if it passes, describes the exact runnable "
+            "scenario it materialises into (class, scope, facet, metric, "
+            "threshold, data source, cycle count) — WITHOUT running it "
+            "(execution needs a live substrate + minutes). A non-conformant "
+            "spec returns the violation punch list. Never raises."
+        ),
+        tags=["authoring"],
+    )
+    def post_materialize_spec(body: ValidateSpecRequest) -> dict[str, Any]:
+        return materialize_spec_impl(body.spec_json)
 
     @app.get(
         "/models",

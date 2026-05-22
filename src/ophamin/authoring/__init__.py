@@ -39,16 +39,26 @@ from ophamin.authoring.validation import (
     validate_spec,
     validate_spec_dict,
 )
+from ophamin.authoring.materialize import (
+    MaterializationError,
+    MaterializedScenario,
+    materialization_plan,
+    materialize_spec,
+)
 
 __all__ = [
     "DataSourceRef",
     "GroundingRef",
+    "MaterializationError",
+    "MaterializedScenario",
     "ScenarioSpec",
     "SpecViolation",
     "Threshold",
     "available_capabilities",
     "invariant_template_names",
     "is_acceptable",
+    "materialization_plan",
+    "materialize_spec",
     "tool_ids",
     "validate_spec",
     "validate_spec_dict",

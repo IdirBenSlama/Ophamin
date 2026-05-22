@@ -1,0 +1,17 @@
+{
+  "title": "Memory-as-deformation on real business email (Enron)",
+  "scope": "flow",
+  "facet": "neuro",
+  "claim_statement": "Across re-exposures, the substrate keeps recognising real business-email stimuli even as the manifold deforms.",
+  "operationalization": "min concept-set Jaccard over all same-stimulus re-exposure pairs in the trajectory.",
+  "threshold": {"metric": "recognition_jaccard_floor", "comparator": ">=", "value": 0.80, "units": "jaccard"},
+  "grounding": [
+    {"kind": "paper", "ref": "Tononi 2004 (IIT)", "title": "An information integration theory of consciousness"},
+    {"kind": "standard", "ref": "osf-registered-reports", "title": "pre-registration of claim + analysis plan"}
+  ],
+  "data_source": {"kind": "corpus", "name": "enron"},
+  "invariant_template": "recognition",
+  "tools": ["statsmodels"],
+  "authored_by": "model",
+  "notes": "Authored as a ScenarioSpec, run via examples/run_spec.py to demonstrate the describe -> spec -> gate -> materialize -> run -> proof loop."
+}

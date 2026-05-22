@@ -702,6 +702,35 @@ def report_conformance_impl(proof_json: str) -> dict[str, Any]:
     return result
 
 
+def materialize_spec_impl(spec_json: str) -> dict[str, Any]:
+    """Dry-run: validate a spec + describe the exact scenario it would build.
+
+    Closes the design loop (describe → spec → plan) without executing —
+    running needs a live substrate + minutes, so the HTTP path returns the
+    build plan only. Never raises; a non-conformant spec returns the
+    violation punch list.
+    """
+    from ophamin.authoring import ScenarioSpec, materialization_plan
+
+    try:
+        d = json.loads(spec_json) if isinstance(spec_json, str) else dict(spec_json)
+        spec = ScenarioSpec.from_dict(d)
+    except (ValueError, TypeError) as exc:
+        return {
+            "acceptable": False,
+            "violations": [{
+                "field": "(root)", "code": "invalid_json", "severity": "error",
+                "message": f"Spec is not valid JSON / shape: {exc}",
+                "fix": "Send a JSON object matching the ScenarioSpec shape.",
+            }],
+            "plan": None,
+            "framework_version": __version__,
+        }
+    result = materialization_plan(spec)
+    result["framework_version"] = __version__
+    return result
+
+
 def model_capabilities_impl() -> dict[str, Any]:
     """The configured agentic-model routing: tiers (general + dedicated
     scientific/engineering), each tier's model + provider (local /

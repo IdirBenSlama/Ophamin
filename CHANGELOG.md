@@ -7,7 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.87.0] below for the latest cut.)
+(empty — see [0.88.0] below for the latest cut.)
+
+## [0.88.0] — 2026-05-22
+
+**Feature — the scenario materializer: spec → runnable → signed proof.** The
+connective tissue that makes the authoring pipeline actually *flow*. With it,
+the full loop closes: `describe → ScenarioSpec → [grounding gate] →
+materialize → run → signed proof → [reporting gate]`.
+
+- **New `ophamin.authoring.materialize`**:
+  - `materialize_spec(spec)` — turns an accepted spec into a concrete,
+    runnable Scenario. Maps `invariant_template` → scenario class
+    (`recognition` → MemoryDeformationFlow, `phi` → PhiStabilityFlow,
+    `manifold-topology` → ManifoldTopology), carries the spec's threshold,
+    and selects stimuli from the spec's real `data_source` (substantial
+    records from the named registered corpus, or curated genesis stimuli for
+    a substrate trajectory). **Refuses** a non-conformant spec
+    (`MaterializationError` with the gate's violations) — no running an
+    ungrounded experiment.
+  - `materialization_plan(spec)` — dry run: validate + describe the exact
+    scenario that would be built, without executing.
+- **New `POST /authoring/materialize`** — the dry-run plan over HTTP.
+- **New `examples/run_spec.py`** — runs a grounded spec file end-to-end on
+  the live substrate. Demonstrated: `examples/specs/recognition_enron.json`
+  → gate passed → materialized → ran 24 cycles on kimera-swm @ 674ae6b7b402
+  → **VALIDATED** (floor 0.8636) → signed proof → **passes the reporting
+  gate, all 6 standards**. The whole describe→proof loop, proven.
+- 16 materializer tests (mapping per template; spec threshold honoured;
+  ungrounded/unmappable refused; dry-run plan; real corpus selection).
+
+The authoring pipeline now flows end to end with grounding enforced at the
+gate and conformance at the report.
 
 ## [0.87.0] — 2026-05-22
 

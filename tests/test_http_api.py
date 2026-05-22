@@ -321,6 +321,7 @@ class TestOpenAPI:
             "/flow",
             "/authoring/capabilities",
             "/authoring/validate",
+            "/authoring/materialize",
             "/models",
             "/reporting/standards",
             "/reporting/conformance",
