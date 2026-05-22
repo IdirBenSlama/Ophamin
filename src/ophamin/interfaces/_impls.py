@@ -642,6 +642,49 @@ def list_flow_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
     }
 
 
+# --------------------------------------------------------------------------
+# Authoring — grounded scenario specification (the contract layer for
+# describing experiments by hand, file, or offline model). Read-only +
+# deterministic; no LLM runs here. The grounding gate makes synthetic /
+# ungrounded specs fail before they can become scenarios.
+# --------------------------------------------------------------------------
+
+def authoring_capabilities_impl() -> dict[str, Any]:
+    """The live menu of real resources an author may select from."""
+    from ophamin.authoring import available_capabilities
+
+    caps = available_capabilities()
+    caps["framework_version"] = __version__
+    return caps
+
+
+def validate_scenario_spec_impl(spec_json: str) -> dict[str, Any]:
+    """Validate a scenario spec (JSON string) against the grounding gate.
+
+    Returns ``acceptable`` + structured violations + the normalised spec.
+    Never raises — a malformed spec surfaces as an ERROR violation, so a
+    Console or an offline authoring model gets an actionable punch list.
+    """
+    from ophamin.authoring import validate_spec_dict
+
+    try:
+        d = json.loads(spec_json) if isinstance(spec_json, str) else dict(spec_json)
+    except (ValueError, TypeError) as exc:
+        return {
+            "acceptable": False,
+            "violations": [{
+                "field": "(root)", "code": "invalid_json", "severity": "error",
+                "message": f"Spec is not valid JSON: {exc}",
+                "fix": "Send a JSON object matching the ScenarioSpec shape.",
+            }],
+            "spec": None,
+            "framework_version": __version__,
+        }
+    result = validate_spec_dict(d)
+    result["framework_version"] = __version__
+    return result
+
+
 def get_scenario_claim_impl(name: str) -> dict[str, Any]:
     """Return a scenario's falsifiable claim + metadata.
 

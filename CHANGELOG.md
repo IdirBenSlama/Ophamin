@@ -7,7 +7,47 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.83.0] below for the latest cut.)
+(empty — see [0.84.0] below for the latest cut.)
+
+## [0.84.0] — 2026-05-22
+
+**Feature — the authoring foundation: grounded ScenarioSpec + the grounding
+gate.** The first brick of "describe an experiment, get a grounded
+scenario." Its job is to make an ungrounded or synthetic scenario
+impossible — *before* the chat/model-authoring layer is built, so that layer
+is safe by construction.
+
+- **New `ophamin.authoring` subpackage**:
+  - `ScenarioSpec` / `GroundingRef` / `Threshold` / `DataSourceRef` — a
+    declarative, JSON-round-trippable experiment descriptor.
+  - `available_capabilities()` — the live menu an author (human or model)
+    selects from: the corpora actually registered on this install, the
+    Protocol scopes + facets, the invariant templates that map to runnable
+    scenarios, the measurement tools/pillars, and the recognised scientific
+    standards. Sourced from the live registries, never a drift-prone hand
+    list — so an author can't select a tool or dataset that doesn't exist.
+  - `validate_spec()` — **the grounding gate**. A spec is acceptable only
+    with: a falsifiable threshold (metric + valid comparator + numeric
+    value); ≥1 scientific grounding (paper / standard / dataset-card); a
+    real registered data source — never `synthetic` / `inline` / `mock` /
+    `fabricated` / `hardcoded` / `stub`; valid scope + facet; and
+    tools/templates that actually exist. Violations are structured + actionable.
+- **New endpoints**: `GET /authoring/capabilities` (the menu) and
+  `POST /authoring/validate` (the gate — returns `acceptable` + a violation
+  punch list; never raises).
+- **No LLM in the path.** A model may *fill* a spec offline (Ophamin tooling
+  layer), but the spec — and the scenario it materialises into — runs with
+  no external LLM, per the substrate's no-external-LLM rule. The authoring
+  model is a tool that helps write the experiment, never a component of it.
+- 13 authoring tests pin the gate (grounded passes; synthetic/inline/mock
+  rejected; missing grounding rejected; non-falsifiable threshold rejected;
+  unknown corpus/tool/template rejected; substrate-trajectory accepted as
+  real; malformed dict is a finding, not a crash).
+
+This is the load-bearing answer to "model-written scenarios must not be
+synthetic": grounding is now mandatory at the spec layer, so any author —
+hand, file, or future model — is forced to ground the claim before it can
+run.
 
 ## [0.83.0] — 2026-05-22
 

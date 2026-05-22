@@ -49,6 +49,7 @@ from ophamin.interfaces._impls import (
     canonicalize_value_impl,
     get_scenario_claim_impl,
     list_agents_impl,
+    authoring_capabilities_impl,
     list_cockpit_impl,
     list_flow_impl,
     list_integrations_impl,
@@ -57,6 +58,7 @@ from ophamin.interfaces._impls import (
     list_substrate_impl,
     read_proof_index_impl,
     run_scenario_impl,
+    validate_scenario_spec_impl,
     verify_proof_impl,
 )
 from ophamin.measuring.scenarios import SCENARIOS
@@ -146,6 +148,21 @@ class VerifyRequest(BaseModel):
             "Base64-encoded signing key (default: framework-wide "
             "DEFAULT_SIGN_KEY)."
         ),
+    )
+
+
+class ValidateSpecRequest(BaseModel):
+    """Body of ``POST /authoring/validate``."""
+
+    spec_json: str = Field(
+        ...,
+        description=(
+            "The JSON text of a ScenarioSpec (a grounded experiment "
+            "descriptor). Validated against the grounding gate: falsifiable "
+            "threshold, scientific grounding, real (non-synthetic) data "
+            "source, valid scope/facet/tools."
+        ),
+        examples=['{"title": "...", "scope": "flow", "threshold": {...}, ...}'],
     )
 
 
@@ -435,6 +452,40 @@ def build_app() -> FastAPI:
     )
     def get_flow(proofs_root: str = "proofs") -> dict[str, Any]:
         return list_flow_impl(proofs_root)
+
+    @app.get(
+        "/authoring/capabilities",
+        summary="The live menu of real resources an experiment can be built on",
+        description=(
+            "What a (human or model) author may select from when describing "
+            "an experiment: the corpora actually registered on this install, "
+            "the Protocol scopes + facets, the invariant templates that map "
+            "to runnable scenarios, the measurement tools/pillars, and the "
+            "recognised scientific standards. Sourced from the live "
+            "registries — never a drift-prone hand-maintained list. "
+            "Deterministic; no LLM."
+        ),
+        tags=["authoring"],
+    )
+    def get_authoring_capabilities() -> dict[str, Any]:
+        return authoring_capabilities_impl()
+
+    @app.post(
+        "/authoring/validate",
+        summary="Validate a scenario spec against the grounding gate",
+        description=(
+            "Checks a ScenarioSpec so an ungrounded or synthetic experiment "
+            "fails before it can become a scenario, no matter who wrote it. "
+            "Requires: a falsifiable threshold, >=1 scientific grounding "
+            "(paper/standard), a real registered data source (never "
+            "synthetic/inline/mock), valid scope/facet, and tools/templates "
+            "that actually exist. Returns `acceptable` + a structured "
+            "violation punch list. Never raises."
+        ),
+        tags=["authoring"],
+    )
+    def post_validate_spec(body: ValidateSpecRequest) -> dict[str, Any]:
+        return validate_scenario_spec_impl(body.spec_json)
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints

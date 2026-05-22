@@ -319,6 +319,8 @@ class TestOpenAPI:
             "/substrate",
             "/cockpit",
             "/flow",
+            "/authoring/capabilities",
+            "/authoring/validate",
             "/verify",
             "/canonicalize",
             "/proofs/index",
