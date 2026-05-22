@@ -63,7 +63,6 @@ A signed ``EmpiricalProofRecord`` (scope = flow) whose evidence carries:
 from __future__ import annotations
 
 from itertools import combinations
-from pathlib import Path
 from statistics import mean, median
 from typing import Any
 
@@ -91,6 +90,7 @@ from ophamin.measuring.scenarios.base import (
     Tier,
 )
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
+from ophamin.seeing.substrate.observables import concept_set, jaccard
 
 # Kimera-vocabulary stimuli — substrate-engaging genesis concepts so the
 # entity target produces a real concept set per cycle (not GWF-blocked,
@@ -255,43 +255,11 @@ class MemoryDeformationFlowScenario(Scenario):
         )
 
     # ----------------------------------------------------------- extraction --
-
-    @staticmethod
-    def _concept_set(result: CycleResult) -> frozenset[str] | None:
-        """Normalise the per-cycle ``concepts`` list to a set of names.
-
-        Returns None when the cycle failed or exposed no concepts — those
-        exposures cannot contribute a recognition pair and are reported as
-        gaps rather than counted as a 0.0 Jaccard (which would conflate
-        "substrate crashed" with "substrate forgot").
-        """
-        if not result.success:
-            return None
-        raw = result.raw or {}
-        concepts = raw.get("concepts")
-        if not isinstance(concepts, list) or not concepts:
-            return None
-        names: set[str] = set()
-        for c in concepts:
-            if isinstance(c, str):
-                name = c.strip()
-            elif isinstance(c, dict):
-                name = str(
-                    c.get("name") or c.get("label") or c.get("concept")
-                    or c.get("text") or ""
-                ).strip()
-            else:
-                name = str(c).strip()
-            if name:
-                names.add(name)
-        return frozenset(names) if names else None
-
-    @staticmethod
-    def _jaccard(a: frozenset[str], b: frozenset[str]) -> float:
-        union = a | b
-        if not union:
-            return 1.0  # two empty sets are trivially identical
-        return len(a & b) / len(union)
+    # Canonical extractors live in ophamin.seeing.substrate.observables; these
+    # staticmethods delegate so the importers (memory-cued-recall-flow,
+    # memory-permanence-flow) all share the single implementation.
+    _concept_set = staticmethod(concept_set)
+    _jaccard = staticmethod(jaccard)
 
     @classmethod
     def _control_crosscheck(

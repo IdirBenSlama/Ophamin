@@ -74,6 +74,9 @@ from ophamin.measuring.scenarios.base import (
     Tier,
 )
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
+from ophamin.seeing.substrate.field_catalog import FieldContract, ScenarioFieldContract
+from ophamin.seeing.substrate.observables import jaccard as _toolbox_jaccard
+from ophamin.seeing.substrate.observables import prime_set as _toolbox_prime_set
 
 
 class FinancePathDependenceScenario(Scenario):
@@ -143,8 +146,7 @@ class FinancePathDependenceScenario(Scenario):
         self.shuffle_seed = int(shuffle_seed)
         self.min_points = int(min_points)
         self.series_label = str(series_label)
-        win = len(self.return_windows[0])
-        # true + n_shuffles batches per window, win cycles each
+        # true + n_shuffles batches per window, len(window) cycles each
         self.n_cycles = sum((1 + self.n_shuffles) * len(w) for w in self.return_windows)
 
     # ----------------------------------------------------- finance math ------
@@ -206,23 +208,23 @@ class FinancePathDependenceScenario(Scenario):
                 diffs.append(abs(a[k] - b[k]) / denom if denom else 0.0)
         return float(mean(diffs)) if diffs else None
 
-    @staticmethod
-    def _prime_set(result: CycleResult) -> frozenset[str] | None:
-        if not result.success:
-            return None
-        chain = (result.raw or {}).get("prime_chain")
-        if isinstance(chain, list) and chain:
-            primes = {str(p).strip() for p in chain if str(p).strip()}
-            if primes:
-                return frozenset(primes)
-        return None
-
-    @staticmethod
-    def _jaccard(a: frozenset[str], b: frozenset[str]) -> float:
-        u = a | b
-        return len(a & b) / len(u) if u else 1.0
+    # prime_set / jaccard are the shared toolbox canonicals.
+    _prime_set = staticmethod(_toolbox_prime_set)
+    _jaccard = staticmethod(_toolbox_jaccard)
 
     # --------------------------------------------------------------- claim ---
+
+    def field_contract(self) -> ScenarioFieldContract:
+        """Seatbelt: the manifold-state observables are load-bearing here."""
+        return ScenarioFieldContract(
+            scenario_name=self.name,
+            contracts=(
+                FieldContract("arachne_web_coupling_frobenius", required=True),
+                FieldContract("knowledge_mass", required=False),
+                FieldContract("arachne_web_order_parameter", required=False),
+                FieldContract("prime_chain", required=False),
+            ),
+        )
 
     def build_claim(self) -> Claim:
         return Claim(
@@ -304,11 +306,12 @@ class FinancePathDependenceScenario(Scenario):
         dmdds: list[float] = []
         prime_divs: list[float] = []
         rag_divs: list[float] = []
-        rng = random.Random(self.shuffle_seed)
 
         for wi, returns in enumerate(self.return_windows):
             true_events = [self._render_event(i, r) for i, r in enumerate(returns)]
             res_true = substrate.run_batch(true_events)
+            if wi == 0:
+                self._enforce_field_contract(res_true)  # seatbelt: once, up front
             state_true = self._state_vector(res_true[-1]) if res_true else None
             primes_true = self._prime_set(res_true[-1]) if res_true else None
             mdd_true = self._max_drawdown(returns)

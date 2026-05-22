@@ -65,8 +65,7 @@ claim).
 
 from __future__ import annotations
 
-import math
-from statistics import mean, median
+from statistics import mean
 from typing import Any
 
 from ophamin import __version__
@@ -92,36 +91,15 @@ from ophamin.measuring.scenarios.base import (
     ScenarioScore,
     Tier,
 )
-from ophamin.measuring.scenarios.memory_deformation_flow import (
-    _DEFAULT_STIMULI,
-    MemoryDeformationFlowScenario,
-)
+from ophamin.measuring.scenarios.memory_deformation_flow import _DEFAULT_STIMULI
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
-
-_concept_set = MemoryDeformationFlowScenario._concept_set
-_jaccard = MemoryDeformationFlowScenario._jaccard
-
-
-def _as_finite_float(value: Any) -> float | None:
-    """Coerce a raw field to a finite float, or None.
-
-    The Kimera runner serialises non-finite floats (NaN/Inf) as strings
-    (``jsonable``), so a numeric field can arrive as a str. Treat anything
-    non-finite or unparseable as absent rather than letting it poison a
-    monotonicity / delta computation.
-    """
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, (int, float)):
-        f = float(value)
-        return f if math.isfinite(f) else None
-    if isinstance(value, str):
-        try:
-            f = float(value)
-        except ValueError:
-            return None
-        return f if math.isfinite(f) else None
-    return None
+from ophamin.seeing.substrate.field_catalog import FieldContract, ScenarioFieldContract
+from ophamin.seeing.substrate.observables import (
+    as_finite_float as _as_finite_float,
+    concept_set as _concept_set,
+    jaccard as _jaccard,
+    scar_count,
+)
 
 
 class MemoryPermanenceFlowScenario(Scenario):
@@ -214,33 +192,8 @@ class MemoryPermanenceFlowScenario(Scenario):
 
     # --------------------------------------------------------- extraction ----
 
-    @staticmethod
-    def _scar_count(result: CycleResult) -> int | None:
-        """The canonical permanent scar count for a cycle.
-
-        Priority: ``vault_stats.total_scars_stored`` (canonical;
-        = vault_a.scar_count + vault_b.scar_count) → the sum of the two
-        vault scar_counts → ``enhanced_vault_total_memories`` (top-level
-        mirror). Returns None if none is readable.
-        """
-        if not result.success:
-            return None
-        raw = result.raw or {}
-        vs = raw.get("vault_stats")
-        if isinstance(vs, dict):
-            tss = vs.get("total_scars_stored")
-            if isinstance(tss, (int, float)) and not isinstance(tss, bool):
-                return int(tss)
-            a = vs.get("vault_a") or {}
-            b = vs.get("vault_b") or {}
-            if isinstance(a, dict) and isinstance(b, dict):
-                ac, bc = a.get("scar_count"), b.get("scar_count")
-                if isinstance(ac, (int, float)) and isinstance(bc, (int, float)):
-                    return int(ac) + int(bc)
-        evtm = raw.get("enhanced_vault_total_memories")
-        if isinstance(evtm, (int, float)) and not isinstance(evtm, bool):
-            return int(evtm)
-        return None
+    # The canonical scar count lives in the shared observables toolbox.
+    _scar_count = staticmethod(scar_count)
 
     @staticmethod
     def _coupling(result: CycleResult) -> float | None:
@@ -273,6 +226,25 @@ class MemoryPermanenceFlowScenario(Scenario):
         return str(h) if h else None
 
     # --------------------------------------------------------------- claim ---
+
+    def field_contract(self) -> ScenarioFieldContract:
+        """The OrchestratorResult fields this scenario depends on (the seatbelt).
+
+        Validated against the first live cycle in :meth:`run` via
+        ``_enforce_field_contract`` — a Kimera-side rename of the scar/manifold
+        fields fails LOUD instead of silently producing a meaningless proof.
+        """
+        return ScenarioFieldContract(
+            scenario_name=self.name,
+            contracts=(
+                FieldContract("vault_stats", required=True),                    # canonical scars
+                FieldContract("arachne_web_coupling_frobenius", required=True),  # manifold deformation
+                FieldContract("concepts", required=True),                       # recognition gate
+                FieldContract("alexandria_knowledge_mass_cumulative", required=False),
+                FieldContract("phi", required=False),
+                FieldContract("halt_reason", required=False),
+            ),
+        )
 
     def build_claim(self) -> Claim:
         return Claim(
@@ -362,6 +334,7 @@ class MemoryPermanenceFlowScenario(Scenario):
         schedule = self.build_schedule()
         texts = [t for _, t in schedule]
         results = substrate.run_batch(texts)
+        self._enforce_field_contract(results)  # seatbelt: fail loud on field drift
 
         # Per-cycle memory-substrate series (whole run, schedule order).
         scar_series: list[int | None] = [self._scar_count(r) for r in results]

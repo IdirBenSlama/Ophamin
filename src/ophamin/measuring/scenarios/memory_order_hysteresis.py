@@ -78,6 +78,9 @@ from ophamin.measuring.scenarios.base import (
     Tier,
 )
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
+from ophamin.seeing.substrate.field_catalog import FieldContract, ScenarioFieldContract
+from ophamin.seeing.substrate.observables import jaccard as _toolbox_jaccard
+from ophamin.seeing.substrate.observables import prime_set as _toolbox_prime_set
 
 # Curated genesis documents (the "corpus") and disjoint held-out probes (the
 # "queries"). Documents are re-ordered; probes are asked identically in both
@@ -183,27 +186,8 @@ class MemoryOrderHysteresisScenario(Scenario):
         return shuffled
 
     # --------------------------------------------------------- extraction ----
-
-    @staticmethod
-    def _prime_set(result: CycleResult) -> frozenset[str] | None:
-        """The probe's prime-address for the cycle (its ``prime_chain``).
-
-        Falls back to the rosetta/alexandria prime maps if the chain is absent.
-        Returns None on failure / no prime address (a gap, not a 0-divergence).
-        """
-        if not result.success:
-            return None
-        raw = result.raw or {}
-        chain = raw.get("prime_chain")
-        if isinstance(chain, list) and chain:
-            primes = {str(p).strip() for p in chain if str(p).strip()}
-            if primes:
-                return frozenset(primes)
-        for k in ("rosetta_primes", "alexandria_fused_primes"):
-            v = raw.get(k)
-            if isinstance(v, dict) and v:
-                return frozenset(str(x) for x in v.keys())
-        return None
+    # prime_set / jaccard are the shared toolbox canonicals.
+    _prime_set = staticmethod(_toolbox_prime_set)
 
     @staticmethod
     def _state(result: CycleResult) -> dict[str, float | None]:
@@ -219,12 +203,22 @@ class MemoryOrderHysteresisScenario(Scenario):
             "order_param": f("arachne_web_order_parameter"),
         }
 
-    @staticmethod
-    def _jaccard(a: frozenset[str], b: frozenset[str]) -> float:
-        u = a | b
-        return len(a & b) / len(u) if u else 1.0
+    _jaccard = staticmethod(_toolbox_jaccard)
 
     # --------------------------------------------------------------- claim ---
+
+    def field_contract(self) -> ScenarioFieldContract:
+        """Seatbelt: the prime-address is the load-bearing observable here."""
+        return ScenarioFieldContract(
+            scenario_name=self.name,
+            contracts=(
+                FieldContract("prime_chain", required=True),
+                FieldContract("concepts", required=False),
+                FieldContract("arachne_web_coupling_frobenius", required=False),
+                FieldContract("knowledge_mass", required=False),
+                FieldContract("arachne_web_order_parameter", required=False),
+            ),
+        )
 
     def build_claim(self) -> Claim:
         return Claim(
@@ -304,6 +298,7 @@ class MemoryOrderHysteresisScenario(Scenario):
         n_doc = len(docs_a)
 
         res_a1 = substrate.run_batch(docs_a + probes)
+        self._enforce_field_contract(res_a1)  # seatbelt: fail loud on field drift
         res_a2 = substrate.run_batch(docs_a + probes)  # determinism control
         res_b = substrate.run_batch(docs_b + probes)
 

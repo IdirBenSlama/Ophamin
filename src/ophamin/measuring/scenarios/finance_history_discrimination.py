@@ -67,6 +67,8 @@ from ophamin.measuring.scenarios.finance_path_dependence import (
     FinancePathDependenceScenario,
 )
 from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
+from ophamin.seeing.substrate.field_catalog import FieldContract, ScenarioFieldContract
+from ophamin.seeing.substrate.observables import jaccard as _toolbox_jaccard
 
 _max_drawdown = FinancePathDependenceScenario._max_drawdown
 _render_event = FinancePathDependenceScenario._render_event
@@ -161,12 +163,16 @@ class FinanceHistoryDiscriminationScenario(Scenario):
         hi = max(cands.items(), key=lambda kv: kv[1])
         return lo[0], lo[1], hi[0], hi[1]
 
-    @staticmethod
-    def _jaccard(a: frozenset[str], b: frozenset[str]) -> float:
-        u = a | b
-        return len(a & b) / len(u) if u else 1.0
+    _jaccard = staticmethod(_toolbox_jaccard)
 
     # --------------------------------------------------------------- claim ---
+
+    def field_contract(self) -> ScenarioFieldContract:
+        """Seatbelt: prime-address separation is the load-bearing observable."""
+        return ScenarioFieldContract(
+            scenario_name=self.name,
+            contracts=(FieldContract("prime_chain", required=True),),
+        )
 
     def build_claim(self) -> Claim:
         return Claim(
@@ -247,6 +253,8 @@ class FinanceHistoryDiscriminationScenario(Scenario):
             lo_events = [_render_event(i, r) for i, r in enumerate(lo_arr)]
             hi_events = [_render_event(i, r) for i, r in enumerate(hi_arr)]
             res_lo = substrate.run_batch(lo_events)
+            if wi == 0:
+                self._enforce_field_contract(res_lo)  # seatbelt: once, up front
             res_hi = substrate.run_batch(hi_events)
             p_lo = _prime_set(res_lo[-1]) if res_lo else None
             p_hi = _prime_set(res_hi[-1]) if res_hi else None

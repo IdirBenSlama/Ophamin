@@ -7,7 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.112.0] below for the latest cut.)
+(empty — see [0.113.0] below for the latest cut.)
+
+## [0.113.0] — 2026-05-22
+
+**Garage hardening — the seatbelt + the shared toolbox (a retrospective acting on
+itself).** The memory→finance arc nearly measured the wrong thing twice (the
+canonical scar field moving into `vault_stats`; a Φ-drift observable that didn't
+carry the signal), each caught only by hand-inspecting Kimera first. Acting on
+that lesson — and correcting an absence-claim of my own: Ophamin **already had**
+a field-contract seatbelt (`ScenarioFieldContract` / `validate_contract_against_raw`,
+enforced in `base.run()`), it was just **bypassed** by the flow/comparison
+scenarios that fully override `run()`, **undeclared** by any scenario, and missing
+the fields the new scenarios read.
+
+- **Seatbelt wired into custom-`run()` scenarios.** New `Scenario._enforce_field_contract`
+  (the validation `base.run()` already did, factored out so overriding scenarios
+  call it after their first batch). All five memory/finance scenarios now declare
+  a `field_contract()` and enforce it — a Kimera-side rename of a load-bearing
+  field now fails LOUD at setup instead of silently producing a meaningless proof.
+  New `tests/test_field_contract_seatbelt.py` proves the seatbelt fires on a
+  missing required field.
+- **Field-catalog gaps filled** (`field_catalog.py`): added `vault_stats` (the
+  canonical `total_scars_stored` lives here — there is no top-level `total_scars`),
+  `enhanced_vault_total_memories`, `knowledge_mass`, `concepts`.
+- **Shared observables toolbox** — new `seeing/substrate/observables.py` with the
+  canonical `prime_set` / `concept_set` / `scar_count` / `state_vector` /
+  `as_finite_float` / `jaccard` that were copy-pasted across five scenarios. All
+  five now import them (the `memory-deformation-flow` helpers delegate, so its
+  importers share the single implementation). New `tests/test_observables.py`.
+- No substrate behaviour change; no proof re-run needed (the extractors are
+  byte-identical, verified by the unchanged scenario tests). Ruff-clean; broad
+  regression green.
 
 ## [0.112.0] — 2026-05-22
 

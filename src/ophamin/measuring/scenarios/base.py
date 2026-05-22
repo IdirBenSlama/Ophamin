@@ -359,6 +359,34 @@ class Scenario(abc.ABC):
         """
         return None
 
+    def _enforce_field_contract(self, cycle_results: list[CycleResult]) -> None:
+        """Validate the first successful cycle against :meth:`field_contract`.
+
+        :meth:`run` (the base corpus-stream loop) calls this automatically. But
+        flow/comparison scenarios that **fully override** ``run()`` bypass that
+        path — so they must call this themselves, right after their first
+        ``run_batch``, so a Kimera-side field rename or type drift fails LOUD at
+        setup time instead of silently producing a meaningless proof (the exact
+        trap that nearly bit the memory/finance scenarios when ``total_scars``
+        moved into ``vault_stats``). No-op when no contract is declared.
+
+        Raises :class:`ScenarioFieldContractViolation` on missing-required /
+        type-mismatch / family-mismatch.
+        """
+        contract = self.field_contract()
+        if contract is None or not cycle_results:
+            return
+        for cr in cycle_results:
+            if cr.success:
+                violations = validate_contract_against_raw(contract, cr.raw)
+                fatal = tuple(
+                    v for v in violations
+                    if v.kind in {"missing_required", "type_mismatch", "family_mismatch"}
+                )
+                if fatal:
+                    raise ScenarioFieldContractViolation(self.name, fatal)
+                return
+
     # -- overridable helpers -----------------------------------------------
 
     def analysis_plan(self) -> str:
@@ -528,19 +556,9 @@ class Scenario(abc.ABC):
         # validate the first successful cycle's raw dict against it before
         # scoring. Loud failure on missing-required or type-mismatch surfaces
         # Kimera-side schema drift; silent degradation is forbidden by the
-        # framework's no-fallback rule.
-        contract = self.field_contract()
-        if contract is not None and cycle_results:
-            for cr in cycle_results:
-                if cr.success:
-                    violations = validate_contract_against_raw(contract, cr.raw)
-                    fatal = tuple(
-                        v for v in violations
-                        if v.kind in {"missing_required", "type_mismatch", "family_mismatch"}
-                    )
-                    if fatal:
-                        raise ScenarioFieldContractViolation(self.name, fatal)
-                    break
+        # framework's no-fallback rule. (Shared with custom-run() scenarios via
+        # _enforce_field_contract.)
+        self._enforce_field_contract(cycle_results)
 
         # SCORE -> VERDICT
         score = self.score(cycle_results, records)

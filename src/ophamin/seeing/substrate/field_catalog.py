@@ -35,7 +35,7 @@ isn't an error; it's just undocumented from Ophamin's side.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -302,6 +302,15 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
         "AAPL×XOM Layer-5 Jaccard went 0.647 → 0.000 after this surfaced.",
         nullable=True,
     ),
+    CatalogedField(
+        "concepts", ("list",), "prime",
+        "Per-cycle list of extracted concepts (str names or dicts) that produce "
+        "the prime_chain. The COUNT is `concepts_count`. Read by the "
+        "recognition-stability scenarios (memory-deformation-flow, "
+        "memory-cued-recall-flow, memory-permanence-flow) — recognition is the "
+        "content-deterministic concept-set layer, distinct from memory.",
+        nullable=True,
+    ),
 
     # --- substrate_state ------------------------------------------------
     CatalogedField(
@@ -509,6 +518,14 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
         "measured ~17 mass-units/cycle linear growth.",
         nullable=True,
     ),
+    CatalogedField(
+        "knowledge_mass", ("float", "int"), "alexandria",
+        "Per-cycle cumulative semantic mass — a bare alias surfaced alongside "
+        "`alexandria_knowledge_mass_cumulative`. Read by the order-hysteresis + "
+        "finance scenarios as a continuous manifold-state observable (it shifts "
+        "with ingestion order, part of the memory-as-deformation signature).",
+        nullable=True,
+    ),
 
     # --- realtime_encoder ----------------------------------------------
     CatalogedField(
@@ -528,6 +545,24 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
     CatalogedField(
         "scars_written", ("int",), "scar",
         "Number of SCARs written to the vault this cycle.",
+        nullable=True,
+    ),
+    CatalogedField(
+        "vault_stats", ("dict",), "scar",
+        "Per-cycle Vault statistics dict. The CANONICAL permanent scar count is "
+        "`vault_stats['total_scars_stored']` (= vault_a.scar_count + "
+        "vault_b.scar_count), append-only by the SphericalMemoryVault "
+        "`monotonic_violations` invariant — 'a scar cannot be reset'. Read by "
+        "memory-permanence-flow as the memory substrate itself. (Verified live "
+        "2026-05-22: there is NO top-level `total_scars` field — it lives here.)",
+        nullable=True,
+    ),
+    CatalogedField(
+        "enhanced_vault_total_memories", ("int",), "scar",
+        "Top-level mirror of the cumulative vault memory count; tracks "
+        "vault_stats.total_scars_stored. NB: bounded-ring-buffer semantics — "
+        "prefer vault_stats.total_scars_stored as the canonical scar count "
+        "(this is the memory-permanence fallback when vault_stats is absent).",
         nullable=True,
     ),
 )
