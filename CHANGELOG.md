@@ -7,7 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.107.0] below for the latest cut.)
+(empty — see [0.108.0] below for the latest cut.)
+
+## [0.108.0] — 2026-05-22
+
+**Cued-recall memory proof — isolating memory from deterministic re-derivation.**
+The memory-horizon proof (0.104.0) showed perfect recall of full re-shown items
+at long lag, but a flat 1.0 curve cannot separate path-dependent *memory* from
+*re-derivation* (same text in → same concepts out). This proof settles that
+confound with the classic cued-recall / pattern-completion paradigm.
+
+- **`memory-cued-recall-flow`** streams a SEEN set, holds out a disjoint
+  NEVER-SEEN control set, then probes **partial cues** (first
+  `cue_fraction` of words) of both. Both arms get the same impoverished input,
+  so content-determinism is held constant; only prior exposure differs:
+
+      memory_lift = mean(recall | seen) − mean(recall | never-seen)
+
+  where recall = Jaccard(concepts from the partial cue, the item's full concept
+  set). The never-seen arm is the **built-in fair baseline** ("no memory") — no
+  external RAG/long-context harness needed for this step.
+- **Pre-registered invariant:** `memory_lift > 0`, decided VALIDATED only when
+  the seen-vs-control Mann-Whitney is significant; else INCONCLUSIVE. **lift ≤ 0
+  is an honest, useful refutation** — it means the horizon's recall was
+  re-derivation, not memory (a Kimera flow/wiring construction brief), not a
+  measurement artifact.
+- Grounded in cued recall / Hopfield associative memory (a partial/noisy cue
+  retrieves a stored pattern — the canonical memory test). Reuses the recall
+  primitives from `memory-deformation-flow`.
+- `examples/run_memory_cued_recall_flow.py` runs it on real Enron (80 seen + 25
+  never-seen). 12 tests pin both worlds against a fake adapter: a memory world
+  (cue completes → lift > 0 → VALIDATED) and a determinism world (cue stays a
+  fragment → lift ≈ 0 → not validated).
 
 ## [0.107.0] — 2026-05-22
 
