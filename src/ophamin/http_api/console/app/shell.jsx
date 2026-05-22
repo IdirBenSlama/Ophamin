@@ -73,6 +73,7 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
       { id: 'substrate', label: 'Substrate', icon: 'cpu' },
     ]},
     { group: 'R&D', items: [
+      { id: 'compose',      label: 'Compose',      icon: 'code' },
       { id: 'scenarios',    label: 'Scenarios',    icon: 'scenarios', count: totals.scenarios },
       { id: 'verify',       label: 'Verify',       icon: 'proofs' },
       { id: 'agents',       label: 'Agents',       icon: 'agents' },

@@ -43,6 +43,7 @@ function App() {
   const FlowScreen        = window.FlowScreen;
   const ConfigScreen      = window.ConfigScreen;
   const ModelsScreen      = window.ModelsScreen;
+  const ComposeScreen     = window.ComposeScreen;
   const VerifyScreen      = window.VerifyScreen;
   const CommandPalette    = window.CommandPalette;
   const TweaksPanel       = window.TweaksPanel;
@@ -131,6 +132,7 @@ function App() {
         {screen === 'flow'      && <FlowScreen/>}
         {screen === 'config'    && <ConfigScreen/>}
         {screen === 'models'    && <ModelsScreen/>}
+        {screen === 'compose'   && <ComposeScreen/>}
         {screen === 'verify'    && <VerifyScreen/>}
         {screen === 'settings'  && <SettingsScreen tweak={t} setTweak={setTweak}/>}
       </AppShell>
@@ -617,7 +619,8 @@ const COMPONENT_TO_FILE = {
   ControlRoomScreen: 'control.jsx', InteropScreen: 'interop.jsx',
   IntegrationsScreen: 'integrations.jsx', SubstrateScreen: 'substrate.jsx',
   CockpitScreen: 'cockpit.jsx', FlowScreen: 'flow.jsx',
-  ConfigScreen: 'config.jsx', ModelsScreen: 'models.jsx', VerifyScreen: 'verify.jsx',
+  ConfigScreen: 'config.jsx', ModelsScreen: 'models.jsx',
+  ComposeScreen: 'compose.jsx', VerifyScreen: 'verify.jsx',
   CommandPalette: 'palette.jsx', ShortcutsModal: 'shortcuts.jsx',
   KeyboardNav: 'keyboard.jsx', IntroOverlay: 'intro.jsx',
 };

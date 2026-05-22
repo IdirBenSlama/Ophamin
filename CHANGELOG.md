@@ -7,7 +7,33 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.92.0] below for the latest cut.)
+(empty — see [0.93.0] below for the latest cut.)
+
+## [0.93.0] — 2026-05-22
+
+**Console — the Compose screen: the authoring loop, made visual.** The
+describe → grounded-scenario pipeline was API-only; this surfaces it in the
+Console (R&D ▸ Compose), no live model needed.
+
+- **New `compose.jsx`**: author a scenario by picking an **invariant
+  template + real corpus + threshold + grounding** from the live capability
+  menu (or paste a full spec JSON), then see — inline:
+  - the **grounding gate** result (`✓ grounded` or the exact violations +
+    fixes), driven by `/authoring/validate`;
+  - the **materialize plan** (which scenario class, scope, facet, metric,
+    threshold, data source, cycle count), driven by `/authoring/materialize`;
+  - the run command for when you want to execute it.
+- The menu is the *real* one — only registered corpora and existing
+  templates appear, so you can't compose against a dataset or tool that
+  doesn't exist. A synthetic/ungrounded spec is refused right in the panel.
+- Added under **R&D ▸ Compose** (before Scenarios — author, then browse).
+  Hydrates `/authoring/capabilities`.
+- Verified live: grounded spec → passes the gate → materialize plan
+  (memory-deformation-flow, 24 cycles); synthetic spec → refused with
+  `synthetic_data_forbidden`.
+
+The "describe an experiment, get a grounded scenario" loop from the owner's
+brief is now a screen, not just an API.
 
 ## [0.92.0] — 2026-05-22
 
