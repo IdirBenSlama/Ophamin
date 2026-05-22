@@ -7,7 +7,34 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.100.0] below for the latest cut.)
+(empty — see [0.101.0] below for the latest cut.)
+
+## [0.101.0] — 2026-05-22
+
+**Reproducibility — measured, not claimed (CR6).** The critical review's #6
+finding: proofs carry a `reproduction` section (command + environment lock +
+lineage) that says HOW to re-run, but nothing measured WHAT actually
+reproduces. CR6 adds a reproducing wheel that measures it honestly, by layer.
+
+- **`reproducing/check.py`** — `reproduce(scenario, substrate, n_runs=…)`
+  re-runs a scenario N times and reports:
+  - **verdict reproducibility** — same VALIDATED / REFUTED outcome every run,
+  - **cross-check stability** — same passed / failed / skipped conclusion,
+  - **observed-value drift band** — max−min of the falsifiable metric (the
+    honest measure of substrate float-drift),
+  - **`proof_ids_distinct`** — proof_id embeds `created_at`, so every run is a
+    distinct event; it is explicitly NOT a reproducibility metric (treating it
+    as one would be a category error). The layered honesty is the point.
+- **Live result (substrate `c571612fabcb`, 3 reruns × 24 cycles):** the
+  recognition flow reproduced cleanly — verdict VALIDATED ×3, cross-check
+  passed ×3, `recognition_jaccard_floor` = 0.95 / 0.95 / 0.95 (drift 0.0000).
+  The concept-set metric is discrete, so it reproduced *exactly* — consistent
+  with Kimera's "cognitive content is deterministic; physics-layer floats
+  drift". proof_ids were distinct across runs, as designed.
+- **`examples/run_reproducibility.py`** runs the check on live Kimera.
+- 9 tests pin every layer (deterministic, drift-but-stable-verdict,
+  flipping-verdict, varying-cross-check, degenerate-identical-proof-ids,
+  threshold carry-through, n_runs≥2).
 
 ## [0.100.0] — 2026-05-22
 
