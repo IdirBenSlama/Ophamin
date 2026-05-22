@@ -7,7 +7,46 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.106.0] below for the latest cut.)
+(empty — see [0.107.0] below for the latest cut.)
+
+## [0.107.0] — 2026-05-22
+
+**Tool acquisition — Ophamin extends its own toolchain, safely.** Per owner
+vision: when a measurement need has no tool, Ophamin should be able to
+discover, acquire, configure, verify, and register one from the open-source
+ecosystem — collecting and connecting unrelated tools for interoperability.
+This ships the *responsible core* of that pipeline.
+
+The pipeline: `discover → evaluate → [OWNER GATE] → install → verify →
+register`. The two sensitive stages — live web discovery and the actual
+install — are treated honestly: **silently auto-installing arbitrary internet
+code would make an empirical observatory *less* trustworthy** (supply-chain
+attacks, typosquatting, license landmines), so install is owner-gated with
+mandatory verification, and this module never shells out to pip.
+
+- **`interop/tool_acquisition.py`**:
+  - `evaluate_candidate()` — scores a discovered tool on **license
+    compatibility** (permissive → ok; weak-copyleft → caution; strong copyleft
+    incl. AGPL → reject for a proprietary/SaaS product unless opted in — the
+    load-bearing axis for "future business"), maturity (stars/downloads),
+    package-name validity (typosquat/injection guard), and fit → recommend /
+    caution / reject. Security is flagged as a REQUIRED post-install pip-audit
+    step, never assumed clean.
+  - `acquisition_plan()` — a DRY-RUN install plan: pinned `name==version`, the
+    command, the verification steps, the gate env. Executes nothing; refuses an
+    unpinned install (supply-chain footgun).
+  - `verify_acquired_tool()` — the pre-deployment gate: import + version +
+    smoke check. A tool is not deployed until it passes.
+  - `register_acquired_tool()` — emits a toolkit-registry entry (the
+    `OPHAMIN_TOOLKITS` shape) for a verified, non-rejected tool — listing it
+    for future use, closing the loop back to the resolver. Refuses to register
+    anything unverified or rejected.
+- 18 tests pin the license verdicts (incl. AGPL rejection), dry-run+pinned
+  plan, unpinned/invalid-name refusal, the verify gate (import/version/smoke
+  failures), and register-only-what-passed.
+- Honest dependency named: the live *discover* stage (an agent making deep web
+  searches for candidate tools) needs a web-search tool wired into the agent
+  loop; this module accepts the candidates it produces, from any source.
 
 ## [0.106.0] — 2026-05-22
 

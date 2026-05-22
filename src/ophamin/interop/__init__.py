@@ -94,6 +94,14 @@ from ophamin.interop.sarif import (
     SARIFExporter,
     audit_record_to_sarif,
 )
+from ophamin.interop.tool_acquisition import (
+    ACQUIRE_GATE_ENV,
+    ToolCandidate,
+    acquisition_plan,
+    evaluate_candidate,
+    register_acquired_tool,
+    verify_acquired_tool,
+)
 from ophamin.interop.toolkit_registry import (
     Toolkit,
     ToolkitConfigError,
@@ -102,6 +110,12 @@ from ophamin.interop.toolkit_registry import (
 
 __all__ = [
     "CycloneDXExporter",
+    "ACQUIRE_GATE_ENV",
+    "ToolCandidate",
+    "acquisition_plan",
+    "evaluate_candidate",
+    "register_acquired_tool",
+    "verify_acquired_tool",
     "Toolkit",
     "ToolkitConfigError",
     "toolkit_registry",
