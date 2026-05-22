@@ -30,6 +30,7 @@ from ophamin import __version__
 from ophamin.agentic.audit import LLMCallRecord, persist_call
 from ophamin.agentic.client import LLMClient, LLMResponse
 from ophamin.agentic.models import pick_model
+from ophamin.agentic.persona import zetetic_system
 
 
 _SYSTEM_PROMPT = """You write Python modules for the Ophamin "Foreign Corpus"
@@ -159,7 +160,7 @@ def generate(
     )
 
     messages = [
-        {"role": "system", "content": _SYSTEM_PROMPT},
+        {"role": "system", "content": zetetic_system(_SYSTEM_PROMPT)},
         {"role": "user", "content": "Here is one example adapter for reference:\n\n"
                                      + _EXAMPLE_ESC50},
         {"role": "assistant", "content": "Understood. The pattern is: docstring, "

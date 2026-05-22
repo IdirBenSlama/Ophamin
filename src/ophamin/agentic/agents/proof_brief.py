@@ -29,6 +29,7 @@ from ophamin import __version__
 from ophamin.agentic.audit import LLMCallRecord, persist_call
 from ophamin.agentic.client import LLMClient, LLMResponse
 from ophamin.agentic.models import pick_model
+from ophamin.agentic.persona import zetetic_system
 
 
 _SYSTEM_PROMPT = """You write concise, accurate plain-English briefs for
@@ -141,7 +142,7 @@ def write_brief(
 
     mc = pick_model("proof_brief")
     messages = [
-        {"role": "system", "content": _SYSTEM_PROMPT},
+        {"role": "system", "content": zetetic_system(_SYSTEM_PROMPT)},
         {"role": "user", "content": user_prompt},
     ]
     resp: LLMResponse = client.chat(

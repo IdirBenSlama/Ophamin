@@ -40,6 +40,7 @@ from ophamin import __version__
 from ophamin.agentic.audit import LLMCallRecord, persist_call
 from ophamin.agentic.client import LLMClient, LLMResponse
 from ophamin.agentic.models import pick_model
+from ophamin.agentic.persona import zetetic_system
 
 _SYSTEM_PROMPT = """You are a scientific results analyst for Ophamin, an
 empirical observatory. You diagnose signed Empirical Proof Records — the
@@ -190,7 +191,7 @@ def build_diagnosis_messages(summaries: list[dict[str, Any]]) -> list[dict[str, 
         + "\n```\n\nDiagnosis JSON:"
     )
     return [
-        {"role": "system", "content": _SYSTEM_PROMPT},
+        {"role": "system", "content": zetetic_system(_SYSTEM_PROMPT)},
         {"role": "user", "content": user},
     ]
 

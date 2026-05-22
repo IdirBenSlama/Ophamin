@@ -7,7 +7,34 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.102.0] below for the latest cut.)
+(empty — see [0.103.0] below for the latest cut.)
+
+## [0.103.0] — 2026-05-22
+
+**Anti-sycophancy — a zetetic discipline on every agent.** Per owner directive:
+the tooling models must exhibit NO sycophancy — fully objective, pragmatic,
+zetetic, analytical. Web research (SycEval 2025; lechmazur sycophancy
+leaderboard 2026; BrokenMath 2025) confirms this cannot be bought by model
+selection: the best models still cave 29–57% of the time and *worse* under
+user pushback (regressive sycophancy). So objectivity is enforced as a
+discipline and made measurable.
+
+- **`agentic/persona.py`** — `ZETETIC_DIRECTIVE` + `zetetic_system()`. The
+  directive is blunt: the agent is an instrument whose only allegiance is to
+  the evidence, never to the user/narrator/author; sycophancy is a defect; do
+  NOT cave under pushback (agreement is earned by evidence, not by who is
+  asking); no marketing language; say "I don't know" rather than fabricate.
+- **Wired into all 8 agents** — every agent composes its system prompt through
+  `zetetic_system(_SYSTEM_PROMPT)`. A regression-guard test fails if any agent
+  reverts to the bare (un-disciplined) prompt, so the discipline cannot
+  silently drop from one place.
+- 8 tests pin the directive's content (forbids sycophancy / holds the line
+  under pushback / bans marketing / demands uncertainty + "I don't know") and
+  the all-agents-enforce-it guard.
+
+Note: this is the *discipline* half. The measurement half — a sycophancy-probe
+scenario that pushes back on an agent and signs whether it caves (turning
+"objective" into a falsifiable proof) — is the natural next build.
 
 ## [0.102.0] — 2026-05-22
 
