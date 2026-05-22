@@ -322,6 +322,8 @@ class TestOpenAPI:
             "/authoring/capabilities",
             "/authoring/validate",
             "/models",
+            "/reporting/standards",
+            "/reporting/conformance",
             "/verify",
             "/canonicalize",
             "/proofs/index",

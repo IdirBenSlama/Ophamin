@@ -7,7 +7,43 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.86.0] below for the latest cut.)
+(empty — see [0.87.0] below for the latest cut.)
+
+## [0.87.0] — 2026-05-22
+
+**Feature — the reporting gate: standards coverage + nomenclature
+conformance.** Requirement 1 of the owner's directive ("proper reporting
+formats covering all kinds of standard, with proper nomenclature and naming
+conventions"). The *output* analog of the authoring grounding gate:
+where authoring makes an ungrounded input impossible, this checks that an
+output (a signed proof — the thing a report renders) conforms to Ophamin's
+naming conventions and declares which recognised standards it satisfies.
+Completes the reporting / analysis / models trilogy (Req 3 = 0.85.0, Req 2 =
+0.86.0, Req 1 = here).
+
+- **New `ophamin.reporting.standards`**:
+  - `report_standards_registry()` — the menu: the recognised standards a
+    report can declare conformance to (in-toto/DSSE, W3C PROV-O, OSF
+    Registered Reports, MLCommons Croissant, Stanford HELM, RO-Crate), the
+    output formats the wheel renders, the verdict vocabulary, and the
+    canonical bundle-name + metric naming conventions.
+  - `report_conformance(proof)` — **the gate**. Nomenclature checks
+    (ERROR): content-hash `proof_id`; snake_case metric; well-formed
+    threshold; verdict from the fixed vocabulary; observed value + reasoning;
+    snake_case-named evidence statistics; a `created_at` the canonical bundle
+    name derives from. Standards checks (advisory): which of the six
+    standards the proof satisfies. Returns `conformant` + an actionable punch
+    list; never raises.
+- **New endpoints**: `GET /reporting/standards` (the menu) and
+  `POST /reporting/conformance` (the gate).
+- Verified against the real corpus: a live signed proof is conformant and
+  satisfies all six standards (the Croissant check reads the nested
+  `data.datasets` content_hash). 11 reporting tests incl. a real-corpus
+  conformance check + nomenclature failure cases.
+
+With the trilogy complete, the agentic `report_synthesis` task can now
+compose a standards-conforming write-up that embeds the diagnosis (0.86.0)
+and passes this gate.
 
 ## [0.86.0] — 2026-05-22
 

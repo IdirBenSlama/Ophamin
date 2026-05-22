@@ -662,6 +662,46 @@ def authoring_capabilities_impl() -> dict[str, Any]:
     return caps
 
 
+def report_standards_impl() -> dict[str, Any]:
+    """The menu of recognised report standards + output formats + the
+    Ophamin naming conventions. Deterministic; read-only."""
+    from ophamin.reporting.standards import report_standards_registry
+
+    reg = report_standards_registry()
+    reg["framework_version"] = __version__
+    return reg
+
+
+def report_conformance_impl(proof_json: str) -> dict[str, Any]:
+    """Check a proof's nomenclature + standards coverage (the reporting gate).
+
+    Returns ``conformant`` + per-item nomenclature/standard results +
+    standards satisfied/missing. Never raises — a malformed proof surfaces
+    as failed nomenclature items, the actionable punch list for a report.
+    """
+    from ophamin.reporting.standards import report_conformance
+
+    try:
+        proof = json.loads(proof_json) if isinstance(proof_json, str) else dict(proof_json)
+    except (ValueError, TypeError) as exc:
+        return {
+            "conformant": False,
+            "nomenclature": [{
+                "category": "nomenclature", "id": "invalid_json",
+                "satisfied": False, "severity": "error",
+                "detail": f"Proof is not valid JSON: {exc}",
+                "fix": "Send the proof's JSON.",
+            }],
+            "standards": [],
+            "standards_satisfied": [],
+            "standards_missing": [],
+            "framework_version": __version__,
+        }
+    result = report_conformance(proof)
+    result["framework_version"] = __version__
+    return result
+
+
 def model_capabilities_impl() -> dict[str, Any]:
     """The configured agentic-model routing: tiers (general + dedicated
     scientific/engineering), each tier's model + provider (local /

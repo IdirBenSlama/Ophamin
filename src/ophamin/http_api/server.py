@@ -52,6 +52,8 @@ from ophamin.interfaces._impls import (
     authoring_capabilities_impl,
     list_cockpit_impl,
     model_capabilities_impl,
+    report_conformance_impl,
+    report_standards_impl,
     list_flow_impl,
     list_integrations_impl,
     list_llm_calls_impl,
@@ -164,6 +166,22 @@ class ValidateSpecRequest(BaseModel):
             "source, valid scope/facet/tools."
         ),
         examples=['{"title": "...", "scope": "flow", "threshold": {...}, ...}'],
+    )
+
+
+class ReportConformanceRequest(BaseModel):
+    """Body of ``POST /reporting/conformance``."""
+
+    proof_json: str = Field(
+        ...,
+        description=(
+            "The JSON text of a signed proof. Checked against the reporting "
+            "gate: Ophamin naming conventions (content-hash proof_id, "
+            "snake_case metric, verdict vocabulary, named evidence) + which "
+            "recognised standards (in-toto / PROV-O / OSF / Croissant / HELM "
+            "/ RO-Crate) the proof satisfies."
+        ),
+        examples=['{"proof_id": "...", "claim": {...}, "verdict": {...}}'],
     )
 
 
@@ -505,6 +523,38 @@ def build_app() -> FastAPI:
     )
     def get_models() -> dict[str, Any]:
         return model_capabilities_impl()
+
+    @app.get(
+        "/reporting/standards",
+        summary="Recognised report standards + output formats + naming conventions",
+        description=(
+            "The reporting menu: which scientific/industrial standards a "
+            "report can declare conformance to (in-toto/DSSE, W3C PROV-O, "
+            "OSF Registered Reports, MLCommons Croissant, Stanford HELM, "
+            "RO-Crate), the output formats the wheel renders, the verdict "
+            "vocabulary, and the canonical bundle-name + metric naming "
+            "conventions. Deterministic; read-only."
+        ),
+        tags=["reporting"],
+    )
+    def get_reporting_standards() -> dict[str, Any]:
+        return report_standards_impl()
+
+    @app.post(
+        "/reporting/conformance",
+        summary="Check a proof's nomenclature + standards coverage (the reporting gate)",
+        description=(
+            "The output analog of the authoring grounding gate. Checks a "
+            "signed proof against Ophamin's naming conventions (content-hash "
+            "proof_id, snake_case metric, fixed verdict vocabulary, named "
+            "evidence, derivable bundle name) and reports which recognised "
+            "standards it satisfies. Returns `conformant` + an actionable "
+            "punch list. Never raises."
+        ),
+        tags=["reporting"],
+    )
+    def post_reporting_conformance(body: ReportConformanceRequest) -> dict[str, Any]:
+        return report_conformance_impl(body.proof_json)
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints
