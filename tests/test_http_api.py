@@ -699,22 +699,31 @@ class TestAgentsEndpoints:
     catalogue (/agents) + the signed LLM-call audit trail (/agents/calls).
     Neither runs an agent or touches a measurement path."""
 
-    def test_agents_returns_seven_with_metadata(self, client: TestClient) -> None:
+    def test_agents_returns_catalog_with_metadata(self, client: TestClient) -> None:
         r = client.get("/agents")
         assert r.status_code == 200
         body = r.json()
-        assert body["count"] == 7
+        assert body["count"] == 8
         assert body["framework_version"] == __version__
         ids = {a["id"] for a in body["agents"]}
         assert ids == {
-            "prereg", "scenario-gen", "adapt", "brief",
+            "prereg", "scenario-gen", "adapt", "brief", "diagnose",
             "triage", "confounds", "query",
         }
         for a in body["agents"]:
             for k in ("id", "task", "label", "desc", "tier", "cli"):
                 assert k in a, f"agent missing {k}: {a}"
-            assert a["tier"] in {"fast", "workhorse", "coder", "reasoning"}
+            assert a["tier"] in {
+                "fast", "workhorse", "coder", "reasoning",
+                "scientific", "engineering",
+            }
             assert a["cli"] == f"ophamin agent {a['id']}"
+
+    def test_diagnose_agent_uses_dedicated_scientific_tier(self, client: TestClient) -> None:
+        body = client.get("/agents").json()
+        diag = next(a for a in body["agents"] if a["id"] == "diagnose")
+        assert diag["task"] == "result_diagnosis"
+        assert diag["tier"] == "scientific"  # dedicated, not general
 
     def test_agents_tier_sourced_from_routing(self, client: TestClient) -> None:
         """Tiers reflect TASK_ROUTING (not a hardcoded dup)."""

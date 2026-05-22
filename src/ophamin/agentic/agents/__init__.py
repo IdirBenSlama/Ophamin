@@ -16,10 +16,12 @@ from ophamin.agentic.agents.adapter_gen import generate as adapter_gen
 from ophamin.agentic.agents.proof_brief import write_brief
 from ophamin.agentic.agents.refuted_triage import propose_followups
 from ophamin.agentic.agents.bundle_query import parse_query
+from ophamin.agentic.agents.result_diagnosis import diagnose
 
 __all__ = [
     "adapter_gen",
     "write_brief",
     "propose_followups",
     "parse_query",
+    "diagnose",
 ]

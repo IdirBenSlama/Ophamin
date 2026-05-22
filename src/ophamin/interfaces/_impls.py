@@ -119,7 +119,7 @@ def list_scenarios_impl() -> dict[str, Any]:
 # every agent invocation persists. Neither runs an agent.
 # --------------------------------------------------------------------------
 
-#: The seven agents, by CLI subcommand. ``task`` is the internal routing
+#: The agents, by CLI subcommand. ``task`` is the internal routing
 #: key in :data:`ophamin.agentic.models.TASK_ROUTING` (which is the
 #: authoritative source for each agent's model *tier*).
 _AGENT_CATALOG: tuple[tuple[str, str, str, str], ...] = (
@@ -131,6 +131,10 @@ _AGENT_CATALOG: tuple[tuple[str, str, str, str], ...] = (
      "Generates a Foreign-Corpus adapter module."),
     ("brief", "proof_brief", "Proof brief",
      "Plain-English brief for a signed proof."),
+    ("diagnose", "result_diagnosis", "Result diagnosis",
+     "Structured scientific diagnosis of a proof or set "
+     "(meaning / construction-brief / anomalies / confounds) — dedicated "
+     "SCIENTIFIC model."),
     ("triage", "refuted_triage", "Refuted triage",
      "Proposes follow-up scenarios for a REFUTED proof."),
     ("confounds", "confound_enumerator", "Confound enumerator",
@@ -141,7 +145,7 @@ _AGENT_CATALOG: tuple[tuple[str, str, str, str], ...] = (
 
 
 def list_agents_impl() -> dict[str, Any]:
-    """Enumerate the seven agentic-layer agents with their model tier.
+    """Enumerate the agentic-layer agents with their model tier.
 
     Read-only. The tier per agent is sourced from
     :data:`ophamin.agentic.models.TASK_ROUTING` so this never duplicates

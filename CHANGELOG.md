@@ -7,7 +7,36 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.85.0] below for the latest cut.)
+(empty — see [0.86.0] below for the latest cut.)
+
+## [0.86.0] — 2026-05-22
+
+**Feature — the diagnosis agent: agentic analysis of results.** Requirement
+2 of the owner's directive ("the analysis and diagnosis must be performed by
+the agentic system"). A new agent reads one proof — or a *set* (e.g. the
+cross-domain flow map) — and produces a STRUCTURED scientific diagnosis,
+routed to the dedicated SCIENTIFIC model (not a general one).
+
+- **New `result_diagnosis` agent** (`ophamin.agentic.agents.result_diagnosis`,
+  CLI `ophamin agent diagnose`): emits a parseable diagnosis object —
+  `summary`, `meaning`, `construction_brief` (if refuted/inconclusive),
+  `anomalies`, `confounds`, `recommendations`, `next_question`. Routed via
+  `pick_model("result_diagnosis")` to the **SCIENTIFIC** dedicated tier.
+- **Grounded + no-fallback**: the prompt is built strictly from the proof's
+  real claim / verdict / evidence numbers; the system prompt forbids
+  re-deciding the verdict. If the model is unreachable the client raises; if
+  the response has no parseable diagnosis JSON, `DiagnosisParseError` is
+  raised with the raw response — never a synthesised diagnosis.
+- **Tooling layer, testable**: the model call is injectable, so the
+  deterministic core (`summarize_proof`, `build_diagnosis_messages`,
+  `parse_diagnosis`) is fully tested with no live model. Honours a tier
+  routed to an external API (key from the named env var). Runs only AFTER
+  measurement, on a signed proof — never in the measurement path.
+- Registered in the agent catalog (`/agents` now lists 8; `diagnose` shows
+  tier `scientific`). 12 agent tests + 2 catalog tests.
+
+This is Requirement 2 delivered; the standards-conforming reporting layer
+(Requirement 1) consumes this diagnosis next.
 
 ## [0.85.0] — 2026-05-22
 
