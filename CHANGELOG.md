@@ -39,6 +39,11 @@ the fields the new scenarios read.
 - No substrate behaviour change; no proof re-run needed (the extractors are
   byte-identical, verified by the unchanged scenario tests). Ruff-clean; broad
   regression green.
+- **`tools/bump_version.py`** — root-cause fix for a recurring version-sync miss:
+  the version lives in three files (pyproject, `__init__`, `charts/.../Chart.yaml`
+  appVersion) and a stale chart broke `test_helm_chart` twice this session. One
+  command now sets all three (`bump_version.py X.Y.Z`) or verifies they agree
+  (`--check`).
 
 ## [0.112.0] — 2026-05-22
 
