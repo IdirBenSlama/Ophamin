@@ -7,7 +7,39 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.103.0] below for the latest cut.)
+(empty — see [0.104.0] below for the latest cut.)
+
+## [0.104.0] — 2026-05-22
+
+**Memory-Horizon flow scenario — the first proof aimed at the infinite-context
+gap.** Per owner direction (*"Kimera SWM itself will tell you"*), this is
+deliberately observational: it does not assert how far the substrate's memory
+reaches — it measures it and lets the curve reveal the horizon.
+
+- **`memory-horizon-flow`** streams N distinct experiences ONCE, then re-probes
+  a spread of earlier items and measures recall (concept-set Jaccard between an
+  item's first exposure and its later probe) as a function of **lag** (the
+  intervening cycles). The lag→recall curve is the discovery — the substrate's
+  memory horizon, revealed not predicted.
+- **Pre-registered (falsifiable) invariant:** recall ≥ `recall_floor` for every
+  probe whose lag exceeds `window_ref` — a reference context window in items
+  (default 256 ≈ a 128K-token window at ~500 tokens/item). The statistic is
+  `recall_floor_beyond_window`; the descriptive evidence includes the full
+  lag-curve, the memory horizon (max lag still clearing the floor), and a
+  **negative control** (beyond-window recall vs cross-item Jaccard — recall is
+  only real if it beats unrelated-item overlap). REFUTED is honest and useful:
+  it locates the true horizon and becomes a construction brief.
+- Recall primitives (`_concept_set`, `_jaccard`) are reused from
+  `memory-deformation-flow` (one definition, no drifting copy). Emits the
+  generic flow keys (unit = "lag") so the Console Flow screen renders it.
+- `examples/run_memory_horizon_flow.py` runs it on real Enron email at scale
+  (default 400 items, past the 256-item window). 12 tests pin the schedule,
+  lag/beyond-window partition, perfect-recall VALIDATED vs forgetting REFUTED,
+  the control, and INCONCLUSIVE on too-few beyond-window probes.
+
+This reframes the measurement methodology from organ-proofs toward end-to-end
+flow proofs: a broken organ mid-stream breaks recall, so the flow is what's
+measured — which is also the shape an investor-facing utility proof needs.
 
 ## [0.103.0] — 2026-05-22
 
