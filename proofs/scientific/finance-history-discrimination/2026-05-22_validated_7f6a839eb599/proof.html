@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>7f6a839eb599a92c43a7aafa736a07475cbedac9aa38796ee3323642f42e532e</code><br><strong>Created:</strong> 2026-05-22T19:57:14.999044+00:00</p><h2>1. Claim</h2><blockquote><p>Kimera distinguishes the minimum-drawdown and maximum-drawdown orderings of the same real return multiset (genuinely different risk, identical trade-set), where a set-based retriever represents them identically: history_separation_advantage = mean(kimera_prime_distance) − mean(rag_representation_distance) &gt; 0, with Kimera separating every pair and the RAG side conflating every pair.</p></blockquote><ul><li><strong>Operationalisation:</strong> For 5 real-market return multisets, find the min-DD and max-DD ordering (search of 300 shuffles + sorted extremes). Run both through Kimera entity·batch (fresh trajectories). kimera_prime_distance = 1 − Jaccard(prime_chain). rag_representation_distance = mean-pooled TF-IDF divergence (≈ 0, same multiset). VALIDATED iff advantage &gt; 0 with separation rate 1.0 (each kimera_prime_distance ≥ 0.5, each rag ≈ 0).</li><li><strong>Threshold:</strong> <code>history_separation_advantage &gt; 0.0 representation_distance</code></li><li><strong>H0:</strong> H0: advantage &lt;= 0 — Kimera conflates the min-DD and max-DD orderings no better than a set-based retriever</li><li><strong>H1:</strong> H1: advantage &gt; 0 — Kimera separates real-risk-different same-set histories that a set-based retriever conflates</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>1.0</code></p><p>history_separation_advantage +1.0000 = Kimera prime-distance 1.0000 − RAG distance 0.000000 over 5 real min-DD vs max-DD pairs; separation rate 1.00 (Kimera distinguishes real-risk-different same-set histories, RAG conflates). Mean real ΔDD 0.0458 (the histories Kimera separates are genuinely different risk). NOTE: this is discrimination, not magnitude — Kimera does NOT grade by drawdown (MEM4 ρ=+0.18 ns; diagnostic ρ≈0). Series FRED SP500 (real market)</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-22T19:57:14.638121+00:00</code></li><li>Config hash: <code>a337cd052a420c174c18f3dfef5893936aa8e26600ec836f3ae4075d3c9dc78e</code></li><li>Data hash: <code>4ff30d839032219673d615128ef6cf58092324932644a511b8adacf527424150</code></li></ul><p><em>Plan:</em> For 5 real return multisets, build the min-DD and max-DD ordering; run both through Kimera entity·batch. kimera_prime_distance = 1 − Jaccard(prime_chain); rag_representation_distance = mean-pooled TF-IDF (≈ 0). Headline: history_separation_advantage = mean(kimera) − mean(rag). INCONCLUSIVE if fewer than 4 windows yield a prime address for both orderings; VALIDATED iff advantage &gt; 0 (Kimera separates, RAG conflates). The real ΔDD per window is reported as grounding; the gradedness limit (Kimera does NOT grade by drawdown magnitude, per MEM4 + diagnostic) is stated, not hidden.</p><h2>4. Data</h2><ul><li>Substrate: <code>kimera-swm</code> @ <code>cdda883ff04d</code></li><li>Dataset: <code>fred-market-min-max-drawdown-orderings</code> (real-market-returns+min-max-drawdown-orderings, 60 records, hash <code>4ff30d839032…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>O.comparison.finance_history_discrimination</code></td><td><code>history_separation_advantage</code></td><td><code>1.0</code></td><td>—</td><td>ophamin 0.111.0</td></tr></tbody></table><h2>6. Signature</h2><p><code>26d47a913eed1b7c5c5195c11d6da1bfe878225a4dce1138638316ddf1961651</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.111.0 @ <code>c6e83d570b3f</code></footer></body></html>

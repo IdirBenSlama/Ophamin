@@ -7,7 +7,48 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.111.0] below for the latest cut.)
+(empty — see [0.112.0] below for the latest cut.)
+
+## [0.112.0] — 2026-05-22
+
+**Finance-history-discrimination — the honest positive capability on real market
+data (VALIDATED), after settling the magnitude limit.** A drawdown-gradedness
+diagnostic (Tier-1 tooling, live @ cdda883) resolved MEM4's open question
+decisively: even at extreme *controlled* drawdown spread (same return multiset,
+arrangements from min-DD to max-DD), Kimera's representation does **not** grade by
+drawdown magnitude (Spearman ΔDD vs prime-distance ρ=−0.32; vs state-distance
+ρ=−0.09; both ns). The prime-address is a **saturated binary order-detector**, not
+a magnitude tracker. That is the limit — and it implies the capability this cut
+formalizes.
+
+- **`finance-history-discrimination`** (scope `comparison`) builds the
+  **minimum-drawdown** and **maximum-drawdown** ordering of the same real return
+  multiset (genuinely opposite risk — same trades, a rise-then-fall vs a
+  crash-then-recover path) and tests whether Kimera distinguishes them where a
+  set-based retriever conflates them:
+
+      history_separation_advantage = mean(kimera_prime_distance)
+                                   − mean(rag_representation_distance)
+
+  VALIDATED iff > 0 with Kimera separating every pair (rate 1.0) and RAG
+  conflating them (≈ 0). The claim is explicitly **discrimination, not magnitude**
+  — the gradedness limit is carried in the evidence, not hidden.
+- **Live on real Kimera @ cdda883 (5 FRED SP500 multisets):  VALIDATED** — Kimera
+  prime-distance **1.000**, RAG representation distance **0.000**, separation rate
+  **1.00**, mean real ΔDD **0.046** (the conflated histories are genuinely ~4.6%
+  apart in drawdown). **Kimera resolves real-risk-different histories that a
+  set-based retriever represents identically.** Signed proof `7f6a839e…`.
+- New: `examples/run_finance_history_discrimination.py`,
+  `tests/test_finance_history_discrimination.py` (8 tests; discriminating→
+  VALIDATED, conflating→not-VALIDATED). Reuses the order-invariant TF-IDF baseline.
+
+**The complete memory-vs-RAG arc (this session):** permanent (MEM1/0.109.0) →
+real-data (MEM2) → order-sensitive vs RAG (MEM3/0.110.0) → finance magnitude
+INCONCLUSIVE (MEM4/0.111.0) → magnitude limit confirmed (diagnostic) → finance
+discrimination VALIDATED (MEM5/0.112.0). Honest net: Kimera's memory carries
+*history* (order/permanence/path) where RAG carries *inventory*; it **discriminates**
+real-outcome-different histories RAG cannot, but does **not** yet **grade** by
+economic magnitude (a graded-readout substrate brief, owner territory).
 
 ## [0.111.0] — 2026-05-22
 
