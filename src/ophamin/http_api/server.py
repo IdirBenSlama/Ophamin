@@ -54,6 +54,7 @@ from ophamin.interfaces._impls import (
     config_schema_impl,
     config_validate_impl,
     list_cockpit_impl,
+    management_status_impl,
     materialize_spec_impl,
     model_capabilities_impl,
     report_conformance_impl,
@@ -638,6 +639,25 @@ def build_app() -> FastAPI:
     )
     def post_config_validate(body: ConfigValidateRequest) -> dict[str, Any]:
         return config_validate_impl(body.kimera_repo, body.env_overrides)
+
+    @app.get(
+        "/managing/status",
+        summary="Live Kimera substrate status / health (the Manage facet)",
+        description=(
+            "Ophamin's Manage facet — the Control room's live backend. Probes "
+            "the connected Kimera substrate (real adapter probe) and reports "
+            "its commit, runner readiness, and per-cognitive-surface import "
+            "health (entity / arachne / walker / gwf / piovra / rosetta / "
+            "ouroboros / pentecost / astrolabe / atlas / spde …). A missing or "
+            "un-runnable substrate is reported as `ready: false` with the "
+            "error, never a crash. Pass ?kimera_repo=… or set "
+            "OPHAMIN_KIMERA_REPO. Note: probing imports Kimera in a "
+            "subprocess, so this call can take several seconds."
+        ),
+        tags=["managing"],
+    )
+    def get_managing_status(kimera_repo: str = "", target: str = "entity") -> dict[str, Any]:
+        return management_status_impl(kimera_repo, target)
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints

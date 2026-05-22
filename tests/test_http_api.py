@@ -328,6 +328,7 @@ class TestOpenAPI:
             "/configuring/schema",
             "/configuring/effective",
             "/configuring/validate",
+            "/managing/status",
             "/verify",
             "/canonicalize",
             "/proofs/index",

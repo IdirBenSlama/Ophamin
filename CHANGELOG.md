@@ -7,7 +7,37 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.89.0] below for the latest cut.)
+(empty — see [0.90.0] below for the latest cut.)
+
+## [0.90.0] — 2026-05-22
+
+**Feature — the Manage facet: live substrate status / health.** Closes the
+last of Ophamin's five operational facets (Manage · Configure · Cockpit ·
+Observatory · R&D). Ophamin now operates as Kimera's management layer, not
+just observe + configure + experiment.
+
+- **New `ophamin.managing`**:
+  - `substrate_status(kimera_repo)` — the Control room's live backend.
+    Probes the connected Kimera substrate via the real
+    `KimeraAdapter.probe()` (imports each cognitive surface in a subprocess)
+    and reports: substrate commit, runner readiness, and **per-cognitive-
+    surface import health** (entity / arachne / walker / gwf / piovra /
+    rosetta / ouroboros / pentecost / astrolabe / atlas / spde …), plus a
+    readiness verdict. Because Kimera is mid-development, a partly-broken
+    substrate is shown honestly (per-target ok/error), not assumed healthy.
+  - `normalize_status(probe_report)` — the deterministic core
+    (probe report → management status), testable with no live substrate.
+- **New `GET /managing/status`** — live status; a missing or un-runnable
+  substrate returns `ready: false` with the error, never a crash.
+- Verified live: **11/11 cognitive surfaces healthy** on the connected
+  Kimera repo (commit picked up automatically — the "keep an eye on
+  engineering progress" signal).
+- 8 Manage tests (all-healthy → ready; partial health surfaces the broken
+  target; runner-down → not ready; zero-healthy → not ready; missing repo →
+  degraded not crash; real-repo integration).
+
+**All five operational facets of the horizontal platform are now built.**
+The bedrock is in place; vertical builds sit on top.
 
 ## [0.89.0] — 2026-05-22
 

@@ -767,6 +767,28 @@ def config_validate_impl(
     }
 
 
+def management_status_impl(kimera_repo: str = "", target: str = "entity") -> dict[str, Any]:
+    """Ophamin Manage facet: live substrate status / health.
+
+    Probes the connected Kimera substrate (real ``KimeraAdapter.probe()``) and
+    reports identity (commit), runner readiness, and per-cognitive-surface
+    import health. A missing repo or un-runnable substrate is reported as
+    ``ready=False`` with the error — never a crash.
+    """
+    from ophamin.managing import substrate_status
+
+    repo = _resolve_kimera_repo(kimera_repo)
+    if not repo:
+        return {"configured": False, "ready": False, "targets": [],
+                "message": "No Kimera repo set (pass kimera_repo or set "
+                           "OPHAMIN_KIMERA_REPO).",
+                "framework_version": __version__}
+    status = substrate_status(repo, target=target)
+    status["configured"] = True
+    status["framework_version"] = __version__
+    return status
+
+
 def report_standards_impl() -> dict[str, Any]:
     """The menu of recognised report standards + output formats + the
     Ophamin naming conventions. Deterministic; read-only."""
