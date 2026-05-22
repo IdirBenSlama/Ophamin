@@ -64,7 +64,7 @@ from __future__ import annotations
 
 from itertools import combinations
 from pathlib import Path
-from statistics import mean
+from statistics import mean, median
 from typing import Any
 
 from ophamin import __version__
@@ -293,6 +293,63 @@ class MemoryDeformationFlowScenario(Scenario):
             return 1.0  # two empty sets are trivially identical
         return len(a & b) / len(union)
 
+    @classmethod
+    def _control_crosscheck(
+        cls,
+        by_stimulus: dict[int, list[tuple[int, "frozenset[str] | None"]]],
+        same_jaccards: list[float],
+    ) -> dict[str, Any]:
+        """Negative control: same-stimulus vs cross-stimulus Jaccard.
+
+        Builds the cross-stimulus Jaccard distribution (pairs of concept sets
+        from DIFFERENT stimuli) and tests, with scipy's Mann-Whitney U
+        (one-sided, same > cross), whether recognition is a real signal or
+        just generic similarity. Returns the control stats + a pass/fail.
+        """
+        from itertools import combinations as _comb
+
+        # All valid (stimulus_idx, concept_set), then cross-stimulus pairs.
+        items: list[tuple[int, frozenset[str]]] = []
+        for idx, exposures in by_stimulus.items():
+            for _ci, cs in exposures:
+                if cs is not None:
+                    items.append((idx, cs))
+        cross: list[float] = [
+            cls._jaccard(a, b)
+            for (ia, a), (ib, b) in _comb(items, 2) if ia != ib
+        ]
+
+        out: dict[str, Any] = {
+            "control": "same_stimulus_vs_cross_stimulus_jaccard",
+            "n_same": len(same_jaccards),
+            "n_cross": len(cross),
+            "same_median": round(median(same_jaccards), 6) if same_jaccards else 0.0,
+            "cross_median": round(median(cross), 6) if cross else 0.0,
+        }
+        if len(same_jaccards) < 3 or len(cross) < 3:
+            out.update({"status": "skipped", "reason": "too few pairs for a test",
+                        "p_value": None, "mannwhitney_u": None,
+                        "cl_effect_size": None, "recognition_significant": False})
+            return out
+        try:
+            from scipy.stats import mannwhitneyu
+            u, p = mannwhitneyu(same_jaccards, cross, alternative="greater")
+            cl = float(u) / (len(same_jaccards) * len(cross))  # P(same > cross)
+            significant = (p < 0.05) and (out["same_median"] > out["cross_median"])
+            out.update({
+                "status": "passed" if significant else "failed",
+                "mannwhitney_u": float(u),
+                "p_value": float(p),
+                "cl_effect_size": round(cl, 4),   # common-language: P(same>cross)
+                "recognition_significant": bool(significant),
+                "library": "scipy",
+            })
+        except Exception as exc:  # noqa: BLE001 — control is best-effort
+            out.update({"status": "skipped", "reason": f"scipy: {exc}",
+                        "p_value": None, "mannwhitney_u": None,
+                        "cl_effect_size": None, "recognition_significant": False})
+        return out
+
     # ------------------------------------------------------------------ run --
 
     def run(
@@ -361,6 +418,16 @@ class MemoryDeformationFlowScenario(Scenario):
             pair_series, key=lambda p: p["jaccard"], default=None
         ) if pair_series else None
 
+        # --- NEGATIVE CONTROL + significance (the cross-check) -------------
+        # Recognition is only "real" if same-stimulus re-exposure similarity
+        # is significantly HIGHER than the similarity between DIFFERENT
+        # stimuli. Otherwise a high Jaccard could just mean "all text looks
+        # alike" (the lexical-overlap confound). We compute the cross-stimulus
+        # Jaccard distribution and test same > cross with Mann-Whitney U
+        # (scipy — an independent, standard library), with a common-language
+        # effect size. This is what makes the verdict trustworthy.
+        control = self._control_crosscheck(by_stimulus, all_jaccards)
+
         # PRE-REGISTRATION
         config = {
             "scenario": self.name,
@@ -396,6 +463,14 @@ class MemoryDeformationFlowScenario(Scenario):
                 f"cycles {worst['cycle_a']}↔{worst['cycle_b']} = "
                 f"{worst['jaccard']:.4f}"
             )
+        if control.get("p_value") is not None:
+            reasoning += (
+                f"; control: same-stimulus median {control['same_median']:.3f} vs "
+                f"cross-stimulus median {control['cross_median']:.3f}, "
+                f"Mann-Whitney p={control['p_value']:.2g} "
+                f"(recognition {'IS' if control['recognition_significant'] else 'NOT'} "
+                f"significantly above the cross-stimulus baseline)"
+            )
         if inconclusive:
             reasoning += (
                 f"; too few valid pairs (<{self.min_pairs}) to decide the "
@@ -415,7 +490,11 @@ class MemoryDeformationFlowScenario(Scenario):
                 statistic_value=floor,
                 library="ophamin",
                 library_version=__version__,
-                cross_check="n/a",
+                # The cross-check is the negative control: did same-stimulus
+                # recognition test SIGNIFICANTLY above the cross-stimulus
+                # baseline? passed / failed / skipped (too few pairs).
+                cross_check=control.get("status", "skipped"),
+                p_value=control.get("p_value"),
                 detail={
                     "scope": "flow",
                     "flow_metric_label": "recognition Jaccard",
@@ -425,6 +504,7 @@ class MemoryDeformationFlowScenario(Scenario):
                         "ALWAYS(jaccard(concepts_i, concepts_j) >= theta) "
                         "over same-stimulus re-exposure pairs"
                     ),
+                    "control": control,
                     "recognition_jaccard_mean": mean_j,
                     "n_pairs": n_pairs,
                     "n_stimuli": len(self.stimuli),

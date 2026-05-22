@@ -170,6 +170,41 @@ class TestRunVerdict:
         assert rec.verdict.outcome == "VALIDATED"  # 0.5 >= 0.4
 
 
+class TestNegativeControl:
+    """The cross-check: recognition is only credited when same-stimulus
+    similarity is significantly ABOVE the cross-stimulus baseline. This is
+    what rules out the 'all text looks alike' artifact."""
+
+    def test_real_recognition_control_passes(self):
+        # Each stimulus has its own distinct, stable concept set → same-
+        # stimulus Jaccard 1.0, cross-stimulus 0.0 → significant.
+        plan = {
+            0: [["a", "b"]] * 3,
+            1: [["c", "d"]] * 3,
+            2: [["e", "f"]] * 3,
+        }
+        rec = _scenario().run(_PlannedAdapter(_STIM, plan))
+        ev = rec.evidence[0]
+        ctrl = ev.detail["control"]
+        assert ctrl["status"] == "passed"
+        assert ctrl["recognition_significant"] is True
+        assert ctrl["same_median"] > ctrl["cross_median"]
+        assert ev.cross_check == "passed"
+        assert ev.p_value is not None and ev.p_value < 0.05
+
+    def test_artifact_similarity_control_fails(self):
+        # Every stimulus shares the SAME concept set → same-stimulus and
+        # cross-stimulus are equally similar → recognition NOT above baseline.
+        plan = {i: [["x", "y"]] * 3 for i in range(len(_STIM))}
+        rec = _scenario(recognition_floor=0.5).run(_PlannedAdapter(_STIM, plan))
+        ev = rec.evidence[0]
+        ctrl = ev.detail["control"]
+        # The LTL floor still validates (1.0 >= 0.5), but the control flags
+        # that this "recognition" is indistinguishable from the baseline.
+        assert ctrl["recognition_significant"] is False
+        assert ev.cross_check in ("failed", "skipped")
+
+
 class TestContract:
     def test_missing_substrate_raises(self):
         s = _scenario()

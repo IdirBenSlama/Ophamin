@@ -7,7 +7,36 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.95.0] below for the latest cut.)
+(empty — see [0.96.0] below for the latest cut.)
+
+## [0.96.0] — 2026-05-22
+
+**Empirical rigor — the recognition flow proof now has a negative control +
+significance test.** The critical review's #2 finding: the flow proofs
+asserted a verdict from one number, `cross_check="n/a"`, no control — and the
+diagnosis agent itself raised the confound that Jaccard might measure lexical
+overlap, not real recognition. Fixed for the flagship metric.
+
+- **Negative control + Mann-Whitney test** in `memory-deformation-flow`: as
+  well as same-stimulus re-exposure Jaccard, it now computes the
+  **cross-stimulus** Jaccard distribution (different stimuli) and tests
+  *same > cross* with scipy's Mann-Whitney U (one-sided) + a common-language
+  effect size. The evidence `cross_check` is now `passed`/`failed`/`skipped`
+  (not `n/a`), with the real `p_value`. Recognition is credited only when it
+  tests **significantly above the cross-stimulus baseline** — ruling out the
+  "all text looks alike" artifact.
+- **Measured on real Kimera**: same-stimulus median **1.0** vs cross-stimulus
+  **0.024**, **p = 9.7e-17**, effect size 1.0 → the confound is **refuted by
+  the data**. Kimera's recognition is a real signal, now *confirmed against a
+  control*, not just asserted.
+- New persisted proof carries the control in its verdict + evidence detail.
+- Tests pin the control's meaning: real recognition → control `passed`;
+  artifact similarity (all stimuli identical) → control flags
+  `recognition_significant=False` even though the LTL floor still validates.
+
+This is the owner's core principle — no evidence without confirmation — made
+real for the flagship metric. Φ-stability + the remaining proofs get the same
+treatment next.
 
 ## [0.95.0] — 2026-05-22
 
