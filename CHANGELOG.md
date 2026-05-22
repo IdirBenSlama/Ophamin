@@ -7,7 +7,43 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.99.1] below for the latest cut.)
+(empty — see [0.100.0] below for the latest cut.)
+
+## [0.100.0] — 2026-05-22
+
+**Owner-gated config write/apply (CR5).** The critical review's #5 finding:
+the Manage and Configure facets were read-only. CR5 adds the ONE mutating
+capability — writing a config change to a `.env` file Kimera reads — and gates
+it hard, because it mutates the substrate. (Versioned 0.100.0: the honest
+minor after 0.99.x for a new public capability, not a 1.0 stability claim.)
+
+- **`configuring/apply.py`** — `plan_config_change()` + `apply_config_change()`:
+  - **Dry-run by default.** The plan returns a file→proposed diff + validation
+    and writes NOTHING. The "current" baseline is read from the managed `.env`
+    file (not `os.environ`), so the diff is coherent with what apply writes.
+  - **Owner-gated apply (defense in depth).** Writes ONLY when the caller
+    passes `authorized=True` AND the operator has set
+    `OPHAMIN_ALLOW_CONFIG_APPLY=1`. Either missing → loud
+    `ConfigApplyNotAuthorized`. The flag is intent; the env var is the explicit
+    enable; neither alone suffices.
+  - **Validated before apply.** Proposed changes must reference known knobs,
+    parse as their declared type, and the resulting config must pass
+    `validate_config` with no ERROR (e.g. flipping to `production` while debug
+    is on makes the plan non-applicable).
+  - **Reversible.** A `.bak` of the prior file is written before the change and
+    the prior content hash is recorded in the audit.
+  - **Secret-safe.** Secret knobs are REFUSED (`secret_refused`) — the tool
+    never writes or audits a credential; the owner sets those manually.
+  - **Audited.** Every apply emits an HMAC-signed `ConfigChangeAudit`
+    (before/after snapshot ids, content hashes, secret-safe change list).
+- **`ophamin config-apply <repo> --env-file F --set VAR=VALUE [--apply]`** —
+  the operator surface. Dry-run prints the plan; `--apply` writes only with the
+  env gate. Apply is intentionally **CLI-only** — a config mutation belongs at
+  the operator's terminal behind the env gate, not a web button on the network.
+- 17 tests pin the gate (refused without env gate / without authorized),
+  dry-run safety, file-based current, validation-blocks-apply, secret refusal,
+  reversibility, and the signed audit — all against tmp env files; the real
+  Kimera config is never touched.
 
 ## [0.99.1] — 2026-05-22
 

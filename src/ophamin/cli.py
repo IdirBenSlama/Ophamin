@@ -2694,6 +2694,70 @@ def cmd_author(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_config_apply(args: argparse.Namespace) -> int:
+    """Plan (dry-run) or apply (owner-gated) a Kimera config change (CR5).
+
+    Dry-run by default: prints the diff + validation, writes nothing —
+    inspecting a change is always safe. With ``--apply`` it writes the change
+    to the target ``.env`` file, but ONLY if the operator has ALSO set
+    ``OPHAMIN_ALLOW_CONFIG_APPLY=1`` (defense in depth — the flag is intent, the
+    env var is the explicit enable). Snapshots a ``.bak`` first (reversible)
+    and emits a signed audit. Secret knobs are refused — set those manually.
+    """
+    from ophamin.configuring import (
+        ConfigApplyError,
+        apply_config_change,
+        extract_config_schema,
+        plan_config_change,
+    )
+    from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY
+
+    changes: dict[str, str] = {}
+    for pair in args.set or []:
+        if "=" not in pair:
+            print(f"error: --set expects VAR=VALUE, got {pair!r}", file=sys.stderr)
+            return 2
+        k, _, v = pair.partition("=")
+        changes[k.strip()] = v
+    if not changes:
+        print("error: at least one --set VAR=VALUE is required", file=sys.stderr)
+        return 2
+
+    schema = extract_config_schema(args.repo)
+    plan = plan_config_change(schema, changes, env_file=args.env_file)
+
+    print(f"target     : {plan.target_file}")
+    print("changes    :")
+    for e in plan.entries:
+        d = e.to_dict()
+        print(f"  [{d['status']:14s}] {d['env_var']}: "
+              f"{d['current']!r} -> {d['proposed']!r}")
+    if plan.validation:
+        print("validation :")
+        for v in plan.validation:
+            print(f"  [{v['severity']}] {v['code']}: {v['message']}")
+    print(f"applicable : {plan.applicable}")
+
+    if not args.apply:
+        print("\n(dry-run — nothing written. Re-run with --apply AND "
+              "OPHAMIN_ALLOW_CONFIG_APPLY=1 to write the change.)")
+        return 0
+
+    try:
+        audit = apply_config_change(
+            plan, schema, authorized=True, sign_key=DEFAULT_SIGN_KEY,
+            audit_root=args.audit_root,
+        )
+    except ConfigApplyError as exc:
+        print(f"\nAPPLY REFUSED: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"\nAPPLIED. audit {audit.audit_id[:12]} | "
+          f"backup {audit.backup_file or '(none — new file)'}")
+    print(f"signed audit written under {args.audit_root}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ophamin",
@@ -2720,6 +2784,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="optional authors-registry JSON to record author->public_key into",
     )
     p_author.set_defaults(func=cmd_author)
+
+    p_capply = sub.add_parser(
+        "config-apply",
+        help="plan (dry-run) or apply (owner-gated) a Kimera config change",
+    )
+    p_capply.add_argument("repo", help="path to the Kimera-SWM repo (config schema)")
+    p_capply.add_argument(
+        "--env-file", required=True, help="target .env file to manage",
+    )
+    p_capply.add_argument(
+        "--set", action="append", default=[], metavar="VAR=VALUE",
+        help="a proposed config change (repeatable)",
+    )
+    p_capply.add_argument(
+        "--apply", action="store_true",
+        help="actually write the change (also requires OPHAMIN_ALLOW_CONFIG_APPLY=1)",
+    )
+    p_capply.add_argument(
+        "--audit-root", default="proofs/config_changes",
+        help="where the signed config-change audit is written",
+    )
+    p_capply.set_defaults(func=cmd_config_apply)
 
     p_run = sub.add_parser("run", help="run one experiment from a base config")
     p_run.add_argument("config", help="path to a base config YAML")
