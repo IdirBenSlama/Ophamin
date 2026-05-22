@@ -49,6 +49,13 @@ return INCONCLUSIVE; the memory is in the scars and the manifold.
 - New: `examples/run_memory_permanence_flow.py`,
   `tests/test_memory_permanence_flow.py` (18 tests; memory→VALIDATED,
   stateless re-derivation→REFUTED, scar reset→REFUTED).
+- **Real-data confirmation** (`examples/run_memory_permanence_flow_enron.py`):
+  the same discriminator on 12 real Enron emails × 3 = 36 cycles also VALIDATED
+  — `memory_path_dependence` 1.0 (20/20), scars 1→29 (0 resets), coupling
+  1.24→16.63 (13×), recognition floor 0.864 (messier real text, still ≥0.80,
+  0 failures), Spearman ρ=0.944 p=3.1e-18. The property holds on real-world
+  business email, not only curated genesis vocabulary. Signed proof
+  `d5a4ce3a…`.
 
 ## [0.108.0] — 2026-05-22
 
