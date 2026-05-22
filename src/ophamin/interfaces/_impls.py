@@ -616,6 +616,12 @@ def list_flow_impl(proofs_root: str | Path = "proofs") -> dict[str, Any]:
                 "empty_input_rate": detail.get("empty_input_rate"),
                 "phi_floor_strict": detail.get("phi_floor_strict"),
                 "per_pass_mean": detail.get("per_pass_mean"),
+                # CR1 statistical confirmation: the cross-check status +
+                # p-value + full control block (Wilson CI + Φ discrimination).
+                # Generic across flow proofs — recognition + phi both carry it.
+                "cross_check": flow_ev.get("cross_check"),
+                "p_value": flow_ev.get("p_value"),
+                "control": detail.get("control"),
                 "ltl_invariant": detail.get("ltl_invariant", ""),
                 "threshold_anchor": detail.get("threshold_anchor", ""),
                 "per_stimulus_floor": detail.get("per_stimulus_floor", {}),

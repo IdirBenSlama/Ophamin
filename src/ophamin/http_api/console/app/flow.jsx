@@ -197,6 +197,29 @@ function FlowScreen() {
                       {f.per_pass_mean ? ' · per-pass mean Φ ' + Object.entries(f.per_pass_mean).map(([p, v]) => 'p' + p + ':' + fmt(v)).join('  ') : ''}
                     </div>
                   )}
+                  {f.cross_check && f.cross_check !== 'n/a' && (() => {
+                    const cc = f.cross_check;
+                    const ctl = f.control || {};
+                    const ccColor = cc === 'passed' ? 'var(--validated, #2dd4bf)'
+                      : cc === 'failed' ? 'var(--refuted, #ef5b5b)'
+                      : 'var(--text-muted, #8b949e)';
+                    return (
+                      <div className="micro" style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ padding: '1px 7px', borderRadius: 'var(--r-sm)', border: '1px solid ' + ccColor, color: ccColor, fontWeight: 600, letterSpacing: '0.04em' }}>
+                          CROSS-CHECK {cc.toUpperCase()}
+                        </span>
+                        {typeof ctl.ci_low === 'number' && (
+                          <span className="mono faint">Wilson 95% [{fmt(ctl.ci_low)}, {fmt(ctl.ci_high)}]{ctl.alive_confident ? ' · confidently alive' : ''}</span>
+                        )}
+                        {typeof f.p_value === 'number' && (
+                          <span className="mono faint">Φ real&gt;empty p={f.p_value.toExponential(1)}{ctl.phi_discriminates ? ' · discriminates' : ''}</span>
+                        )}
+                        {!ctl.ci_low && !f.p_value && ctl.reason && (
+                          <span className="mono faint">{ctl.reason}</span>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {f.n_failed_exposures > 0 && (
                     <div className="micro faint" style={{ marginTop: 4 }}>
                       {f.n_failed_exposures} exposure{f.n_failed_exposures === 1 ? '' : 's'} produced no concept set (gap, not a 0.0 pair)

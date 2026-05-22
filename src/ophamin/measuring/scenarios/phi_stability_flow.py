@@ -227,6 +227,88 @@ class PhiStabilityFlowScenario(Scenario):
             return None
         return float(v)
 
+    @staticmethod
+    def _phi_crosscheck(
+        phi_real: list[float], phi_empty: list[float], phi_floor: float,
+        non_collapse_rate: float, n_measured: int,
+        alive_confidence_floor: float = 0.90,
+    ) -> dict[str, Any]:
+        """Statistical confirmation of the 'stays alive' claim.
+
+        (1) Wilson CI on the non-collapse rate (statsmodels): is the substrate
+        CONFIDENTLY above the collapse floor, not just on average? (2) When
+        empty-input cycles exist: Mann-Whitney that real-input Φ > empty-input
+        Φ — does Φ actually discriminate having something to integrate from
+        nothing (a responsive signal, not a constant)?
+        """
+        from statistics import median
+        out: dict[str, Any] = {
+            "control": "wilson_ci_non_collapse + real_vs_empty_phi",
+            "non_collapse_rate": round(non_collapse_rate, 6),
+            "n_measured": n_measured,
+            "n_empty": len(phi_empty),
+        }
+        if n_measured < 3:
+            out.update({"status": "skipped", "reason": "too few real-input cycles",
+                        "p_value": None, "ci_low": None, "ci_high": None,
+                        "alive_confident": False, "phi_discriminates": None})
+            return out
+        # (1) Wilson CI on the non-collapse proportion.
+        try:
+            from statsmodels.stats.proportion import proportion_confint
+            n_ok = sum(1 for v in phi_real if v >= phi_floor)
+            ci_low, ci_high = proportion_confint(n_ok, n_measured, alpha=0.05, method="wilson")
+        except Exception as exc:  # noqa: BLE001
+            out.update({"status": "skipped", "reason": f"statsmodels: {exc}",
+                        "p_value": None, "ci_low": None, "ci_high": None,
+                        "alive_confident": False, "phi_discriminates": None})
+            return out
+        alive_confident = ci_low >= alive_confidence_floor
+        out.update({"ci_low": round(float(ci_low), 4), "ci_high": round(float(ci_high), 4),
+                    "ci_method": "wilson_95%", "alive_confident": bool(alive_confident)})
+        # (2) Discrimination control — only when there are empty-input cycles.
+        p_value = None
+        discriminates = None
+        if len(phi_empty) >= 3:
+            try:
+                from scipy.stats import mannwhitneyu
+                u, p = mannwhitneyu(phi_real, phi_empty, alternative="greater")
+                p_value = float(p)
+                cl = float(u) / (len(phi_real) * len(phi_empty))
+                discriminates = (p < 0.05) and (median(phi_real) > median(phi_empty))
+                out.update({"mannwhitney_u": float(u), "cl_effect_size": round(cl, 4),
+                            "empty_median": round(median(phi_empty), 6),
+                            "real_median": round(median(phi_real), 6),
+                            "library": "statsmodels+scipy"})
+            except Exception as exc:  # noqa: BLE001
+                out["discrimination_note"] = f"scipy: {exc}"
+        out["p_value"] = p_value
+        out["phi_discriminates"] = discriminates
+        collapses_present = n_ok < n_measured
+        # Decide honestly. "failed" = the control CONTRADICTS the alive claim;
+        # "passed" = it actively CONFIRMS; "skipped" = nothing contradicts but
+        # power is too low to confirm. We never let small-n underpower read as
+        # "failed" — that would conflate "not enough data" with "collapsed".
+        if collapses_present:
+            # A real-input cycle dropped below the floor — exactly the H0
+            # collapse the verdict already flags REFUTED. The control agrees.
+            out["status"] = "failed"
+        elif discriminates is False:
+            # No collapse, but Φ does not respond to input — it may be an
+            # input-blind constant. That undermines "stays cognitively alive".
+            out["status"] = "failed"
+        elif alive_confident or discriminates is True:
+            # Confirmed: Wilson lower bound ≥ floor, or Φ significantly
+            # discriminates real input from empty input.
+            out["status"] = "passed"
+        else:
+            out["status"] = "skipped"
+            out["reason"] = (
+                "underpowered: no collapse, but Wilson CI below the alive "
+                "floor and no empty-input arm to test Φ discrimination"
+            )
+        return out
+
     # ------------------------------------------------------------------ run --
 
     def run(
@@ -255,6 +337,7 @@ class PhiStabilityFlowScenario(Scenario):
         # over-all-cycles floor as a canary in the evidence.
         phi_real: list[float] = []      # Φ on cycles that produced concepts
         phi_all: list[float] = []       # Φ on every cycle that returned a Φ
+        phi_empty: list[float] = []     # Φ on empty-input cycles (control arm)
         n_failed = 0                    # cycle failed entirely (no Φ)
         n_empty_input = 0               # cycle ran but produced no concepts
         per_stimulus: dict[int, list[float]] = {
@@ -281,6 +364,7 @@ class PhiStabilityFlowScenario(Scenario):
             })
             if not has_concepts:
                 n_empty_input += 1
+                phi_empty.append(phi)
                 continue
             phi_real.append(phi)
             per_stimulus[idx].append(phi)
@@ -303,6 +387,16 @@ class PhiStabilityFlowScenario(Scenario):
             sum(1 for v in phi_real if v >= self.phi_floor) / n_measured
             if n_measured else 0.0
         )
+        # --- statistical confirmation (the cross-check) --------------------
+        # Two standard-library checks instead of trusting a bare min:
+        #  1. Wilson CI on the non-collapse rate (statsmodels) — is the
+        #     substrate CONFIDENTLY alive on real input, not just on average?
+        #  2. When empty-input cycles exist: Φ on real vs empty input
+        #     (scipy Mann-Whitney) — does Φ actually DISCRIMINATE having
+        #     something to integrate from having nothing (i.e. is Φ a real
+        #     responsive signal, not a constant)?
+        control = self._phi_crosscheck(
+            phi_real, phi_empty, self.phi_floor, non_collapse_rate, n_measured)
         empty_input_rate = (n_empty_input / n_returned) if n_returned else 0.0
         per_stimulus_floor = {
             str(i): min(vals) for i, vals in per_stimulus.items() if vals
@@ -356,6 +450,20 @@ class PhiStabilityFlowScenario(Scenario):
                 f"; worst real cycle: stimulus {worst_unit['stimulus_index']} "
                 f"@ cycle {worst_unit['cycle']} = {worst_unit['value']:.4f}"
             )
+        ci_low = control.get("ci_low")
+        if ci_low is not None:
+            reasoning += (
+                f"; cross-check {control.get('status', 'skipped')}: "
+                f"non-collapse Wilson 95% CI "
+                f"[{ci_low:.3f}, {control.get('ci_high', 0.0):.3f}]"
+                f"{' (confidently alive)' if control.get('alive_confident') else ''}"
+            )
+            pv = control.get("p_value")
+            if pv is not None:
+                reasoning += (
+                    f", Φ real>empty p={pv:.2e}"
+                    f"{' (discriminates)' if control.get('phi_discriminates') else ''}"
+                )
         if inconclusive:
             reasoning += (
                 f"; too few real-input cycles (<{self.min_cycles}) to decide"
@@ -374,13 +482,15 @@ class PhiStabilityFlowScenario(Scenario):
                 statistic_value=floor,
                 library="ophamin",
                 library_version=__version__,
-                cross_check="n/a",
+                cross_check=control.get("status", "skipped"),
+                p_value=control.get("p_value"),
                 detail={
                     "scope": "flow",
                     "flow_metric_label": "Φ (integrated information)",
                     "flow_unit_label": "stimulus",
                     "flow_corpus_label": self.corpus_label,
                     "flow_mean": phi_mean,
+                    "control": control,
                     "ltl_invariant": (
                         "ALWAYS(phi >= phi_floor) over real-input cycles "
                         "(empty-concept cycles excluded — Φ=0 there is "

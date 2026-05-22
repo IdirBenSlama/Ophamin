@@ -407,6 +407,15 @@ def ingest(
 #: proofs mis-classifies them (and fails schema validation).
 _NON_PROOF_SUBDIRS: frozenset[str] = frozenset({"llm_calls"})
 
+#: Sibling JSON filenames that live *inside* a proof bundle directory but are
+#: NOT ``EmpiricalProofRecord``s. ``diagnosis.json`` is the agentic diagnosis
+#: layer's analysis artifact (model / latency_ms / diagnosis / proof_ids — a
+#: different schema), persisted next to ``proof.json`` for locality. The
+#: subdir skip above can't catch it because it's a sibling file, not a
+#: subtree — so it gets its own filename skip. Same intent: agentic-layer
+#: artifacts are not mistaken for proofs (which would fail schema validation).
+_NON_PROOF_FILENAMES: frozenset[str] = frozenset({"diagnosis.json"})
+
 
 def iter_proofs(directory: str | Path) -> Iterator[Path]:
     """Yield every proof ``*.json`` file under ``directory`` (recursive).
@@ -415,12 +424,14 @@ def iter_proofs(directory: str | Path) -> Iterator[Path]:
     :func:`list_proofs`, ``ophamin summarize``, drift detectors) see a
     stable enumeration.
 
-    Skips the :data:`_NON_PROOF_SUBDIRS` subtrees (currently
-    ``llm_calls/``) so agentic-layer audit records aren't mistaken for
-    proofs.
+    Skips the :data:`_NON_PROOF_SUBDIRS` subtrees (currently ``llm_calls/``)
+    and the :data:`_NON_PROOF_FILENAMES` sibling artifacts (currently
+    ``diagnosis.json``) so agentic-layer records aren't mistaken for proofs.
     """
     for p in sorted(Path(directory).rglob("*.json")):
         if _NON_PROOF_SUBDIRS.intersection(p.parts):
+            continue
+        if p.name in _NON_PROOF_FILENAMES:
             continue
         yield p
 

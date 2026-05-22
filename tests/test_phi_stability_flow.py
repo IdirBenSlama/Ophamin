@@ -189,6 +189,89 @@ class TestRunVerdict:
         assert rec.evidence[0].detail["empty_input_cycles"] == 9
 
 
+class TestCrossCheck:
+    """The CR1 statistical confirmation: Wilson CI on the non-collapse rate +
+    a real-vs-empty Φ discrimination control. cross_check is one of
+    passed/failed/skipped — never the old hardcoded n/a — and 'failed' means
+    the control CONTRADICTS the claim, never just 'too few samples'.
+    """
+
+    def test_passes_via_discrimination(self):
+        # 6 real cycles at Φ=0.7, 3 empty-input cycles at Φ=0.0 → complete
+        # separation → Mann-Whitney p<0.05, real median > empty → discriminates
+        # → cross_check passed even though n is small (the discrimination arm
+        # confirms Φ is a responsive signal, not a constant).
+        plan = {
+            0: [0.7, 0.7, 0.7],
+            1: [0.7, 0.7, 0.7],
+            2: [("empty", 0.0), ("empty", 0.0), ("empty", 0.0)],
+        }
+        s = _scenario(phi_floor=0.05)
+        rec = s.run(_PhiAdapter(_STIM, plan))
+        ev = rec.evidence[0]
+        assert rec.verdict.outcome == "VALIDATED"
+        assert ev.cross_check == "passed"
+        ctl = ev.detail["control"]
+        assert ctl["phi_discriminates"] is True
+        assert ctl["p_value"] is not None and ctl["p_value"] < 0.05
+        assert ev.p_value == ctl["p_value"]
+        assert ctl["real_median"] > ctl["empty_median"]
+
+    def test_failed_on_real_collapse(self):
+        # gamma's 2nd pass is a REAL-input cycle that collapses below floor →
+        # the control agrees with the REFUTED verdict: cross_check failed.
+        plan = {
+            0: [0.7, 0.7, 0.7],
+            1: [0.7, 0.7, 0.7],
+            2: [0.7, 0.01, 0.7],
+        }
+        s = _scenario(phi_floor=0.05)
+        rec = s.run(_PhiAdapter(_STIM, plan))
+        ev = rec.evidence[0]
+        assert rec.verdict.outcome == "REFUTED"
+        assert ev.cross_check == "failed"
+        assert ev.detail["control"]["non_collapse_rate"] < 1.0
+
+    def test_skipped_when_underpowered(self):
+        # 9 clean cycles, no empty arm: no collapse, but Wilson lower bound at
+        # n=9 (~0.70) is below the 0.90 alive floor and there is no empty arm
+        # to test discrimination → honestly 'skipped', NOT 'failed'.
+        plan = {i: [0.7, 0.7, 0.7] for i in range(len(_STIM))}
+        s = _scenario(phi_floor=0.05)
+        rec = s.run(_PhiAdapter(_STIM, plan))
+        ev = rec.evidence[0]
+        assert rec.verdict.outcome == "VALIDATED"
+        assert ev.cross_check == "skipped"
+        ctl = ev.detail["control"]
+        assert ctl["alive_confident"] is False
+        assert ctl["ci_low"] is not None  # CI still computed + reported
+
+    def test_passes_via_wilson_ci_at_scale(self):
+        # 40 clean cycles (no empty arm): Wilson lower bound for 40/40 (~0.91)
+        # clears the 0.90 alive floor → confidently alive → cross_check passed.
+        stim = tuple(f"stimulus {i}" for i in range(8))
+        plan = {i: [0.6] * 5 for i in range(len(stim))}
+        s = PhiStabilityFlowScenario(
+            stimuli=stim, n_passes=5, min_cycles=6, phi_floor=0.05)
+        rec = s.run(_PhiAdapter(stim, plan))
+        ev = rec.evidence[0]
+        assert rec.verdict.outcome == "VALIDATED"
+        assert ev.detail["n_measured"] == 40
+        assert ev.cross_check == "passed"
+        ctl = ev.detail["control"]
+        assert ctl["alive_confident"] is True
+        assert ctl["ci_low"] >= 0.90
+
+    def test_crosscheck_in_reasoning(self):
+        plan = {i: [0.6] * 5 for i in range(8)}
+        stim = tuple(f"stimulus {i}" for i in range(8))
+        s = PhiStabilityFlowScenario(
+            stimuli=stim, n_passes=5, min_cycles=6, phi_floor=0.05)
+        rec = s.run(_PhiAdapter(stim, plan))
+        assert "cross-check" in rec.verdict.reasoning
+        assert "Wilson" in rec.verdict.reasoning
+
+
 class TestContract:
     def test_missing_substrate_raises(self):
         with pytest.raises(ValueError, match="live substrate"):

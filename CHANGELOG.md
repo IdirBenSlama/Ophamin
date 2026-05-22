@@ -7,7 +7,40 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.96.0] below for the latest cut.)
+(empty — see [0.97.0] below for the latest cut.)
+
+## [0.97.0] — 2026-05-22
+
+**Empirical rigor — the Φ-stability flow proof now has the same statistical
+confirmation (CR1).** The critical review flagged that `phi-stability-flow`
+still asserted its verdict from a bare `min Φ` with `cross_check="n/a"`. Now
+it carries a real, power-aware cross-check.
+
+- **Wilson 95% CI on the non-collapse rate** (statsmodels): is the substrate
+  *confidently* alive above the floor, not just on average? `alive_confident`
+  iff the lower bound clears a 0.90 floor.
+- **Real-vs-empty Φ discrimination control** (scipy Mann-Whitney, one-sided):
+  when the run produced empty-input cycles, it tests *Φ(real) > Φ(empty)* with
+  a common-language effect size — refuting the confound that Φ is an
+  input-blind constant rather than a responsive signal.
+- **Honest, power-aware status.** `cross_check` is now `passed`/`failed`/
+  `skipped` (never `n/a`). `failed` means the control *contradicts* the claim
+  (a real-input collapse, or Φ that does not discriminate) — never merely
+  "too few samples". A clean-but-small run is honestly `skipped: underpowered`.
+  The `p_value`, CI bounds, and the full `control` block ride in the evidence;
+  the verdict reasoning surfaces the cross-check inline.
+- **Demonstration run scaled to 5 passes (40 cycles)** so the Wilson lower
+  bound can clear the alive floor on a healthy substrate; the unit tests pin
+  all three outcomes against a programmable fake adapter.
+
+**Fixed**
+
+- `iter_proofs()` now skips the agentic diagnosis artifact `diagnosis.json`,
+  which the diagnosis layer writes *inside* a proof bundle dir (next to
+  `proof.json`). It is a different schema; treating it as a proof record made
+  the shipped-proofs schema check fail. The existing `_NON_PROOF_SUBDIRS`
+  skip only covered subtrees (`llm_calls/`) — extended with a parallel
+  `_NON_PROOF_FILENAMES` for sibling artifacts. Regression test added.
 
 ## [0.96.0] — 2026-05-22
 

@@ -397,6 +397,27 @@ def test_iter_proofs_skips_llm_calls_subtree(tmp_path):
     assert all("llm_calls" not in p.parts for p in paths)
 
 
+def test_iter_proofs_skips_diagnosis_sibling(tmp_path):
+    """iter_proofs must NOT yield the diagnosis-agent artifact.
+
+    The agentic diagnosis layer writes ``diagnosis.json`` INSIDE a proof
+    bundle directory, next to ``proof.json`` — a different schema (model /
+    latency_ms / diagnosis / proof_ids, not proof_id / claim / verdict).
+    The subdir skip can't catch it (it's a sibling file, not a subtree), so
+    iter_proofs must skip it by filename; otherwise it fails proof-schema
+    validation. Regression for the 2026-05-22 shipped-proofs schema failure."""
+    bundle = tmp_path / "scientific" / "memory-deformation-flow" / "2026-05-21_validated_abc"
+    bundle.mkdir(parents=True)
+    (bundle / "proof.json").write_text("{}", encoding="utf-8")
+    (bundle / "diagnosis.json").write_text(
+        '{"model": "qwen", "latency_ms": 12, "diagnosis": {}, "proof_ids": []}',
+        encoding="utf-8",
+    )
+    paths = list(iter_proofs(tmp_path))
+    assert [p.name for p in paths] == ["proof.json"]
+    assert all(p.name != "diagnosis.json" for p in paths)
+
+
 def test_list_proofs_returns_entries(tmp_path):
     record = _make_record().sign(_TEST_KEY)
     dump(record, tmp_path / "good.json")

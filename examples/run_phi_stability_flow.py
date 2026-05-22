@@ -23,7 +23,12 @@ from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Tier
 from ophamin.seeing.substrate import KimeraAdapter
 
 REPO = "/Users/idirbenslama/Desktop/DEV/Kimera_SWM (Spherical Word Memory)"
-N_PASSES = 3
+# 5 passes over 8 stimuli = 40 cycles. The CR1 cross-check confirms the
+# substrate is CONFIDENTLY alive via a Wilson 95% CI on the non-collapse
+# rate; that needs ~40 real-input cycles for the lower bound to clear the
+# 0.90 alive floor on a clean run (a smaller run is honestly 'skipped:
+# underpowered', not 'passed').
+N_PASSES = 5
 PHI_FLOOR = 0.05
 OUT_DIR = Path("proofs")
 
@@ -78,6 +83,21 @@ def main() -> int:
         w = d["worst_unit"]
         print(f"  worst cycle      : stimulus {w['stimulus_index']} @ cycle "
               f"{w['cycle']} (pass {w['pass']}) = {w['value']:.4f}")
+
+    ctl = d.get("control", {})
+    if ctl:
+        banner("CROSS-CHECK (CR1 statistical confirmation)")
+        print(f"  status           : {ctl.get('status')}")
+        if ctl.get("ci_low") is not None:
+            print(f"  non-collapse CI  : Wilson 95% "
+                  f"[{ctl['ci_low']:.3f}, {ctl.get('ci_high', 0.0):.3f}] "
+                  f"(alive floor 0.90 → "
+                  f"{'confidently alive' if ctl.get('alive_confident') else 'underpowered'})")
+        if ctl.get("p_value") is not None:
+            print(f"  Φ real>empty     : Mann-Whitney p={ctl['p_value']:.2e} "
+                  f"({'discriminates' if ctl.get('phi_discriminates') else 'no discrimination'})")
+        elif ctl.get("reason"):
+            print(f"  reason           : {ctl['reason']}")
 
     banner("VERDICT")
     print(f"verdict     : {record.verdict.outcome}")
