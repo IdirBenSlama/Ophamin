@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — INCONCLUSIVE</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-INCONCLUSIVE'>INCONCLUSIVE</span></h1><p><strong>Proof ID:</strong> <code>0e9151f3e42f14cab3a4b353c25a01bbb2967f435690e636023d26f49e7acf6a</code><br><strong>Created:</strong> 2026-05-22T16:50:07.145331+00:00</p><h2>1. Claim</h2><blockquote><p>A partial cue of a SEEN experience recalls its full content better than a partial cue of a never-seen item: memory_lift = mean(recall|seen) − mean(recall|never-seen) &gt; 0. Both arms get the same impoverished cue, so this isolates path-dependent memory from deterministic re-derivation.</p></blockquote><ul><li><strong>Operationalisation:</strong> Stream 80 seen items; never stream 25 control items. Probe partial cues (first 40% of words) of 25 seen and 25 control items. recall = Jaccard(concepts(partial cue), concepts(full item)). memory_lift = mean(recall seen) − mean(recall control); decided VALIDATED iff lift &gt; 0 with a significant seen&gt;control Mann-Whitney.</li><li><strong>Threshold:</strong> <code>memory_lift &gt; 0.0 jaccard</code></li><li><strong>H0:</strong> H0: memory_lift ≤ 0 — a seen partial cue recalls no better than a never-seen one; &#x27;recall&#x27; is deterministic re-derivation</li><li><strong>H1:</strong> H1: memory_lift &gt; 0 — prior exposure completes the partial cue; path-dependent memory beyond re-derivation</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-INCONCLUSIVE'>INCONCLUSIVE</span> — observed <code>0.06468032986947281</code></p><p>memory_lift +0.0647 = seen recall 0.7057 (n=21) − control recall 0.6410 (n=25); partial cue = first 40% of words; seen&gt;control Mann-Whitney p=0.31 (NOT significant); INCONCLUSIVE — lift not statistically significant</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-22T16:50:06.750923+00:00</code></li><li>Config hash: <code>57008019a405d3f104ca26c52165b988e10f99c030dfdfaf0ad09c7de13e1b73</code></li><li>Data hash: <code>831fd7cf7614cc5c9e71016a2fb328adef8ee00e951e29a7a7085f53d40fe693</code></li></ul><p><em>Plan:</em> Stream 80 seen items (record full concept sets). Probe partial cues (first 40% of words) of 25 seen items (warm) and 25 never-seen control items (cold; full run after the cue to get the target). recall = Jaccard(cue concepts, full concepts). memory_lift = mean(recall seen) − mean(recall control). INCONCLUSIVE if fewer than 5 valid probes per arm or the Mann-Whitney is not significant; else VALIDATED iff lift &gt; 0. The per-arm distributions are descriptive.</p><h2>4. Data</h2><ul><li>Substrate: <code>kimera-swm</code> @ <code>9c66d1449518</code></li><li>Dataset: <code>kimera-cued-recall-stream</code> (substrate-trajectory+partial-cue-recall, 155 records, hash <code>831fd7cf7614…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>O.flow.cued_recall</code></td><td><code>memory_lift</code></td><td><code>0.06468032986947281</code></td><td>—</td><td>ophamin 0.107.0</td></tr></tbody></table><h2>6. Signature</h2><p><code>4cbb7e90878a08dcac1b733b40cba1f6725e1a353e07a2dbb5fbf6c33b143cc8</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.107.0 @ <code>c33aa188e632</code></footer></body></html>
