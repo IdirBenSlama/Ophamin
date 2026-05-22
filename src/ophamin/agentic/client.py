@@ -131,6 +131,48 @@ class LLMClient:
             return "mlx-lm"
         return "unknown"
 
+    def list_models(self) -> list[str]:
+        """The model ids the runtime currently serves (``GET /v1/models``).
+
+        Ollama / LM Studio / MLX-LM all implement the OpenAI ``/v1/models``
+        listing. Returns the ``id`` of each entry. Loud-fail on transport /
+        shape errors per the no-fallback rule — callers that want a
+        best-effort "unknown" (e.g. availability probing) catch
+        :class:`LLMClientError` themselves rather than this method guessing.
+        """
+        url = f"{self.base_url}/models"
+        req = urllib.request.Request(
+            url, method="GET",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "User-Agent": "ophamin-agentic/0.63",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:  # noqa: S310
+                raw_body = resp.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            body_snippet = exc.read().decode("utf-8", errors="replace")[:1000] if exc.fp else ""
+            raise LLMClientError(
+                f"LLM HTTP {exc.code}: {exc.reason} at {url}",
+                status_code=exc.code, body_snippet=body_snippet,
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise LLMClientError(
+                f"LLM transport failure at {url}: {exc.reason}. "
+                f"Is the runtime up? (ollama: `ollama serve`)",
+                status_code=0, body_snippet="",
+            ) from exc
+        try:
+            data = json.loads(raw_body)
+            return [str(m["id"]) for m in data.get("data", []) if "id" in m]
+        except (json.JSONDecodeError, KeyError, TypeError) as exc:
+            raise LLMClientError(
+                f"LLM /models response shape unexpected: {exc}. "
+                f"body[:500]={raw_body[:500]!r}",
+                status_code=200, body_snippet=raw_body[:1000],
+            ) from exc
+
     def chat(
         self,
         *,

@@ -27,7 +27,7 @@ function ModelsScreen() {
       <div className="agent-banner">
         <Icon name="cpu" size={16}/>
         <div>
-          The models the agentic system uses for <b>analysis / diagnosis / authoring</b> — never inside the measurement path. Validation routes to <b>dedicated</b> scientific/engineering tiers, not a general model. Each tier is local by default; opt a tier into an external API per-tier (the key is read from an env var, never stored).
+          The models the agentic system uses for <b>analysis / diagnosis / authoring</b> — never inside the measurement path. Validation routes to <b>domain-dedicated</b> scientific/engineering tiers. Out of the box those default to a general model (shown below as <span className="mono">general-fallback</span>); set <span className="mono">OPHAMIN_LLM_MODEL_SCIENTIFIC</span> / <span className="mono">_ENGINEERING</span> (local or external API) to back them with a truly dedicated model. Each tier is local by default; the API key is read from an env var, never stored.
         </div>
       </div>
 
@@ -40,18 +40,30 @@ function ModelsScreen() {
             <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
               {tiers.map((t) => {
                 const dedicated = t.dedicated;
-                const c = dedicated ? 'var(--accent, #2dd4bf)' : 'var(--text-muted)';
+                const isDomain = t.role === 'domain-dedicated';
+                // honest accent: green only when ACTUALLY dedicated; amber for a
+                // domain tier still on its general-fallback; muted for general.
+                const c = dedicated ? 'var(--accent, #2dd4bf)' : (isDomain ? 'var(--inconclusive, #e3b341)' : 'var(--text-muted)');
                 return (
                   <div key={t.tier} style={{ border: '1px solid var(--border)', borderLeft: '3px solid ' + c, borderRadius: 'var(--r-sm)', padding: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <span className="mono" style={{ fontSize: 12, color: 'var(--text-primary)', textTransform: 'uppercase' }}>{t.tier}</span>
                       {dedicated && <span className="chip" style={{ fontSize: 9 }}>dedicated</span>}
+                      {isDomain && !dedicated && <span className="chip" style={{ fontSize: 9, color: 'var(--inconclusive, #e3b341)', borderColor: 'var(--inconclusive, #e3b341)' }} title={'currently the same model as the ' + t.fallback_general_tier + ' tier — set a distinct model to make it dedicated'}>general-fallback</span>}
                     </div>
                     <div className="mono" style={{ fontSize: 11, marginTop: 6, color: 'var(--text-primary)', wordBreak: 'break-all' }}>{t.model}</div>
                     <div className="mono faint" style={{ fontSize: 10, marginTop: 4 }}>
                       provider: <span style={{ color: t.provider === 'external_api' ? 'var(--inconclusive)' : 'var(--validated)' }}>{t.provider}</span>
                       {t.provider === 'external_api' && t.api_key_env ? ` · key: ${t.api_key_env}` : ''}
                     </div>
+                    {isDomain && !dedicated && t.fallback_general_tier && (
+                      <div className="mono faint" style={{ fontSize: 9.5, marginTop: 3 }}>↳ same model as <span style={{ textTransform: 'uppercase' }}>{t.fallback_general_tier}</span></div>
+                    )}
+                    {('available' in t) && (
+                      <div className="mono faint" style={{ fontSize: 9.5, marginTop: 3 }}>
+                        installed: <span style={{ color: t.available === true ? 'var(--validated)' : (t.available === false ? 'var(--refuted)' : 'var(--text-muted)') }}>{t.available === true ? 'yes' : (t.available === false ? 'no' : 'unknown')}</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}

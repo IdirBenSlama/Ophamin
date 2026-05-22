@@ -102,6 +102,40 @@ DEFAULT_TIER_MODELS: dict[TaskTier, str] = {
 }
 
 
+#: Which GENERAL tier each domain-dedicated tier falls back to when the
+#: operator hasn't pointed it at a distinct model. A dedicated tier is only
+#: TRULY dedicated when its model differs from this fallback (or it targets an
+#: external API) — otherwise it's a general model wearing a domain label, and
+#: the capability surface must say so honestly (CR3).
+_DEDICATED_FALLBACK: dict[TaskTier, TaskTier] = {
+    TaskTier.SCIENTIFIC: TaskTier.REASONING,
+    TaskTier.ENGINEERING: TaskTier.CODER,
+}
+
+
+def _dedicated_status(
+    tier: TaskTier, model: str, provider: Provider,
+) -> tuple[bool, str | None, str]:
+    """Honest status of a tier: is it ACTUALLY a dedicated model?
+
+    Returns ``(is_dedicated, fallback_general_tier, status)``:
+
+    * For a general tier → ``(False, None, "general")``.
+    * For a domain-dedicated tier (SCIENTIFIC / ENGINEERING):
+      ``status`` is ``"dedicated"`` only when the resolved model differs from
+      the general tier it falls back to, OR it targets an external API — i.e.
+      the operator has actually wired a distinct model. Otherwise it is
+      ``"general-fallback"``: the tier exists by design but is currently
+      backed by the same general model, so we do NOT claim "dedicated".
+    """
+    fb = _DEDICATED_FALLBACK.get(tier)
+    if fb is None:
+        return (False, None, "general")
+    fallback_model = DEFAULT_TIER_MODELS[fb]
+    is_dedicated = (model != fallback_model) or (provider == Provider.EXTERNAL_API)
+    return (is_dedicated, fb.value, "dedicated" if is_dedicated else "general-fallback")
+
+
 def _tier_provider(tier: TaskTier) -> tuple[Provider, str, str]:
     """Resolve (provider, base_url, api_key_env) for a tier from env.
 
@@ -158,7 +192,6 @@ TASK_ROUTING: dict[str, TaskTier] = {
 DEFAULT_MAX_TOKENS: dict[str, int] = {
     "adapter_gen": 4096,           # generated code can be long
     "proof_brief": 2048,
-    "refuted_triage": 4096,        # reasoning chains can be long
     "bundle_query": 512,           # JSON filter is small
     "prereg_validator": 2048,      # structured JSON, modest size
     "confound_enumerator": 8192,   # 3-5 confounds × mechanism + test
@@ -211,25 +244,53 @@ def pick_model(task: str) -> ModelChoice:
     )
 
 
-def model_capabilities() -> dict[str, Any]:
+def model_capabilities(*, check_availability: bool = False) -> dict[str, Any]:
     """Report the configured model routing — for the /models capability surface.
 
     Deterministic read of the env-resolved routing: every tier (general +
-    dedicated), its current model + provider (local / external_api) + base
-    URL + key-env-var name, and the per-task → tier map. Never includes a
+    domain-dedicated), its current model + provider (local / external_api) +
+    base URL + key-env-var name, and the per-task → tier map. Never includes a
     secret — only the *name* of the env var a key would be read from.
+
+    Honesty (CR3): a domain-dedicated tier (SCIENTIFIC / ENGINEERING) is
+    reported as ``dedicated: true`` ONLY when it is actually backed by a model
+    distinct from the general tier it falls back to (or an external API).
+    Out of the box both default to a general model (SCIENTIFIC→reasoning's
+    model, ENGINEERING→coder's model), so they report ``status:
+    "general-fallback"`` and name the ``fallback_general_tier`` — we do not
+    claim a dedicated model exists when it doesn't.
+
+    With ``check_availability=True`` each tier's model is probed against its
+    runtime (best-effort, network I/O) and an ``available`` bool is added —
+    so the surface can show whether a configured (dedicated) model is actually
+    installed, not just named. Default is False to keep the read I/O-free.
     """
+    availability: dict[str, bool | None] = {}
+    if check_availability:
+        availability = probe_tier_availability()
+
     tiers: list[dict[str, Any]] = []
+    any_dedicated = False
     for tier in TaskTier:
         provider, base_url, api_key_env = _tier_provider(tier)
-        tiers.append({
+        model = DEFAULT_TIER_MODELS[tier]
+        is_dedicated, fallback_tier, status = _dedicated_status(tier, model, provider)
+        any_dedicated = any_dedicated or is_dedicated
+        entry: dict[str, Any] = {
             "tier": tier.value,
-            "model": DEFAULT_TIER_MODELS[tier],
+            "model": model,
             "provider": provider.value,
             "base_url": base_url,
             "api_key_env": api_key_env,
-            "dedicated": tier in (TaskTier.SCIENTIFIC, TaskTier.ENGINEERING),
-        })
+            "role": "domain-dedicated" if tier in _DEDICATED_FALLBACK else "general",
+            # HONEST: true only when actually backed by a distinct/external model
+            "dedicated": is_dedicated,
+            "fallback_general_tier": fallback_tier,
+            "status": status,
+        }
+        if check_availability:
+            entry["available"] = availability.get(tier.value)
+        tiers.append(entry)
     tasks = [
         {"task": t, "tier": tier.value, "max_tokens": DEFAULT_MAX_TOKENS.get(t, 2048)}
         for t, tier in sorted(TASK_ROUTING.items())
@@ -241,9 +302,54 @@ def model_capabilities() -> dict[str, Any]:
         "external_api_enabled": any(
             t["provider"] == Provider.EXTERNAL_API.value for t in tiers
         ),
+        # honest top-line: are ANY of the domain-dedicated tiers actually
+        # backed by a distinct model, or are they all general-fallback today?
+        "dedicated_models_configured": any_dedicated,
+        "availability_checked": check_availability,
         "boundary": (
             "Tooling layer only — these models perform analysis / diagnosis "
             "/ authoring. No model is invoked from the measurement path "
             "(scenario.run); per the substrate's no-external-LLM rule."
         ),
     }
+
+
+def probe_tier_availability(timeout_s: float = 3.0) -> dict[str, bool | None]:
+    """Best-effort: is each tier's configured model actually installed?
+
+    Queries each LOCAL tier's runtime ``/v1/models`` listing and checks the
+    configured model tag against it. Returns ``{tier_value: True|False|None}``
+    where ``None`` means "could not determine" (runtime down, or an external
+    API tier whose listing we don't probe). Never raises — availability is a
+    best-effort signal layered on top of the deterministic config read.
+    """
+    from ophamin.agentic.client import LLMClient, LLMClientError
+
+    # Cache one listing per base_url so we don't hammer the same runtime once
+    # per tier.
+    listings: dict[str, set[str] | None] = {}
+    out: dict[str, bool | None] = {}
+    for tier in TaskTier:
+        provider, base_url, _ = _tier_provider(tier)
+        if provider == Provider.EXTERNAL_API:
+            out[tier.value] = None  # we don't probe external endpoints here
+            continue
+        url = base_url or ""  # empty => client's framework-wide default
+        if url not in listings:
+            try:
+                client = LLMClient(base_url=url, timeout_s=timeout_s) if url else LLMClient(timeout_s=timeout_s)
+                listings[url] = set(client.list_models())
+            except (LLMClientError, ValueError):
+                listings[url] = None  # runtime unreachable / bad url
+        installed = listings[url]
+        if installed is None:
+            out[tier.value] = None
+            continue
+        model = DEFAULT_TIER_MODELS[tier]
+        # Match exact tag or the bare name before a ':tag' (ollama lists
+        # 'llama3.1:8b'; some runtimes list 'llama3.1'). Be precise: exact, or
+        # the configured tag is one of the installed entries.
+        out[tier.value] = model in installed or any(
+            m == model or m.split(":")[0] == model.split(":")[0] for m in installed
+        )
+    return out

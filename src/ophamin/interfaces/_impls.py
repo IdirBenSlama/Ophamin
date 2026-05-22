@@ -889,18 +889,25 @@ def materialize_spec_impl(spec_json: str) -> dict[str, Any]:
     return result
 
 
-def model_capabilities_impl() -> dict[str, Any]:
-    """The configured agentic-model routing: tiers (general + dedicated
+def model_capabilities_impl(check_availability: bool = False) -> dict[str, Any]:
+    """The configured agentic-model routing: tiers (general + domain-dedicated
     scientific/engineering), each tier's model + provider (local /
     external_api) + key-env-var name, and the per-task → tier map.
 
-    Read-only + deterministic; never returns a secret (only the *name* of
-    the env var a key would be read from). These models are tooling-layer:
-    they perform analysis / diagnosis / authoring, never the measurement.
+    Honest (CR3): a domain-dedicated tier is flagged ``dedicated: true`` only
+    when it is actually backed by a distinct/external model; otherwise it is
+    ``status: "general-fallback"`` naming the general tier it mirrors.
+
+    Read-only + deterministic by default; never returns a secret (only the
+    *name* of the env var a key would be read from). With
+    ``check_availability=True`` it probes each runtime's ``/v1/models`` (best
+    effort, network I/O) and adds an ``available`` flag per tier. These models
+    are tooling-layer: they perform analysis / diagnosis / authoring, never the
+    measurement.
     """
     from ophamin.agentic.models import model_capabilities
 
-    caps = model_capabilities()
+    caps = model_capabilities(check_availability=check_availability)
     caps["framework_version"] = __version__
     return caps
 

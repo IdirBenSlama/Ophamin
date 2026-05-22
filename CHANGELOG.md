@@ -7,7 +7,39 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.98.0] below for the latest cut.)
+(empty — see [0.99.0] below for the latest cut.)
+
+## [0.99.0] — 2026-05-22
+
+**Dedicated models — real or honest (CR3).** The critical review's #3 finding:
+the SCIENTIFIC / ENGINEERING "dedicated" tiers were a *label*. Their defaults
+were identical to existing general tiers (SCIENTIFIC = reasoning's
+`deepseek-r1:32b`, ENGINEERING = coder's `qwen2.5-coder:32b`), yet `/models`
+reported `dedicated: true` unconditionally — claiming a domain model that
+wasn't there. Now the surface tells the truth.
+
+- **Honest `dedicated` flag.** A domain-dedicated tier reports `dedicated:
+  true` ONLY when actually backed by a model distinct from the general tier it
+  falls back to (or an external API). Otherwise it reports `status:
+  "general-fallback"` and names the `fallback_general_tier` it currently
+  mirrors. New top-line `dedicated_models_configured` says whether ANY
+  dedicated tier is real today (false out of the box — honest).
+- **Real availability probe.** `LLMClient.list_models()` (GET `/v1/models`) +
+  `probe_tier_availability()` check whether each tier's configured model is
+  actually installed on its runtime. `/models?check_availability=true` (and
+  `model_capabilities(check_availability=True)`) add an `available` flag per
+  tier — best-effort, off by default to keep the read I/O-free. A dedicated-
+  model claim is only honest if the model exists; now you can see it.
+- **Console** shows the truth: an amber `general-fallback` chip + "↳ same model
+  as <tier>" for un-configured dedicated tiers, a green `dedicated` chip when
+  real, and `installed: yes/no/unknown` when availability is probed. The intro
+  no longer overclaims.
+- **Fixed (pre-existing):** removed a duplicate `refuted_triage` key in
+  `DEFAULT_MAX_TOKENS` (the first 4096 was dead — silently overridden by 8192).
+- 12 new/updated tests pin honest status (default general-fallback; distinct
+  model ⇒ dedicated; external API ⇒ dedicated; general tier ⇒ not), the
+  availability probe (installed / missing / runtime-down ⇒ unknown), and the
+  capability surface with/without availability.
 
 ## [0.98.0] — 2026-05-22
 

@@ -577,8 +577,11 @@ def build_app() -> FastAPI:
         ),
         tags=["models"],
     )
-    def get_models() -> dict[str, Any]:
-        return model_capabilities_impl()
+    def get_models(check_availability: bool = False) -> dict[str, Any]:
+        # ?check_availability=true probes each runtime's /v1/models so the
+        # surface can show whether a configured (dedicated) model is actually
+        # installed — best-effort network I/O, off by default.
+        return model_capabilities_impl(check_availability=check_availability)
 
     @app.get(
         "/reporting/standards",
