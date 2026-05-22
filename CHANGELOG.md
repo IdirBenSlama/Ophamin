@@ -7,7 +7,48 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.108.0] below for the latest cut.)
+(empty — see [0.109.0] below for the latest cut.)
+
+## [0.109.0] — 2026-05-22
+
+**Memory-permanence proof — measure the MEMORY ITSELF (the scars + S4 manifold),
+not recognition.** Owner correction: *"Kimera SWM is the Memory itself, the
+scars, the S4 manifold is the memory."* Every prior memory scenario
+(`memory-deformation-flow`, `memory-as-deformation`, `memory-cued-recall-flow`,
+`memory-horizon-flow`) leads with the **concept-set layer** — same stimulus in,
+same concepts out. But that is *recognition*, which is content-deterministic by
+design (Session 013) and which a long-context LLM also passes. It is not memory.
+The memory is the permanent, accumulating, path-shaping scar/manifold substrate.
+
+A live 2026-05-22 probe motivated the redesign: re-exposing a probe at cycles
+0/2/4 left `phi` rigid (0.7023→0.7023→0.7023) and recognition Jaccard 1.0 — yet
+`vault_stats.total_scars_stored` went 1→3→5 and
+`arachne_web_coupling_frobenius` went 1.29→1.56→1.96. A Φ-drift proof would
+return INCONCLUSIVE; the memory is in the scars and the manifold.
+
+- **`memory-permanence-flow`** reads Kimera's own permanent accumulators off
+  `OrchestratorResult` (verified field names) across an interleaved re-exposure
+  trajectory, in batch mode (state must accumulate — that IS the memory). The
+  decisive memory-vs-re-derivation discriminator:
+
+      memory_path_dependence
+        = (recognised re-exposure transitions with Δ permanent-scars > 0)
+        / (recognised re-exposure transitions)
+
+  VALIDATED iff `>= 1.0` (every re-exposure of a recognised probe lands on
+  strictly more permanent scars) AND the whole-run scar count is monotonic
+  (a scar cannot be reset; a reset forces observed→0.0 → REFUTED). A stateless
+  re-deriver re-exposed to identical input is in an identical state each time;
+  Kimera is in a strictly deeper state each time while recognising perfectly —
+  the dissociation is path-dependent memory, impossible for a recompute.
+- Cross-check (scipy Spearman, one-sided): scar depth vs exposure ordinal —
+  ρ > 0, p < 0.05 confirms memory deepens with experience. Recognition
+  stability is the control proving the deepening is not because the input
+  changed. Permanence, accumulation slopes, halt-flip rate and Φ-rigidity are
+  reported as evidence; none post-hoc-claimable.
+- New: `examples/run_memory_permanence_flow.py`,
+  `tests/test_memory_permanence_flow.py` (18 tests; memory→VALIDATED,
+  stateless re-derivation→REFUTED, scar reset→REFUTED).
 
 ## [0.108.0] — 2026-05-22
 
