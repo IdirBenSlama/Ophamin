@@ -7,7 +7,45 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.88.0] below for the latest cut.)
+(empty — see [0.89.0] below for the latest cut.)
+
+## [0.89.0] — 2026-05-22
+
+**Feature — the Configure facet: manage Kimera's configuration.** Closes one
+of the two operational facets of Ophamin-the-horizontal-platform (Manage +
+**Configure**) that were under-served. Ophamin now introspects, validates,
+and snapshots Kimera-SWM's configuration — the management/configuration role,
+not just observe + experiment.
+
+- **New `ophamin.configuring`**:
+  - `extract_config_schema(kimera_repo)` — introspects Kimera's full env-var
+    knob contract **statically from source** (no import, no run — works even
+    while Kimera's runtime is mid-development). Captures both app-level
+    (database / api / system) literals AND the substrate-tuning **domain
+    knobs** (geoid / scar / thermodynamic / ecoform / operator /
+    event-matching) declared as `os.getenv(f"{cls.ENV_PREFIX}…")` — **116
+    real knobs** across 10 groups on the live Kimera repo. Each knob: env
+    var, default, inferred type, group, source file, secret flag.
+  - `effective_config` + `config_snapshot` — resolves each knob to its
+    current value (**secrets redacted**) and produces a secret-safe,
+    content-hashed snapshot. This becomes a provenance dimension: a proof can
+    record *which Kimera config produced it*, not just which commit (two runs
+    with the same snapshot id were configured identically).
+  - `validate_config` — the **config gate**: every value must parse as its
+    type, and a config declared `production` must not ship dev-only/unsafe
+    settings (empty DB password, debug on, reload on, bind-all host).
+- **New endpoints**: `GET /configuring/schema`, `GET /configuring/effective`,
+  `POST /configuring/validate` (with `env_overrides` to test a hypothetical
+  environment, e.g. "what would production flag?").
+- Secrets never leave the boundary — the snapshot hashes a secret only as
+  `<set>`/`<unset>`, verified by a test that the secret value never appears.
+- 16 Configure tests (app + domain extraction incl. ENV_PREFIX f-strings;
+  secret redaction; snapshot stability/secret-safety; the production gate;
+  a real-Kimera-repo check that the domain knobs are captured).
+
+With Configure shipped, Ophamin's facets stand: Cockpit + Observatory + R&D
++ **Configure** built; **Manage** (the Control room → real Kimera lifecycle)
+is the remaining operational facet.
 
 ## [0.88.0] — 2026-05-22
 

@@ -50,6 +50,9 @@ from ophamin.interfaces._impls import (
     get_scenario_claim_impl,
     list_agents_impl,
     authoring_capabilities_impl,
+    config_effective_impl,
+    config_schema_impl,
+    config_validate_impl,
     list_cockpit_impl,
     materialize_spec_impl,
     model_capabilities_impl,
@@ -167,6 +170,23 @@ class ValidateSpecRequest(BaseModel):
             "source, valid scope/facet/tools."
         ),
         examples=['{"title": "...", "scope": "flow", "threshold": {...}, ...}'],
+    )
+
+
+class ConfigValidateRequest(BaseModel):
+    """Body of ``POST /configuring/validate``."""
+
+    kimera_repo: str = Field(
+        default="",
+        description="Path to the Kimera repo (or set OPHAMIN_KIMERA_REPO).",
+    )
+    env_overrides: dict[str, str] = Field(
+        default_factory=dict,
+        description=(
+            "Optional hypothetical environment to validate against (e.g. "
+            "{'KIMERA_ENVIRONMENT': 'production'}) without changing the "
+            "process env."
+        ),
     )
 
 
@@ -572,6 +592,52 @@ def build_app() -> FastAPI:
     )
     def post_reporting_conformance(body: ReportConformanceRequest) -> dict[str, Any]:
         return report_conformance_impl(body.proof_json)
+
+    @app.get(
+        "/configuring/schema",
+        summary="Kimera's env-var config knob contract (introspected from source)",
+        description=(
+            "Ophamin's Configure facet: the live set of Kimera configuration "
+            "knobs — app-level (database / api / system) and the "
+            "substrate-tuning domain knobs (geoid / scar / thermodynamic / "
+            "ecoform / operator / event-matching) — each with its env var, "
+            "default, inferred type, group, source file, and secret flag. "
+            "Parsed statically from Kimera's source (no import, no run). "
+            "Pass ?kimera_repo=… or set OPHAMIN_KIMERA_REPO."
+        ),
+        tags=["configuring"],
+    )
+    def get_config_schema(kimera_repo: str = "") -> dict[str, Any]:
+        return config_schema_impl(kimera_repo)
+
+    @app.get(
+        "/configuring/effective",
+        summary="The effective Kimera config + a provenance snapshot",
+        description=(
+            "Each knob resolved to its current value (env override or "
+            "default), secrets redacted, plus a secret-safe content-hashed "
+            "snapshot that can tie a proof to the exact config that produced "
+            "it. Read-only."
+        ),
+        tags=["configuring"],
+    )
+    def get_config_effective(kimera_repo: str = "") -> dict[str, Any]:
+        return config_effective_impl(kimera_repo)
+
+    @app.post(
+        "/configuring/validate",
+        summary="Validate Kimera's config against the config gate",
+        description=(
+            "The config gate: every knob value must parse as its type, and a "
+            "config declared `production` must not ship dev-only / unsafe "
+            "settings (empty DB password, debug on, reload on, bind-all "
+            "host). `env_overrides` lets you test a hypothetical environment. "
+            "Returns `valid` + an actionable violation list. Never raises."
+        ),
+        tags=["configuring"],
+    )
+    def post_config_validate(body: ConfigValidateRequest) -> dict[str, Any]:
+        return config_validate_impl(body.kimera_repo, body.env_overrides)
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints

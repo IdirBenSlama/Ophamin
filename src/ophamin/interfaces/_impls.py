@@ -662,6 +662,111 @@ def authoring_capabilities_impl() -> dict[str, Any]:
     return caps
 
 
+def _resolve_kimera_repo(kimera_repo: str = "") -> str:
+    """Resolve the Kimera repo path: explicit arg → OPHAMIN_KIMERA_REPO env."""
+    import os
+    return kimera_repo or os.environ.get("OPHAMIN_KIMERA_REPO", "")
+
+
+def config_schema_impl(kimera_repo: str = "") -> dict[str, Any]:
+    """Introspect Kimera's env-var config knob contract (static, from source).
+
+    Read-only; no import/run of Kimera. Returns the knobs grouped, or a
+    clear ``configured: False`` when no Kimera repo is set.
+    """
+    from ophamin.configuring import extract_config_schema
+
+    repo = _resolve_kimera_repo(kimera_repo)
+    if not repo:
+        return {"configured": False, "knobs": [], "count": 0,
+                "message": "No Kimera repo set (pass kimera_repo or set "
+                           "OPHAMIN_KIMERA_REPO).",
+                "framework_version": __version__}
+    try:
+        knobs = extract_config_schema(repo)
+    except FileNotFoundError as exc:
+        return {"configured": False, "knobs": [], "count": 0,
+                "message": str(exc), "framework_version": __version__}
+    groups: dict[str, int] = {}
+    for k in knobs:
+        groups[k.group] = groups.get(k.group, 0) + 1
+    return {
+        "configured": True,
+        "count": len(knobs),
+        "groups": groups,
+        "knobs": [k.to_dict() for k in knobs],
+        "framework_version": __version__,
+    }
+
+
+def config_effective_impl(kimera_repo: str = "") -> dict[str, Any]:
+    """The effective Kimera config (secrets redacted) + a provenance snapshot."""
+    from ophamin.configuring import (
+        config_snapshot, effective_config, extract_config_schema,
+    )
+
+    repo = _resolve_kimera_repo(kimera_repo)
+    if not repo:
+        return {"configured": False, "effective": [], "snapshot": None,
+                "message": "No Kimera repo set.",
+                "framework_version": __version__}
+    try:
+        schema = extract_config_schema(repo)
+    except FileNotFoundError as exc:
+        return {"configured": False, "effective": [], "snapshot": None,
+                "message": str(exc), "framework_version": __version__}
+    eff = effective_config(schema)
+    snap = config_snapshot(eff)
+    return {
+        "configured": True,
+        "effective": [k.to_dict() for k in eff],
+        "snapshot": {
+            "snapshot_id": snap.snapshot_id,
+            "n_knobs": snap.n_knobs,
+            "n_overridden": snap.n_overridden,
+            "groups": snap.groups,
+        },
+        "framework_version": __version__,
+    }
+
+
+def config_validate_impl(
+    kimera_repo: str = "", env_overrides: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Validate the effective Kimera config against the config gate.
+
+    ``env_overrides`` lets a caller test a hypothetical environment (e.g.
+    'what would production flag?') without changing the process env. Returns
+    ``valid`` + structured violations; never raises.
+    """
+    import os
+    from ophamin.configuring import (
+        effective_config, extract_config_schema, is_valid, validate_config,
+    )
+
+    repo = _resolve_kimera_repo(kimera_repo)
+    if not repo:
+        return {"configured": False, "valid": False, "violations": [],
+                "message": "No Kimera repo set.",
+                "framework_version": __version__}
+    try:
+        schema = extract_config_schema(repo)
+    except FileNotFoundError as exc:
+        return {"configured": False, "valid": False, "violations": [],
+                "message": str(exc), "framework_version": __version__}
+    env = dict(os.environ)
+    if env_overrides:
+        env.update({str(k): str(v) for k, v in env_overrides.items()})
+    eff = effective_config(schema, env=env)
+    violations = validate_config(eff)
+    return {
+        "configured": True,
+        "valid": is_valid(violations),
+        "violations": [v.to_dict() for v in violations],
+        "framework_version": __version__,
+    }
+
+
 def report_standards_impl() -> dict[str, Any]:
     """The menu of recognised report standards + output formats + the
     Ophamin naming conventions. Deterministic; read-only."""
