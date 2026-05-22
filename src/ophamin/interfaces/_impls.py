@@ -658,6 +658,22 @@ def authoring_capabilities_impl() -> dict[str, Any]:
     return caps
 
 
+def model_capabilities_impl() -> dict[str, Any]:
+    """The configured agentic-model routing: tiers (general + dedicated
+    scientific/engineering), each tier's model + provider (local /
+    external_api) + key-env-var name, and the per-task → tier map.
+
+    Read-only + deterministic; never returns a secret (only the *name* of
+    the env var a key would be read from). These models are tooling-layer:
+    they perform analysis / diagnosis / authoring, never the measurement.
+    """
+    from ophamin.agentic.models import model_capabilities
+
+    caps = model_capabilities()
+    caps["framework_version"] = __version__
+    return caps
+
+
 def validate_scenario_spec_impl(spec_json: str) -> dict[str, Any]:
     """Validate a scenario spec (JSON string) against the grounding gate.
 

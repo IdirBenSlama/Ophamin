@@ -7,7 +7,43 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.84.0] below for the latest cut.)
+(empty — see [0.85.0] below for the latest cut.)
+
+## [0.85.0] — 2026-05-22
+
+**Feature — dedicated scientific/engineering model tiers + a provider
+dimension (local-first, external-API opt-in).** Addresses the owner's
+directive that validation/diagnosis needs *dedicated* models, not only
+general ones — and the ability to use local models (default) or connect
+external APIs. Built by *extending* the existing agentic model layer
+(`agentic/models.py` + `agentic/client.py`), not duplicating it.
+
+- **Two dedicated tiers** added to the routing: `SCIENTIFIC` and
+  `ENGINEERING`. New validation/diagnosis tasks route to them —
+  `scientific_validation` + `result_diagnosis` → SCIENTIFIC,
+  `engineering_diagnosis` → ENGINEERING — so a domain-dedicated model
+  performs the analysis, not a general one. Models are env-configurable
+  (`OPHAMIN_LLM_MODEL_SCIENTIFIC` / `_ENGINEERING`).
+- **Provider dimension** on every tier: `local` (default — Ollama / MLX-LM)
+  or `external_api` (opt-in *per tier* via
+  `OPHAMIN_LLM_PROVIDER_<TIER>=external_api` +
+  `OPHAMIN_LLM_BASE_URL_<TIER>` + `OPHAMIN_LLM_API_KEY_ENV_<TIER>`). The key
+  is read from the named env var — **never** stored in config or proofs.
+  `ModelChoice` now carries `provider` / `base_url` / `api_key_env`.
+- **New `GET /models`** + `model_capabilities()`: reports every tier (general
+  + dedicated), its model + provider + key-env-var *name* (never the secret),
+  and the per-task → tier map. Local-first; external-API shows as enabled
+  only when an operator opts a tier in.
+- **The boundary, made mechanical**: a hardening test asserts no module under
+  `measuring/scenarios/` imports `ophamin.agentic` — no model can be invoked
+  from the measurement path, per the substrate's no-external-LLM rule. These
+  models are tooling-layer: analysis / diagnosis / authoring only.
+- 8 model-routing tests (dedicated tiers; per-tier external-API opt-in;
+  capabilities never leak a secret even when the key env var is set; general
+  routing unchanged; the measurement-path boundary).
+
+This is the foundation the agentic *analysis & diagnosis* layer and the
+standards-conforming *reporting* layer build on (next).
 
 ## [0.84.0] — 2026-05-22
 

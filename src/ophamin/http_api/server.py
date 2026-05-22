@@ -51,6 +51,7 @@ from ophamin.interfaces._impls import (
     list_agents_impl,
     authoring_capabilities_impl,
     list_cockpit_impl,
+    model_capabilities_impl,
     list_flow_impl,
     list_integrations_impl,
     list_llm_calls_impl,
@@ -486,6 +487,24 @@ def build_app() -> FastAPI:
     )
     def post_validate_spec(body: ValidateSpecRequest) -> dict[str, Any]:
         return validate_scenario_spec_impl(body.spec_json)
+
+    @app.get(
+        "/models",
+        summary="Configured agentic models — tiers, dedicated specialties, providers",
+        description=(
+            "The model routing the agentic system uses for analysis / "
+            "diagnosis / authoring: the general tiers (fast / workhorse / "
+            "coder / reasoning) plus the **dedicated** scientific + "
+            "engineering tiers, each with its model, provider (local-first; "
+            "external API opt-in per tier), and the env-var name a key is "
+            "read from (never the key itself). Also the per-task → tier map. "
+            "These models never run in the measurement path — tooling layer "
+            "only, per the no-external-LLM rule."
+        ),
+        tags=["models"],
+    )
+    def get_models() -> dict[str, Any]:
+        return model_capabilities_impl()
 
     # ------------------------------------------------------------------
     # Verify / canonicalize endpoints
