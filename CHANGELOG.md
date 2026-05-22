@@ -7,7 +7,37 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.90.0] below for the latest cut.)
+(empty — see [0.91.0] below for the latest cut.)
+
+## [0.91.0] — 2026-05-22
+
+**Console — IA cleanup: regroup by the five facets + Manage/Configure/Models
+screens.** The Console had grown into ~22 flat nav items, most of them
+leftover generic-bundle screens never adapted to Ophamin's purpose — messy,
+overwhelming, unclear. Reorganised the rail around the five platform facets
+and surfaced the operational facets that had been API-only.
+
+- **Rail regrouped** into five labelled sections matching the platform
+  model: **Manage · Configure · Cockpit · Observatory · R&D**. Net **22 → 13
+  nav items** — the decorative bundle screens (chat / roadmap / discovery /
+  inspector / drift / topology / run / telemetry / lab / interop / audit)
+  were removed from the rail (files kept; still reachable via the command
+  palette). Section-header CSS added.
+- **Control Room (Manage)** rewritten from a fabricated-data mock into the
+  live Manage facet: substrate identity (commit), readiness, and a
+  per-cognitive-surface health grid, **fetched on-demand** from
+  `/managing/status` (kept out of boot hydrate since it live-probes Kimera in
+  a subprocess — so it never slows the console load). Verified live: 11/11
+  surfaces operational.
+- **Config (Configure)** screen: the snapshot id + config gate + 116 knobs
+  grouped by config group, secrets shown only as `<set>`/`<unset>`.
+- **Models** screen: the dedicated scientific/engineering tiers + per-tier
+  provider (local / external-API) + per-task routing.
+- `data.js` gains a `postJSON` helper + fast hydrate of `/configuring` +
+  `/models`. Fixed a stale `SAMPLE` flag on the Control Room (it's live now).
+
+Console-only release; no API change. The platform's five facets are now all
+visible and adapted, not buried in a generic-bundle nav.
 
 ## [0.90.0] — 2026-05-22
 

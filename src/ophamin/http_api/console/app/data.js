@@ -682,6 +682,15 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       if (!r.ok) throw new Error(path + ' -> HTTP ' + r.status);
       return r.text();
     };
+    const postJSON = async (path, body) => {
+      const r = await fetch(apiBase + path, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(body || {}),
+      });
+      if (!r.ok) throw new Error(path + ' -> HTTP ' + r.status);
+      return r.json();
+    };
 
     // --- /version ------------------------------------------------
     try {
@@ -901,6 +910,30 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       }
     } catch (e) { console.warn('[ophamin] hydrate /flow skipped:', e.message); }
 
+    // Note: /managing/status is NOT hydrated at boot — it live-probes Kimera
+    // in a subprocess (seconds), so the Control Room screen fetches it
+    // on-demand instead of blocking the whole console load.
+
+    // --- /configuring (Configure facet — Kimera config knobs + gate) ---
+    try {
+      const ce = await getJSON('/configuring/effective');
+      api.config = ce || {};
+      if (ce && ce.configured) {
+        try {
+          const cv = await postJSON('/configuring/validate', {});
+          api.config.valid = cv.valid;
+          api.config.violations = cv.violations || [];
+        } catch (e2) { /* gate optional */ }
+      }
+      live.config = true;
+    } catch (e) { console.warn('[ophamin] hydrate /configuring skipped:', e.message); }
+
+    // --- /models (R&D — dedicated model routing) ---
+    try {
+      const mo = await getJSON('/models');
+      if (mo) { api.models = mo; live.models = true; }
+    } catch (e) { console.warn('[ophamin] hydrate /models skipped:', e.message); }
+
     return live;
   }
 
@@ -945,6 +978,9 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
     substrates: [],
     cockpit: {},
     flow: {},
+    substrateStatus: {},
+    config: {},
+    models: {},
     activeSubstrate: null,
     _allBundles: bundles,
     substrateStamps,
@@ -959,6 +995,7 @@ ophamin_build_info{version="0.64.1",commit="3f0763a",python="3.14.3"} 1
       version: false, scenarios: false, bundles: false, proofs: false,
       metrics: false, agents: false, agentCalls: false, integrations: false,
       substrates: false, substrate_organs: false, cockpit: false, flow: false,
+      managing: false, config: false, models: false,
     },
   };
   return api;

@@ -50,34 +50,42 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
     name: 'all substrates',
     commit: '',
   });
-  const navItems = [
-    { id: 'control',   label: 'Control',   icon: 'cpu' },
-    { id: 'chat',      label: 'Chat',      icon: 'agents' },
-    { id: 'overview',  label: 'Overview',  icon: 'overview' },
-    { id: 'cockpit',   label: 'Cockpit',   icon: 'cpu' },
-    { id: 'flow',      label: 'Flow',      icon: 'activity' },
-    { id: 'roadmap',   label: 'Roadmap',   icon: 'rocket' },
-    { id: 'discovery', label: 'Discovery', icon: 'eye' },
-    { id: 'inspector', label: 'Inspector', icon: 'cpu' },
-    { id: 'proofs',    label: 'Proofs',    icon: 'proofs',    count: totals.bundles },
-    { id: 'drift',     label: 'Drift',     icon: 'telemetry' },
-    { id: 'topology',  label: 'Topology',  icon: 'scenarios' },
-    { id: 'scenarios', label: 'Scenarios', icon: 'scenarios', count: totals.scenarios },
-    { id: 'substrate', label: 'Substrate', icon: 'cpu' },
-    { id: 'run',       label: 'Run',       icon: 'run' },
-    { id: 'verify',    label: 'Verify',    icon: 'proofs' },
-    { id: 'telemetry', label: 'Telemetry', icon: 'telemetry' },
-    { id: 'lab',       label: 'Lab',       icon: 'code' },
-    { id: 'interop',   label: 'Interop',   icon: 'external' },
-    { id: 'audit',     label: 'Audit',     icon: 'cpu' },
+  // Nav grouped by the five facets of the horizontal platform — Manage,
+  // Configure, Cockpit, Observatory, R&D. Only real, wired screens appear;
+  // the generic-bundle screens (chat/roadmap/discovery/inspector/drift/
+  // topology/run/telemetry/lab/interop/audit) were removed from the rail to
+  // keep it adapted to Ophamin's actual purpose. Their files remain and stay
+  // reachable via the command palette.
+  const navGroups = [
+    { group: 'Manage', items: [
+      { id: 'control', label: 'Control Room', icon: 'cpu' },
+    ]},
+    { group: 'Configure', items: [
+      { id: 'config', label: 'Config', icon: 'settings' },
+    ]},
+    { group: 'Cockpit', items: [
+      { id: 'cockpit', label: 'Build Cockpit', icon: 'cpu' },
+    ]},
+    { group: 'Observatory', items: [
+      { id: 'overview',  label: 'Overview',  icon: 'overview' },
+      { id: 'flow',      label: 'Flow',      icon: 'activity' },
+      { id: 'proofs',    label: 'Proofs',    icon: 'proofs', count: totals.bundles },
+      { id: 'substrate', label: 'Substrate', icon: 'cpu' },
+    ]},
+    { group: 'R&D', items: [
+      { id: 'scenarios',    label: 'Scenarios',    icon: 'scenarios', count: totals.scenarios },
+      { id: 'verify',       label: 'Verify',       icon: 'proofs' },
+      { id: 'agents',       label: 'Agents',       icon: 'agents' },
+      { id: 'models',       label: 'Models',       icon: 'cpu' },
+      { id: 'integrations', label: 'Integrations', icon: 'external' },
+    ]},
   ];
   const navBottom = [
-    { id: 'agents',       label: 'Agents',       icon: 'agents' },
-    { id: 'integrations', label: 'Integrations', icon: 'external' },
-    { id: 'settings',     label: 'Settings',     icon: 'settings' },
+    { id: 'settings', label: 'Settings', icon: 'settings' },
   ];
 
-  const activeItem = [...navItems, ...navBottom].find(i => i.id === active);
+  const _allNav = [...navGroups.flatMap(g => g.items), ...navBottom];
+  const activeItem = _allNav.find(i => i.id === active);
 
   // Real substrate catalogue, derived from the proof corpus by hydrate
   // (api.substrates). Falls back to a single grounded entry off disk.
@@ -187,14 +195,19 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
       </header>
 
       <nav className="rail">
-        {navItems.map(item => (
-          <div key={item.id}
-            className={'nav-item' + (active === item.id ? ' active' : '')}
-            onClick={() => onNav(item.id)}
-            title={item.label}>
-            {item.count != null && <span className="nav-count mono">{item.count}</span>}
-            <span className="nav-icon"><Icon name={item.icon} size={18}/></span>
-            <span className="nav-label">{item.label}</span>
+        {navGroups.map(section => (
+          <div key={section.group} className="nav-group">
+            <div className="nav-group-label">{section.group}</div>
+            {section.items.map(item => (
+              <div key={item.id}
+                className={'nav-item' + (active === item.id ? ' active' : '')}
+                onClick={() => onNav(item.id)}
+                title={item.label}>
+                {item.count != null && <span className="nav-count mono">{item.count}</span>}
+                <span className="nav-icon"><Icon name={item.icon} size={18}/></span>
+                <span className="nav-label">{item.label}</span>
+              </div>
+            ))}
           </div>
         ))}
 
@@ -295,7 +308,10 @@ const SCREEN_ROUTE = {
   audit: 'code_scanning', interop: 'code_scanning',
   roadmap: 'docs', inspector: 'provenance',
 };
-const SCREEN_SAMPLE = ['topology', 'lab', 'control', 'chat', 'discovery'];
+// Purely-illustrative screens (command-palette-only now; removed from the
+// rail). `control` is NOT here any more — the Control Room is the live
+// Manage facet (real /managing/status probe), and config/models are live too.
+const SCREEN_SAMPLE = ['topology', 'lab', 'chat', 'discovery'];
 
 function SampleBadge() {
   return (

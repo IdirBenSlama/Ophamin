@@ -41,6 +41,8 @@ function App() {
   const SubstrateScreen   = window.SubstrateScreen;
   const CockpitScreen     = window.CockpitScreen;
   const FlowScreen        = window.FlowScreen;
+  const ConfigScreen      = window.ConfigScreen;
+  const ModelsScreen      = window.ModelsScreen;
   const VerifyScreen      = window.VerifyScreen;
   const CommandPalette    = window.CommandPalette;
   const TweaksPanel       = window.TweaksPanel;
@@ -127,6 +129,8 @@ function App() {
         {screen === 'substrate' && <SubstrateScreen/>}
         {screen === 'cockpit'   && <CockpitScreen/>}
         {screen === 'flow'      && <FlowScreen/>}
+        {screen === 'config'    && <ConfigScreen/>}
+        {screen === 'models'    && <ModelsScreen/>}
         {screen === 'verify'    && <VerifyScreen/>}
         {screen === 'settings'  && <SettingsScreen tweak={t} setTweak={setTweak}/>}
       </AppShell>
@@ -599,7 +603,7 @@ class ErrorBoundary extends React.Component {
 }
 
 const appRoot = ReactDOM.createRoot(document.getElementById('root'));
-const REQUIRED = ['AppShell','OverviewScreen','ProofsScreen','ScenariosScreen','RunScreen','TelemetryScreen','AgentsScreen','LabScreen','AuditScreen','ChatScreen','RoadmapScreen','DiscoveryScreen','InspectorScreen','ControlRoomScreen','InteropScreen','IntegrationsScreen','SubstrateScreen','CockpitScreen','FlowScreen','VerifyScreen','CommandPalette','TweaksPanel'];
+const REQUIRED = ['AppShell','OverviewScreen','ProofsScreen','ScenariosScreen','RunScreen','TelemetryScreen','AgentsScreen','LabScreen','AuditScreen','ChatScreen','RoadmapScreen','DiscoveryScreen','InspectorScreen','ControlRoomScreen','InteropScreen','IntegrationsScreen','SubstrateScreen','CockpitScreen','FlowScreen','ConfigScreen','ModelsScreen','VerifyScreen','CommandPalette','TweaksPanel'];
 // FORCE_FETCH_FALLBACK — Babel-standalone occasionally silently skips a
 // script-tag transform. Map every required component to the file it lives in,
 // and if it's missing after polling, fetch+compile+eval that file directly.
@@ -612,7 +616,8 @@ const COMPONENT_TO_FILE = {
   RoadmapScreen: 'roadmap.jsx', DiscoveryScreen: 'discovery.jsx', InspectorScreen: 'inspector.jsx',
   ControlRoomScreen: 'control.jsx', InteropScreen: 'interop.jsx',
   IntegrationsScreen: 'integrations.jsx', SubstrateScreen: 'substrate.jsx',
-  CockpitScreen: 'cockpit.jsx', FlowScreen: 'flow.jsx', VerifyScreen: 'verify.jsx',
+  CockpitScreen: 'cockpit.jsx', FlowScreen: 'flow.jsx',
+  ConfigScreen: 'config.jsx', ModelsScreen: 'models.jsx', VerifyScreen: 'verify.jsx',
   CommandPalette: 'palette.jsx', ShortcutsModal: 'shortcuts.jsx',
   KeyboardNav: 'keyboard.jsx', IntroOverlay: 'intro.jsx',
 };
