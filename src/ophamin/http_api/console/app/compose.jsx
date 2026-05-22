@@ -24,7 +24,9 @@ function ComposeScreen() {
   const [jsonText, setJsonText] = React.useState('');
   const [gate, setGate] = React.useState(null);
   const [plan, setPlan] = React.useState(null);
+  const [cites, setCites] = React.useState(null);
   const [busy, setBusy] = React.useState(false);
+  const [citebusy, setCitebusy] = React.useState(false);
   const [err, setErr] = React.useState('');
 
   const tmpl = templates.find((t) => t.name === template) || tmpl0;
@@ -83,6 +85,15 @@ function ComposeScreen() {
     } catch (e) {
       setErr(e.message || String(e));
     } finally { setBusy(false); }
+  }
+
+  async function onVerifyCitations() {
+    setErr(''); setCitebusy(true); setCites(null);
+    try {
+      setCites(await post('/authoring/verify-grounding', buildSpec()));
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally { setCitebusy(false); }
   }
 
   const inputStyle = {
@@ -152,14 +163,40 @@ function ComposeScreen() {
             </label>
           )}
 
-          <button className="btn" style={{ marginTop: 4 }} onClick={onCheck} disabled={busy}>
-            {busy ? 'Checking…' : 'Validate + Materialize'}
-          </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            <button className="btn" onClick={onCheck} disabled={busy}>
+              {busy ? 'Checking…' : 'Validate + Materialize'}
+            </button>
+            <button className="btn ghost" onClick={onVerifyCitations} disabled={citebusy} title="Resolve each citation against arXiv / Crossref / the local papers dir">
+              {citebusy ? 'Reading papers…' : 'Verify citations'}
+            </button>
+          </div>
           {err && <div className="micro" style={{ color: 'var(--refuted)', marginTop: 8 }}>{err}</div>}
         </div>
 
-        {/* Right: the gate + plan results */}
+        {/* Right: the gate + plan + citations results */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Citation verification — resolves each ref to a real paper */}
+          {cites && (
+            <div className="card" style={{ padding: 16 }}>
+              <div className="micro" style={{ marginBottom: 8 }}>
+                CITATIONS {cites.verified ? '✓ verified (real papers)' : '✗ not verified'}
+              </div>
+              {(cites.resolutions || []).map((r, i) => {
+                const c = r.status === 'resolved' ? 'var(--validated, #2dd4bf)'
+                  : r.status === 'unresolved' ? 'var(--refuted, #ef5b5b)'
+                  : 'var(--inconclusive, #ffa726)';
+                return (
+                  <div key={i} className="micro" style={{ marginTop: 4, textTransform: 'none', letterSpacing: 0 }}>
+                    <span style={{ color: c }}>{r.status}</span> · <span className="mono">{r.ref}</span>
+                    {r.title ? <span className="faint"> — {r.title}</span> : ''}
+                    {r.status === 'unreachable' ? <span className="faint"> (offline — couldn't check)</span> : ''}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {/* Grounding gate */}
           <div className="card" style={{ padding: 16 }}>
             <div className="micro" style={{ marginBottom: 8 }}>GROUNDING GATE</div>

@@ -7,7 +7,37 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.94.0] below for the latest cut.)
+(empty — see [0.95.0] below for the latest cut.)
+
+## [0.95.0] — 2026-05-22
+
+**Grounding verification — the gate's #1 weakness fixed.** The critical
+review found the grounding gate only checked that a citation *string* was
+non-empty — it never verified the paper was real. Now it **reads the paper**.
+
+- **New `ophamin.authoring.grounding`** — `resolve_ref` resolves a citation
+  to a real, readable paper, two ways:
+  - **By direct link**: arXiv id (arXiv API), DOI (Crossref), or URL —
+    fetched, with the paper's *real title* recovered (so a fabricated id
+    fails). SSL is hardened via certifi so links actually resolve.
+  - **Locally downloaded**: a path or a filename/slug in `OPHAMIN_PAPERS_DIR`
+    — the **offline-rigorous** path (cite a paper you've downloaded; verifies
+    with no network).
+  - Status per ref: `resolved` / `unresolved` (fabricated) / `unsupported`
+    (no resolvable locator) / `unreachable` (offline — tolerated).
+- **`verify_grounding`** is real enforcement: verified iff ≥1 citation
+  resolves AND none is fabricated or unsupported. `unreachable` is tolerated
+  so offline work isn't blocked.
+- **New `POST /authoring/verify-grounding`** + a **"Verify citations"**
+  action on the Compose screen showing per-ref resolution (resolved/✗/offline
+  + the recovered title).
+- Verified: `arXiv:2402.02668` → resolved ("Practical Rateless Set
+  Reconciliation"); `9999.99999` → unresolved; a real+fake mix → not verified.
+- 18 grounding tests (classification; offline local path incl. slug-match;
+  enforcement incl. unsupported-fails; network-resilient real-vs-fabricated).
+
+This turns "grounded, paper-supported" from a declaration into a check. Next
+on the critical-review list: cross-checking the flow metrics + real statistics.
 
 ## [0.94.0] — 2026-05-22
 

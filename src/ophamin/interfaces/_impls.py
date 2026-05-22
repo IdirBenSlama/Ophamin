@@ -829,6 +829,31 @@ def report_conformance_impl(proof_json: str) -> dict[str, Any]:
     return result
 
 
+def verify_grounding_impl(spec_json: str, papers_dir: str = "") -> dict[str, Any]:
+    """Verify a spec's citations resolve to REAL, readable papers.
+
+    Turns grounding from a formality into enforcement: each citation is
+    resolved by direct link (arXiv / DOI / URL) or against a local papers
+    directory. A fabricated citation (``unresolved``) fails; network errors
+    (``unreachable``) are reported but tolerated (offline). Never raises.
+    """
+    from ophamin.authoring import ScenarioSpec, verify_grounding
+
+    try:
+        d = json.loads(spec_json) if isinstance(spec_json, str) else dict(spec_json)
+        spec = ScenarioSpec.from_dict(d)
+    except (ValueError, TypeError) as exc:
+        return {"verified": False, "resolutions": [],
+                "error": f"spec not parseable: {exc}",
+                "framework_version": __version__}
+    import os
+    pd = papers_dir or os.environ.get("OPHAMIN_PAPERS_DIR", "")
+    refs = [g.ref for g in spec.grounding]
+    result = verify_grounding(refs, papers_dir=pd or None)
+    result["framework_version"] = __version__
+    return result
+
+
 def materialize_spec_impl(spec_json: str) -> dict[str, Any]:
     """Dry-run: validate a spec + describe the exact scenario it would build.
 

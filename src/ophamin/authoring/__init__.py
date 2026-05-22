@@ -45,21 +45,31 @@ from ophamin.authoring.materialize import (
     materialization_plan,
     materialize_spec,
 )
+from ophamin.authoring.grounding import (
+    GroundingResolution,
+    classify_ref,
+    resolve_ref,
+    verify_grounding,
+)
 
 __all__ = [
     "DataSourceRef",
     "GroundingRef",
+    "GroundingResolution",
     "MaterializationError",
     "MaterializedScenario",
     "ScenarioSpec",
     "SpecViolation",
     "Threshold",
     "available_capabilities",
+    "classify_ref",
     "invariant_template_names",
     "is_acceptable",
     "materialization_plan",
     "materialize_spec",
+    "resolve_ref",
     "tool_ids",
     "validate_spec",
     "validate_spec_dict",
+    "verify_grounding",
 ]

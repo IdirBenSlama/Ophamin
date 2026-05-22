@@ -57,6 +57,7 @@ from ophamin.interfaces._impls import (
     management_status_impl,
     materialize_spec_impl,
     model_capabilities_impl,
+    verify_grounding_impl,
     report_conformance_impl,
     report_standards_impl,
     list_flow_impl,
@@ -543,6 +544,23 @@ def build_app() -> FastAPI:
     )
     def post_materialize_spec(body: ValidateSpecRequest) -> dict[str, Any]:
         return materialize_spec_impl(body.spec_json)
+
+    @app.post(
+        "/authoring/verify-grounding",
+        summary="Verify a spec's citations resolve to real, readable papers",
+        description=(
+            "Turns grounding from a formality into enforcement. Each citation "
+            "is resolved by direct link (arXiv API / Crossref DOI / URL) or "
+            "against the local papers directory (OPHAMIN_PAPERS_DIR) — reading "
+            "the paper to recover its real title. A fabricated citation "
+            "(`unresolved`) fails verification; network errors (`unreachable`) "
+            "are reported but tolerated for offline use. Local citations are "
+            "always checkable offline. Never raises."
+        ),
+        tags=["authoring"],
+    )
+    def post_verify_grounding(body: ValidateSpecRequest) -> dict[str, Any]:
+        return verify_grounding_impl(body.spec_json)
 
     @app.get(
         "/models",
