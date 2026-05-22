@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — INCONCLUSIVE</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-INCONCLUSIVE'>INCONCLUSIVE</span></h1><p><strong>Proof ID:</strong> <code>6209cb915c832544fec4425b089877e6ea7d1681c6776e0f5cf6ec153645cbae</code><br><strong>Created:</strong> 2026-05-22T19:23:53.588242+00:00</p><h2>1. Claim</h2><blockquote><p>On real market returns, Kimera&#x27;s memory tracks the order-dependent maximum drawdown that set-based retrieval is structurally blind to: drawdown_tracking_rho = Spearman(kimera_state_divergence(true, shuffle), |maxdrawdown(true) − maxdrawdown(shuffle)|) &gt; 0, while the RAG aggregate representation divergence between orderings is ≡ 0.</p></blockquote><ul><li><strong>Operationalisation:</strong> For 6 real-market return windows (len 6), run the true order and 3 shuffles through Kimera entity·batch (each a fresh trajectory). Per (window, shuffle): ΔMDD = |MDD(true) − MDD(shuffle)| (order-dependent ground truth); kimera_state_divergence = relative distance of the final manifold state (coupling/order/mass). drawdown_tracking_rho = Spearman over all pairs. RAG contrast: mean-pooled TF-IDF representation divergence between orderings (≡ 0, same multiset). VALIDATED iff rho &gt; 0 with p &lt; 0.05.</li><li><strong>Threshold:</strong> <code>drawdown_tracking_rho &gt; 0.0 spearman_rho</code></li><li><strong>H0:</strong> H0: drawdown_tracking_rho &lt;= 0 — Kimera&#x27;s representation does not track order-dependent drawdown; its text encoding misses the numeric path (like a set-based retriever)</li><li><strong>H1:</strong> H1: drawdown_tracking_rho &gt; 0 — Kimera&#x27;s manifold deformation tracks the real order-dependent drawdown that set-based retrieval cannot represent</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-INCONCLUSIVE'>INCONCLUSIVE</span> — observed <code>0.18257506994942782</code></p><p>drawdown_tracking_rho +0.1826 (p=0.23418904354012834) over 18 real-market window×shuffle pairs: Kimera state-divergence vs |ΔMDD| (Spearman). RAG aggregate representation divergence 0.000000 (order-invariant — carries zero drawdown order-information). Kimera mean state-divergence 0.0181, prime-address order-divergence 0.8904; series FRED SP500 (real market); INCONCLUSIVE — rho&gt;0 not statistically significant</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-22T19:23:53.227477+00:00</code></li><li>Config hash: <code>c76cceb25b8bc01252f5dd123d1fcede3d35c787b0c17fd6b939712baa3b5a1a</code></li><li>Data hash: <code>c97935afa07672f2367f5be6fcddc25e306c438f331c58e129a7639b216c9554</code></li></ul><p><em>Plan:</em> Run 6 real return windows × (1 true + 3 shuffles) through Kimera entity·batch. Per pair compute ΔMDD (order-dependent ground truth) and Kimera state-divergence (final manifold state). Headline: drawdown_tracking_rho = Spearman(state_divergence, ΔMDD). INCONCLUSIVE if fewer than 8 valid pairs or rho&gt;0 is not significant; VALIDATED iff rho &gt; 0 (p&lt;0.05); REFUTED iff rho &lt;= 0. RAG mean-pooled representation divergence (≡ 0) is the structural contrast. Per-pair series + binary prime-address order-divergence are evidence.</p><h2>4. Data</h2><ul><li>Substrate: <code>kimera-swm</code> @ <code>65a0966660e7</code></li><li>Dataset: <code>fred-market-return-windows</code> (real-market-returns+order-permutation, 144 records, hash <code>c97935afa076…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>O.comparison.finance_path_dependence</code></td><td><code>drawdown_tracking_rho</code></td><td><code>0.18257506994942782</code></td><td>—</td><td>ophamin 0.110.0</td></tr></tbody></table><h2>6. Signature</h2><p><code>8830caef21eca1ab6f7b27aee656a84e8b737d2d463c551f0a6847a4c71d4ed9</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.110.0 @ <code>da08dc11a05e</code></footer></body></html>

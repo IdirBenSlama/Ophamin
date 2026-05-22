@@ -7,7 +7,46 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.110.0] below for the latest cut.)
+(empty — see [0.111.0] below for the latest cut.)
+
+## [0.111.0] — 2026-05-22
+
+**Finance-path-dependence — the functional-advantage test on real market data.
+Honest result: INCONCLUSIVE (a numeric-channel construction brief).** The memory
+proofs established that Kimera's memory is structurally different from RAG
+(permanent, path-dependent, order-sensitive). This asks the harder investor
+question — is that difference *useful*? — on the canonical order-dependent
+financial quantity: **maximum drawdown** (order-dependent by definition, so a
+set-based retriever is structurally blind to it).
+
+- **`finance-path-dependence`** (scope `comparison`) runs real FRED SP500 return
+  windows × shuffles through Kimera (each a fresh trajectory) and tests whether
+  Kimera's representation-divergence between the true order and a shuffle tracks
+  the real Δ max-drawdown (Spearman), against an order-invariant TF-IDF baseline.
+- **Live on real Kimera @ 65a0966 (6 windows × 6 periods × 3 shuffles, 18 pairs):
+  INCONCLUSIVE.** `drawdown_tracking_rho` = **+0.18 (p=0.23)** — a weak positive
+  trend in the predicted direction, but not significant. Reported plainly, not
+  spun. What the data shows: Kimera's **prime-address order-divergence is ~1.0**
+  (it strongly *sees* the order — hysteresis holds on finance data) and the RAG
+  representation divergence is **0.000** (order-invariant by construction), but
+  **neither observable tracks the drawdown *magnitude*** — the order-sensitivity
+  is binary/saturated, not graded by the economic quantity, at this N and with a
+  text-encoding of returns.
+- **Constructive reading (four-readings discipline):** measured = strong
+  order-detection but no magnitude-tracking; remediation = the return events are
+  text-encoded and the numeric magnitude is diluted — the finance construction
+  brief is a **numeric channel** (Arachne assigning primes by numeric magnitude),
+  a Kimera substrate change (owner territory); opportunity = the saturated
+  prime-divergence makes Kimera strong at order/sequence *discrimination* even
+  where magnitude regression fails. The structural Kimera-vs-RAG difference
+  (order-blindness) stands (0.110.0 + the 0.0 baseline here); the finance
+  *magnitude* advantage is **not** established.
+- New: `examples/run_finance_path_dependence.py`,
+  `tests/test_finance_path_dependence.py` (10 tests; tracking→VALIDATED,
+  order-blind→not-VALIDATED, ground-truth order-dependence),
+  `bag_representation_divergence` added to `comparing/retrieval_baseline.py`
+  (mean-pooled order-invariant representation; +2 tests). Signed proof
+  `6209cb91…` (INCONCLUSIVE — a valid, recorded result).
 
 ## [0.110.0] — 2026-05-22
 

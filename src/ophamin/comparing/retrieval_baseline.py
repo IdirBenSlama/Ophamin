@@ -145,3 +145,29 @@ def order_divergence(
         "ranking_order_b": list(sig_b),
         "identical": sig_a == sig_b,
     }
+
+
+def bag_representation_divergence(events_a, events_b) -> float:
+    """Cosine distance between the mean TF-IDF vectors of two event orderings.
+
+    A set-based representation pools its document vectors order-invariantly
+    (sum/mean is commutative), so when ``events_a`` and ``events_b`` are the
+    same multiset in different orders this is ~0 — the structural fact that a
+    retriever cannot represent an order-dependent quantity. Demonstrated, not
+    asserted: the scenario computes this on the real event sequences and shows
+    the RAG side carries zero order-information.
+    """
+    import numpy as np
+    from sklearn.feature_extraction.text import TfidfVectorizer
+
+    a_list, b_list = list(events_a), list(events_b)
+    if not a_list or not b_list:
+        return 0.0
+    vec = TfidfVectorizer().fit(a_list + b_list)
+    a = np.asarray(vec.transform(a_list).mean(axis=0)).ravel()
+    b = np.asarray(vec.transform(b_list).mean(axis=0)).ravel()
+    na, nb = float(np.linalg.norm(a)), float(np.linalg.norm(b))
+    if na == 0.0 or nb == 0.0:
+        return 0.0
+    cos = float(a @ b / (na * nb))
+    return max(0.0, 1.0 - cos)

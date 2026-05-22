@@ -12,6 +12,7 @@ import pytest
 
 from ophamin.comparing.retrieval_baseline import (
     TfidfRetriever,
+    bag_representation_divergence,
     order_divergence,
     ranking_signature,
 )
@@ -53,6 +54,19 @@ class TestTfidf:
     def test_empty_docs_raises(self):
         with pytest.raises(ValueError):
             TfidfRetriever([])
+
+
+class TestBagRepresentation:
+    def test_same_multiset_different_order_is_zero(self):
+        events = ["return +0.01", "return -0.02", "return +0.03", "return -0.04"]
+        shuffled = list(reversed(events))
+        # mean-pooled representation is order-invariant for the same multiset
+        assert bag_representation_divergence(events, shuffled) == pytest.approx(0.0, abs=1e-9)
+
+    def test_different_multiset_is_nonzero(self):
+        a = ["return +0.01", "return -0.02", "return +0.03"]
+        b = ["return +0.50", "return -0.60", "return +0.70"]
+        assert bag_representation_divergence(a, b) > 0.0
 
 
 class TestDenseOptional:
