@@ -2648,6 +2648,52 @@ def cmd_discover_diff(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_author(args: argparse.Namespace) -> int:
+    """Manage per-author ed25519 attestation keys (CR2).
+
+    Creates the author's keypair in the keystore if absent — the private key
+    lands at mode 0600 with a ``.key`` extension (gitignored; never committed)
+    — and prints the PUBLIC key. With ``--registry``, records
+    ``author -> public_key`` in a committable authors registry so verifiers can
+    do real attribution against a trusted key, not the proof's self-carried one.
+    """
+    from ophamin.measuring.proof.attestation import (
+        default_keystore_dir,
+        load_or_create_author_key,
+    )
+
+    author = (args.author or "").strip()
+    if not author:
+        print("error: --author must be non-empty", file=sys.stderr)
+        return 2
+    key = load_or_create_author_key(author, keystore_dir=args.keystore or None)
+    ks_dir = Path(args.keystore) if args.keystore else default_keystore_dir()
+    print(f"author      : {author}")
+    print(f"public key  : {key.public_hex}")
+    print(
+        f"keystore    : {ks_dir / (author + '.ed25519.key')}  "
+        "(private key, mode 0600, gitignored)"
+    )
+    if args.registry:
+        reg_path = Path(args.registry)
+        data: dict = {}
+        if reg_path.exists():
+            data = json.loads(reg_path.read_text(encoding="utf-8"))
+            if not isinstance(data, dict):
+                print(f"error: {reg_path} is not a JSON object", file=sys.stderr)
+                return 2
+        data[author] = key.public_hex
+        reg_path.parent.mkdir(parents=True, exist_ok=True)
+        reg_path.write_text(
+            json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        print(f"registry    : recorded {author} in {reg_path} (public keys only)")
+    print()
+    print("To auto-attest proofs you produce, set in your shell:")
+    print(f"  export OPHAMIN_AUTHOR={author!r}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ophamin",
@@ -2659,6 +2705,21 @@ def build_parser() -> argparse.ArgumentParser:
     p_demo = sub.add_parser("demo", help="run the end-to-end mock experiment")
     p_demo.add_argument("--root", default="runs", help="lineage store directory")
     p_demo.set_defaults(func=cmd_demo)
+
+    p_author = sub.add_parser(
+        "author",
+        help="manage per-author ed25519 attestation keys (CR2)",
+    )
+    p_author.add_argument("--author", required=True, help="author identity (name)")
+    p_author.add_argument(
+        "--keystore", default="",
+        help="keystore dir (default: $OPHAMIN_KEYSTORE or ~/.ophamin/keys)",
+    )
+    p_author.add_argument(
+        "--registry", default="",
+        help="optional authors-registry JSON to record author->public_key into",
+    )
+    p_author.set_defaults(func=cmd_author)
 
     p_run = sub.add_parser("run", help="run one experiment from a base config")
     p_run.add_argument("config", help="path to a base config YAML")

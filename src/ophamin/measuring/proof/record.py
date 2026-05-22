@@ -448,6 +448,12 @@ class EmpiricalProofRecord:
     # §9 signature — set by sign()
     signature: str = ""
 
+    # §10 attestation — set by attest(); ed25519 author attestation. Lives
+    # OUTSIDE _body() (like signature) so signing is not self-referential.
+    # Empty dict means un-attested. Shape:
+    #   {author, algorithm="ed25519", public_key (hex), signature (hex)}
+    attestation: dict[str, Any] = field(default_factory=dict)
+
     # -- the signable / hashable body (sections 1-8) ------------------------
 
     def _body(self) -> dict[str, Any]:
@@ -486,13 +492,76 @@ class EmpiricalProofRecord:
         return self
 
     def verify_signature(self, key: bytes) -> bool:
-        """True iff the signature matches the current body under ``key``."""
+        """True iff the signature matches the current body under ``key``.
+
+        Note the trust model: the HMAC signature is a content-INTEGRITY seal
+        under a (typically shared) key — it detects tampering, it does NOT
+        authenticate the author. For real, publicly-verifiable attribution use
+        :meth:`attest` / :meth:`verify_attestation` (ed25519).
+        """
         if not self.signature:
             return False
         expected = hmac.new(
             key, _canonical(self._body()).encode("utf-8"), hashlib.sha256
         ).hexdigest()
         return hmac.compare_digest(expected, self.signature)
+
+    # -- author attestation (ed25519, real attribution) --------------------
+
+    def attest(
+        self, private_key: bytes, author: str, *, public_key: bytes | None = None
+    ) -> "EmpiricalProofRecord":
+        """ed25519-sign the body with an author's private key. Returns self.
+
+        Unlike :meth:`sign` (shared-key HMAC integrity seal), this is genuine
+        attestation: only the holder of ``private_key`` could have produced the
+        signature, and anyone with the matching public key can verify it. The
+        public key is embedded for convenience; real attribution checks it
+        against a trusted :class:`~ophamin.measuring.proof.attestation.AuthorsRegistry`.
+        """
+        from ophamin.measuring.proof.attestation import (
+            ALGORITHM,
+            public_key_for,
+            sign_bytes,
+        )
+
+        if not author or not author.strip():
+            raise ValueError("attest() requires a non-empty author")
+        pub = public_key if public_key is not None else public_key_for(private_key)
+        sig = sign_bytes(
+            private_key, _canonical(self._body()).encode("utf-8")
+        )
+        self.attestation = {
+            "author": author,
+            "algorithm": ALGORITHM,
+            "public_key": pub.hex(),
+            "signature": sig.hex(),
+        }
+        return self
+
+    def verify_attestation(self, *, expected_public_key: bytes | None = None) -> bool:
+        """True iff the ed25519 attestation matches the current body.
+
+        With ``expected_public_key`` supplied (e.g. from an AuthorsRegistry),
+        the embedded key MUST equal it — that turns a self-carried signature
+        into real attribution. Without it, this proves only that the holder of
+        the embedded key signed this exact body (integrity + non-repudiation).
+        """
+        from ophamin.measuring.proof.attestation import from_hex, verify_bytes
+
+        att = self.attestation or {}
+        if not att or att.get("algorithm") != "ed25519":
+            return False
+        try:
+            pub = from_hex(att.get("public_key", ""))
+            sig = from_hex(att.get("signature", ""))
+        except Exception:  # noqa: BLE001 — malformed hex is a failed verify
+            return False
+        if len(pub) != 32 or len(sig) != 64:
+            return False
+        if expected_public_key is not None and pub != bytes(expected_public_key):
+            return False
+        return verify_bytes(pub, _canonical(self._body()).encode("utf-8"), sig)
 
     # -- validation (the bulletproof checklist) ----------------------------
 
@@ -581,7 +650,13 @@ class EmpiricalProofRecord:
 
     def to_dict(self) -> dict[str, Any]:
         body = self._body()
-        return {"proof_id": self.proof_id, **body, "signature": self.signature}
+        out = {"proof_id": self.proof_id, **body, "signature": self.signature}
+        # Attestation is optional + outside the body. Include it only when
+        # present so un-attested proofs round-trip byte-identically (and old
+        # tracked proofs keep validating against the schema).
+        if self.attestation:
+            out["attestation"] = dict(self.attestation)
+        return out
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "EmpiricalProofRecord":
@@ -614,6 +689,9 @@ class EmpiricalProofRecord:
             schema_version=str(data.get("schema_version", SCHEMA_VERSION)),
         )
         record.signature = str(data.get("signature", ""))
+        att = data.get("attestation")
+        if isinstance(att, dict) and att:
+            record.attestation = dict(att)
         return record
 
     @classmethod

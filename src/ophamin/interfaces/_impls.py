@@ -1005,14 +1005,41 @@ def verify_proof_impl(proof_json: str, sign_key_b64: str = "") -> dict[str, Any]
             raise ValueError("proof_json must decode to a JSON object")
 
         # Reconstruct the body that Python signed over (everything except
-        # ``signature`` and ``proof_id``). Mirrors the Rust + JS ports'
+        # ``signature``, ``proof_id`` AND ``attestation`` — all three live
+        # OUTSIDE the signed body). Mirrors the Rust + JS ports'
         # body-for-signing semantics.
-        body = {k: v for k, v in record_dict.items() if k not in ("signature", "proof_id")}
+        body = {
+            k: v
+            for k, v in record_dict.items()
+            if k not in ("signature", "proof_id", "attestation")
+        }
         canonical = _canonical(body).encode("utf-8")
         expected_hex = hmac.new(key, canonical, hashlib.sha256).hexdigest()
         sig = record_dict.get("signature", "")
         verified = isinstance(sig, str) and hmac.compare_digest(sig, expected_hex)
         proof_id = hashlib.sha256(canonical).hexdigest()
+
+        # ed25519 author attestation (CR2) — verified over the SAME canonical
+        # body. Reported alongside the HMAC result: the HMAC seals integrity
+        # under a shared key; the attestation proves who produced it.
+        att = record_dict.get("attestation") or {}
+        attested = bool(att)
+        attestation_author = att.get("author", "") if isinstance(att, dict) else ""
+        attestation_verified = False
+        if attested and isinstance(att, dict):
+            try:
+                from ophamin.measuring.proof.attestation import from_hex, verify_bytes
+
+                pub = from_hex(att.get("public_key", ""))
+                ed_sig = from_hex(att.get("signature", ""))
+                attestation_verified = (
+                    att.get("algorithm") == "ed25519"
+                    and len(pub) == 32
+                    and len(ed_sig) == 64
+                    and verify_bytes(pub, canonical, ed_sig)
+                )
+            except Exception:  # noqa: BLE001 — malformed attestation = unverified
+                attestation_verified = False
 
         verdict = record_dict.get("verdict") or {}
         outcome = verdict.get("outcome", "") if isinstance(verdict, dict) else ""
@@ -1031,10 +1058,16 @@ def verify_proof_impl(proof_json: str, sign_key_b64: str = "") -> dict[str, Any]
             },
         )
 
+        span.set_attribute("ophamin.proof.attested", attested)
+        span.set_attribute("ophamin.proof.attestation_verified", attestation_verified)
+
         return {
             "verified": verified,
             "proof_id": proof_id,
             "schema_version": record_dict.get("schema_version", ""),
+            "attested": attested,
+            "attestation_author": attestation_author,
+            "attestation_verified": attestation_verified,
             "verdict": {
                 "outcome": outcome,
                 "observed_value": (

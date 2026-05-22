@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import enum
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -204,6 +205,23 @@ def persist_proof(
         raise ValueError(
             "record.signature is empty — call record.sign(key) before persist_proof"
         )
+
+    # --- author attestation (CR2, opt-in) ---
+    # If the operator declared an identity via OPHAMIN_AUTHOR, attest the proof
+    # with their ed25519 key (loaded/created from the keystore) before writing.
+    # This adds real, publicly-verifiable authorship on top of the shared-key
+    # HMAC integrity seal. No author configured -> un-attested (backward
+    # compatible). Attestation lives outside the body, so proof_id / bundle dir
+    # are unchanged. Keystore errors fail loud — never a silent skip.
+    if not record.attestation:
+        author = os.environ.get("OPHAMIN_AUTHOR", "").strip()
+        if author:
+            from ophamin.measuring.proof.attestation import (
+                load_or_create_author_key,
+            )
+
+            key = load_or_create_author_key(author)
+            record.attest(key.private_key, author, public_key=key.public_key)
 
     formats_set: frozenset[BundleFormat]
     if formats is None:

@@ -132,8 +132,21 @@
 
     "signature": {
       "type": "string",
-      "description": "Section 9 — HMAC-SHA256 over sections 1-8. Empty string means unsigned.",
+      "description": "Section 9 — HMAC-SHA256 over sections 1-8. Empty string means unsigned. Integrity seal under a (shared) key — NOT authentication.",
       "pattern": "^([0-9a-f]{64})?$"
+    },
+
+    "attestation": {
+      "type": "object",
+      "description": "Section 10 (optional) — ed25519 author attestation over sections 1-8. Real, publicly-verifiable attribution (only the private-key holder could produce it). Absent on un-attested proofs.",
+      "required": ["author", "algorithm", "public_key", "signature"],
+      "additionalProperties": false,
+      "properties": {
+        "author": { "type": "string", "minLength": 1 },
+        "algorithm": { "type": "string", "const": "ed25519" },
+        "public_key": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "signature": { "type": "string", "pattern": "^[0-9a-f]{128}$" }
+      }
     }
   },
 

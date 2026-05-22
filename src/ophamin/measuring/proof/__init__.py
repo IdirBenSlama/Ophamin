@@ -53,6 +53,19 @@ from ophamin.measuring.proof.record import (
     content_hash,
 )
 
+from ophamin.measuring.proof.attestation import (
+    ALGORITHM,
+    AttestationError,
+    AuthorKey,
+    AuthorsRegistry,
+    KeystoreError,
+    generate_private_key,
+    load_or_create_author_key,
+    public_key_for,
+    sign_bytes,
+    verify_bytes,
+)
+
 #: absolute path to the official JSON Schema for proof.json
 SCHEMA_PATH = Path(__file__).with_name("schema.json")
 
@@ -104,4 +117,15 @@ __all__ = [
     "PersistedBundle",
     "bundle_dir_for",
     "persist_proof",
+    # attestation surface (ed25519 per-author, CR2)
+    "ALGORITHM",
+    "AttestationError",
+    "AuthorKey",
+    "AuthorsRegistry",
+    "KeystoreError",
+    "generate_private_key",
+    "load_or_create_author_key",
+    "public_key_for",
+    "sign_bytes",
+    "verify_bytes",
 ]

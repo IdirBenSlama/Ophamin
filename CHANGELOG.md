@@ -7,7 +7,49 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.97.0] below for the latest cut.)
+(empty — see [0.98.0] below for the latest cut.)
+
+## [0.98.0] — 2026-05-22
+
+**Real author attestation — ed25519 per-author signing keys (CR2).** The
+critical review's #2 finding: every proof was signed with one shared HMAC key
+(`DEFAULT_SIGN_KEY`). That is a content-*integrity* seal — it detects
+tampering — but it is **not authentication**: anyone with the repo knows the
+key and can forge a "valid" signature. CR2 adds genuine, publicly-verifiable
+authorship without removing the integrity seal.
+
+- **ed25519 attestation** (`measuring/proof/attestation.py`): an author signs
+  the proof body with their **private** key; anyone verifies with the
+  **public** key. Three honest properties — integrity, non-repudiation, and
+  attribution. New `EmpiricalProofRecord.attest()` / `verify_attestation()`;
+  the attestation block lives *outside* the signed body (like `signature`), so
+  `proof_id` is unchanged and old proofs round-trip byte-identically.
+- **Per-author keystore.** Private keys are created on first use at mode 0600
+  with a `.key` extension (gitignored), default `~/.ophamin/keys/`, never in
+  the repo. Only public keys are shareable. `OPHAMIN_SIGNING_KEY` (hex) gives
+  an ephemeral/CI path; `OPHAMIN_KEYSTORE` relocates the store.
+- **Authors registry** — the out-of-band trust anchor. `AuthorsRegistry` maps
+  an author NAME to the public key the verifier trusts for them; a proof that
+  carries its own key only proves "the holder of THIS key signed it", so
+  `verify_attestation(expected_public_key=...)` checks the embedded key against
+  the registry for *real* attribution. We do not pretend the self-carried key
+  alone is attribution — that honesty is the point.
+- **Opt-in, centralized.** `persist_proof()` attests automatically when
+  `OPHAMIN_AUTHOR` is set — every scenario gets attestation with zero
+  per-scenario code; no author configured ⇒ un-attested (backward compatible).
+- **`ophamin author` CLI** — keygen / show public key / record into a registry
+  (public keys only).
+- **Verify surface** reports it: `verify_proof_impl` (HTTP/Console verify) now
+  returns `attested` / `attestation_author` / `attestation_verified`, and
+  excludes the attestation block from the HMAC recompute (it is outside the
+  body). The Console verify screen shows an ed25519 author chip, or "HMAC
+  integrity only" for un-attested proofs.
+- **`cryptography>=42.0`** is now a declared dependency (was transitive); the
+  optional `attestation` block is added to the proof JSON schema.
+- 39 new tests pin primitives, keystore (0600, env override, corrupt-file
+  loud-fail), registry, record attest/verify (tamper + wrong-key rejection),
+  serialization + schema backward-compat, persist-time opt-in, the CLI, and
+  the verify surface.
 
 ## [0.97.0] — 2026-05-22
 

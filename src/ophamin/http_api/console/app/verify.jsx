@@ -120,6 +120,14 @@ function VerifyScreen() {
                   <span className="mono faint">schema</span><span className="mono">{result.schema_version || '—'}</span>
                   <span className="mono faint">verdict</span><span className="mono">{(result.verdict || {}).outcome || '—'}</span>
                   <span className="mono faint">claim</span><span style={{ color: 'var(--text-secondary)' }}>{result.claim_statement || '—'}</span>
+                  <span className="mono faint">attestation</span>
+                  {result.attested ? (
+                    <span className="mono" style={{ color: result.attestation_verified ? 'var(--validated, #2dd4bf)' : 'var(--refuted, #ef5b5b)' }}>
+                      {result.attestation_verified ? '✓ ' : '✗ '}{result.attestation_author || '(unknown)'} · ed25519
+                    </span>
+                  ) : (
+                    <span className="mono faint" title="HMAC integrity seal only — no author attestation. Set OPHAMIN_AUTHOR to attest.">— HMAC integrity only</span>
+                  )}
                 </div>
                 {(result.verdict || {}).reasoning && (
                   <div style={{ marginTop: 14 }}>

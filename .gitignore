@@ -87,6 +87,15 @@ secrets/
 *.pem
 *.key
 
+# --- Per-author attestation keystore (CR2) ---
+# ed25519 PRIVATE keys for proof attestation. Default keystore is
+# ~/.ophamin/keys (outside the repo), but if an operator points
+# OPHAMIN_KEYSTORE at a repo-local dir, these belt-and-suspenders rules keep
+# private keys out of git. Only PUBLIC keys (authors registry JSON) are
+# committable.
+.ophamin/
+*.ed25519.key
+
 # --- JS/TS package (packages/ophamin-proof-js) ---
 packages/*/node_modules/
 packages/*/dist/

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ophamin"
-version = "0.97.0"
+version = "0.98.0"
 description = "An empirical observatory wrapped around a substrate under test — six wheels, signed proofs, falsifiable claims."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -73,6 +73,7 @@ dependencies = [
     "dvc>=3.0",
     "psutil>=5.9",   # instrumenting wheel — per-cycle CPU / RSS / page-fault sampler
     "jsonschema>=4.0",  # measuring/proof codec — JSON-Schema validation against proof/schema.json
+    "cryptography>=42.0",  # measuring/proof attestation — ed25519 per-author signing (CR2)
 ]
 
 [project.urls]
