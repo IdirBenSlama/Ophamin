@@ -7,7 +7,40 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.101.0] below for the latest cut.)
+(empty — see [0.102.0] below for the latest cut.)
+
+## [0.102.0] — 2026-05-22
+
+**Standards conformance — real checks, not structural presence (CR7).** The
+critical review's #7 finding: the reporting gate's standards checks were
+mostly block-presence — `bool(provenance)`, `analysis_plan` exists, RO-Crate
+"always satisfied". A proof with the right *shape* but empty/short/ill-formed
+content passed. Now every standard check verifies its substantive requirement.
+
+- **in-toto/DSSE** — the signature must be a valid 64- (HMAC) or 128-hex
+  (ed25519) digest, not merely non-empty.
+- **w3c-prov-o** — the provenance must be a real PROV-JSON graph with non-empty
+  `agent` AND `activity` AND `entity` (not just a truthy block).
+- **osf-registered-reports** — the prereg must carry config_hash + analysis_plan
+  AND `preregistered_at` must be **strictly before** `created_at` — the actual
+  anti-p-hacking lock, parsed and compared as timestamps.
+- **mlcommons-croissant** — every dataset must be a usable card: name +
+  content_hash + n_records≥1 + source/kind (not just a hash).
+- **stanford-helm** — ≥1 evidence pillar must carry substantive raw detail
+  (≥2 keys or a nested series/structure), not a single headline number.
+- **ro-crate** — now an honest bundle-level check: `report_conformance(proof,
+  bundle_dir=…)` verifies proof.json + a human render (md/html/pdf/tex) exist
+  on disk. Without a bundle_dir it reports not-satisfied (it is genuinely not
+  verifiable from the record alone) instead of the old always-true.
+- **Validated on the corpus:** under the real checks, 67/67 proofs pass
+  nomenclature + 5 standards, and **66/67 pass w3c-prov-o** — the single miss
+  is an older proof with incomplete provenance, exactly the real defect the
+  old structural-presence check would have hidden (it reported prov-o satisfied
+  for any non-empty block). The thin structural fixture that passed before now
+  fails all 6 standards.
+- 19 tests pin the substantive checks (short signature, empty provenance,
+  prereg-after-result, incomplete dataset card, headline-only detail) + the
+  RO-Crate bundle boundary, plus a real-corpus check.
 
 ## [0.101.0] — 2026-05-22
 

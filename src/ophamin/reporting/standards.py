@@ -14,12 +14,17 @@ Two checks, both structured + actionable (never raised):
     evidence with named (snake_case) statistics; a ``created_at`` that the
     canonical bundle name ``<YYYY-MM-DD>_<verdict>_<short>`` derives from.
 
-  * **Standards coverage** — which recognised standards the proof satisfies:
-    in-toto/DSSE (signed attestation → signature present), W3C PROV-O
-    (provenance graph present), OSF Registered Reports (pre-registration
-    present), MLCommons Croissant (dataset cards → datasets with a
-    content_hash), Stanford HELM (raw transparency → evidence detail
-    present), RO-Crate (multi-format render available).
+  * **Standards coverage** — which recognised standards the proof satisfies.
+    These are SUBSTANTIVE checks (CR7), not structural-presence: in-toto/DSSE
+    (signature is a valid 64/128-hex digest, not just non-empty), W3C PROV-O
+    (the graph actually has non-empty agent + activity + entity), OSF
+    Registered Reports (prereg has the plan AND ``preregistered_at`` is
+    strictly before ``created_at`` — the real anti-p-hacking lock), MLCommons
+    Croissant (every dataset is a usable card: name + content_hash +
+    n_records≥1 + source/kind), Stanford HELM (≥1 evidence pillar with
+    substantive raw detail, not a single headline number), RO-Crate (the
+    bundle has proof.json + a human render on disk — verifiable only when a
+    ``bundle_dir`` is supplied).
 
 ``report_conformance`` returns a structured report: per-item results, the
 standards satisfied vs missing, and ``conformant`` (True iff every required
@@ -31,6 +36,8 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from ophamin.reporting.base import ReportFormat
@@ -41,6 +48,18 @@ COMPARATORS: tuple[str, ...] = (">=", "<=", ">", "<", "==", "!=")
 _HASH_RE = re.compile(r"^[0-9a-f]{16,64}$")
 _SNAKE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}")
+# A real attestation signature: HMAC-SHA256 (64 hex) or ed25519 (128 hex).
+_SIG_RE = re.compile(r"^[0-9a-f]{64}([0-9a-f]{64})?$")
+# RO-Crate bundle: the signed JSON plus at least one human-readable render.
+_RO_CRATE_RENDERS: tuple[str, ...] = ("proof.md", "proof.html", "proof.pdf", "proof.tex")
+
+
+def _isoparse(value: str) -> datetime | None:
+    """Parse an ISO-8601 timestamp; None if it doesn't parse (no guessing)."""
+    try:
+        return datetime.fromisoformat(str(value))
+    except (ValueError, TypeError):
+        return None
 
 ERROR = "error"
 WARN = "warn"
@@ -62,17 +81,21 @@ class ReportStandard:
 #: human-readable predicate; the check is implemented in ``report_conformance``.
 REPORT_STANDARDS: tuple[ReportStandard, ...] = (
     ReportStandard("in-toto/DSSE", "signed attestation envelope",
-                   "a non-empty signature on the record"),
+                   "a signature that is a valid 64- or 128-hex digest"),
     ReportStandard("w3c-prov-o", "provenance graph",
-                   "a provenance block (agents / activities / entities)"),
+                   "a PROV-JSON graph with non-empty agent, activity AND entity"),
     ReportStandard("osf-registered-reports", "pre-registration of claim + plan",
-                   "a preregistration block (config_hash + analysis_plan)"),
+                   "config_hash + analysis_plan AND preregistered_at strictly "
+                   "before created_at (the anti-p-hacking lock)"),
     ReportStandard("mlcommons-croissant", "dataset cards",
-                   "datasets each carrying a content_hash"),
+                   "every dataset carries name + content_hash + n_records≥1 + "
+                   "source/kind (a usable card, not just a hash)"),
     ReportStandard("stanford-helm", "raw transparency",
-                   "evidence carrying raw detail (not just a headline number)"),
+                   "≥1 evidence pillar with substantive detail (raw series/"
+                   "structure, not a single headline number)"),
     ReportStandard("ro-crate", "research-object packaging",
-                   "a multi-format render (json + md + …) — bundle level"),
+                   "the bundle has proof.json + ≥1 human render (md/html/pdf/"
+                   "tex) on disk — verifiable only with the bundle dir"),
 )
 
 #: Output formats the reporting wheel renders (the nomenclature for files).
@@ -175,48 +198,124 @@ def _nomenclature_items(proof: dict[str, Any]) -> list[ConformanceItem]:
     return items
 
 
-def _standards_items(proof: dict[str, Any]) -> list[ConformanceItem]:
+def _detail_is_substantive(detail: Any) -> bool:
+    """True iff an evidence detail is real raw transparency, not a headline.
+
+    A single scalar key (e.g. ``{"n_pairs": 24}``) is a headline number, not
+    HELM-style raw transparency. Substantive = ≥2 keys, OR a nested
+    list/dict value (a series, distribution, control block, etc.).
+    """
+    if not isinstance(detail, dict) or not detail:
+        return False
+    if len(detail) >= 2:
+        return True
+    return any(isinstance(v, (list, dict)) and v for v in detail.values())
+
+
+def _dataset_card_complete(d: dict[str, Any]) -> bool:
+    """A usable Croissant card: name + content_hash + n_records≥1 + source/kind."""
+    if not d.get("name") or not d.get("content_hash"):
+        return False
+    n = d.get("n_records")
+    if not isinstance(n, int) or isinstance(n, bool) or n < 1:
+        return False
+    return bool(d.get("source") or d.get("kind"))
+
+
+def _provenance_is_prov_o(prov: Any) -> bool:
+    """Real PROV-JSON: non-empty agent AND activity AND entity blocks."""
+    if not isinstance(prov, dict):
+        return False
+    return all(bool(prov.get(k)) for k in ("agent", "activity", "entity"))
+
+
+def _prereg_precedes_result(proof: dict[str, Any]) -> bool:
+    """OSF anti-p-hacking lock: prereg has the plan AND preregistered_at is
+    strictly before created_at (both must parse as real timestamps)."""
+    prereg = proof.get("preregistration") or {}
+    if not (prereg.get("config_hash") and prereg.get("analysis_plan")):
+        return False
+    pre = _isoparse(prereg.get("preregistered_at", ""))
+    created = _isoparse(
+        (proof.get("identity", {}) or {}).get("created_at", "")
+        or proof.get("created_at", "")
+    )
+    return pre is not None and created is not None and pre < created
+
+
+def _ro_crate_on_disk(bundle_dir: str | Path | None) -> bool | None:
+    """True iff the bundle has proof.json + ≥1 human render on disk.
+
+    Returns None when no bundle_dir is given — RO-Crate is a bundle-level
+    property and is NOT verifiable from the record dict alone. None is honest:
+    "not checked", distinct from False ("checked, missing").
+    """
+    if bundle_dir is None:
+        return None
+    d = Path(bundle_dir)
+    if not (d / "proof.json").exists():
+        return False
+    return any((d / r).exists() for r in _RO_CRATE_RENDERS)
+
+
+def _standards_items(
+    proof: dict[str, Any], bundle_dir: str | Path | None = None,
+) -> list[ConformanceItem]:
+    """Substantive standards checks — each verifies the standard's real
+    requirement, not mere block-presence (CR7)."""
     evidence = proof.get("evidence", []) or []
-    # Datasets are nested under ``data.datasets`` in the serialised record;
-    # accept a top-level ``datasets`` too for forward compatibility.
     datasets = (proof.get("data", {}) or {}).get("datasets") or proof.get("datasets", []) or []
-    checks: dict[str, bool] = {
-        "in-toto/DSSE": bool(str(proof.get("signature", "")).strip()),
-        "w3c-prov-o": bool(proof.get("provenance")),
-        "osf-registered-reports": bool(
-            (proof.get("preregistration") or {}).get("analysis_plan")
-        ),
+    sig = str(proof.get("signature", ""))
+
+    ro_crate = _ro_crate_on_disk(bundle_dir)
+    # checks map id -> bool|None (None = not verifiable here, only for ro-crate)
+    checks: dict[str, bool | None] = {
+        "in-toto/DSSE": bool(_SIG_RE.match(sig)),
+        "w3c-prov-o": _provenance_is_prov_o(proof.get("provenance")),
+        "osf-registered-reports": _prereg_precedes_result(proof),
         "mlcommons-croissant": bool(datasets) and all(
-            bool(d.get("content_hash")) for d in datasets
+            _dataset_card_complete(d) for d in datasets
         ),
         "stanford-helm": bool(evidence) and any(
-            bool(e.get("detail")) for e in evidence
+            _detail_is_substantive(e.get("detail")) for e in evidence
         ),
-        # RO-Crate is bundle-level (multi-format render). At the record level
-        # we can only confirm the record is renderable to >1 format, which it
-        # always is — so report it satisfied when the record is well-formed
-        # enough to carry a claim + verdict.
-        "ro-crate": bool(proof.get("claim")) and bool(proof.get("verdict")),
+        "ro-crate": ro_crate,
     }
     items: list[ConformanceItem] = []
     for std in REPORT_STANDARDS:
         ok = checks.get(std.id, False)
+        if ok is None:
+            detail = (
+                f"{std.covers}: not verifiable from the record alone — pass "
+                f"the bundle dir to check ({std.requires})."
+            )
+            fix = "Call report_conformance(proof, bundle_dir=…) to verify RO-Crate."
+        else:
+            detail = f"{std.covers}: {'satisfied' if ok else 'not satisfied'} ({std.requires})."
+            fix = "" if ok else f"Satisfy: {std.requires}."
         items.append(ConformanceItem(
-            "standard", std.id, ok, WARN,
-            f"{std.covers}: {'satisfied' if ok else 'not present'} ({std.requires}).",
-            "" if ok else f"Add {std.requires} to satisfy {std.id}."))
+            "standard", std.id, bool(ok), WARN, detail, fix,
+        ))
     return items
 
 
-def report_conformance(proof: dict[str, Any]) -> dict[str, Any]:
+def report_conformance(
+    proof: dict[str, Any], bundle_dir: str | Path | None = None,
+) -> dict[str, Any]:
     """Check a proof's nomenclature + standards coverage.
 
     Returns a structured report. ``conformant`` is True iff every required
     nomenclature item passes (standards coverage is reported, not required —
-    not every proof needs every standard).
+    not every proof needs every standard). The standards checks are
+    SUBSTANTIVE, not structural-presence (CR7): each verifies the standard's
+    real requirement (valid signature digest; PROV-O agent+activity+entity;
+    prereg strictly before the result; complete dataset cards; raw evidence
+    detail). ``bundle_dir`` enables the RO-Crate on-disk check (proof.json +
+    a human render); without it RO-Crate is reported not-satisfied because it
+    is a bundle-level property not verifiable from the record alone.
     """
     nomenclature = _nomenclature_items(proof)
-    standards = _standards_items(proof)
+    standards = _standards_items(proof, bundle_dir=bundle_dir)
     conformant = all(i.satisfied for i in nomenclature)
     satisfied = [i.id for i in standards if i.satisfied]
     missing = [i.id for i in standards if not i.satisfied]
