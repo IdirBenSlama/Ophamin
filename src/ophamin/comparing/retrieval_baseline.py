@@ -243,3 +243,27 @@ def event_set_jaccard_divergence(
         return 0.0
     union = len(a_set | b_set)
     return 1.0 - len(a_set & b_set) / union if union else 0.0
+
+
+def graded_fidelity(distances: Sequence[float], targets: Sequence[float]) -> float:
+    """Spearman rank-correlation between a representation's pairwise distances and
+    a ground-truth GRADED quantity (e.g. |Δ max-drawdown| between two histories).
+
+    This is the graded test the binary separation score missed: a genuine
+    path-memory's distances should *scale* with how different the paths really
+    are — not saturate at 1.0. Returns 0.0 on a degenerate input (constant /
+    saturated distances, or constant targets), which is exactly how a binary
+    order-detector scores here: its distances are all ~1.0, carry no graded
+    signal, and so earn fidelity 0.
+    """
+    import numpy as np
+    from scipy.stats import spearmanr
+
+    d = np.asarray(list(distances), dtype=float)
+    t = np.asarray(list(targets), dtype=float)
+    if d.size < 3 or t.size != d.size:
+        return 0.0
+    if bool(np.allclose(d, d.flat[0])) or bool(np.allclose(t, t.flat[0])):
+        return 0.0
+    rho = spearmanr(d, t).correlation
+    return 0.0 if (rho is None or bool(np.isnan(rho))) else float(rho)
