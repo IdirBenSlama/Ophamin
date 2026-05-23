@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>77c1f925244a3490887366d80bd78b9dab7fc83ed5bf190d31900e2d83d7d4e9</code><br><strong>Created:</strong> 2026-05-23T21:01:11.725624+00:00</p><h2>1. Claim</h2><blockquote><p>At least 80% of Kimera&#x27;s always-on numeric signals carry real dynamics across a DIVERSE stimulus battery (a signal frozen across every corpus — multilingual, financial, code, adversarial — is a genuine dead wire, not merely an unexercised conditional organ).</p></blockquote><ul><li><strong>Operationalisation:</strong> Stream 40 records from each of [&#x27;flores&#x27;, &#x27;financial&#x27;, &#x27;linux&#x27;, &#x27;cyber&#x27;] through the &#x27;entity&#x27; target; combine all cycles; of signals present in EVERY cycle, the fraction taking &gt;= 2 distinct values across the WHOLE battery. liveness_rate_union = always_on_live / always_on_total.</li><li><strong>Threshold:</strong> <code>liveness_rate_union &gt;= 0.8 proportion</code></li><li><strong>H0:</strong> H0: union liveness &lt; 80% — genuine dead wires remain (frozen even under their own trigger); worklist non-empty</li><li><strong>H1:</strong> H1: union liveness &gt;= 80% — the always-on surface is dynamically alive under diverse stimuli</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>0.8641304347826086</code></p><p>always-on liveness 0.8641: 477/552 every-cycle signals carry real dynamics; 75 are frozen defaults (the worklist); Wilson 95% CI [0.8330, 0.8902]. Context: whole-surface 4647/22053 (0.2107, deflated by under-sampling); 160 cycles</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-23T21:01:11.503367+00:00</code></li><li>Config hash: <code>5520036ff0ed73c1a2194ec88e9eac8fc6c533d69594750db3a8201e83fb02ab</code></li><li>Data hash: <code>1a70e8416900df8686bc14a72935ba15b1b2b966a9aeaddc1d2931fd24c93d3e</code></li></ul><p><em>Plan:</em> Stream 40 records from each of [&#x27;flores&#x27;, &#x27;financial&#x27;, &#x27;linux&#x27;, &#x27;cyber&#x27;] through Kimera &#x27;entity&#x27;; combine all cycle results; classify each always-on numeric signal live (&gt;=2 distinct values across the whole battery) vs frozen. Decide union liveness against &gt;= 80%; Wilson 95% CI. Genuine dead-wire worklist (frozen across all corpora) in evidence.</p><h2>4. Data</h2><ul><li>Substrate: <code>kimera-swm</code> @ <code>78cb9f9fc6a8</code></li><li>Dataset: <code>flores-200</code> (parallel_corpus, 997 records, hash <code>bf4196403365…</code>)</li><li>Dataset: <code>financial-corpus</code> (financial_corpus, 9847012 records, hash <code>55ab1cb57046…</code>)</li><li>Dataset: <code>linux-kernel-commits</code> (commit_corpus, 1445246 records, hash <code>92a34cc42750…</code>)</li><li>Dataset: <code>offensive-security-corpus</code> (adversarial_corpus, 4416305 records, hash <code>83109a27c3df…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>signal_dynamics</code></td><td><code>liveness_rate</code></td><td><code>0.8641304347826086</code></td><td>(0.8330, 0.8902)</td><td>statsmodels 0.14.6</td></tr></tbody></table><h2>6. Signature</h2><p><code>a3016d4e1e2067429a6361ef04d5b4a9b32b90fa163a1e69d91029a5420ad878</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.115.2 @ <code>c9c5e087214e</code></footer></body></html>

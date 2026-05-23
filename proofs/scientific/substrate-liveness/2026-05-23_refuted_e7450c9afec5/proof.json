@@ -1,0 +1,1355 @@
+{
+  "proof_id": "e7450c9afec58d0237254fff0699422ab9eba17799063b166d1deeaa3e1a52e9",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "c9c5e087214e4070d6b643d455051a67b9e2598a",
+    "created_at": "2026-05-23T20:49:15.033957+00:00"
+  },
+  "claim": {
+    "statement": "At least 80% of the always-on numeric signals Kimera emits (those present in EVERY cycle) carry real dynamics (vary with the stimulus) rather than emitting a frozen default constant.",
+    "operationalization": "Stream 64 diverse records from the 'flores' corpus through the Kimera 'entity' target; collect every finite numeric leaf in CycleResult.raw per cycle. Restrict to ALWAYS-ON signals (present in all cycles \u2192 zero sampling doubt); a signal is LIVE if it takes >= 2 distinct values, FROZEN if constant. liveness_rate = always_on_live / always_on_total. Under-sampled signals are excluded (a signal seen in few cycles is trivially constant \u2014 not a frozen default).",
+    "threshold": {
+      "metric": "liveness_rate",
+      "comparator": ">=",
+      "value": 0.8,
+      "units": "proportion"
+    },
+    "h0": "H0: liveness < 80% \u2014 most emitted signals are frozen defaults; the body is structurally wired but not dynamically alive; the frozen worklist is non-empty",
+    "h1": "H1: liveness >= 80% \u2014 the emitted signal surface is dynamically alive"
+  },
+  "preregistration": {
+    "config_hash": "e683f31a2ae22e752e0db448f4a3059407edee45e64a148af8fd44713cfb157b",
+    "data_hash": "bf4196403365897ad95dbcc18fc5116a99bc007f58e71dd302566b61b4296262",
+    "analysis_plan": "Stream 64 diverse 'flores' records through the Kimera 'entity' target; flatten all numeric leaves in CycleResult.raw per cycle; classify each signal live (>=2 distinct values) vs frozen (constant). Decide liveness_rate against threshold >= 80%. Wilson 95% CI on the proportion. The frozen-signal worklist (by organ) is in the proof evidence.",
+    "sweep_grid": {},
+    "preregistered_at": "2026-05-23T20:46:58.311038+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "78cb9f9fc6a8f73973ff8f94a4254ab00488153c",
+    "datasets": [
+      {
+        "name": "flores-200",
+        "content_hash": "bf4196403365897ad95dbcc18fc5116a99bc007f58e71dd302566b61b4296262",
+        "n_records": 997,
+        "source": "https://dl.fbaipublicfiles.com/nllb/flores200_dataset.tar.gz",
+        "kind": "parallel_corpus"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "signal_dynamics",
+      "statistic_name": "liveness_rate",
+      "statistic_value": 0.6776556776556777,
+      "library": "statsmodels",
+      "library_version": "0.14.6",
+      "effect_size": null,
+      "ci_low": 0.6448814272079555,
+      "ci_high": 0.708771146906461,
+      "p_value": null,
+      "cross_check": "n/a",
+      "detail": {
+        "always_on_total": 819,
+        "always_on_live": 555,
+        "always_on_frozen": 264,
+        "n_cycles_scored": 64,
+        "ci_method": "wilson_95%",
+        "whole_surface_total": 15754,
+        "whole_surface_live": 3315,
+        "whole_surface_liveness_rate": 0.2104227497778342,
+        "scorable_min_samples": 32,
+        "scorable_total": 1289,
+        "scorable_live": 565,
+        "scorable_liveness_rate": 0.4383242823894492,
+        "frozen_by_organ_top": {
+          "thermo": 26,
+          "piovra": 24,
+          "gwf": 11,
+          "scar": 9,
+          "ack": 7,
+          "vault": 6,
+          "learned": 6,
+          "kccl": 5,
+          "enhancement": 5,
+          "consolidation": 5,
+          "sparse": 4,
+          "diagnostic": 4,
+          "soft": 4,
+          "infra": 4,
+          "feature": 4,
+          "riemann": 4,
+          "multi": 3,
+          "semantic": 3,
+          "echoform": 3,
+          "meta": 3,
+          "cip": 3,
+          "reinjection": 3,
+          "interference": 3,
+          "ouroboros": 3,
+          "breathing": 3
+        },
+        "frozen_worklist": [
+          "abductive_confidence",
+          "accumulator_normalizations_applied",
+          "ack_activator_amplification_scale_applied",
+          "ack_activator_narrow_band_bandwidth",
+          "ack_advisory_active",
+          "ack_advisory_amplification_brake",
+          "ack_advisory_narrow_band_tighten",
+          "ack_fired_count",
+          "ack_introspective_count",
+          "activation_complete",
+          "adaptive_prune_age_threshold",
+          "alexandria_fused_primes.Fused(echoform:SHIFT:dS=0.4408:phi=0.6913+invention)",
+          "alexandria_warm_start_count",
+          "allen_cahn_scar_conditions",
+          "attention_schema_active",
+          "axis_count",
+          "axis_manager_active",
+          "backpressure_reject_rate_pct",
+          "bcpnn_failed_formations",
+          "bcpnn_observer_active",
+          "breathing_cycles_elapsed",
+          "breathing_healthy",
+          "breathing_recovery_fraction",
+          "chimera_confidence",
+          "chimera_detected",
+          "cip_phase_alignment.constructive_pairs",
+          "cip_phase_alignment.mean_quality",
+          "cip_phase_alignment.total_pairs",
+          "colony_gate_passed",
+          "conflict_resolution_active",
+          "consolidation_engine_active",
+          "consolidation_engine_avg_importance",
+          "consolidation_engine_consolidation_rate",
+          "consolidation_engine_episodic_count",
+          "consolidation_engine_total_stored",
+          "contradiction_engine_active",
+          "cooperative_quorum_reached",
+          "cronos_clean_tick",
+          "cross_lingual_distance",
+          "danger_theory_gated",
+          "dedup_terminal_normalized",
+          "diagnostic_report.integration_score",
+          "diagnostic_report.total_active",
+          "diagnostic_report.total_failed",
+          "diagnostic_report.total_subsystems",
+          "dialectical_tension_resolved",
+          "dmn_suppressed_count",
+          "domain_feedback.gamma_reset",
+          "domain_integrator_active",
+          "domains_registered",
+          "echo_tracker_active",
+          "echoform_ingested",
+          "echoform_transform.axiom_satisfied",
+          "echoform_transform.transformation_successful",
+          "ecoform_cache_hit_rate",
+          "ecoform_parse_successful",
+          "ehi_reconsolidation_adj",
+          "eikonal_active",
+          "enhanced_vault_active",
+          "enhancement_profile.d_prime",
+          "enhancement_profile.memory_capacity",
+          "enhancement_profile.n_geoids",
+          "enhancement_profile.reasoning_accuracy",
+          "enhancement_profile.snr",
+          "entropy_validation.axiom_satisfied",
+          "experience_replay_active",
+          "exploration_target_boost_applied",
+          "feature_cache_active",
+          "feature_cache_hit_rate",
+          "feature_cache_size",
+          "feature_cache_utilization",
+          "gamma_priority_slot",
+          "gamma_terminal_normalized",
+          "goal_root_count",
+          "goal_total",
+          "gravity_active",
+          "gwf_available",
+          "gwf_coral_integrity",
+          "gwf_lockdown",
+          "gwf_spin_rate",
+          "gwf_stiffness",
+          "gwf_threat_decoded_bonus",
+          "gwf_threat_edu_discount",
+          "gwf_threat_framing_bonus",
+          "gwf_threat_probe_bonus",
+          "gwf_threat_self_ref_bonus",
+          "gwf_threats_neutralized",
+          "harm_analyzer_active",
+          "harm_score",
+          "icw_active",
+          "icw_deformation_magnitude",
+          "infra_capabilities.cuda_extensions",
+          "infra_capabilities.kccl",
+          "infra_capabilities.partitioned_spde",
+          "infra_capabilities.spherical_pytorch",
+          "integration_events_published",
+          "integration_services_registered",
+          "interference_active",
+          "interference_conflict_count",
+          "interference_resolution_rate",
+          "intrinsic_motivation_active",
+          "intrinsic_motivation_goal_intensity",
+          "kccl_hoare_verified",
+          "kccl_plan.control.halt_requested",
+          "kccl_verification_details.failed_count",
+          "kccl_verification_details.total_statements",
+          "kccl_verification_details.verified_count",
+          "language_db_available",
+          "language_db_count",
+          "law_enforcer_active",
+          "law_enforcer_violations",
+          "learned_feedback_state.circuit_breaker_trip_count",
+          "learned_feedback_state.circuit_breaker_tripped",
+          "learned_feedback_state.simplex_veto_count",
+          "learned_feedback_state.simplex_veto_rate",
+          "learned_feedback_state.state_dim",
+          "learned_feedback_state.training_steps",
+          "linguistic_adaptation_accuracy",
+          "load_balance_score",
+          "manipulation_detected",
+          "math_engine_active",
+          "maxwell_demon_active",
+          "meta_learning_state.available",
+          "meta_learning_state.trained",
+          "meta_lr_clamped",
+          "metrics_manager_active",
+          "multi_arm_proprioception_has_gap",
+          "multi_arm_proprioception_n_arms_active",
+          "multi_arm_proprioceptive_coherence",
+          "narrow_band_interior_tiles",
+          "nash_solver_active",
+          "native_embeddings_available",
+          "noise_terminal_clamped",
+          "null_state_count",
+          "null_state_resolution_attempts",
+          "ouroboros_max_generation",
+          "ouroboros_total_fused",
+          "ouroboros_total_paradoxes",
+          "param_importance_active",
+          "perf_optimizer_active",
+          "perturbation_detector_active",
+          "perturbation_generator_active",
+          "phoneme_encoder_available",
+          "phoneme_encoder_ipa_count",
+          "physarum_edges_pruned",
+          "physarum_total_pruned_cumulative",
+          "piovra_arm_diagnostics.audio_arm.active_concepts",
+          "piovra_arm_diagnostics.audio_arm.biodiversity",
+          "piovra_arm_diagnostics.audio_arm.packets_rejected",
+          "piovra_arm_diagnostics.audio_arm.rejection_rate",
+          "piovra_arm_diagnostics.audio_arm.transforms_rejected",
+          "piovra_arm_diagnostics.packets_rejected",
+          "piovra_arm_diagnostics.rejection_rate",
+          "piovra_arm_diagnostics.transforms_rejected",
+          "piovra_arm_diagnostics.visual_arm.active_concepts",
+          "piovra_arm_diagnostics.visual_arm.biodiversity",
+          "piovra_arm_diagnostics.visual_arm.packets_rejected",
+          "piovra_arm_diagnostics.visual_arm.rejection_rate",
+          "piovra_arm_diagnostics.visual_arm.transforms_rejected",
+          "piovra_binding_details.modality_pairs.audio-visual.pairs",
+          "piovra_registry_state.a2a_available",
+          "piovra_registry_state.active_arms",
+          "piovra_registry_state.arms.audio_arm_0.active",
+          "piovra_registry_state.arms.market_arm_0.active",
+          "piovra_registry_state.arms.market_arm_0.packets_produced",
+          "piovra_registry_state.arms.reasoning_arm_0.active",
+          "piovra_registry_state.arms.text_arm_0.active",
+          "piovra_registry_state.arms.visual_arm_0.active",
+          "piovra_registry_state.total_arms",
+          "piovra_visual_arm_active",
+          "plasticity_lambda",
+          "prime_identity_coverage.coverage_ratio",
+          "proprio_gap_goals_added_this_cycle",
+          "proprio_gap_goals_total",
+          "realtime_encoder_attached",
+          "reflection_last_insights_count",
+          "reinforce_terminal_normalized",
+          "reinjection_kernel_active",
+          "reinjection_max_relevance",
+          "reinjection_scars_reactivated",
+          "riemann_oscillator_active",
+          "riemann_oscillator_zero_count",
+          "riemann_zeta_entropy",
+          "riemann_zeta_free_energy",
+          "rk4_oscillator_active",
+          "rollback_gamma_adj",
+          "rollbacks",
+          "rosetta_ema_boost",
+          "sai_steps_adj",
+          "scar_entropy_compensated",
+          "scar_healing_report.pruned",
+          "scar_hopfield_active",
+          "scar_plasticity_state.btsp_trigger",
+          "scar_plasticity_state.modulation_result.modulator_strength",
+          "scar_plasticity_state.modulation_result.stc_captured",
+          "scar_plasticity_state.modulation_result.three_factor_updates",
+          "scar_plasticity_state.three_factor_applied",
+          "scar_prime_stability",
+          "scars_reassignment_candidates",
+          "semantic_dedup_active",
+          "semantic_dedup_removed",
+          "semantic_fusion_active",
+          "sheaf_gluing_consistent",
+          "singularity_handler_active",
+          "snap_consolidator_active",
+          "soft_factor_report.charge_conservation_residual",
+          "soft_factor_report.effective_amplitude_ratio",
+          "soft_factor_report.n_soft",
+          "soft_factor_report.soft_charge",
+          "sparse_hopfield_active",
+          "sparse_vector_active",
+          "sparse_vector_active_dims",
+          "sparse_vector_sparsity",
+          "state_manager_active",
+          "state_snapshots_count",
+          "steps_terminal_normalized",
+          "stimulus_classifier_active",
+          "stimulus_confidence",
+          "surprise_active",
+          "tectonic_axiomatic_nodes",
+          "tectonic_compression_candidates",
+          "tectonic_mean_pressure",
+          "thermo_bridge_state.invariants.any_error",
+          "thermo_bridge_state.invariants.any_warn",
+          "thermo_bridge_state.layer1.dominant_signature.core",
+          "thermo_bridge_state.layer1.dominant_signature.hapax",
+          "thermo_bridge_state.layer1.dominant_signature.recurring",
+          "thermo_bridge_state.layer1.dominant_signature.theme",
+          "thermo_bridge_state.layer2.purification_fidelity",
+          "thermo_bridge_state.layer2.thermalization",
+          "thermo_bridge_state.layer3.compression_ratio",
+          "thermo_bridge_state.layer3.fidelity",
+          "thermo_bridge_state.ness.below_landauer_anomaly",
+          "thermo_bridge_state.ness.clausius_event_violations",
+          "thermo_bridge_state.ness.landauer_bridge.event_counts.echoform",
+          "thermo_bridge_state.ness.landauer_bridge.minimum_dissipation_joules",
+          "thermo_bridge_state.ness.landauer_bridge.temperature_kelvin",
+          "thermo_bridge_state.ness.landauer_bridge.thermodynamic_cost_fraction",
+          "thermo_bridge_state.ness.ness_alerts_raised",
+          "thermo_bridge_state.ness.per_loop.cronos.Q_cumulative",
+          "thermo_bridge_state.ness.per_loop.echoform.Q_cumulative",
+          "thermo_bridge_state.ness.per_loop.echoform.sigma_cumulative",
+          "thermo_bridge_state.ness.per_loop.insight.Q_cumulative",
+          "thermo_bridge_state.ness.per_loop.insight.sigma_cumulative",
+          "thermo_bridge_state.supervisor.any_action",
+          "thermo_bridge_state.supervisor.consecutive_counters.clausius",
+          "thermo_bridge_state.supervisor.consecutive_counters.invariant",
+          "thermo_bridge_state.supervisor.consecutive_counters.landauer",
+          "think_count",
+          "thought_history_size",
+          "topo_beta_0",
+          "trajectory_optimizer_active",
+          "transformation_discovery_active",
+          "tsgt_active",
+          "turing_active",
+          "twin_prime_bonus_applied",
+          "vault_factory_available",
+          "vault_rosetta_restored",
+          "vault_stats.contradiction_resolver_active",
+          "vault_stats.query_optimizer_active",
+          "vault_stats.stress_index_active",
+          "vault_stats.temporal_graph_active",
+          "void_detected",
+          "wire_count_normalization_applied"
+        ],
+        "frozen_worklist_by_organ": {
+          "rollbacks": [
+            "rollbacks"
+          ],
+          "vault": [
+            "vault_factory_available",
+            "vault_rosetta_restored",
+            "vault_stats.contradiction_resolver_active",
+            "vault_stats.query_optimizer_active",
+            "vault_stats.stress_index_active",
+            "vault_stats.temporal_graph_active"
+          ],
+          "trajectory": [
+            "trajectory_optimizer_active"
+          ],
+          "void": [
+            "void_detected"
+          ],
+          "multi": [
+            "multi_arm_proprioception_has_gap",
+            "multi_arm_proprioception_n_arms_active",
+            "multi_arm_proprioceptive_coherence"
+          ],
+          "realtime": [
+            "realtime_encoder_attached"
+          ],
+          "proprio": [
+            "proprio_gap_goals_added_this_cycle",
+            "proprio_gap_goals_total"
+          ],
+          "activation": [
+            "activation_complete"
+          ],
+          "kccl": [
+            "kccl_hoare_verified",
+            "kccl_plan.control.halt_requested",
+            "kccl_verification_details.failed_count",
+            "kccl_verification_details.total_statements",
+            "kccl_verification_details.verified_count"
+          ],
+          "enhancement": [
+            "enhancement_profile.d_prime",
+            "enhancement_profile.memory_capacity",
+            "enhancement_profile.n_geoids",
+            "enhancement_profile.reasoning_accuracy",
+            "enhancement_profile.snr"
+          ],
+          "entropy": [
+            "entropy_validation.axiom_satisfied"
+          ],
+          "danger": [
+            "danger_theory_gated"
+          ],
+          "dmn": [
+            "dmn_suppressed_count"
+          ],
+          "scar": [
+            "scar_entropy_compensated",
+            "scar_healing_report.pruned",
+            "scar_hopfield_active",
+            "scar_plasticity_state.btsp_trigger",
+            "scar_plasticity_state.modulation_result.modulator_strength",
+            "scar_plasticity_state.modulation_result.stc_captured",
+            "scar_plasticity_state.modulation_result.three_factor_updates",
+            "scar_plasticity_state.three_factor_applied",
+            "scar_prime_stability"
+          ],
+          "law": [
+            "law_enforcer_active",
+            "law_enforcer_violations"
+          ],
+          "maxwell": [
+            "maxwell_demon_active"
+          ],
+          "perturbation": [
+            "perturbation_detector_active",
+            "perturbation_generator_active"
+          ],
+          "param": [
+            "param_importance_active"
+          ],
+          "snap": [
+            "snap_consolidator_active"
+          ],
+          "semantic": [
+            "semantic_dedup_active",
+            "semantic_dedup_removed",
+            "semantic_fusion_active"
+          ],
+          "sparse": [
+            "sparse_hopfield_active",
+            "sparse_vector_active",
+            "sparse_vector_active_dims",
+            "sparse_vector_sparsity"
+          ],
+          "singularity": [
+            "singularity_handler_active"
+          ],
+          "intrinsic": [
+            "intrinsic_motivation_active",
+            "intrinsic_motivation_goal_intensity"
+          ],
+          "transformation": [
+            "transformation_discovery_active"
+          ],
+          "cronos": [
+            "cronos_clean_tick"
+          ],
+          "colony": [
+            "colony_gate_passed"
+          ],
+          "chimera": [
+            "chimera_confidence",
+            "chimera_detected"
+          ],
+          "thermo": [
+            "thermo_bridge_state.invariants.any_error",
+            "thermo_bridge_state.invariants.any_warn",
+            "thermo_bridge_state.layer1.dominant_signature.core",
+            "thermo_bridge_state.layer1.dominant_signature.hapax",
+            "thermo_bridge_state.layer1.dominant_signature.recurring",
+            "thermo_bridge_state.layer1.dominant_signature.theme",
+            "thermo_bridge_state.layer2.purification_fidelity",
+            "thermo_bridge_state.layer2.thermalization",
+            "thermo_bridge_state.layer3.compression_ratio",
+            "thermo_bridge_state.layer3.fidelity",
+            "thermo_bridge_state.ness.below_landauer_anomaly",
+            "thermo_bridge_state.ness.clausius_event_violations",
+            "thermo_bridge_state.ness.landauer_bridge.event_counts.echoform",
+            "thermo_bridge_state.ness.landauer_bridge.minimum_dissipation_joules",
+            "thermo_bridge_state.ness.landauer_bridge.temperature_kelvin",
+            "thermo_bridge_state.ness.landauer_bridge.thermodynamic_cost_fraction",
+            "thermo_bridge_state.ness.ness_alerts_raised",
+            "thermo_bridge_state.ness.per_loop.cronos.Q_cumulative",
+            "thermo_bridge_state.ness.per_loop.echoform.Q_cumulative",
+            "thermo_bridge_state.ness.per_loop.echoform.sigma_cumulative",
+            "thermo_bridge_state.ness.per_loop.insight.Q_cumulative",
+            "thermo_bridge_state.ness.per_loop.insight.sigma_cumulative",
+            "thermo_bridge_state.supervisor.any_action",
+            "thermo_bridge_state.supervisor.consecutive_counters.clausius",
+            "thermo_bridge_state.supervisor.consecutive_counters.invariant",
+            "thermo_bridge_state.supervisor.consecutive_counters.landauer"
+          ],
+          "rk4": [
+            "rk4_oscillator_active"
+          ],
+          "echoform": [
+            "echoform_ingested",
+            "echoform_transform.axiom_satisfied",
+            "echoform_transform.transformation_successful"
+          ],
+          "twin": [
+            "twin_prime_bonus_applied"
+          ],
+          "domain": [
+            "domain_feedback.gamma_reset",
+            "domain_integrator_active"
+          ],
+          "meta": [
+            "meta_learning_state.available",
+            "meta_learning_state.trained",
+            "meta_lr_clamped"
+          ],
+          "surprise": [
+            "surprise_active"
+          ],
+          "physarum": [
+            "physarum_edges_pruned",
+            "physarum_total_pruned_cumulative"
+          ],
+          "learned": [
+            "learned_feedback_state.circuit_breaker_trip_count",
+            "learned_feedback_state.circuit_breaker_tripped",
+            "learned_feedback_state.simplex_veto_count",
+            "learned_feedback_state.simplex_veto_rate",
+            "learned_feedback_state.state_dim",
+            "learned_feedback_state.training_steps"
+          ],
+          "piovra": [
+            "piovra_arm_diagnostics.audio_arm.active_concepts",
+            "piovra_arm_diagnostics.audio_arm.biodiversity",
+            "piovra_arm_diagnostics.audio_arm.packets_rejected",
+            "piovra_arm_diagnostics.audio_arm.rejection_rate",
+            "piovra_arm_diagnostics.audio_arm.transforms_rejected",
+            "piovra_arm_diagnostics.packets_rejected",
+            "piovra_arm_diagnostics.rejection_rate",
+            "piovra_arm_diagnostics.transforms_rejected",
+            "piovra_arm_diagnostics.visual_arm.active_concepts",
+            "piovra_arm_diagnostics.visual_arm.biodiversity",
+            "piovra_arm_diagnostics.visual_arm.packets_rejected",
+            "piovra_arm_diagnostics.visual_arm.rejection_rate",
+            "piovra_arm_diagnostics.visual_arm.transforms_rejected",
+            "piovra_binding_details.modality_pairs.audio-visual.pairs",
+            "piovra_registry_state.a2a_available",
+            "piovra_registry_state.active_arms",
+            "piovra_registry_state.arms.audio_arm_0.active",
+            "piovra_registry_state.arms.market_arm_0.active",
+            "piovra_registry_state.arms.market_arm_0.packets_produced",
+            "piovra_registry_state.arms.reasoning_arm_0.active",
+            "piovra_registry_state.arms.text_arm_0.active",
+            "piovra_registry_state.arms.visual_arm_0.active",
+            "piovra_registry_state.total_arms",
+            "piovra_visual_arm_active"
+          ],
+          "diagnostic": [
+            "diagnostic_report.integration_score",
+            "diagnostic_report.total_active",
+            "diagnostic_report.total_failed",
+            "diagnostic_report.total_subsystems"
+          ],
+          "sheaf": [
+            "sheaf_gluing_consistent"
+          ],
+          "prime": [
+            "prime_identity_coverage.coverage_ratio"
+          ],
+          "gravity": [
+            "gravity_active"
+          ],
+          "integration": [
+            "integration_events_published",
+            "integration_services_registered"
+          ],
+          "alexandria": [
+            "alexandria_fused_primes.Fused(echoform:SHIFT:dS=0.4408:phi=0.6913+invention)",
+            "alexandria_warm_start_count"
+          ],
+          "cip": [
+            "cip_phase_alignment.constructive_pairs",
+            "cip_phase_alignment.mean_quality",
+            "cip_phase_alignment.total_pairs"
+          ],
+          "gamma": [
+            "gamma_priority_slot",
+            "gamma_terminal_normalized"
+          ],
+          "adaptive": [
+            "adaptive_prune_age_threshold"
+          ],
+          "sai": [
+            "sai_steps_adj"
+          ],
+          "ehi": [
+            "ehi_reconsolidation_adj"
+          ],
+          "exploration": [
+            "exploration_target_boost_applied"
+          ],
+          "rosetta": [
+            "rosetta_ema_boost"
+          ],
+          "rollback": [
+            "rollback_gamma_adj"
+          ],
+          "accumulator": [
+            "accumulator_normalizations_applied"
+          ],
+          "noise": [
+            "noise_terminal_clamped"
+          ],
+          "steps": [
+            "steps_terminal_normalized"
+          ],
+          "reinforce": [
+            "reinforce_terminal_normalized"
+          ],
+          "dedup": [
+            "dedup_terminal_normalized"
+          ],
+          "wire": [
+            "wire_count_normalization_applied"
+          ],
+          "soft": [
+            "soft_factor_report.charge_conservation_residual",
+            "soft_factor_report.effective_amplitude_ratio",
+            "soft_factor_report.n_soft",
+            "soft_factor_report.soft_charge"
+          ],
+          "experience": [
+            "experience_replay_active"
+          ],
+          "infra": [
+            "infra_capabilities.cuda_extensions",
+            "infra_capabilities.kccl",
+            "infra_capabilities.partitioned_spde",
+            "infra_capabilities.spherical_pytorch"
+          ],
+          "attention": [
+            "attention_schema_active"
+          ],
+          "consolidation": [
+            "consolidation_engine_active",
+            "consolidation_engine_avg_importance",
+            "consolidation_engine_consolidation_rate",
+            "consolidation_engine_episodic_count",
+            "consolidation_engine_total_stored"
+          ],
+          "reinjection": [
+            "reinjection_kernel_active",
+            "reinjection_max_relevance",
+            "reinjection_scars_reactivated"
+          ],
+          "dialectical": [
+            "dialectical_tension_resolved"
+          ],
+          "stimulus": [
+            "stimulus_classifier_active",
+            "stimulus_confidence"
+          ],
+          "echo": [
+            "echo_tracker_active"
+          ],
+          "harm": [
+            "harm_analyzer_active",
+            "harm_score"
+          ],
+          "axis": [
+            "axis_count",
+            "axis_manager_active"
+          ],
+          "state": [
+            "state_manager_active",
+            "state_snapshots_count"
+          ],
+          "perf": [
+            "perf_optimizer_active"
+          ],
+          "feature": [
+            "feature_cache_active",
+            "feature_cache_hit_rate",
+            "feature_cache_size",
+            "feature_cache_utilization"
+          ],
+          "interference": [
+            "interference_active",
+            "interference_conflict_count",
+            "interference_resolution_rate"
+          ],
+          "math": [
+            "math_engine_active"
+          ],
+          "enhanced": [
+            "enhanced_vault_active"
+          ],
+          "eikonal": [
+            "eikonal_active"
+          ],
+          "turing": [
+            "turing_active"
+          ],
+          "plasticity": [
+            "plasticity_lambda"
+          ],
+          "narrow": [
+            "narrow_band_interior_tiles"
+          ],
+          "goal": [
+            "goal_root_count",
+            "goal_total"
+          ],
+          "ouroboros": [
+            "ouroboros_max_generation",
+            "ouroboros_total_fused",
+            "ouroboros_total_paradoxes"
+          ],
+          "riemann": [
+            "riemann_oscillator_active",
+            "riemann_oscillator_zero_count",
+            "riemann_zeta_entropy",
+            "riemann_zeta_free_energy"
+          ],
+          "null": [
+            "null_state_count",
+            "null_state_resolution_attempts"
+          ],
+          "bcpnn": [
+            "bcpnn_failed_formations",
+            "bcpnn_observer_active"
+          ],
+          "breathing": [
+            "breathing_cycles_elapsed",
+            "breathing_healthy",
+            "breathing_recovery_fraction"
+          ],
+          "ack": [
+            "ack_activator_amplification_scale_applied",
+            "ack_activator_narrow_band_bandwidth",
+            "ack_advisory_active",
+            "ack_advisory_amplification_brake",
+            "ack_advisory_narrow_band_tighten",
+            "ack_fired_count",
+            "ack_introspective_count"
+          ],
+          "scars": [
+            "scars_reassignment_candidates"
+          ],
+          "topo": [
+            "topo_beta_0"
+          ],
+          "allen": [
+            "allen_cahn_scar_conditions"
+          ],
+          "cooperative": [
+            "cooperative_quorum_reached"
+          ],
+          "linguistic": [
+            "linguistic_adaptation_accuracy"
+          ],
+          "cross": [
+            "cross_lingual_distance"
+          ],
+          "load": [
+            "load_balance_score"
+          ],
+          "gwf": [
+            "gwf_available",
+            "gwf_coral_integrity",
+            "gwf_lockdown",
+            "gwf_spin_rate",
+            "gwf_stiffness",
+            "gwf_threat_decoded_bonus",
+            "gwf_threat_edu_discount",
+            "gwf_threat_framing_bonus",
+            "gwf_threat_probe_bonus",
+            "gwf_threat_self_ref_bonus",
+            "gwf_threats_neutralized"
+          ],
+          "manipulation": [
+            "manipulation_detected"
+          ],
+          "language": [
+            "language_db_available",
+            "language_db_count"
+          ],
+          "native": [
+            "native_embeddings_available"
+          ],
+          "phoneme": [
+            "phoneme_encoder_available",
+            "phoneme_encoder_ipa_count"
+          ],
+          "think": [
+            "think_count"
+          ],
+          "thought": [
+            "thought_history_size"
+          ],
+          "backpressure": [
+            "backpressure_reject_rate_pct"
+          ],
+          "tectonic": [
+            "tectonic_axiomatic_nodes",
+            "tectonic_compression_candidates",
+            "tectonic_mean_pressure"
+          ],
+          "contradiction": [
+            "contradiction_engine_active"
+          ],
+          "conflict": [
+            "conflict_resolution_active"
+          ],
+          "tsgt": [
+            "tsgt_active"
+          ],
+          "nash": [
+            "nash_solver_active"
+          ],
+          "icw": [
+            "icw_active",
+            "icw_deformation_magnitude"
+          ],
+          "ecoform": [
+            "ecoform_cache_hit_rate",
+            "ecoform_parse_successful"
+          ],
+          "metrics": [
+            "metrics_manager_active"
+          ],
+          "domains": [
+            "domains_registered"
+          ],
+          "reflection": [
+            "reflection_last_insights_count"
+          ],
+          "abductive": [
+            "abductive_confidence"
+          ]
+        }
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "REFUTED",
+    "observed_value": 0.6776556776556777,
+    "threshold": {
+      "metric": "liveness_rate",
+      "comparator": ">=",
+      "value": 0.8,
+      "units": "proportion"
+    },
+    "reasoning": "always-on liveness 0.6777: 555/819 every-cycle signals carry real dynamics; 264 are frozen defaults (the worklist); Wilson 95% CI [0.6449, 0.7088]. Context: whole-surface 3315/15754 (0.2104, deflated by under-sampling); 64 cycles"
+  },
+  "reproduction": {
+    "command": "PYTHONPATH=src .venv/bin/python -u examples/run_substrate_liveness.py",
+    "environment": {
+      "python": "3.14.3",
+      "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+      "adagio": "0.2.6",
+      "aiohappyeyeballs": "2.6.1",
+      "aiohttp": "3.13.5",
+      "aiohttp-retry": "2.9.1",
+      "aiosignal": "1.4.0",
+      "alembic": "1.18.4",
+      "amqp": "5.3.1",
+      "annotated-doc": "0.0.4",
+      "annotated-types": "0.7.0",
+      "antlr4-python3-runtime": "4.9.3",
+      "anyio": "4.13.0",
+      "appdirs": "1.4.4",
+      "arviz": "1.1.0",
+      "arviz-base": "1.1.0",
+      "arviz-plots": "1.1.0",
+      "arviz-stats": "1.1.0",
+      "ast_serialize": "0.5.0",
+      "astroid": "4.0.4",
+      "asyncssh": "2.23.0",
+      "atpublic": "7.0.0",
+      "attrs": "26.1.0",
+      "babel": "2.18.0",
+      "backrefs": "7.0",
+      "bandit": "1.9.4",
+      "billiard": "4.2.4",
+      "black": "26.3.1",
+      "blinker": "1.9.0",
+      "boltons": "21.0.0",
+      "boolean.py": "5.0",
+      "bracex": "2.6",
+      "build": "1.5.0",
+      "CacheControl": "0.14.4",
+      "cachetools": "6.2.6",
+      "causalml": "0.16.0",
+      "CausalPy": "0.8.1",
+      "celery": "5.6.3",
+      "certifi": "2026.4.22",
+      "cffi": "2.0.0",
+      "cfgv": "3.5.0",
+      "charset-normalizer": "3.4.7",
+      "click": "8.4.0",
+      "click-didyoumean": "0.3.1",
+      "click-option-group": "0.5.9",
+      "click-plugins": "1.1.1.2",
+      "click-repl": "0.3.0",
+      "cloudpickle": "3.1.2",
+      "colorama": "0.4.6",
+      "configobj": "5.0.9",
+      "cons": "0.4.7",
+      "contourpy": "1.3.3",
+      "coreforecast": "0.0.17",
+      "cosmic_ray": "8.4.6",
+      "coverage": "7.14.0",
+      "crepes": "0.9.0",
+      "cryptography": "46.0.7",
+      "cvc5": "1.3.4",
+      "cycler": "0.12.1",
+      "cyclonedx-python-lib": "11.7.0",
+      "Cython": "3.2.4",
+      "darts": "0.44.1",
+      "databricks-sdk": "0.108.0",
+      "datasets": "4.8.5",
+      "debtcollector": "3.1.0",
+      "decorator": "5.2.1",
+      "defusedxml": "0.7.1",
+      "Deprecated": "1.3.1",
+      "deptry": "0.25.1",
+      "dictdiffer": "0.9.0",
+      "dill": "0.4.1",
+      "diskcache": "5.6.3",
+      "distlib": "0.4.0",
+      "distro": "1.9.0",
+      "dnspython": "2.8.0",
+      "docker": "7.1.0",
+      "docutils": "0.22.4",
+      "dowhy": "0.8",
+      "dpath": "2.2.0",
+      "duckdb": "1.5.2",
+      "dulwich": "1.2.1",
+      "dvc": "3.67.1",
+      "dvc-data": "3.18.3",
+      "dvc-http": "2.32.0",
+      "dvc-objects": "5.2.0",
+      "dvc-render": "1.0.2",
+      "dvc-studio-client": "0.22.0",
+      "dvc-task": "0.40.2",
+      "econml": "0.16.0",
+      "ennemi": "1.6.0",
+      "entrypoints": "0.4",
+      "etuples": "0.3.10",
+      "exceptiongroup": "1.2.2",
+      "face": "26.0.0",
+      "faiss-cpu": "1.13.2",
+      "fastapi": "0.136.1",
+      "fawltydeps": "0.20.0",
+      "filelock": "3.29.0",
+      "Flask": "3.1.3",
+      "flask-cors": "6.0.2",
+      "flatten-dict": "0.5.0",
+      "flufl.lock": "9.1.0",
+      "fonttools": "4.63.0",
+      "forestci": "0.6",
+      "frozenlist": "1.8.0",
+      "fsspec": "2026.2.0",
+      "fugue": "0.9.7",
+      "funcy": "2.0",
+      "ghp-import": "2.1.0",
+      "gitdb": "4.0.12",
+      "GitPython": "3.1.50",
+      "glom": "25.12.0",
+      "google-auth": "2.52.0",
+      "googleapis-common-protos": "1.75.0",
+      "grandalf": "0.8",
+      "graphene": "3.4.3",
+      "graphql-core": "3.2.8",
+      "graphql-relay": "3.2.0",
+      "graphviz": "0.21",
+      "griffelib": "2.0.2",
+      "gto": "1.9.0",
+      "gudhi": "3.12.0",
+      "gunicorn": "25.3.0",
+      "h11": "0.16.0",
+      "h5py": "3.16.0",
+      "harfile": "0.4.0",
+      "hf-xet": "1.5.0",
+      "holidays": "0.96",
+      "hopcroftkarp": "1.2.5",
+      "httpcore": "1.0.9",
+      "httpx": "0.28.1",
+      "httpx-sse": "0.4.3",
+      "huey": "2.6.0",
+      "huggingface_hub": "1.14.0",
+      "hydra-core": "1.3.2",
+      "hypothesis": "6.152.7",
+      "hypothesis-graphql": "0.12.0",
+      "hypothesis-jsonschema": "0.23.1",
+      "id": "1.6.1",
+      "identify": "2.6.19",
+      "idna": "3.15",
+      "igraph": "1.0.0",
+      "importlib_metadata": "8.7.1",
+      "infomeasure": "0.6.0",
+      "iniconfig": "2.3.0",
+      "interrogate": "1.7.0",
+      "isort": "8.0.1",
+      "iterative-telemetry": "0.0.10",
+      "itsdangerous": "2.2.0",
+      "jaraco.classes": "3.4.0",
+      "jaraco.context": "6.1.2",
+      "jaraco.functools": "4.5.0",
+      "jax": "0.10.0",
+      "jaxlib": "0.10.0",
+      "Jinja2": "3.1.6",
+      "joblib": "1.5.3",
+      "jsonschema": "4.25.1",
+      "jsonschema-specifications": "2025.9.1",
+      "jsonschema_rs": "0.46.5",
+      "junit-xml": "1.9",
+      "keyring": "25.7.0",
+      "kiwisolver": "1.5.0",
+      "kmapper": "2.1.0",
+      "kombu": "5.6.2",
+      "lazy-loader": "0.5",
+      "libcst": "1.8.6",
+      "librt": "0.11.0",
+      "license-expression": "30.4.4",
+      "lightgbm": "4.6.0",
+      "linkify-it-py": "2.1.0",
+      "llvmlite": "0.47.0",
+      "logical-unification": "0.4.7",
+      "lxml": "6.1.0",
+      "Mako": "1.3.12",
+      "mando": "0.7.1",
+      "MAPIE": "1.4.0",
+      "Markdown": "3.10.2",
+      "markdown-it-py": "4.2.0",
+      "MarkupSafe": "3.0.3",
+      "matplotlib": "3.10.9",
+      "mccabe": "0.7.0",
+      "mcp": "1.23.3",
+      "mdit-py-plugins": "0.6.1",
+      "mdurl": "0.1.2",
+      "memray": "1.19.3",
+      "mergedeep": "1.3.4",
+      "miniKanren": "1.0.5",
+      "mkdocs": "1.6.1",
+      "mkdocs-autorefs": "1.4.4",
+      "mkdocs-get-deps": "0.2.2",
+      "mkdocs-include-markdown-plugin": "7.3.0",
+      "mkdocs-material": "9.7.6",
+      "mkdocs-material-extensions": "1.3.1",
+      "mkdocstrings": "1.0.4",
+      "mkdocstrings-python": "2.0.3",
+      "ml_dtypes": "0.5.4",
+      "mlflow": "3.12.0",
+      "mlflow-skinny": "3.12.0",
+      "mlflow-tracing": "3.12.0",
+      "more-itertools": "11.0.2",
+      "mpmath": "1.3.0",
+      "msgpack": "1.1.2",
+      "multidict": "6.7.1",
+      "multipledispatch": "1.0.0",
+      "multiprocess": "0.70.19",
+      "mutmut": "3.5.0",
+      "mypy": "2.1.0",
+      "mypy_extensions": "1.1.0",
+      "narwhals": "2.21.0",
+      "networkx": "3.6.1",
+      "nh3": "0.3.5",
+      "nodeenv": "1.10.0",
+      "NPEET": "1.0.1",
+      "numba": "0.65.1",
+      "numpy": "2.4.4",
+      "numpyro": "0.21.0",
+      "omegaconf": "2.3.0",
+      "opentelemetry-api": "1.37.0",
+      "opentelemetry-exporter-otlp-proto-common": "1.37.0",
+      "opentelemetry-exporter-otlp-proto-http": "1.37.0",
+      "opentelemetry-instrumentation": "0.58b0",
+      "opentelemetry-instrumentation-requests": "0.58b0",
+      "opentelemetry-instrumentation-threading": "0.58b0",
+      "opentelemetry-proto": "1.37.0",
+      "opentelemetry-sdk": "1.37.0",
+      "opentelemetry-semantic-conventions": "0.58b0",
+      "opentelemetry-util-http": "0.58b0",
+      "ophamin": "0.7.0",
+      "opt_einsum": "3.4.0",
+      "orjson": "3.11.9",
+      "packageurl-python": "0.17.6",
+      "packaging": "26.2",
+      "pacmap": "0.9.1",
+      "paginate": "0.5.7",
+      "pandas": "2.3.3",
+      "pandas-flavor": "0.8.1",
+      "pathos": "0.2.9",
+      "pathspec": "1.1.1",
+      "patsy": "1.0.2",
+      "peewee": "3.19.0",
+      "persim": "0.3.8",
+      "pillow": "12.2.0",
+      "pingouin": "0.6.1",
+      "pip": "26.1.1",
+      "pip-api": "0.0.34",
+      "pip-requirements-parser": "32.0.1",
+      "pip_audit": "2.10.0",
+      "platformdirs": "4.9.6",
+      "pluggy": "1.6.0",
+      "polars": "1.40.1",
+      "polars-runtime-32": "1.40.1",
+      "POT": "0.9.6.post1",
+      "pox": "0.3.7",
+      "ppft": "1.7.8",
+      "pre_commit": "4.6.0",
+      "prettytable": "3.17.0",
+      "prometheus_client": "0.25.0",
+      "prompt_toolkit": "3.0.52",
+      "propcache": "0.5.2",
+      "prospector": "1.18.0",
+      "protobuf": "6.33.6",
+      "prov": "2.1.1",
+      "psutil": "7.2.2",
+      "puncc": "0.9.1",
+      "py": "1.11.0",
+      "py-cpuinfo": "9.0.0",
+      "py-serializable": "2.1.0",
+      "py-spy": "0.4.2",
+      "pyarrow": "23.0.1",
+      "pyasn1": "0.6.3",
+      "pyasn1_modules": "0.4.2",
+      "pycparser": "3.0",
+      "pycrdt": "0.13.0",
+      "pydantic": "2.13.4",
+      "pydantic-settings": "2.14.1",
+      "pydantic_core": "2.46.4",
+      "pydot": "4.0.1",
+      "pydotplus": "2.0.2",
+      "pyemd": "2.0.0",
+      "pygit2": "1.19.2",
+      "Pygments": "2.20.0",
+      "pygtrie": "2.5.0",
+      "pyitlib": "0.3.1",
+      "PyJWT": "2.12.1",
+      "pylint": "4.0.5",
+      "pymc": "6.0.0",
+      "pymdown-extensions": "10.21.3",
+      "pymongo": "4.17.0",
+      "pynndescent": "0.6.0",
+      "pyod": "3.5.1",
+      "pyparsing": "3.3.2",
+      "pyphi": "1.2.0",
+      "pyproject_hooks": "1.2.0",
+      "pyrate-limiter": "4.1.0",
+      "pyright": "1.1.409",
+      "PySMT": "0.9.6",
+      "pytensor": "3.0.2",
+      "pytest": "9.0.3",
+      "pytest-benchmark": "5.2.3",
+      "pytest-cov": "7.1.0",
+      "python-dateutil": "2.9.0.post0",
+      "python-discovery": "1.3.1",
+      "python-dotenv": "1.2.2",
+      "python-igraph": "1.0.0",
+      "python-multipart": "0.0.28",
+      "pytokens": "0.4.1",
+      "pytz": "2026.2",
+      "PyWavelets": "1.9.0",
+      "PyYAML": "6.0.3",
+      "pyyaml_env_tag": "1.1",
+      "radon": "6.0.1",
+      "rdflib": "7.6.0",
+      "readme_renderer": "44.0",
+      "redis": "7.4.0",
+      "referencing": "0.37.0",
+      "refurb": "2.3.1",
+      "regex": "2026.5.9",
+      "requests": "2.34.1",
+      "requests-toolbelt": "1.0.0",
+      "requirements-parser": "0.13.0",
+      "rfc3986": "2.0.0",
+      "rich": "15.0.0",
+      "ripser": "0.6.14",
+      "river": "0.24.2",
+      "rpds-py": "0.30.0",
+      "ruamel.yaml": "0.19.1",
+      "ruamel.yaml.clib": "0.2.15",
+      "ruff": "0.15.13",
+      "safetensors": "0.7.0",
+      "safety": "3.7.0",
+      "schemathesis": "4.18.5",
+      "scikit-learn": "1.6.1",
+      "scikit-tda": "1.1.1",
+      "scipy": "1.17.1",
+      "scmrepo": "3.6.2",
+      "seaborn": "0.13.2",
+      "semantic-version": "2.10.0",
+      "semgrep": "1.163.0",
+      "semver": "3.0.4",
+      "sentence-transformers": "5.5.0",
+      "setproctitle": "1.3.7",
+      "setuptools": "81.0.0",
+      "shap": "0.48.0",
+      "shellingham": "1.5.4",
+      "shortuuid": "1.0.13",
+      "shtab": "1.8.0",
+      "six": "1.17.0",
+      "skops": "0.14.0",
+      "sktime": "0.40.1",
+      "slicer": "0.0.8",
+      "slipcover": "1.0.18",
+      "smmap": "5.0.3",
+      "sortedcontainers": "2.4.0",
+      "sparse": "0.18.0",
+      "spdx-tools": "0.8.5",
+      "SQLAlchemy": "2.0.49",
+      "sqlparse": "0.5.5",
+      "sqltrie": "0.11.2",
+      "sse-starlette": "3.4.4",
+      "starlette": "0.52.1",
+      "starlette-testclient": "0.4.1",
+      "statsforecast": "2.0.3",
+      "statsmodels": "0.14.6",
+      "stevedore": "5.7.0",
+      "stumpy": "1.14.1",
+      "sympy": "1.14.0",
+      "tabulate": "0.10.0",
+      "tadasets": "0.2.2",
+      "tblib": "3.2.2",
+      "tenacity": "9.1.4",
+      "texttable": "1.7.0",
+      "textual": "8.2.6",
+      "threadpoolctl": "3.6.0",
+      "tigramite": "5.2.10.1",
+      "tokenizers": "0.22.2",
+      "tomli": "2.4.1",
+      "tomli_w": "1.2.0",
+      "tomlkit": "0.15.0",
+      "toolz": "1.1.0",
+      "torch": "2.12.0",
+      "tqdm": "4.67.3",
+      "transformers": "5.8.1",
+      "triad": "1.0.2",
+      "tsfresh": "0.21.1",
+      "twine": "6.2.0",
+      "typer": "0.25.1",
+      "typing-inspection": "0.4.2",
+      "typing_extensions": "4.15.0",
+      "tzdata": "2026.2",
+      "tzlocal": "5.3.1",
+      "uc-micro-py": "2.0.0",
+      "umap-learn": "0.5.12",
+      "urllib3": "2.7.0",
+      "utilsforecast": "0.2.16",
+      "uvicorn": "0.46.0",
+      "vine": "5.1.0",
+      "virtualenv": "21.3.3",
+      "voluptuous": "0.16.0",
+      "vulture": "2.16",
+      "watchdog": "6.0.0",
+      "wcmatch": "8.5.2",
+      "wcwidth": "0.7.0",
+      "Werkzeug": "3.1.8",
+      "wrapt": "1.17.3",
+      "xarray": "2026.4.0",
+      "xarray-einstats": "0.10.0",
+      "xgboost": "3.2.0",
+      "xxhash": "3.7.0",
+      "y-py": "0.6.2",
+      "yarl": "1.23.0",
+      "z3-solver": "4.16.0.0",
+      "zc.lockfile": "4.0",
+      "zipp": "3.23.1"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {
+    "prefix": {
+      "ophamin": "https://ophamin.example/"
+    },
+    "agent": {
+      "ophamin:ophamin": {
+        "ophamin:role": "experimentation_framework",
+        "ophamin:version": "0.115.2"
+      },
+      "ophamin:kimera-swm": {
+        "ophamin:role": "substrate_under_test"
+      }
+    },
+    "entity": {
+      "ophamin:corpus_flores-200": {
+        "ophamin:content_hash": "bf4196403365897ad95dbcc18fc5116a99bc007f58e71dd302566b61b4296262",
+        "ophamin:n_records": {
+          "$": 997,
+          "type": "xsd:int"
+        },
+        "ophamin:kind": "parallel_corpus"
+      },
+      "ophamin:proof_substrate-liveness": {}
+    },
+    "activity": {
+      "ophamin:scenario_substrate-liveness": {
+        "ophamin:target": "entity",
+        "ophamin:n_cycles": {
+          "$": 64,
+          "type": "xsd:int"
+        }
+      }
+    },
+    "used": {
+      "_:id1": {
+        "prov:activity": "ophamin:scenario_substrate-liveness",
+        "prov:entity": "ophamin:corpus_flores-200"
+      }
+    },
+    "wasAssociatedWith": {
+      "_:id2": {
+        "prov:activity": "ophamin:scenario_substrate-liveness",
+        "prov:agent": "ophamin:ophamin"
+      },
+      "_:id3": {
+        "prov:activity": "ophamin:scenario_substrate-liveness",
+        "prov:agent": "ophamin:kimera-swm"
+      }
+    },
+    "wasGeneratedBy": {
+      "_:id4": {
+        "prov:entity": "ophamin:proof_substrate-liveness",
+        "prov:activity": "ophamin:scenario_substrate-liveness"
+      }
+    },
+    "wasAttributedTo": {
+      "_:id5": {
+        "prov:entity": "ophamin:proof_substrate-liveness",
+        "prov:agent": "ophamin:kimera-swm"
+      }
+    },
+    "wasDerivedFrom": {
+      "_:id6": {
+        "prov:generatedEntity": "ophamin:proof_substrate-liveness",
+        "prov:usedEntity": "ophamin:corpus_flores-200"
+      }
+    }
+  },
+  "signature": "e7cd14131f399ed5c11dd0d75be4f27bfd0b1197f5082c8dbfdd8b36ee9ceda9",
+  "attestation": {
+    "author": "ben.slama.idir@gmail.com",
+    "algorithm": "ed25519",
+    "public_key": "1c0049bf886605d96defb43cb0a24969788b8a0076a3c7e83d32a9b166009b3c",
+    "signature": "9aaa2839e32756bd16e5a5be353c63a735c6fc080475d5a0413a0a4e9bb4c92dff3a98464d29ea134ef377392a5b56c6581608a0484637e2efbd5996477d7c0e"
+  }
+}
