@@ -934,13 +934,37 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
         )
         return 1
 
+    ui_host = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host
+    ui_url = f"http://{ui_host}:{args.port}/ui"
+
+    # Launcher idempotency: if --open and a server is ALREADY listening on this
+    # port, don't try to bind a second one (that fails with "address already in
+    # use" — the confusing error the double-click launcher hit). Just open the
+    # browser to the one already running and exit cleanly. A bare `serve` (no
+    # --open) still errors loudly on a taken port, which is the right signal
+    # for a developer.
+    if getattr(args, "open", False):
+        import socket as _socket
+
+        probe_host = "127.0.0.1" if args.host == "0.0.0.0" else args.host
+        with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as _s:
+            _s.settimeout(0.4)
+            already_running = _s.connect_ex((probe_host, args.port)) == 0
+        if already_running:
+            print(f"\n  Ophamin is already running — opening it.\n  {ui_url}\n", flush=True)
+            import webbrowser
+
+            try:
+                webbrowser.open(ui_url)
+            except Exception:  # noqa: BLE001 — opening a browser is best-effort
+                pass
+            return 0
+
     app = build_app()
     import uvicorn as _uvicorn
 
     # Friendly, always-printed pointer — a non-technical owner needs to know
     # exactly where to look, not hunt through uvicorn's log lines.
-    ui_host = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host
-    ui_url = f"http://{ui_host}:{args.port}/ui"
     print(f"\n  Ophamin console:  {ui_url}\n  (press Ctrl+C to stop)\n", flush=True)
 
     if getattr(args, "open", False):
