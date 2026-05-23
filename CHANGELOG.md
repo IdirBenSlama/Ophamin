@@ -7,7 +7,17 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.115.0] below for the latest cut.)
+(empty — see [0.115.1] below for the latest cut.)
+
+## [0.115.1] — 2026-05-23
+
+**Clear access to the other views from the spherical home.** Once on the sphere,
+the way to the classic Dashboard (`/app`) and the Plain list (`/ui`) was a small
+grey footer link — the owner, rightly: *"the access to the Dashboard is not clear
+at all."* Now there are two obvious pill buttons top-right — **Dashboard ↗** and
+**Plain list ↗** — that open each in a new tab (so the sphere stays put; close
+the tab to come back). The header wraps cleanly on narrow screens. No data or
+behaviour change; purely making the exits findable.
 
 ## [0.115.0] — 2026-05-23
 
