@@ -202,7 +202,9 @@ DEFAULT_MAX_TOKENS: dict[str, int] = {
     "confound_enumerator": 8192,   # 3-5 confounds × mechanism + test
     "scenario_gen": 6144,          # full Scenario subclass; docstring +
                                    # __init__ + build_claim() + score() stub
-    "tool_scout": 1536,            # short JSON list: 3-7 names + fit notes
+    "tool_scout": 4096,            # names+fit notes are small, but leave headroom
+                                   # so a reasoning model can think THEN emit the
+                                   # JSON (1536 starved CoT models mid-thought)
     # Reasoning-tier tasks need headroom: a reasoning model (DeepSeek-R1,
     # Qwen3.5, GPT-OSS-high) spends thousands of tokens in its reasoning
     # channel BEFORE the answer, and runtimes count that against max_tokens.
