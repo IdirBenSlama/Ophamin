@@ -79,18 +79,19 @@ jobs:
         run: |
           # Exit code = number of REFUTED scenarios. CI fails-fast on
           # any regression in the substrate-free statistical pillars.
-          .venv/bin/ophamin self-test \
-              --proofs-root proofs/ophamin-self \
-              || EXIT=$?
-          # Fall back to /usr/bin/ophamin (pip install --user / system
-          # install) since GH Actions doesn't always materialise a
-          # local venv — the pip install above is process-wide.
-          if [ ! -x .venv/bin/ophamin ]; then
-              ophamin self-test \
-                  --proofs-root proofs/ophamin-self \
-                  || EXIT=$?
+          # Pick the venv binary if it materialised, else the process-wide
+          # install (the pip step installs into the runner's Python, so
+          # .venv/bin/ophamin usually does NOT exist here). Run exactly ONE
+          # invocation so the step's exit code IS the self-test's own — the
+          # previous form probed .venv/bin/ophamin first, which 127s when
+          # absent and left a stale EXIT=127 that the successful fallback
+          # never cleared (turning a refuted=0 pass into a 127 failure).
+          if [ -x .venv/bin/ophamin ]; then
+              OPHAMIN=.venv/bin/ophamin
+          else
+              OPHAMIN=ophamin
           fi
-          exit ${EXIT:-0}
+          "$OPHAMIN" self-test --proofs-root proofs/ophamin-self
 
       - name: Surface self-test result in step summary
         # Always runs (even on REFUTED) so the PR view shows the
