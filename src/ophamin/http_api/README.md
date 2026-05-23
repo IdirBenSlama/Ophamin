@@ -55,7 +55,8 @@ origin as the REST API (no CORS, no separate deploy):
   fresh instance with no proofs yet, or straight off disk.
 - **`/ui` — the provisional SPA.** A lighter vanilla-HTML/JS/CSS app that
   browses scenarios + the proof bundle tree + the `/metrics` exposition.
-  Kept alongside `/app`. `GET /` redirects here.
+  Kept alongside `/app`. `GET /` redirects to `/app` (the Console); it falls
+  back to `/ui` only if the Console bundle isn't present.
 
 Both stamp their static assets with a `?v=<version>` cache-buster and
 serve their HTML `no-store`, so an upgrading browser never pairs new HTML

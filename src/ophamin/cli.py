@@ -935,7 +935,10 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
         return 1
 
     ui_host = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host
-    ui_url = f"http://{ui_host}:{args.port}/ui"
+    # Open the Ophamin Console (`/app`) — the UniFi-styled React GUI, which is
+    # the production front door. (`/ui` is the lighter provisional vanilla-JS
+    # SPA, still served, but the Console is what the owner expects to see.)
+    ui_url = f"http://{ui_host}:{args.port}/app"
 
     # Launcher idempotency: if --open and a server is ALREADY listening on this
     # port, don't try to bind a second one (that fails with "address already in
@@ -3151,7 +3154,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_http_serve.add_argument(
         "--open",
         action="store_true",
-        help="open the console (/ui) in your browser once the server is up",
+        help="open the Ophamin Console (/app) in your browser once the server is up",
     )
     p_http_serve.set_defaults(func=cmd_http_serve)
 

@@ -610,11 +610,14 @@ class TestProvisionalGUIMount:
         assert "javascript" in ctype
         assert "(function ()" in r.text  # IIFE marker
 
-    def test_root_redirects_to_ui(self, client: TestClient) -> None:
-        # follow_redirects=False so we can observe the 302
+    def test_root_redirects_to_console(self, client: TestClient) -> None:
+        # follow_redirects=False so we can observe the 302. The root now
+        # leads to the Ophamin Console (/app) — the UniFi-styled production
+        # GUI — since the console bundle ships in the package. It only falls
+        # back to /ui when the console dir is absent.
         r = client.get("/", follow_redirects=False)
         assert r.status_code == 302
-        assert r.headers["location"] == "/ui"
+        assert r.headers["location"] == "/app"
 
     def test_openapi_lists_new_endpoints(self, client: TestClient) -> None:
         """Verify the 3 new endpoints are advertised in the OpenAPI

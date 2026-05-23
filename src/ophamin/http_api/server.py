@@ -943,12 +943,17 @@ def build_app() -> FastAPI:
 
         @app.get(
             "/",
-            summary="Redirect / → /ui for convenience",
+            summary="Redirect / → the Ophamin Console (/app), falling back to /ui",
             include_in_schema=False,
         )
         def root_redirect():
             from fastapi.responses import RedirectResponse
-            return RedirectResponse(url="/ui", status_code=302)
+            # The UniFi-styled React Console is the production front door.
+            # Fall back to the provisional /ui SPA only if the console bundle
+            # isn't present (both ship together in the package, so this is a
+            # safety net rather than an expected branch).
+            target = "/app" if _CONSOLE_DIR.is_dir() else "/ui"
+            return RedirectResponse(url=target, status_code=302)
 
     # ------------------------------------------------------------------
     # Ophamin Console — the serious React GUI (Claude Design export).

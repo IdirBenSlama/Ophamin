@@ -7,7 +7,31 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.114.0] below for the latest cut.)
+(empty — see [0.114.1] below for the latest cut.)
+
+## [0.114.1] — 2026-05-23
+
+**Fix — the launcher now opens the owner's UniFi Console, not the plain SPA.**
+Ophamin ships *two* browser surfaces: the **Ophamin Console** at `/app` (the
+production GUI — a UniFi/Ubiquiti-styled React app: dark navy single-pane-of-
+glass, the signature UniFi blue `#2c8df7` accent, the narrow icon rail,
+tight-corner stat tiles) and a lighter provisional vanilla-JS SPA at `/ui`. The
+double-click launcher and `serve --open` were opening `/ui`, so the owner landed
+on the plain console and asked, rightly, *"where is my UniFi theme and
+philosophy?"* It was never gone — the front door just pointed at the wrong room.
+
+- `serve --open` (and the `Open Ophamin.command` launcher that calls it) now
+  opens the Console at `/app`. The printed "Ophamin console:" pointer and the
+  already-running fast-path open the same URL.
+- `GET /` now redirects to `/app` (the Console), falling back to `/ui` only if
+  the console bundle is absent — both ship together, so the fallback is a safety
+  net, not an expected branch.
+- README + `--open` help text + the redirect test updated to the new contract.
+  The `/ui` SPA (and its 0.114.0 "Start here" tab) is untouched and still
+  reachable directly; it's simply no longer the front door.
+- No theme code changed — the UniFi tokens already lived in
+  `http_api/console/app/styles.css` and `app.jsx`; this is purely which surface
+  the launcher presents.
 
 ## [0.114.0] — 2026-05-22
 
