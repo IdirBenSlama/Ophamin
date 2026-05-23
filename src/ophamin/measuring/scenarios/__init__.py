@@ -161,6 +161,12 @@ from ophamin.measuring.scenarios.rosetta_scaling import RosettaScalingScenario  
 from ophamin.measuring.scenarios.substrate_completeness import (  # noqa: E402
     SubstrateCompletenessScenario,
 )
+from ophamin.measuring.scenarios.substrate_liveness import (  # noqa: E402
+    SubstrateLivenessScenario,
+)
+from ophamin.measuring.scenarios.substrate_liveness_battery import (  # noqa: E402
+    SubstrateLivenessBatteryScenario,
+)
 from ophamin.measuring.scenarios.throughput_ceiling import ThroughputCeilingScenario  # noqa: E402
 
 
@@ -184,6 +190,8 @@ __all__ = [
     "ScenarioNameNotOverriddenError",
     "ScenarioScore",
     "SubstrateCompletenessScenario",
+    "SubstrateLivenessBatteryScenario",
+    "SubstrateLivenessScenario",
     "ThroughputCeilingScenario",
     "Tier",
 ]
