@@ -24,6 +24,7 @@ from ophamin.self_test import (
     SELF_TEST_SCENARIOS,
     ScenarioRunResult,
     SelfTestResult,
+    _is_missing_optional_dependency,
     run_self_test,
 )
 
@@ -159,6 +160,65 @@ def test_run_self_test_result_to_dict_is_json_serializable(fast_self_test):
     serialized = json.dumps(payload)
     parsed = json.loads(serialized)
     assert parsed["n_total"] == result.n_total
+
+
+def test_is_missing_optional_dependency_detection():
+    """Conservative: import failures + explicit pip-install remedies are
+    missing-dep (skip); genuine bugs are not."""
+    assert _is_missing_optional_dependency(ImportError("no module"))
+    assert _is_missing_optional_dependency(ModuleNotFoundError("no module"))
+    assert _is_missing_optional_dependency(
+        RuntimeError("X requires scipy + pingouin. Install via `pip install 'ophamin[analytic]'`.")
+    )
+    # genuine bugs must NOT be reclassified as skippable
+    assert not _is_missing_optional_dependency(ValueError("real logic bug"))
+    assert not _is_missing_optional_dependency(
+        RuntimeError("could not compute contraction ratio — need 2 sample sizes")
+    )
+
+
+def test_run_self_test_missing_optional_dep_is_inconclusive(tmp_path, monkeypatch):
+    """A scenario that can't run because an OPTIONAL analytic dep is absent is
+    INCONCLUSIVE (not measurable here), not ERROR — so a minimal-dep CI runner
+    reports cleanly. Mirrors the corpus/substrate skip semantics."""
+    import ophamin.self_test as mod
+    from ophamin.measuring.scenarios import SCENARIOS
+
+    class _DepGated:
+        def __init__(self, **kwargs):
+            pass
+
+        def run_and_persist(self, **kwargs):
+            raise ImportError("pymc + arviz required; `pip install pymc arviz`")
+
+    monkeypatch.setattr(mod, "SELF_TEST_SCENARIOS", (("dep-gated-xyzzy", {}),))
+    monkeypatch.setitem(SCENARIOS, "dep-gated-xyzzy", _DepGated)
+    result = run_self_test(proofs_root=tmp_path / "out", formats=BundleFormat.json_only())
+    assert result.n_total == 1
+    assert result.n_inconclusive == 1
+    assert result.n_errored == 0
+    assert result.results[0].verdict == "INCONCLUSIVE"
+
+
+def test_run_self_test_genuine_error_still_errors(tmp_path, monkeypatch):
+    """A real (non-dependency) failure must still surface as ERROR — the
+    reclassification must not mask framework regressions."""
+    import ophamin.self_test as mod
+    from ophamin.measuring.scenarios import SCENARIOS
+
+    class _Buggy:
+        def __init__(self, **kwargs):
+            pass
+
+        def run_and_persist(self, **kwargs):
+            raise ValueError("a genuine framework bug")
+
+    monkeypatch.setattr(mod, "SELF_TEST_SCENARIOS", (("buggy-xyzzy", {}),))
+    monkeypatch.setitem(SCENARIOS, "buggy-xyzzy", _Buggy)
+    result = run_self_test(proofs_root=tmp_path / "out", formats=BundleFormat.json_only())
+    assert result.n_errored == 1
+    assert result.n_inconclusive == 0
+    assert result.results[0].verdict == "ERROR"
 
 
 def test_run_self_test_handles_unregistered_scenario_gracefully(tmp_path, monkeypatch):

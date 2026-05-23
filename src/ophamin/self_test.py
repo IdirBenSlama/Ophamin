@@ -136,6 +136,22 @@ class SelfTestResult:
         }
 
 
+def _is_missing_optional_dependency(exc: BaseException) -> bool:
+    """True when an exception signals an absent OPTIONAL dependency, not a bug.
+
+    A scenario that can't run because its optional analytic backend isn't
+    installed (e.g. the crosschecks need ``ophamin[analytic]``; the Bayesian
+    pillar needs pymc/arviz) is "not measurable in this environment" — the same
+    skip semantics as a missing corpus or substrate, recorded INCONCLUSIVE
+    rather than ERROR. Detection is conservative so genuine bugs still surface
+    as ERROR: an import failure, or an explicit ``pip install`` remedy message.
+    """
+    if isinstance(exc, (ImportError, ModuleNotFoundError)):
+        return True
+    msg = str(exc).lower()
+    return "pip install" in msg and ("require" in msg or "install via" in msg)
+
+
 def run_self_test(
     proofs_root: str | Path = "proofs/ophamin-self",
     *,
@@ -211,9 +227,16 @@ def run_self_test(
                 duration_seconds=time.perf_counter() - per_start,
             ))
         except Exception as exc:  # noqa: BLE001
+            # An absent optional dependency is "not measurable here"
+            # (INCONCLUSIVE), not a framework regression (ERROR) — so a
+            # minimal-dep CI runner reports cleanly instead of failing loud
+            # on installs it deliberately omits.
+            verdict = (
+                "INCONCLUSIVE" if _is_missing_optional_dependency(exc) else "ERROR"
+            )
             results.append(ScenarioRunResult(
                 scenario_name=scenario_name,
-                verdict="ERROR",
+                verdict=verdict,
                 proof_id="",
                 bundle_path="",
                 duration_seconds=time.perf_counter() - per_start,

@@ -315,10 +315,21 @@ class CRDTLawsScenario(Scenario):
         )
 
         claim = self.build_claim()
+        # n_total == 0 means NO op sequence could be evaluated — both Yjs
+        # backends (pycrdt + y_py) are unavailable, so every run threw at
+        # instantiation. That is "not measurable in this environment", NOT a
+        # 0% convergence: refuting here would falsely claim the backends
+        # disagree when they were simply absent. Report INCONCLUSIVE instead.
+        backends_unavailable = n_total == 0
         verdict = Verdict.decide(
             observed=observed,
             threshold=claim.threshold,
+            inconclusive=backends_unavailable,
             reasoning=(
+                "CRDT backends (pycrdt + y_py) unavailable — no op sequence "
+                "could be evaluated; not measurable in this environment. "
+                "Install via `pip install 'ophamin[crdt]'`."
+                if backends_unavailable else
                 f"{n_agreed}/{n_total} sequences converged across both "
                 f"backends ({observed:.4f}); Wilson 95% CI "
                 f"[{ci_low:.4f}, {ci_high:.4f}]"
