@@ -20,17 +20,30 @@ Fairness (the bar Kimera must clear, established empirically in
     order-aware retriever already achieves (~0.04 on SP500 — drawdown is a
     cumulative-min path functional that generic representations barely capture).
 
-Kimera is **VALIDATED** iff its prime-distance grades ``|Δ max-drawdown|`` with a
-Spearman fidelity that exceeds the order-aware bar by a pre-registered margin
-(``graded_fidelity_advantage >= 0.20``); **REFUTED** if it does not — i.e. its
-prime-address is a saturated binary detector, not a graded path-memory.
+Kimera is **VALIDATED** iff its representation-distance grades ``|Δ max-drawdown|``
+with a Spearman fidelity that exceeds the order-aware bar by a pre-registered
+margin (``graded_fidelity_advantage >= 0.20``); **REFUTED** if it does not.
 
-Matched metric: BOTH sides are scored with ``graded_fidelity`` (Spearman of
-pairwise representation-distance vs ``|Δ max-drawdown|``). Kimera's
-representation-distance is ``1 − Jaccard(prime_chain)`` (the same prime-set
-distance the prior scenarios used); the baselines are the order-aware shingle and
-the order-blind mean-pool on the same event sequences. No metric mismatch — the
-flaw that inflated the earlier "advantage 1.0" is removed by construction.
+Which Kimera readout? Two are scored, both with the SAME ``graded_fidelity``
+(Spearman of pairwise distance vs ``|Δ max-drawdown|``), so the contrast is fair:
+
+  * **primary — continuous manifold-state divergence** (relative distance of
+    ``coupling`` / ``order_parameter`` / ``knowledge_mass``). Drawdown is a
+    continuous cumulative-min path functional; only a path-integrating continuous
+    state can grade it, so this is the readout under test.
+  * **saturation control — prime set-distance** (``1 − Jaccard(prime_chain)``).
+    A set-Jaccard over per-event symbols is combinatorially coarse: same-multiset
+    reorderings render to near-disjoint event symbols, so it saturates at ~1.0 and
+    carries no graded signal (the finance-path-dependence bundle measured prime
+    order-divergence ~0.89). Reported alongside to show the symbolic readout is a
+    binary detector, not a graded path-memory — it is NOT the headline.
+
+The baselines are the order-aware shingle and the order-blind mean-pool on the
+same event sequences. ``graded_fidelity`` is a rank correlation (scale-free), so
+giving Kimera a relative-state distance and the baseline a cosine distance is
+fair: each is asked only whether ITS distances rank-order the way
+``|Δ max-drawdown|`` does. This is the matched-metric fix for the binary-
+separation flaw that inflated the earlier "advantage 1.0".
 
 ``run()`` needs a live substrate (Kimera) in batch mode; ``score()`` is
 unreachable. The baseline bar runs without Kimera via the diagnostic above.
@@ -74,6 +87,8 @@ from ophamin.seeing.substrate.observables import jaccard
 _max_drawdown = FinancePathDependenceScenario._max_drawdown
 _render_event = FinancePathDependenceScenario._render_event
 _prime_set = FinancePathDependenceScenario._prime_set
+_state_vector = FinancePathDependenceScenario._state_vector
+_state_divergence = FinancePathDependenceScenario._state_divergence
 
 
 def _content_events(arr: tuple[float, ...]) -> list[str]:
@@ -101,19 +116,24 @@ class FinancePathMagnitudeFidelityScenario(Scenario):
         "For each real return multiset, many orderings are generated spanning a "
         "range of max-drawdowns. Every representation scores the SAME way: "
         "graded_fidelity = Spearman(pairwise representation-distance, "
-        "|Δ max-drawdown|). Kimera distance = 1 − Jaccard(prime_chain); the "
-        "order-aware bar = consecutive-event shingle cosine; the order-blind "
-        "floor = mean-pooled TF-IDF (≈0). VALIDATED iff Kimera grades drawdown "
-        "ABOVE the order-aware bar by the pre-registered margin; a saturated "
-        "prime-distance scores ~0 and is REFUTED. The matched metric removes the "
-        "metric-mismatch that inflated the earlier binary 'advantage'."
+        "|Δ max-drawdown|). Kimera distance (primary) = relative manifold-state "
+        "divergence (coupling/order/mass); the prime set-distance "
+        "(1 − Jaccard(prime_chain)) is scored alongside as a saturation control; "
+        "the order-aware bar = consecutive-event shingle cosine; the order-blind "
+        "floor = mean-pooled TF-IDF (≈0). VALIDATED iff Kimera's manifold-state "
+        "grades drawdown ABOVE the order-aware bar by the pre-registered margin; "
+        "REFUTED if it does not (the prime control saturates ~0 by construction). "
+        "The matched rank-metric removes the mismatch that inflated the earlier "
+        "binary 'advantage'."
     )
     method = "graded_fidelity_advantage_over_order_aware_baseline"
     falsification_consequence = (
-        "Kimera's prime-distance does not grade |Δ max-drawdown| better than a "
-        "generic order-aware retriever (advantage <= margin) — its path-memory is "
-        "a saturated binary order-detector, not a graded magnitude-bearing "
-        "representation. Refutes the graded path-memory claim."
+        "Kimera's manifold-state divergence does not grade |Δ max-drawdown| "
+        "better than a generic order-aware retriever (advantage <= margin); with "
+        "the prime control saturating, no Kimera readout carries graded "
+        "path-magnitude. Its encoding registers order (hysteresis) but not "
+        "proportional numeric magnitude — the finance numeric-channel "
+        "construction brief. Refutes the graded path-memory claim."
     )
 
     def __init__(
@@ -155,25 +175,33 @@ class FinancePathMagnitudeFidelityScenario(Scenario):
     def field_contract(self) -> ScenarioFieldContract:
         return ScenarioFieldContract(
             scenario_name=self.name,
-            contracts=(FieldContract("prime_chain", required=True),),
+            contracts=(
+                FieldContract("arachne_web_coupling_frobenius", required=True),
+                FieldContract("arachne_web_order_parameter", required=False),
+                FieldContract("knowledge_mass", required=False),
+                FieldContract("prime_chain", required=False),  # saturation control
+            ),
         )
 
     def build_claim(self) -> Claim:
         return Claim(
             statement=(
-                "Kimera's representation-distance (1 − Jaccard of prime_chain) "
+                "Kimera's representation-distance (relative divergence of the "
+                "manifold state: coupling / order_parameter / knowledge_mass) "
                 "between same-multiset return histories GRADES their real "
                 "|Δ max-drawdown| (Spearman fidelity) better than a standard "
                 "order-aware retriever, by a margin: graded_fidelity_advantage = "
-                f"fidelity(kimera) − fidelity(order_aware) >= {self.advantage_margin}."
+                f"fidelity(kimera_state) − fidelity(order_aware) >= {self.advantage_margin}. "
+                "The prime set-distance is scored alongside as a saturation control."
             ),
             operationalization=(
                 f"For {len(self.return_windows)} real return multisets, generate "
                 f"{self.n_orderings}+2 orderings spanning drawdowns; score each "
                 "representation by Spearman(pairwise distance, |Δ max-drawdown|). "
-                "Headline = mean over windows of fidelity(kimera) − "
-                "fidelity(order_aware shingle). Order-blind mean-pool reported as "
-                "the ~0 floor."
+                "Headline = mean over windows of fidelity(kimera_state) − "
+                "fidelity(order_aware shingle); the prime set-distance fidelity "
+                "(saturation control) and the order-blind mean-pool ~0 floor are "
+                "reported alongside."
             ),
             threshold=Threshold(
                 metric="graded_fidelity_advantage",
@@ -182,12 +210,13 @@ class FinancePathMagnitudeFidelityScenario(Scenario):
                 units="spearman_rho",
             ),
             h0=(
-                "H0: advantage < margin — Kimera does not grade drawdown better "
-                "than generic order-aware retrieval (saturated binary detector)."
+                "H0: advantage < margin — Kimera's manifold-state divergence does "
+                "not grade drawdown better than generic order-aware retrieval."
             ),
             h1=(
-                "H1: advantage >= margin — Kimera's prime-distance carries graded "
-                "path-magnitude that generic order-aware retrieval does not."
+                "H1: advantage >= margin — Kimera's manifold-state divergence "
+                "carries graded path-magnitude that generic order-aware retrieval "
+                "does not."
             ),
         )
 
@@ -195,12 +224,13 @@ class FinancePathMagnitudeFidelityScenario(Scenario):
         return (
             f"For each of {len(self.return_windows)} real multisets, build "
             f"{self.n_orderings}+2 orderings; run each through Kimera entity·batch; "
-            "compute pairwise kimera_distance = 1 − Jaccard(prime_chain), "
+            "compute pairwise kimera_state = relative manifold-state divergence "
+            "(coupling/order/mass), prime = 1 − Jaccard(prime_chain) (control), "
             "order_aware = shingle cosine, order_blind = mean-pool. "
             "graded_fidelity = Spearman(distance, |Δ max-drawdown|) per method per "
-            "window. Headline = mean(fid_kimera − fid_order_aware). "
-            f"INCONCLUSIVE if fewer than {self.min_windows} windows yield primes "
-            "for all orderings; VALIDATED iff advantage >= margin."
+            "window. Headline = mean(fid_kimera_state − fid_order_aware). "
+            f"INCONCLUSIVE if fewer than {self.min_windows} windows yield manifold "
+            "state for all orderings; VALIDATED iff advantage >= margin."
         )
 
     def score(self, cycle_results: list[CycleResult], records: list[Any]) -> ScenarioScore:
@@ -223,7 +253,8 @@ class FinancePathMagnitudeFidelityScenario(Scenario):
         from itertools import combinations
 
         per_window: list[dict[str, Any]] = []
-        fid_kimera: list[float] = []
+        fid_state: list[float] = []   # primary Kimera readout (manifold state)
+        fid_prime: list[float] = []   # saturation control (prime set-distance)
         fid_order: list[float] = []
         fid_blind: list[float] = []
 
@@ -231,62 +262,79 @@ class FinancePathMagnitudeFidelityScenario(Scenario):
             variants = self._orderings(ms)
             dds = [_max_drawdown(v) for v in variants]
             prime_sets: list[Any] = []
+            state_vecs: list[Any] = []
             for v in variants:
                 events = [_render_event(i, r) for i, r in enumerate(v)]
                 res = substrate.run_batch(events)
                 if wi == 0 and v is variants[0]:
                     self._enforce_field_contract(res)  # seatbelt, once
-                prime_sets.append(_prime_set(res[-1]) if res else None)
+                last = res[-1] if res else None
+                prime_sets.append(_prime_set(last) if last else None)
+                state_vecs.append(_state_vector(last) if last else None)
             content = [_content_events(v) for v in variants]
 
-            k_d: list[float] = []
-            o_d: list[float] = []
-            b_d: list[float] = []
-            gt: list[float] = []
-            ok = True
+            # aligned (distance, |Δ max-drawdown|) pairs, one list per readout
+            s_d: list[float] = []   # state distances (primary)
+            s_g: list[float] = []   # ground truth aligned with s_d
+            k_d: list[float] = []   # prime distances (control)
+            k_g: list[float] = []   # ground truth aligned with k_d
+            o_d: list[float] = []   # order-aware shingle (always available)
+            b_d: list[float] = []   # order-blind mean-pool (always available)
+            base_g: list[float] = []  # ground truth aligned with o_d / b_d
             for i, j in combinations(range(len(variants)), 2):
-                if prime_sets[i] is None or prime_sets[j] is None:
-                    ok = False
-                    break
-                gt.append(abs(dds[i] - dds[j]))
-                k_d.append(1.0 - jaccard(prime_sets[i], prime_sets[j]))
+                g = abs(dds[i] - dds[j])
+                sd = _state_divergence(state_vecs[i], state_vecs[j])
+                if sd is not None:
+                    s_d.append(sd)
+                    s_g.append(g)
+                if prime_sets[i] is not None and prime_sets[j] is not None:
+                    k_d.append(1.0 - jaccard(prime_sets[i], prime_sets[j]))
+                    k_g.append(g)
                 o_d.append(ordered_representation_divergence(content[i], content[j]))
                 b_d.append(bag_representation_divergence(content[i], content[j]))
-            if not ok or len(gt) < 3:
+                base_g.append(g)
+            if len(s_d) < 3:
                 per_window.append({"window": wi, "gap": True})
                 continue
-            fk = graded_fidelity(k_d, gt)
-            fo = graded_fidelity(o_d, gt)
-            fb = graded_fidelity(b_d, gt)
-            fid_kimera.append(fk)
+            fs = graded_fidelity(s_d, s_g)
+            fk = graded_fidelity(k_d, k_g) if len(k_d) >= 3 else None
+            fo = graded_fidelity(o_d, base_g)
+            fb = graded_fidelity(b_d, base_g)
+            fid_state.append(fs)
+            if fk is not None:
+                fid_prime.append(fk)
             fid_order.append(fo)
             fid_blind.append(fb)
             per_window.append({
                 "window": wi,
                 "n_orderings": len(variants),
-                "n_pairs": len(gt),
-                "fidelity_kimera": round(fk, 4),
+                "n_pairs_state": len(s_d),
+                "n_pairs_prime": len(k_d),
+                "fidelity_state": round(fs, 4),
+                "fidelity_prime": (round(fk, 4) if fk is not None else None),
                 "fidelity_order_aware": round(fo, 4),
                 "fidelity_order_blind": round(fb, 4),
                 "gap": False,
             })
 
-        n_ok = len(fid_kimera)
+        n_ok = len(fid_state)
         if n_ok < self.min_windows:
             advantage = 0.0
             inconclusive = True
             reasoning = (
-                f"only {n_ok}/{len(self.return_windows)} windows yielded primes "
-                f"for all orderings (need {self.min_windows})."
+                f"only {n_ok}/{len(self.return_windows)} windows yielded manifold "
+                f"state for all orderings (need {self.min_windows})."
             )
         else:
-            mean_k = sum(fid_kimera) / n_ok
+            mean_s = sum(fid_state) / n_ok
             mean_o = sum(fid_order) / n_ok
-            advantage = mean_k - mean_o
+            advantage = mean_s - mean_o
+            mean_k = (sum(fid_prime) / len(fid_prime)) if fid_prime else float("nan")
             inconclusive = False
             reasoning = (
-                f"graded fidelity — kimera={mean_k:.3f}, order-aware bar={mean_o:.3f}, "
-                f"order-blind floor={sum(fid_blind) / n_ok:.3f}; "
+                f"graded fidelity — kimera_state={mean_s:.3f}, order-aware "
+                f"bar={mean_o:.3f}, order-blind floor={sum(fid_blind) / n_ok:.3f}; "
+                f"prime control={mean_k:.3f} (saturation check); "
                 f"advantage={advantage:.3f} vs margin {self.advantage_margin}."
             )
 
@@ -310,7 +358,12 @@ class FinancePathMagnitudeFidelityScenario(Scenario):
             PillarEvidence(
                 pillar="graded-fidelity", statistic_name="graded_fidelity_advantage",
                 statistic_value=round(advantage, 6), library="scipy",
-                library_version="spearmanr", detail={"per_window": per_window},
+                library_version="spearmanr",
+                detail={
+                    "per_window": per_window,
+                    "primary_readout": "manifold_state_divergence",
+                    "prime_is_saturation_control": True,
+                },
             ),
         ]
         substrate_commit = ""

@@ -5,13 +5,15 @@ orderings" (binary; a metric artifact, as finance-history-discrimination was
 shown to be) but "does Kimera's representation-distance SCALE with the real
 |Δ max-drawdown| the orderings encode" — graded, matched-metric, fair:
 
-    graded_fidelity_advantage = fidelity(kimera) − fidelity(order_aware_baseline)
+    graded_fidelity_advantage = fidelity(kimera_state) − fidelity(order_aware_baseline)
     fidelity = Spearman(pairwise representation-distance, |Δ max-drawdown|)
 
-VALIDATED iff advantage >= margin (default 0.20); REFUTED if Kimera's
-prime-distance saturates (a binary detector, not a graded path-memory). The
-order-aware bar (~0.04 on SP500) and order-blind floor (~0) are established
-WITHOUT Kimera in diagnostics/path_magnitude_bar.py.
+Primary Kimera readout = continuous manifold-state divergence (coupling /
+order_parameter / knowledge_mass); the prime set-distance (1 − Jaccard) is scored
+alongside as a saturation control. VALIDATED iff advantage >= margin (default
+0.20); REFUTED if the manifold-state divergence does not grade above the
+order-aware bar. The order-aware bar (~0.04 on SP500) and order-blind floor (~0)
+are established WITHOUT Kimera in diagnostics/path_magnitude_bar.py.
 
     PYTHONPATH=src N_WINDOWS=6 WINDOW_LEN=8 N_ORDERINGS=24 \
         .venv/bin/python -u examples/run_finance_path_magnitude_fidelity.py
@@ -89,6 +91,7 @@ def main() -> int:
     print(f"series      : FRED {SERIES} — {len(returns)} daily returns")
     print(f"windows     : {len(windows)} × {WINDOW_LEN}, {N_ORDERINGS}+2 orderings each")
     print(f"schedule    : {scenario.n_cycles} cycles on live Kimera")
+    print("readout     : manifold-state divergence (primary); prime 1−Jaccard (saturation control)")
     print("metric      : graded_fidelity = Spearman(distance, |Δ max-drawdown|), matched both sides")
     print("bar         : order-aware shingle (~0.04 on SP500); floor: order-blind (~0)")
 
@@ -103,16 +106,19 @@ def main() -> int:
         return 1
 
     ev = record.evidence[0]
-    banner("KIMERA vs order-aware baseline — does prime-distance GRADE drawdown?")
+    banner("KIMERA vs order-aware baseline — does manifold-state GRADE drawdown?")
     print(f"  graded_fidelity_advantage : {ev.statistic_value:+.4f}  "
-          "(kimera fidelity − order-aware bar)")
+          "(kimera_state fidelity − order-aware bar)")
     for w in ev.detail.get("per_window", []):
         if w.get("gap"):
-            print(f"  window {w['window']}: GAP (no primes)")
+            print(f"  window {w['window']}: GAP (no manifold state)")
         else:
-            print(f"  window {w['window']}: kimera={w['fidelity_kimera']:+.3f}  "
+            prime = w.get("fidelity_prime")
+            prime_s = f"{prime:+.3f}" if isinstance(prime, (int, float)) else "  n/a"
+            print(f"  window {w['window']}: state={w['fidelity_state']:+.3f}  "
                   f"order-aware={w['fidelity_order_aware']:+.3f}  "
-                  f"floor={w['fidelity_order_blind']:+.3f}")
+                  f"floor={w['fidelity_order_blind']:+.3f}  "
+                  f"prime(ctrl)={prime_s}")
 
     banner("VERDICT")
     print(f"verdict     : {record.verdict.outcome}")

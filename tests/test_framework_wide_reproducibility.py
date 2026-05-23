@@ -36,7 +36,7 @@ from typing import Any
 
 import pytest
 
-from ophamin.measuring.scenarios import SCENARIOS
+from ophamin.measuring.scenarios import SCENARIOS, ScenarioFieldContractViolation
 from ophamin.measuring.scenarios.deterministic_seed_audit import (
     DeterministicSeedAuditScenario,
 )
@@ -93,6 +93,15 @@ _AUDIT_KWARGS: dict[str, dict[str, Any]] = {
         "seed": 20260518,
         "n_pairs": 8,
         "sample_size": 40,
+    },
+    # Live-Kimera scenario: takes `seed` (so it's audit-eligible) but its
+    # run() reads manifold-state fields the MockSubstrate doesn't emit. These
+    # kwargs only need to let it CONSTRUCT (return_windows is required); the
+    # audit below skips it when the mock can't satisfy its field contract.
+    "finance-path-magnitude-fidelity": {
+        "seed": 20260517,
+        "return_windows": ((0.01, -0.02, 0.03, -0.01, 0.02),),
+        "n_orderings": 6,
     },
 }
 
@@ -153,6 +162,18 @@ def test_every_seed_taking_scenario_satisfies_reproducibility_contract(
             f"Scenario {name!r} requires corpus that's not available "
             f"here: {exc}. Run with the corpus downloaded to verify "
             f"the reproducibility contract for this scenario."
+        )
+    except ScenarioFieldContractViolation as exc:
+        # A live-substrate scenario (e.g. a Kimera comparison) whose
+        # field contract the MockSubstrate can't satisfy — the same
+        # "not measurable in this environment" case as a missing corpus,
+        # just along the substrate axis instead of the corpus axis. Its
+        # reproducibility contract still holds; it must be audited against
+        # the real substrate that emits the required fields.
+        pytest.skip(
+            f"Scenario {name!r} requires substrate fields the MockSubstrate "
+            f"does not emit: {exc}. Run against the real substrate (e.g. the "
+            f"Kimera adapter) to verify its reproducibility contract."
         )
     assert proof.verdict.outcome == "VALIDATED", (
         f"Scenario {name!r} fails the reproducibility contract — two "
