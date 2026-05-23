@@ -23,8 +23,10 @@
     </header>
 
     <nav class="tabs" role="tablist" aria-label="Sections">
-        <button class="tab active" data-tab="proofs" role="tab"
-                id="tab-btn-proofs" aria-controls="tab-proofs" aria-selected="true">Proofs</button>
+        <button class="tab active" data-tab="start" role="tab"
+                id="tab-btn-start" aria-controls="tab-start" aria-selected="true">Start here</button>
+        <button class="tab" data-tab="proofs" role="tab"
+                id="tab-btn-proofs" aria-controls="tab-proofs" aria-selected="false" tabindex="-1">Proofs</button>
         <button class="tab" data-tab="scenarios" role="tab"
                 id="tab-btn-scenarios" aria-controls="tab-scenarios" aria-selected="false" tabindex="-1">Scenarios</button>
         <button class="tab" data-tab="metrics" role="tab"
@@ -34,8 +36,47 @@
     </nav>
 
     <main class="content">
+        <!-- ============================ START TAB ============================= -->
+        <section id="tab-start" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-start">
+          <div style="max-width:860px;margin:0 auto;padding:32px 24px 64px;line-height:1.6;">
+
+            <p style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted,#8a94a6);margin:0 0 8px;">The garage for building Kimera</p>
+            <h1 style="font-size:30px;font-weight:700;letter-spacing:-.02em;margin:0 0 14px;">What Ophamin has measured about Kimera</h1>
+            <p style="font-size:16px;color:var(--text-secondary,#c2cad6);margin:0 0 28px;">
+              Ophamin watches Kimera run and turns what it sees into <b>signed proofs you can re-check</b> — no need to take anyone's word for it. The numbers up top are read live from the real proof files. Every claim below is one of those proofs; open the <b>Proofs</b> tab to see and re-verify each one.
+            </p>
+
+            <div style="background:var(--bg-surface,#141922);border:1px solid var(--border,#222b38);border-radius:12px;padding:20px 22px;margin:0 0 24px;">
+              <h2 style="font-size:18px;font-weight:600;margin:0 0 10px;">The gap, in one picture</h2>
+              <p style="margin:0 0 8px;color:var(--text-secondary,#c2cad6);"><b>Today's memory (search / RAG) is a filing cabinet.</b> Drop documents in; it returns the similar ones. It doesn't care what <i>order</i> things happened — two histories made of the same events in a different order look <b>identical</b> to it.</p>
+              <p style="margin:0;color:var(--text-secondary,#c2cad6);"><b>Kimera's memory is a landscape you walk.</b> Every experience wears a permanent groove; the <i>order</i> of walking reshapes the land; the terrain <i>is</i> the memory. The same events in a different order leave <b>different</b> terrain.</p>
+            </div>
+
+            <h2 style="font-size:18px;font-weight:600;margin:0 0 12px;">What we proved <span class="verdict-validated" style="font-size:13px;padding:2px 8px;border-radius:6px;">on real data</span></h2>
+            <ul style="list-style:none;padding:0;margin:0 0 28px;display:flex;flex-direction:column;gap:10px;">
+              <li style="display:flex;gap:10px;"><span class="verdict-validated" style="font-weight:700;">✓</span> <span><b>Memory is permanent</b> — once Kimera experiences something, it never erases it. <span style="color:var(--text-muted,#8a94a6);">(Kimera vocabulary, and again on real Enron email.)</span></span></li>
+              <li style="display:flex;gap:10px;"><span class="verdict-validated" style="font-weight:700;">✓</span> <span><b>Order matters</b> — the same events in a different order leave a different memory, where a filing cabinet cannot tell them apart.</span></li>
+              <li style="display:flex;gap:10px;"><span class="verdict-validated" style="font-weight:700;">✓</span> <span><b>It separates real-risk-different histories</b> — the same stock trades in a crash-then-recover vs rise-then-fall order: retrieval sees them as identical; Kimera tells them apart, every time. <span style="color:var(--text-muted,#8a94a6);">(Real S&amp;P 500.)</span></span></li>
+            </ul>
+
+            <h2 style="font-size:18px;font-weight:600;margin:0 0 12px;">What we did <span class="verdict-inconclusive" style="font-size:13px;padding:2px 8px;border-radius:6px;">not</span> prove (stated plainly)</h2>
+            <p style="margin:0 0 28px;color:var(--text-secondary,#c2cad6);">
+              Kimera can tell two histories <i>apart</i>, but it cannot yet say <i>how much</i> riskier one is — a "spot-the-difference" tool, not a "measure-the-size" tool. We searched all ~4,000 of Kimera's live signals for one that measures size; none held up on independent data. That's a <b>wiring gap</b> (the readout isn't switched on yet), not a dead end — about 13% of Kimera is wired so far.
+            </p>
+
+            <h2 style="font-size:18px;font-weight:600;margin:0 0 12px;">How to use this console</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+              <div style="background:var(--bg-surface,#141922);border:1px solid var(--border,#222b38);border-radius:10px;padding:14px 16px;"><b>Proofs</b><br/><span style="color:var(--text-muted,#8a94a6);font-size:14px;">Every signed proof. Click one to read it; each can be re-verified.</span></div>
+              <div style="background:var(--bg-surface,#141922);border:1px solid var(--border,#222b38);border-radius:10px;padding:14px 16px;"><b>Scenarios</b><br/><span style="color:var(--text-muted,#8a94a6);font-size:14px;">The tests Ophamin can run on Kimera.</span></div>
+              <div style="background:var(--bg-surface,#141922);border:1px solid var(--border,#222b38);border-radius:10px;padding:14px 16px;"><b>Run</b><br/><span style="color:var(--text-muted,#8a94a6);font-size:14px;">Run one test live and produce a fresh proof.</span></div>
+              <div style="background:var(--bg-surface,#141922);border:1px solid var(--border,#222b38);border-radius:10px;padding:14px 16px;"><b>Metrics</b><br/><span style="color:var(--text-muted,#8a94a6);font-size:14px;">Live counts and health.</span></div>
+            </div>
+
+          </div>
+        </section>
+
         <!-- ============================ PROOFS TAB ============================ -->
-        <section id="tab-proofs" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-proofs">
+        <section id="tab-proofs" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-proofs">
             <div class="split">
                 <aside class="tree-pane">
                     <div class="pane-header">

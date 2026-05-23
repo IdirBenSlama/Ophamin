@@ -7,7 +7,28 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.113.0] below for the latest cut.)
+(empty — see [0.114.0] below for the latest cut.)
+
+## [0.114.0] — 2026-05-22
+
+**Usability — a plain-language "Start here" landing so a non-technical owner can
+actually read Ophamin.** The served console (`/ui`) opened straight onto a
+developer proof-browser: a wall of ~40 cryptic scenario names and "click a
+bundle to see JSON/LaTeX," reached via a terminal command. Orientation: zero.
+The owner's words: *"impossible for me."*
+
+- New default **Start here** tab (`http_api/static/index.html`) — opens to the
+  *story*, not the file tree: what Ophamin is, the filing-cabinet-vs-landscape
+  framing of the gap, the three things proven on real data (permanent /
+  order-sensitive / separates real-risk-different histories), the honest "what
+  we did NOT prove" (no magnitude size-meter; ~13% wired), and a plain guide to
+  the Proofs / Scenarios / Run / Metrics tabs. No fabricated numbers — the live
+  header counts are read from the real proof files.
+- The existing tabs are unchanged (Proofs bundle-tree verified working after the
+  change); `activateTab` is generic so no JS change was needed. Verified
+  end-to-end in a real browser (renders + Proofs tab regression-checked).
+- Version bumped via the new `tools/bump_version.py` (its first real use — all
+  three version locations stayed in lockstep).
 
 ## [0.113.0] — 2026-05-22
 
