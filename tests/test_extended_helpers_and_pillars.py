@@ -11,7 +11,6 @@ Plus the three new pillars: SemgrepPillar, CoveragePillar (smoke tests
 from __future__ import annotations
 
 import random
-from pathlib import Path
 
 import pytest
 

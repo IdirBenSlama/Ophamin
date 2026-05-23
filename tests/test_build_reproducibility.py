@@ -202,7 +202,7 @@ def test_sdist_contents_are_byte_identical_under_pinned_source_date_epoch(
         if members_a[name] != members_b[name]
     ]
     assert not differing, (
-        f"Sdist content drifted across two `python -m build` invocations:\n"
+        "Sdist content drifted across two `python -m build` invocations:\n"
         + "\n".join(
             f"  {name}: a={a[:16]}... b={b[:16]}..."
             for name, a, b in differing[:5]

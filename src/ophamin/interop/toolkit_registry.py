@@ -259,3 +259,48 @@ def toolkit_registry(extra_path: str | Path | None = None) -> dict[str, Any]:
             "Tooling layer only; never in the substrate measurement path."
         ),
     }
+
+
+def persist_toolkit_entry(
+    entry: dict[str, Any],
+    *,
+    path: str | Path | None = None,
+) -> Path:
+    """Append a verified toolkit entry to the OPHAMIN_TOOLKITS JSON index.
+
+    Closes the acquisition loop: :func:`tool_acquisition.register_acquired_tool`
+    builds the entry; this lists it for future use so it appears in the same
+    unified index as the core tools (and is merged by :func:`toolkit_registry`).
+
+    De-duplicates by ``id`` — re-registering a tool replaces its prior entry
+    rather than duplicating it. Creates the file (and parent dirs) if absent.
+    ``path`` defaults to ``$OPHAMIN_TOOLKITS``; raises :class:`ToolkitConfigError`
+    if neither is set, or if the entry is missing a required key, or the existing
+    file is malformed (loud-fail — a broken index is a real error, not skipped).
+    """
+    target = path or os.environ.get("OPHAMIN_TOOLKITS", "")
+    if not target:
+        raise ToolkitConfigError(
+            "no toolkit index path: pass path= or set OPHAMIN_TOOLKITS",
+        )
+    if any(k not in entry for k in _REQUIRED_EXTRA_KEYS):
+        raise ToolkitConfigError(
+            f"toolkit entry needs keys {_REQUIRED_EXTRA_KEYS}; got {sorted(entry)}",
+        )
+    p = Path(target)
+    existing: list[Any] = []
+    if p.exists():
+        try:
+            loaded = json.loads(p.read_text(encoding="utf-8"))
+        except (ValueError, OSError) as exc:
+            raise ToolkitConfigError(f"unreadable OPHAMIN_TOOLKITS {p}: {exc}") from exc
+        if not isinstance(loaded, list):
+            raise ToolkitConfigError("OPHAMIN_TOOLKITS must be a JSON list")
+        existing = [
+            e for e in loaded
+            if not (isinstance(e, dict) and e.get("id") == entry["id"])
+        ]
+    existing.append(entry)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
+    return p

@@ -64,7 +64,6 @@ class YDocFacade:
             text = self._doc.get(key, type=PyText)
             text.insert(position, value)
         else:  # y_py
-            import y_py as Y
             text = self._doc.get_text(key)
             with self._doc.begin_transaction() as txn:
                 text.insert(txn, position, value)
@@ -99,7 +98,7 @@ class YDocFacade:
             self._doc.apply_update(state)
         else:
             import y_py as Y
-            with self._doc.begin_transaction() as txn:
+            with self._doc.begin_transaction():
                 Y.apply_update(self._doc, state)
 
 

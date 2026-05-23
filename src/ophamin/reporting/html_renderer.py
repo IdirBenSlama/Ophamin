@@ -12,7 +12,6 @@ embedded charts that render at print-resolution.
 from __future__ import annotations
 
 import html
-import json
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +20,6 @@ from ophamin.reporting.chart_helpers import (
     SEVERITY_COLORS,
     bar_chart,
     confidence_interval_plot,
-    histogram,
     pie_chart,
 )
 

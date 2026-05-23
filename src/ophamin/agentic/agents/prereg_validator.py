@@ -28,7 +28,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from ophamin import __version__
 from ophamin.agentic.audit import LLMCallRecord, persist_call
@@ -127,7 +127,7 @@ def _normalize_claim_input(
     # If we were handed a full proof.json, descend.
     if "claim" in loaded and isinstance(loaded["claim"], dict):
         return loaded["claim"]
-    return loaded
+    return cast("dict[str, Any]", loaded)
 
 
 def validate_preregistration(

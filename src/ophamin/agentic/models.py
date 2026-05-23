@@ -176,6 +176,11 @@ TASK_ROUTING: dict[str, TaskTier] = {
     # as adapter_gen for the same reason: code generation rewards
     # quality over speed.
     "scenario_gen": TaskTier.CODER,
+    # tool_scout — propose candidate PyPI package NAMES for a measurement
+    # need (the grounded 'discover' stage). WORKHORSE: broad ecosystem
+    # knowledge matters more than CoT here, and the model only proposes
+    # names + fit notes — PyPI supplies the authoritative metadata.
+    "tool_scout": TaskTier.WORKHORSE,
     # 0.85.0 — dedicated-domain validation/diagnosis tasks. These route to
     # the SCIENTIFIC / ENGINEERING tiers so a domain-dedicated model (not a
     # general one) performs the analysis the owner asked the agentic system
@@ -197,6 +202,7 @@ DEFAULT_MAX_TOKENS: dict[str, int] = {
     "confound_enumerator": 8192,   # 3-5 confounds × mechanism + test
     "scenario_gen": 6144,          # full Scenario subclass; docstring +
                                    # __init__ + build_claim() + score() stub
+    "tool_scout": 1536,            # short JSON list: 3-7 names + fit notes
     # Reasoning-tier tasks need headroom: a reasoning model (DeepSeek-R1,
     # Qwen3.5, GPT-OSS-high) spends thousands of tokens in its reasoning
     # channel BEFORE the answer, and runtimes count that against max_tokens.

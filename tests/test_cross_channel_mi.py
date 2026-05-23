@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from ophamin.measuring.proof import EmpiricalProofRecord, REFUTED, VALIDATED
+from ophamin.measuring.proof import VALIDATED
 from ophamin.measuring.scenarios.cross_channel_mutual_information import (
     CrossChannelMutualInformationScenario,
     DEFAULT_PAIRS,
@@ -19,7 +19,6 @@ pytest.importorskip("ennemi")
 
 def _write_synthetic_trajectory(tmp_path, n_cycles: int = 50, perfect_corr: bool = False):
     """Write a synthetic trajectory for deterministic tests."""
-    import math
     import random
     rng = random.Random(0)
     traj = []

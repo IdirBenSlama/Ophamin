@@ -7,7 +7,6 @@ loud-fails on bad input, and slots into the registry where applicable.
 from __future__ import annotations
 
 import random
-from pathlib import Path
 
 import pytest
 

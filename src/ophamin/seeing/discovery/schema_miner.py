@@ -28,7 +28,7 @@ from ophamin.seeing.discovery.schema_document import (
     TargetSchema,
 )
 from ophamin.comparing.provenance.lineage import _ophamin_project_root, capture_git_commit
-from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
+from ophamin.seeing.substrate.base import SubstrateUnderTest
 
 #: maximum distinct sample values (or lengths) to record per field path
 DEFAULT_MAX_SAMPLES = 5

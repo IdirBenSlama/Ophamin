@@ -13,7 +13,6 @@ from typing import Any
 import pytest
 
 from ophamin.instrumenting import (
-    BatchResourceProfile,
     CycleResourceProfile,
     InstrumentedSubstrate,
     ResourceWatcher,

@@ -207,7 +207,6 @@ class CRDTLawsScenario(Scenario):
         try:
             from ophamin.comparing.crdt_state import (
                 YDocFacade,
-                cross_backend_convergence,
             )
         except ImportError as e:
             raise RuntimeError(

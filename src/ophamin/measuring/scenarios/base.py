@@ -39,7 +39,10 @@ import abc
 import enum
 import itertools
 from dataclasses import dataclass, field
-from typing import Iterator
+from typing import TYPE_CHECKING, Any, Iterator
+
+if TYPE_CHECKING:
+    from ophamin.measuring.proof.persistence import BundleFormat, PersistedBundle
 
 from ophamin import __version__
 from ophamin.seeing.corpus import Corpus, CorpusRecord, get_corpus
@@ -594,7 +597,7 @@ class Scenario(abc.ABC):
         proofs_root: str | "Path" = "proofs",
         data_root: str | "Path" | None = None,
         sign_key: bytes = DEFAULT_SIGN_KEY,
-        formats: "frozenset | None" = None,
+        formats: "frozenset[BundleFormat] | None" = None,
     ) -> "PersistedBundle":
         """Run the scenario AND persist the signed proof as a bundle dir.
 
@@ -639,6 +642,7 @@ class Scenario(abc.ABC):
         # http_api → prometheus_client into every scenario import path
         # (some lightweight test paths construct scenarios without
         # touching the HTTP surface).
+        _METRICS: Any
         try:
             from ophamin.http_api.metrics import METRICS as _METRICS
         except Exception:  # pragma: no cover  — defensive

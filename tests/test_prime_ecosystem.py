@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from ophamin.measuring.proof import EmpiricalProofRecord, REFUTED, VALIDATED
+from ophamin.measuring.proof import REFUTED, VALIDATED
 from ophamin.measuring.scenarios.prime_ecosystem import PrimeEcosystemScenario
 
 

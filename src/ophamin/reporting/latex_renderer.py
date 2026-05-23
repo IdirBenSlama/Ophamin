@@ -201,7 +201,6 @@ def _render_proof_latex(record: dict[str, Any], tex_path: Path) -> str:
     threshold = claim.get("threshold", {})
     verdict = record.get("verdict", {})
     identity = record.get("identity", {})
-    data = record.get("data", {})
     evidence = record.get("evidence", [])
     prereg = record.get("preregistration", {})
     assets = tex_path.parent / "assets"

@@ -17,18 +17,15 @@ The module is pure-functional, so all tests are sub-millisecond.
 from __future__ import annotations
 
 import pytest
-from hypothesis import HealthCheck, assume, given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from ophamin.comparing.fwer import (
     SUPPORTED_METHODS,
-    CorrectionFamily,
     CorrectionInput,
-    CorrectionResult,
     apply_correction,
     benjamini_hochberg,
     holm_bonferroni,
-    no_correction,
 )
 
 

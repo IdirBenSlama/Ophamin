@@ -470,7 +470,7 @@ class BayesianPhiPosteriorScenario(Scenario):
 
     def analysis_plan(self) -> str:
         return (
-            f"Fit a PyMC NUTS posterior on the Φ trajectory at sample sizes "
+            "Fit a PyMC NUTS posterior on the Φ trajectory at sample sizes "
             + ", ".join(str(n) for n in self.sample_sizes)
             + f". Compute 94% HDI width on μ at each size; verdict against "
             f"hdi_contraction_ratio = HDI_width(N={self.sample_sizes[-1]}) / "

@@ -8,14 +8,11 @@ covered by the standalone example script (no smoke test in the unit suite).
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 
 from ophamin.seeing.discovery import (
-    FieldChange,
     FieldSchema,
-    SchemaDiff,
     SchemaDocument,
     SchemaMiner,
     TargetSchema,
@@ -247,7 +244,8 @@ def test_schema_miner_rebinds_target_for_substrates_with_kimera_repo(tmp_path):
                     for i, _ in enumerate(stimuli)]
         def git_commit(self): return "stub"
         def metadata(self): return {"target_class": f"stub.{self.target}.Class"}
-    import sys as _sys, types as _types
+    import sys as _sys
+    import types as _types
     fake_mod = _types.ModuleType("ophamin.seeing.substrate")
     fake_mod.KimeraAdapter = _StubAdapter
     saved = _sys.modules.get("ophamin.seeing.substrate")

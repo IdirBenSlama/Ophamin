@@ -23,7 +23,6 @@ import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
-from typing import Any
 
 
 @dataclass(frozen=True)
@@ -264,12 +263,8 @@ def check_cli_subcommands() -> CheckResult:
     """Verify every documented subcommand is registered with argparse."""
     try:
         from ophamin.cli import main          # ensure import works
-        # Construct the parser and inspect its subparsers.
-        import argparse
-        parser = argparse.ArgumentParser()
         # Re-build the parser by calling the main flow with no args triggers
         # SystemExit; we directly inspect ``cli`` module instead.
-        from ophamin import cli as cli_mod
         # Quick trick: parse "--help" and capture the text.
         import io
         import contextlib
@@ -358,7 +353,7 @@ def render_report(results: list[CheckResult]) -> str:
     for r in results:
         by_status[r.status].append(r)
 
-    lines.append(f"## Summary\n")
+    lines.append("## Summary\n")
     lines.append(f"- ✓ ok      : {len(by_status['ok'])}")
     lines.append(f"- ⚠ missing : {len(by_status['missing'])}")
     lines.append(f"- ✗ error   : {len(by_status['error'])}\n")

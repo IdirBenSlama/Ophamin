@@ -51,7 +51,6 @@ tracking dir); ``--tracking-uri`` overrides for remote MLflow servers.
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -128,7 +127,6 @@ def export_proof_record(
     claim = record.get("claim", {})
     threshold = claim.get("threshold", {})
     verdict = record.get("verdict", {})
-    identity = record.get("identity", {})
     data = record.get("data", {})
     reproduction = record.get("reproduction", {})
     preregistration = record.get("preregistration", {})

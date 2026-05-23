@@ -66,15 +66,15 @@ from ophamin.measuring.proof.attestation import (
     verify_bytes,
 )
 
-#: absolute path to the official JSON Schema for proof.json
-SCHEMA_PATH = Path(__file__).with_name("schema.json")
-
 from ophamin.measuring.proof.persistence import (
     BundleFormat,
     PersistedBundle,
     bundle_dir_for,
     persist_proof,
 )
+
+#: absolute path to the official JSON Schema for proof.json
+SCHEMA_PATH = Path(__file__).with_name("schema.json")
 
 
 __all__ = [

@@ -356,9 +356,9 @@ def bottleneck_distance(
     arr_a = np.asarray(diagram_a, dtype=float) if diagram_a else np.empty((0, 2))
     arr_b = np.asarray(diagram_b, dtype=float) if diagram_b else np.empty((0, 2))
     if arr_a.size and arr_a.ndim != 2:
-        raise ValueError(f"diagram_a must be a list of (birth, death) pairs")
+        raise ValueError("diagram_a must be a list of (birth, death) pairs")
     if arr_b.size and arr_b.ndim != 2:
-        raise ValueError(f"diagram_b must be a list of (birth, death) pairs")
+        raise ValueError("diagram_b must be a list of (birth, death) pairs")
     return float(bottleneck(arr_a, arr_b))
 
 

@@ -56,7 +56,6 @@ from __future__ import annotations
 
 import json
 import statistics
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -327,7 +326,7 @@ class QuantumBasisCorrelationScenario(Scenario):
 
         claim = self.build_claim()
         reasoning_parts = [
-            f"Per-class high-QBE rates: "
+            "Per-class high-QBE rates: "
             + ", ".join(
                 f"{row['stimulus_class']} {row['n_high_qbe']}/{row['n_cycles']}"
                 f" = {row['high_qbe_rate']:.3f}"

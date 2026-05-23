@@ -59,7 +59,6 @@ Signed proof carrying:
 from __future__ import annotations
 
 import json
-import statistics
 from pathlib import Path
 from typing import Any
 

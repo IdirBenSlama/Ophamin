@@ -16,13 +16,11 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
-from pathlib import Path
 
 import pytest
 
 from ophamin import __version__
 from ophamin.campaign import (
-    CAMPAIGN_SCHEMA_VERSION,
     CANONICAL_PHASE_ORDER,
     CampaignPhase,
     CampaignRecord,

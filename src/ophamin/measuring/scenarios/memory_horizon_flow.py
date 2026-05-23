@@ -270,6 +270,7 @@ class MemoryHorizonFlowScenario(Scenario):
         self,
         substrate: SubstrateUnderTest | None = None,
         *,
+        data_root: object = None,
         sign_key: bytes = DEFAULT_SIGN_KEY,
     ) -> EmpiricalProofRecord:
         if substrate is None:

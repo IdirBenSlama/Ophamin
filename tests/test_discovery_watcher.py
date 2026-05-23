@@ -7,11 +7,10 @@ the live repo is the responsibility of the example runner.
 
 from __future__ import annotations
 
-from pathlib import Path
 
 import pytest
 
-from ophamin.seeing.discovery import KimeraDiscoveryWatcher, WatchOutcome
+from ophamin.seeing.discovery import KimeraDiscoveryWatcher
 from ophamin.seeing.discovery.watcher import kimera_head_commit
 
 

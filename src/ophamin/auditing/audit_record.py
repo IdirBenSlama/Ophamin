@@ -28,7 +28,6 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
-import os
 import subprocess
 from collections import Counter
 from dataclasses import dataclass, field
@@ -474,7 +473,7 @@ class AuditRecord:
     def to_markdown(self, path: str | None = None) -> str:
         """Render the audit as a human-readable Markdown report."""
         lines: list[str] = []
-        lines.append(f"# Ophamin Audit Record\n")
+        lines.append("# Ophamin Audit Record\n")
         lines.append(f"**Audit ID:** `{self.audit_id}`  ")
         lines.append(f"**Schema:** v{self.schema_version}  ")
         lines.append(f"**Captured:** {self.captured_at}  \n")

@@ -31,7 +31,7 @@ catalog is *additive*: new primitives can be registered programmatically by
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Iterable, Iterator
 
 

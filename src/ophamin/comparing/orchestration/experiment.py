@@ -338,7 +338,7 @@ class ExperimentRunner:
         return PillarOutcome(
             "A.msprt",
             "alert" if decided else "ok",
-            f"sequential drift monitor: "
+            "sequential drift monitor: "
             + (
                 f"H0 rejected after {cycles_to_decision} cycles"
                 if decided

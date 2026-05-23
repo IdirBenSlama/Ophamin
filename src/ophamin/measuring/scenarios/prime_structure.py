@@ -76,6 +76,27 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from ophamin import __version__
+from ophamin.comparing.provenance import ProvenanceGraph
+from ophamin.comparing.provenance.lineage import (
+    _ophamin_project_root,
+    capture_git_commit,
+)
+from ophamin.measuring.proof import (
+    Claim,
+    DatasetRef,
+    EmpiricalProofRecord,
+    PillarEvidence,
+    PreRegistration,
+    Reproduction,
+    Threshold,
+    Verdict,
+    content_hash,
+)
+from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
+from ophamin.seeing.corpus import CorpusRecord
+from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
+
 
 def _is_prime(n: int) -> bool:
     """Deterministic primality test for n < 10^8 (matches Arachne's _is_prime)."""
@@ -105,27 +126,6 @@ def _identity_prime_from_canonical(canonical: str) -> int:
     while not _is_prime(candidate):
         candidate += 1
     return candidate
-
-from ophamin import __version__
-from ophamin.comparing.provenance import ProvenanceGraph
-from ophamin.comparing.provenance.lineage import (
-    _ophamin_project_root,
-    capture_git_commit,
-)
-from ophamin.measuring.proof import (
-    Claim,
-    DatasetRef,
-    EmpiricalProofRecord,
-    PillarEvidence,
-    PreRegistration,
-    Reproduction,
-    Threshold,
-    Verdict,
-    content_hash,
-)
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
-from ophamin.seeing.corpus import CorpusRecord
-from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 
 
 class PrimeStructureScenario(Scenario):

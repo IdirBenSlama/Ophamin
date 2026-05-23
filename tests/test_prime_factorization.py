@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import json
-import math
-from functools import reduce
 
 import pytest
 
-from ophamin.measuring.proof import EmpiricalProofRecord, REFUTED, VALIDATED
+from ophamin.measuring.proof import VALIDATED
 from ophamin.measuring.scenarios.prime_factorization import (
     PrimeFactorizationScenario,
 )

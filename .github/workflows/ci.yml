@@ -172,13 +172,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff>=0.4 bandit>=1.7
 
-      - name: ruff check
-        # don't fail the build on existing findings — surface them in the log
-        # for awareness, gate on real regressions in a follow-on (a baseline
-        # ratchet workflow can be added once we agree on the floor)
-        continue-on-error: true
-        run: ruff check src tests
+      - name: ruff check (src — BLOCKING)
+        # src is lint-clean and ENFORCED: a ruff violation in production code
+        # now fails the build (flipped from advisory once src reached zero).
+        run: ruff check src
 
-      - name: bandit security scan
-        continue-on-error: true
-        run: bandit -r src/ophamin -q
+      - name: ruff check (tests — BLOCKING)
+        # Tests block too; cosmetic/test-idiomatic rules (E402/E702/E731/E741/
+        # F841) are relaxed for tests via [tool.ruff.lint.per-file-ignores].
+        run: ruff check tests
+
+      - name: bandit security scan (BLOCKING, medium+)
+        # Blocks the build on medium+ severity. Accepted-risk classes are
+        # skipped with cause: B404/B603/B607 (subprocess runs ONLY fixed dev
+        # tools — mypy, ruff, etc. — with list args, no shell, no user input);
+        # B310 (urlopen targets are http(s) endpoints we construct/validate);
+        # B104 (the "0.0.0.0" literals are host-arg comparisons, not binds).
+        # Untrusted XML is hardened via defusedxml. shell=True / eval / pickle /
+        # hardcoded secrets / weak crypto all still block.
+        run: >
+          bandit -r src/ophamin -q --severity-level medium
+          --skip B404,B603,B607,B310,B104

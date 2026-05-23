@@ -26,7 +26,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from ophamin import __version__
 from ophamin.comparing.provenance.lineage import (
@@ -35,7 +35,6 @@ from ophamin.comparing.provenance.lineage import (
 )
 from ophamin.seeing.discovery.kimera_inventory import (
     KimeraInventory,
-    StratumInventory,
     Surface,
     _capture_kimera_commit,
 )
@@ -271,7 +270,7 @@ class CompletenessReport:
     def to_markdown(self, target_path: str | None = None) -> str:
         """Human-readable per-stratum + per-surface action list."""
         lines: list[str] = []
-        lines.append(f"# Ophamin Substrate Completeness Report\n")
+        lines.append("# Ophamin Substrate Completeness Report\n")
         lines.append(f"**Report ID:** `{self.report_id}`  ")
         lines.append(f"**Schema:** v{self.schema_version}  ")
         lines.append(f"**Captured:** {self.captured_at}  \n")

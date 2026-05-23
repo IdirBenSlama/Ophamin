@@ -22,9 +22,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from ophamin.inspecting.catalog import KNOWN_PRIMITIVES, PrimitiveCatalog, PrimitiveEntry
+from ophamin.inspecting.catalog import PrimitiveCatalog, PrimitiveEntry
 from ophamin.inspecting.locator import PrimitiveLocator
-from ophamin.inspecting.primitive_profile import CallerReference, PrimitiveProfile
+from ophamin.inspecting.primitive_profile import PrimitiveProfile
 
 
 def _now_utc_iso() -> str:

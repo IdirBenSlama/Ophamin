@@ -341,7 +341,7 @@ def apply_config_change(
         json.dumps(audit._body(), sort_keys=True, separators=(",", ":")).encode(),
         hashlib.sha256,
     ).hexdigest()
-    audit = ConfigChangeAudit(**{**audit._body(), "signature": sig})  # type: ignore[arg-type]
+    audit = ConfigChangeAudit(**{**audit._body(), "signature": sig})
 
     root = Path(audit_root)
     root.mkdir(parents=True, exist_ok=True)

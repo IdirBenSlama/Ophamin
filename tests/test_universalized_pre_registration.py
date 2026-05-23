@@ -12,7 +12,6 @@ in-place / new-instance way to stamp the optional fields.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pytest
 
@@ -39,9 +38,7 @@ from ophamin.comparing.drift_detection.river_detector import (
 )
 from ophamin.measuring.proof import (
     Claim,
-    PreRegistration,
     Threshold,
-    Verdict,
 )
 
 

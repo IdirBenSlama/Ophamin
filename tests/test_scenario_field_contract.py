@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ophamin.measuring.proof import Claim, DatasetRef, PillarEvidence, Threshold
+from ophamin.measuring.proof import Claim, DatasetRef, Threshold
 from ophamin.measuring.scenarios.base import (
     Scenario,
     ScenarioFieldContractViolation,

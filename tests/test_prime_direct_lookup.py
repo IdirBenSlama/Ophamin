@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from ophamin.measuring.proof import EmpiricalProofRecord, REFUTED, VALIDATED
+from ophamin.measuring.proof import REFUTED, VALIDATED
 from ophamin.measuring.scenarios.prime_direct_lookup import (
     PrimeDirectLookupScenario,
 )

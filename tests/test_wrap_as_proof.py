@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-import pytest
 
 from ophamin import __version__
 from ophamin.auditing.audit_record import AuditRecord, AuditSummary

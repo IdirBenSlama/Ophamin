@@ -38,7 +38,7 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET  # XXE-hardened drop-in for untrusted XML
 
 
 def _ssl_context() -> "ssl.SSLContext | None":

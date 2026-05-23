@@ -735,7 +735,7 @@ def test_quality_gate_carries_new_code_conditions():
 def test_quality_gate_apply_script_exists_and_executable():
     """The apply-script must ship + be executable so the operator
     can run it directly without chmod."""
-    import os, stat
+    import stat
     path = CHART_DIR.parent.parent / "scripts" / "sonar_apply_quality_gate.sh"
     assert path.is_file(), f"missing apply script at {path}"
     mode = path.stat().st_mode

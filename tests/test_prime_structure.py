@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from ophamin.measuring.proof import EmpiricalProofRecord, REFUTED, VALIDATED
+from ophamin.measuring.proof import VALIDATED
 from ophamin.measuring.scenarios.prime_structure import (
     PrimeStructureScenario,
     _identity_prime_from_canonical,

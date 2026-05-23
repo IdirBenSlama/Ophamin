@@ -324,6 +324,7 @@ class MemoryDeformationFlowScenario(Scenario):
         self,
         substrate: SubstrateUnderTest | None = None,
         *,
+        data_root: object = None,
         sign_key: bytes = DEFAULT_SIGN_KEY,
     ) -> EmpiricalProofRecord:
         """Run the re-exposure trajectory and emit a signed flow proof.

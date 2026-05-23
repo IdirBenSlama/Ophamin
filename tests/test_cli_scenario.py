@@ -12,7 +12,6 @@ import json
 import subprocess
 import sys
 
-import pytest
 
 from ophamin.measuring.scenarios import SCENARIOS
 

@@ -16,7 +16,6 @@ Severity mapping (per-file line coverage %):
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import time
 from pathlib import Path
@@ -65,7 +64,7 @@ class CoveragePillar(AuditPillar):
             binary, "run", f"--source={target_str}",
             "-m", "pytest", *pytest_args,
         ]
-        report_cmd = [binary, "json", f"-o", str(json_path), "--quiet"]
+        report_cmd = [binary, "json", "-o", str(json_path), "--quiet"]
         t0 = time.perf_counter()
         try:
             run_result = subprocess.run(
@@ -82,7 +81,7 @@ class CoveragePillar(AuditPillar):
             return self.unavailable_result(target_str)
         # pytest exit non-zero on failures is fine — coverage was collected.
         try:
-            report_result = subprocess.run(
+            subprocess.run(
                 report_cmd, capture_output=True, text=True, timeout=60,
                 cwd=target_str,
             )

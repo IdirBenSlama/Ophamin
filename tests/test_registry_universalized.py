@@ -6,21 +6,15 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
-from pathlib import Path
 
 import pytest
 
 from ophamin.registry import (
-    PILLARS,
     SUBSTRATE_FACTORIES,
     DuplicatePluginError,
     get_corpus_by_name,
-    get_pillar,
-    get_scenario,
     get_substrate_class,
     list_corpora,
-    list_pillars,
-    list_scenarios,
     list_substrate_classes,
     register_corpus,
     register_substrate,

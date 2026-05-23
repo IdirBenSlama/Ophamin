@@ -268,9 +268,9 @@ class TestRecordAttestation:
 
 
 class TestPersistAttestation:
-    """persist_proof attests automatically when OPHAMIN_AUTHOR is set —
-    centralized so every scenario gets attestation with zero per-scenario code,
-    and backward-compatible (no author -> un-attested)."""
+    """persist_proof attests automatically ON BY DEFAULT —
+    centralized so every scenario gets attestation with zero per-scenario code.
+    Opt out with OPHAMIN_ATTEST=0 (the test suite's default, for determinism)."""
 
     def _persist(self, tmp_path):
         from ophamin.measuring.proof.persistence import BundleFormat, persist_proof
@@ -282,6 +282,7 @@ class TestPersistAttestation:
         )
 
     def test_attests_when_author_configured(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("OPHAMIN_ATTEST", "1")
         monkeypatch.delenv("OPHAMIN_SIGNING_KEY", raising=False)
         monkeypatch.setenv("OPHAMIN_AUTHOR", "idir")
         monkeypatch.setenv("OPHAMIN_KEYSTORE", str(tmp_path / "ks"))
@@ -292,14 +293,29 @@ class TestPersistAttestation:
         key = load_or_create_author_key("idir", keystore_dir=tmp_path / "ks")
         assert rt.verify_attestation(expected_public_key=key.public_key) is True
 
-    def test_no_author_means_unattested(self, tmp_path, monkeypatch):
+    def test_attest_disabled_means_unattested(self, tmp_path, monkeypatch):
+        # OPHAMIN_ATTEST=0 is the opt-out (and the test suite's default).
+        monkeypatch.setenv("OPHAMIN_ATTEST", "0")
         monkeypatch.delenv("OPHAMIN_AUTHOR", raising=False)
         monkeypatch.delenv("OPHAMIN_SIGNING_KEY", raising=False)
         bundle = self._persist(tmp_path)
         data = json.loads((bundle.bundle_dir / "proof.json").read_text())
         assert "attestation" not in data
 
+    def test_default_on_attests_with_derived_author(self, tmp_path, monkeypatch):
+        # ON by default: even with NO explicit OPHAMIN_AUTHOR, a real proof is
+        # attested using a derived local identity.
+        monkeypatch.setenv("OPHAMIN_ATTEST", "1")
+        monkeypatch.delenv("OPHAMIN_AUTHOR", raising=False)
+        monkeypatch.delenv("OPHAMIN_SIGNING_KEY", raising=False)
+        monkeypatch.setenv("OPHAMIN_KEYSTORE", str(tmp_path / "ks"))
+        bundle = self._persist(tmp_path)
+        data = json.loads((bundle.bundle_dir / "proof.json").read_text())
+        assert data.get("attestation", {}).get("algorithm") == "ed25519"
+        assert data["attestation"]["author"]  # non-empty derived author
+
     def test_private_key_never_in_written_proof(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("OPHAMIN_ATTEST", "1")
         monkeypatch.delenv("OPHAMIN_SIGNING_KEY", raising=False)
         monkeypatch.setenv("OPHAMIN_AUTHOR", "idir")
         monkeypatch.setenv("OPHAMIN_KEYSTORE", str(tmp_path / "ks"))

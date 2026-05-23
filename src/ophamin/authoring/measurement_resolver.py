@@ -30,7 +30,7 @@ locked by the grounding gate — the resolver is the *list*, not the verdict.
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, cast
 
 # resolution paths
 COMPOSE_TEMPLATE = "compose-from-template"   # an existing scenario already fits
@@ -102,7 +102,7 @@ def resolve_measurement(
     for p in _TOOLS:
         score = _overlap(nt, f"{p['id']} {p['pillar']} {p['use']}")
         pillars.append({**p, "score": round(score, 3)})
-    pillars.sort(key=lambda x: x["score"], reverse=True)
+    pillars.sort(key=lambda x: cast(float, x["score"]), reverse=True)
 
     # 3. wire-external-toolkit candidates (the registry)
     reg = toolkit_registry()
@@ -117,7 +117,7 @@ def resolve_measurement(
     toolkits.sort(key=lambda x: x["score"], reverse=True)
 
     best_template = templates[0]["score"] if templates else 0.0
-    best_pillar = pillars[0]["score"] if pillars else 0.0
+    best_pillar = cast(float, pillars[0]["score"]) if pillars else 0.0
     best_toolkit = toolkits[0]["score"] if toolkits else 0.0
 
     best_identity = templates[0]["identity_overlap"] if templates else 0.0

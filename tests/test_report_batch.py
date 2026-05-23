@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
 
-import pytest
 
 from ophamin import __version__
 from ophamin.measuring.proof import (

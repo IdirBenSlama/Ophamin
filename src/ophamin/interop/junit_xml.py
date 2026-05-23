@@ -35,7 +35,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
-from xml.dom import minidom
+from defusedxml.minidom import parseString  # XXE-hardened drop-in
 
 _FAILURE_TYPE = "ophamin.REFUTED"
 _SKIPPED_TYPE = "ophamin.INCONCLUSIVE"
@@ -235,7 +235,8 @@ def _scenario_name_from_record(record: dict[str, Any]) -> str:
 def _prettify(element: ET.Element) -> str:
     """Return a pretty-printed XML string for the element."""
     rough = ET.tostring(element, encoding="utf-8")
-    return minidom.parseString(rough).toprettyxml(indent="  ", encoding="utf-8").decode("utf-8")
+    pretty: str = parseString(rough).toprettyxml(indent="  ", encoding="utf-8").decode("utf-8")
+    return pretty
 
 
 class JUnitXMLExporter:

@@ -164,6 +164,29 @@ def bundle_dir_for(
     return Path(root) / tier_safe / scenario_safe / bundle_name
 
 
+def _default_author() -> str:
+    """Best-effort local author identity for default-on attestation.
+
+    git ``user.email`` → git ``user.name`` → ``$USER`` → ``"ophamin-local"``.
+    Used only when ``OPHAMIN_AUTHOR`` is unset; never overrides an explicit
+    identity. The private key stays local (keystore, mode 0600); only the public
+    key is ever shared.
+    """
+    import subprocess
+
+    for field in ("user.email", "user.name"):
+        try:
+            out = subprocess.run(
+                ["git", "config", "--get", field],
+                capture_output=True, text=True, timeout=3, check=False,
+            )
+        except (OSError, ValueError):
+            continue
+        if out.returncode == 0 and out.stdout.strip():
+            return out.stdout.strip()
+    return os.environ.get("USER") or os.environ.get("USERNAME") or "ophamin-local"
+
+
 def persist_proof(
     record: EmpiricalProofRecord,
     *,
@@ -206,15 +229,16 @@ def persist_proof(
             "record.signature is empty — call record.sign(key) before persist_proof"
         )
 
-    # --- author attestation (CR2, opt-in) ---
-    # If the operator declared an identity via OPHAMIN_AUTHOR, attest the proof
-    # with their ed25519 key (loaded/created from the keystore) before writing.
-    # This adds real, publicly-verifiable authorship on top of the shared-key
-    # HMAC integrity seal. No author configured -> un-attested (backward
-    # compatible). Attestation lives outside the body, so proof_id / bundle dir
-    # are unchanged. Keystore errors fail loud — never a silent skip.
-    if not record.attestation:
-        author = os.environ.get("OPHAMIN_AUTHOR", "").strip()
+    # --- author attestation (CR2, ON BY DEFAULT) ---
+    # A real proof is ed25519-attested so ANY third party can verify authorship:
+    # the shared-key HMAC is integrity-only (NOT authentication — anyone with the
+    # key can forge it). The author identity comes from OPHAMIN_AUTHOR, else a
+    # derived local identity. Opt out with OPHAMIN_ATTEST=0 (the test suite does,
+    # for byte-deterministic, machine-independent proofs). Attestation lives
+    # outside the body, so proof_id / bundle dir are unchanged. Keystore errors
+    # fail loud — never a silent skip.
+    if not record.attestation and os.environ.get("OPHAMIN_ATTEST", "1") != "0":
+        author = os.environ.get("OPHAMIN_AUTHOR", "").strip() or _default_author()
         if author:
             from ophamin.measuring.proof.attestation import (
                 load_or_create_author_key,

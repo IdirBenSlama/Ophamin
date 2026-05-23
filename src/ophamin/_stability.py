@@ -41,7 +41,7 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 

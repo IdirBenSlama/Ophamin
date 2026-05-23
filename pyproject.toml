@@ -74,6 +74,7 @@ dependencies = [
     "psutil>=5.9",   # instrumenting wheel — per-cycle CPU / RSS / page-fault sampler
     "jsonschema>=4.0",  # measuring/proof codec — JSON-Schema validation against proof/schema.json
     "cryptography>=42.0",  # measuring/proof attestation — ed25519 per-author signing (CR2)
+    "defusedxml>=0.7",  # authoring/grounding — XXE-hardened parsing of untrusted arXiv XML
 ]
 
 [project.urls]
@@ -299,6 +300,15 @@ filterwarnings = [
     "ignore:.*numpy\\.ptp.*:DeprecationWarning:statsmodels.*",
 ]
 
+# --- ruff: production src/ is fully strict; tests get pragmatic relaxations ---
+[tool.ruff.lint.per-file-ignores]
+# Correctness rules (F811 redefinition, F821 undefined-name, E999 syntax, ...)
+# STILL apply to tests. Only cosmetic / test-idiomatic rules are relaxed there:
+#   E402 import-near-use · E702 compact `a; b` setup · E731 inline lambda stubs
+#   · E741 short names (`l`) · F841 captured-but-unasserted locals.
+# src/ stays at zero ruff findings (no ignores).
+"tests/**" = ["E402", "E702", "E731", "E741", "F841"]
+
 # --- mypy strict configuration (Phase S1 of the elevation roadmap) --------
 [tool.mypy]
 # Target the same Python version we run on in CI.
@@ -337,6 +347,7 @@ module = [
     "prov.*",
     "rdflib.*",
     "lxml.*",
+    "defusedxml.*",
     "dvc.*",
     "mlflow.*",
     "omegaconf.*",

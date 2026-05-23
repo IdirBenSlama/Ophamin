@@ -55,7 +55,6 @@ from __future__ import annotations
 
 import json
 import math
-import sys
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -173,7 +172,6 @@ def _native_tonus_discover(
     """
     if polynomial_degree < 1 or polynomial_degree > 3:
         raise ValueError(f"polynomial_degree must be in [1, 3], got {polynomial_degree}")
-    n_signals = states_before.shape[1]
     signal_names = ["pressure", "tension", "scar_coherence_weight"]
     # Polynomial basis expansion
     if polynomial_degree == 1:
@@ -279,11 +277,11 @@ class TonusConservationDiscoveryScenario(Scenario):
             if not p.is_file():
                 raise FileNotFoundError(f"trajectory not found: {p}")
         if not 0.0 < linear_strength_min < 1.0:
-            raise ValueError(f"linear_strength_min must be in (0, 1)")
+            raise ValueError("linear_strength_min must be in (0, 1)")
         if not 0.0 < cross_corpus_cosine_min < 1.0:
-            raise ValueError(f"cross_corpus_cosine_min must be in (0, 1)")
+            raise ValueError("cross_corpus_cosine_min must be in (0, 1)")
         if not 0.0 < nonlinear_strength_min < 1.0:
-            raise ValueError(f"nonlinear_strength_min must be in (0, 1)")
+            raise ValueError("nonlinear_strength_min must be in (0, 1)")
         self.linear_strength_min = float(linear_strength_min)
         self.cross_corpus_cosine_min = float(cross_corpus_cosine_min)
         self.nonlinear_strength_min = float(nonlinear_strength_min)

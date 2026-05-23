@@ -63,7 +63,7 @@ def validate_config(effective: list[EffectiveKnob]) -> list[ConfigViolation]:
 
     # 2. Production safety: a production config must not ship dev defaults.
     env_knob = by_var.get("KIMERA_ENVIRONMENT")
-    is_production = bool(env_knob) and str(env_knob.current).lower() == "production"
+    is_production = env_knob is not None and str(env_knob.current).lower() == "production"
     if is_production:
         pw = by_var.get("KIMERA_DB_PASSWORD")
         if pw is not None and pw.current == "<unset>":

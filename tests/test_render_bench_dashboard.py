@@ -21,7 +21,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
 
 # Path to the script under test
 SCRIPT = Path(__file__).parent.parent / "scripts" / "render_bench_dashboard.py"

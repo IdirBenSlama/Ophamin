@@ -25,7 +25,6 @@ from typing import Iterator
 import statsmodels as _statsmodels
 from statsmodels.stats.proportion import proportion_confint
 
-from ophamin import __version__
 from ophamin.seeing.corpus import Corpus, CorpusRecord
 from ophamin.measuring.proof import Claim, PillarEvidence, Threshold
 from ophamin.measuring.scenarios.base import Scenario, ScenarioScore, Tier

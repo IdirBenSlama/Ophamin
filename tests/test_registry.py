@@ -20,12 +20,10 @@ from ophamin.measuring import pillars  # noqa: F401 — fires registration
 from ophamin.measuring.pillars._adapters import (
     REGISTERED_PILLARS,
     SPCPillar,
-    SRMPillar,
 )
 from ophamin.measuring.pillars.base import (
     NonUniformComputeError,
     PillarBase,
-    _pkg_version,
 )
 from ophamin.protocols import Pillar
 from ophamin.registry import (

@@ -29,17 +29,14 @@ from __future__ import annotations
 
 import inspect
 import os
-from collections.abc import Sequence
 from typing import Any
 
 import pytest
 
 from ophamin._stability import (
-    STABILITY_ATTR,
     TIERS,
     StabilityInfo,
     get_stability,
-    is_stable,
 )
 
 

@@ -49,7 +49,6 @@ Flow scope is extensible: subsequent flow proofs follow the same shape.
 
 from __future__ import annotations
 
-from pathlib import Path
 from statistics import mean, pstdev
 from typing import Any
 
@@ -315,6 +314,7 @@ class PhiStabilityFlowScenario(Scenario):
         self,
         substrate: SubstrateUnderTest | None = None,
         *,
+        data_root: object = None,
         sign_key: bytes = DEFAULT_SIGN_KEY,
     ) -> EmpiricalProofRecord:
         if substrate is None:

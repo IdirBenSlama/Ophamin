@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import json
-import math
 
 import pytest
 
-from ophamin.measuring.proof import EmpiricalProofRecord, REFUTED, VALIDATED
+from ophamin.measuring.proof import EmpiricalProofRecord, VALIDATED
 from ophamin.measuring.scenarios.bayesian_phi_posterior import (
     BayesianPhiPosteriorScenario,
     DEFAULT_SAMPLE_SIZES,

@@ -61,7 +61,6 @@ from ophamin.config.sweep import SweepSpec, get_in, load_config, load_sweep
 from ophamin.seeing.discovery import (
     DEFAULT_POLL_INTERVAL_S,
     KimeraDiscoveryWatcher,
-    KimeraInventory,
     SchemaDocument,
     SchemaMiner,
     STRATA_DISCOVERERS,
@@ -86,7 +85,6 @@ from ophamin.interop import (
 from ophamin.measuring.proof import codec as proof_codec
 from ophamin.measuring.proof.codec import (
     ProofCodecError,
-    ProofListEntry,
 )
 from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY
 from ophamin.reporting import ReportFormat, ReportRunner
@@ -94,7 +92,6 @@ from ophamin.comparing.drift import ProofIndex, detect_drift
 from ophamin.comparing.orchestration.experiment import ExperimentRunner
 from ophamin.comparing.provenance.lineage import LineageStore
 from ophamin.seeing.substrate.field_catalog import (
-    KIMERA_FIELD_CATALOG,
     catalog_coverage,
 )
 from ophamin.seeing.telemetry import (
@@ -513,7 +510,7 @@ def cmd_export(args: argparse.Namespace) -> int:
             print(f"cyclonedx export failed: {exc}", file=sys.stderr)
             return 2
         print(f"record  : {record_path}")
-        print(f"format  : cyclonedx")
+        print("format  : cyclonedx")
         print(f"written : {out}")
         return 0
     elif fmt == "mlflow":
@@ -532,7 +529,7 @@ def cmd_export(args: argparse.Namespace) -> int:
             print(f"mlflow export failed: {exc}", file=sys.stderr)
             return 2
         print(f"record       : {record_path}")
-        print(f"format       : mlflow")
+        print("format       : mlflow")
         print(f"run_id       : {run_id}")
         if args.tracking_uri:
             print(f"tracking uri : {args.tracking_uri}")
@@ -580,7 +577,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
     if profile.source_file:
         print(f"located         : {profile.source_file}:{profile.source_line}")
     else:
-        print(f"located         : NOT FOUND in source tree")
+        print("located         : NOT FOUND in source tree")
     print(f"methods         : {len(profile.method_names)}")
     print(f"callers         : {profile.n_callers}")
     if profile.discovery_field_count is not None:
@@ -588,7 +585,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
     if profile.audit_finding_count is not None:
         print(f"audit findings  : {profile.audit_finding_count}")
     if profile.notes:
-        print(f"notes           :")
+        print("notes           :")
         for n in profile.notes:
             print(f"  - {n}")
     print(f"written         : {base.with_suffix('.json')}")
@@ -699,7 +696,7 @@ def cmd_audit(args: argparse.Namespace) -> int:
     record.to_markdown(str(md_path))
 
     s = record.summary
-    print(f"\nsummary:")
+    print("\nsummary:")
     print(f"  total findings  : {s.total_findings}")
     print(f"  pillars run     : {len(s.pillars_run)} "
           f"({', '.join(s.pillars_run) or '—'})")
@@ -710,15 +707,15 @@ def cmd_audit(args: argparse.Namespace) -> int:
         print(f"  pillars errored : {len(s.pillars_errored)} "
               f"({', '.join(s.pillars_errored)})")
     if s.severity_histogram:
-        print(f"  severities      : ", end="")
+        print("  severities      : ", end="")
         print(", ".join(f"{sev}={n}" for sev, n in sorted(
             s.severity_histogram.items(), key=lambda kv: -kv[1]
         )))
     if s.findings_per_pillar:
-        print(f"  per pillar      : ", end="")
+        print("  per pillar      : ", end="")
         print(", ".join(f"{p}={n}" for p, n in sorted(s.findings_per_pillar.items())))
     if s.top_files:
-        print(f"  top hotspots    :")
+        print("  top hotspots    :")
         for path, n in s.top_files[:5]:
             print(f"    {n:>4}  {path}")
     print(f"\nwritten         : {json_path}")
@@ -762,7 +759,7 @@ def cmd_inventory(args: argparse.Namespace) -> int:
     print(f"\nkimera commit   : {inv.kimera_git_commit or '(not a git repo)'}")
     print(f"total surfaces  : {inv.total_surfaces()}")
     print(f"live strata     : {len(inv.live_strata())}/{len(inv.strata)}")
-    print(f"\nper-stratum coverage:")
+    print("\nper-stratum coverage:")
     for s in inv.strata:
         status = "live" if s.is_live else "dormant"
         print(f"  {s.stratum:<16} {s.count:>4}  ({status}, expected ≥ {s.expected_count})")
@@ -818,18 +815,18 @@ def cmd_discover_fields(args: argparse.Namespace) -> int:
     print(f"halt_mode       : {result.halt_mode}")
     print(f"catalog size    : {coverage['catalog_size']}")
     print(f"raw dict size   : {coverage['raw_size']}")
-    print(f"")
+    print("")
     print(f"in catalog      : {coverage['in_catalog']} fields documented + present")
     print(f"uncataloged     : {coverage['uncataloged']} fields present but not in catalog")
     print(f"missing from raw: {coverage['missing_from_raw']} catalog fields absent this run")
     if coverage["missing_from_raw_names"]:
-        print(f"\nmissing fields (catalog → raw drift):")
+        print("\nmissing fields (catalog → raw drift):")
         for name in coverage["missing_from_raw_names"][:20]:
             print(f"  - {name}")
         if len(coverage["missing_from_raw_names"]) > 20:
             print(f"  ... and {len(coverage['missing_from_raw_names']) - 20} more")
     if coverage["uncataloged_names"]:
-        print(f"\nuncataloged fields (raw → catalog drift):")
+        print("\nuncataloged fields (raw → catalog drift):")
         for name in coverage["uncataloged_names"][:20]:
             print(f"  - {name}")
         if len(coverage["uncataloged_names"]) > 20:
@@ -890,7 +887,7 @@ def cmd_drift_detect(args: argparse.Namespace) -> int:
     json_path = out_dir / f"drift_{short}.json"
     scan.to_json(str(json_path))
 
-    print(f"\nresults:")
+    print("\nresults:")
     print(f"  detector fired : {scan.fired}")
     print(f"  drift events   : {scan.n_events}")
     if scan.events:
@@ -1195,7 +1192,7 @@ def cmd_wiring(args: argparse.Namespace) -> int:
     print(f"orphan surfaces         : {len(orphans)}")
     print(f"WIRE_CANDIDATE surfaces : {len(wc)}")
     if orphans:
-        print(f"\norphan action list (first 10):")
+        print("\norphan action list (first 10):")
         for orphan_s in orphans[:10]:
             print(f"  [{orphan_s.stratum:<14}] {orphan_s.file_path}")
         if len(orphans) > 10:
@@ -1277,7 +1274,7 @@ def cmd_report_batch(args: argparse.Namespace) -> int:
     print(f"  format:     {summary['format']}")
     print(f"  index:      {summary['index_path']}")
     if summary["n_skipped"] > 0:
-        print(f"  skipped:")
+        print("  skipped:")
         for path, reason in summary["skipped_paths"]:
             print(f"    - {path}: {reason}")
     return 0
@@ -1574,7 +1571,7 @@ def _pillar_show(pillars_dict: dict[str, Any], name: str) -> int:
     print(f"library:           {pillar.library}")
     print(f"library_version:   {pillar.library_version}")
     print(f"class:             {cls.__module__}.{cls.__qualname__}")
-    print(f"protocol_check:    isinstance(pillar, Pillar) = True")
+    print("protocol_check:    isinstance(pillar, Pillar) = True")
     print()
     print("summary:")
     for line in _wrap_paragraph(doc, width=76):
@@ -1871,8 +1868,6 @@ def cmd_api_stability(args: argparse.Namespace) -> int:
     from ophamin._stability import (
         StabilityInfo,
         get_stability,
-        is_deprecated,
-        is_internal,
     )
 
     def _walk_ophamin_symbols() -> dict[str, list[tuple[str, StabilityInfo]]]:
@@ -2368,15 +2363,15 @@ def _scenario_show(scenarios_dict: dict[str, Any], name: str) -> int:
     if cls.method:
         print(f"method:                      {cls.method}")
     print()
-    print(f"goal:")
+    print("goal:")
     print(f"  {cls.goal}")
     print()
-    print(f"explanation:")
+    print("explanation:")
     for line in _wrap_paragraph(cls.explanation, width=76):
         print(f"  {line}")
     print()
     if cls.falsification_consequence:
-        print(f"falsification consequence:")
+        print("falsification consequence:")
         for line in _wrap_paragraph(cls.falsification_consequence, width=76):
             print(f"  {line}")
         print()
@@ -2422,58 +2417,58 @@ def cmd_agent(args: argparse.Namespace) -> int:
     try:
         if action == "adapt":
             from ophamin.agentic.agents.adapter_gen import generate
-            result = generate(
+            adapt_result = generate(
                 name=args.name, description=args.description,
                 category=args.category, on_disk_path=args.path,
                 client=client, audit=audit,
             )
-            print(result.source)
+            print(adapt_result.source)
             print("", file=__import__("sys").stderr)
-            print(f"# model={result.model} runtime={result.runtime} "
-                  f"latency={result.latency_ms:.0f}ms", file=__import__("sys").stderr)
-            if result.call_record_path:
-                print(f"# audit={result.call_record_path}",
+            print(f"# model={adapt_result.model} runtime={adapt_result.runtime} "
+                  f"latency={adapt_result.latency_ms:.0f}ms", file=__import__("sys").stderr)
+            if adapt_result.call_record_path:
+                print(f"# audit={adapt_result.call_record_path}",
                       file=__import__("sys").stderr)
             return 0
 
         if action == "brief":
             from ophamin.agentic.agents.proof_brief import write_brief
-            result = write_brief(
+            brief_result = write_brief(
                 args.proof_path, client=client, audit=audit,
                 accept_reasoning=getattr(args, "accept_reasoning", False),
             )
-            print(result.brief_markdown)
+            print(brief_result.brief_markdown)
             print("", file=__import__("sys").stderr)
-            print(f"# model={result.model} runtime={result.runtime} "
-                  f"latency={result.latency_ms:.0f}ms",
+            print(f"# model={brief_result.model} runtime={brief_result.runtime} "
+                  f"latency={brief_result.latency_ms:.0f}ms",
                   file=__import__("sys").stderr)
-            if result.call_record_path:
-                print(f"# audit={result.call_record_path}",
+            if brief_result.call_record_path:
+                print(f"# audit={brief_result.call_record_path}",
                       file=__import__("sys").stderr)
             return 0
 
         if action == "triage":
             from ophamin.agentic.agents.refuted_triage import propose_followups
             import json as _json
-            result = propose_followups(
+            triage_result = propose_followups(
                 args.proof_path, n_max=args.n_max,
                 client=client, audit=audit,
                 accept_reasoning=getattr(args, "accept_reasoning", False),
             )
-            print(_json.dumps({"followups": result.followups}, indent=2))
+            print(_json.dumps({"followups": triage_result.followups}, indent=2))
             print("", file=__import__("sys").stderr)
-            print(f"# model={result.model} runtime={result.runtime} "
-                  f"latency={result.latency_ms:.0f}ms "
-                  f"n_followups={len(result.followups)}",
+            print(f"# model={triage_result.model} runtime={triage_result.runtime} "
+                  f"latency={triage_result.latency_ms:.0f}ms "
+                  f"n_followups={len(triage_result.followups)}",
                   file=__import__("sys").stderr)
-            if result.call_record_path:
-                print(f"# audit={result.call_record_path}",
+            if triage_result.call_record_path:
+                print(f"# audit={triage_result.call_record_path}",
                       file=__import__("sys").stderr)
-            return 0 if result.followups else 2
+            return 0 if triage_result.followups else 2
 
         if action == "scenario-gen":
             from ophamin.agentic.agents.scenario_gen import generate as gen_scenario
-            result = gen_scenario(
+            scenario_result = gen_scenario(
                 name=args.name,
                 family=args.family,
                 claim=args.claim_path,
@@ -2482,80 +2477,80 @@ def cmd_agent(args: argparse.Namespace) -> int:
                 tier=args.tier,
                 client=client, audit=audit,
             )
-            print(result.source)
+            print(scenario_result.source)
             print("", file=__import__("sys").stderr)
-            print(f"# model={result.model} runtime={result.runtime} "
-                  f"latency={result.latency_ms:.0f}ms",
+            print(f"# model={scenario_result.model} runtime={scenario_result.runtime} "
+                  f"latency={scenario_result.latency_ms:.0f}ms",
                   file=__import__("sys").stderr)
-            if result.call_record_path:
-                print(f"# audit={result.call_record_path}",
+            if scenario_result.call_record_path:
+                print(f"# audit={scenario_result.call_record_path}",
                       file=__import__("sys").stderr)
             return 0
 
         if action == "prereg":
             from ophamin.agentic.agents.prereg_validator import validate_preregistration
             import json as _json
-            result = validate_preregistration(
+            prereg_result = validate_preregistration(
                 args.claim_path, client=client, audit=audit,
                 accept_reasoning=getattr(args, "accept_reasoning", False),
             )
             print(_json.dumps({
-                "severity": result.severity,
-                "is_falsifiable": result.is_falsifiable,
-                "issues": result.issues,
-                "recommendations": result.recommendations,
+                "severity": prereg_result.severity,
+                "is_falsifiable": prereg_result.is_falsifiable,
+                "issues": prereg_result.issues,
+                "recommendations": prereg_result.recommendations,
             }, indent=2))
             print("", file=__import__("sys").stderr)
-            print(f"# model={result.model} runtime={result.runtime} "
-                  f"latency={result.latency_ms:.0f}ms "
-                  f"severity={result.severity} "
-                  f"n_issues={len(result.issues)}",
+            print(f"# model={prereg_result.model} runtime={prereg_result.runtime} "
+                  f"latency={prereg_result.latency_ms:.0f}ms "
+                  f"severity={prereg_result.severity} "
+                  f"n_issues={len(prereg_result.issues)}",
                   file=__import__("sys").stderr)
-            if result.call_record_path:
-                print(f"# audit={result.call_record_path}",
+            if prereg_result.call_record_path:
+                print(f"# audit={prereg_result.call_record_path}",
                       file=__import__("sys").stderr)
             # Exit code mirrors severity for shell-script use:
             #   0 = ok, 1 = warn, 2 = block. Never raises by default;
             #   the operator decides whether to act on the severity.
-            return {"ok": 0, "warn": 1, "block": 2}.get(result.severity, 1)
+            return {"ok": 0, "warn": 1, "block": 2}.get(prereg_result.severity, 1)
 
         if action == "confounds":
             from ophamin.agentic.agents.confound_enumerator import enumerate_confounds
             import json as _json
-            result = enumerate_confounds(
+            confound_result = enumerate_confounds(
                 args.proof_path, n_max=args.n_max,
                 client=client, audit=audit,
                 accept_reasoning=getattr(args, "accept_reasoning", False),
             )
-            print(_json.dumps({"confounds": result.confounds}, indent=2))
+            print(_json.dumps({"confounds": confound_result.confounds}, indent=2))
             print("", file=__import__("sys").stderr)
-            print(f"# model={result.model} runtime={result.runtime} "
-                  f"latency={result.latency_ms:.0f}ms "
-                  f"n_confounds={len(result.confounds)}",
+            print(f"# model={confound_result.model} runtime={confound_result.runtime} "
+                  f"latency={confound_result.latency_ms:.0f}ms "
+                  f"n_confounds={len(confound_result.confounds)}",
                   file=__import__("sys").stderr)
-            if result.call_record_path:
-                print(f"# audit={result.call_record_path}",
+            if confound_result.call_record_path:
+                print(f"# audit={confound_result.call_record_path}",
                       file=__import__("sys").stderr)
-            return 0 if result.confounds else 2
+            return 0 if confound_result.confounds else 2
 
         if action == "query":
             from ophamin.agentic.agents.bundle_query import parse_query, apply_filter
             from ophamin.http_api.bundle_browser import bundle_tree
             import json as _json
-            result = parse_query(args.query, client=client, audit=audit)
+            query_result = parse_query(args.query, client=client, audit=audit)
             tree = bundle_tree(args.proofs_root)
-            matches = apply_filter(tree, result.filter_spec)
+            matches = apply_filter(tree, query_result.filter_spec)
             print(_json.dumps({
-                "filter_spec": result.filter_spec,
+                "filter_spec": query_result.filter_spec,
                 "n_matches": len(matches),
                 "matches": matches,
             }, indent=2))
             print("", file=__import__("sys").stderr)
-            print(f"# model={result.model} runtime={result.runtime} "
-                  f"latency={result.latency_ms:.0f}ms",
+            print(f"# model={query_result.model} runtime={query_result.runtime} "
+                  f"latency={query_result.latency_ms:.0f}ms",
                   file=__import__("sys").stderr)
-            if result.call_record_path:
-                print(f"# audit={result.call_record_path}",
+            if query_result.call_record_path:
+                print(f"# audit={query_result.call_record_path}",
                       file=__import__("sys").stderr)
             return 0
 
@@ -2567,6 +2562,165 @@ def cmd_agent(args: argparse.Namespace) -> int:
         if exc.body_snippet:
             print(f"  body: {exc.body_snippet[:300]}", file=__import__("sys").stderr)
         return 1
+
+
+def cmd_acquire(args: argparse.Namespace) -> int:
+    """Discover / verify / register external measurement tools.
+
+    The operator-facing driver for the acquisition loop:
+
+        discover -> evaluate -> [OWNER GATE] -> install -> verify -> register
+
+    `discover` is dry-run only — it proposes (LLM scout), grounds metadata
+    against PyPI, evaluates license/maturity/fit, and prints the *pinned*
+    install command. It never installs. The operator runs that command (after
+    setting OPHAMIN_ALLOW_TOOL_INSTALL), then `verify` gates deployment and
+    `register` lists the tool for future use.
+    """
+    action = getattr(args, "acquire_action", None)
+    if action is None:
+        print("usage: ophamin acquire {discover,verify,register,list} ...",
+              file=sys.stderr)
+        return 2
+
+    from ophamin.interop.tool_acquisition import (
+        ACQUIRE_GATE_ENV,
+        REJECT,
+        acquisition_plan,
+        evaluate_candidate,
+        register_acquired_tool,
+        verify_acquired_tool,
+    )
+    from ophamin.interop.tool_discovery import PyPIError, discover_candidates
+
+    if action == "discover":
+        need = args.need
+        names = list(args.name or [])
+        hints: dict[str, dict[str, str]] = {}
+        scout_meta = None
+        if not names and not args.no_llm:
+            from ophamin.agentic import LLMClient, LLMClientError
+            from ophamin.agentic.agents.tool_scout import ToolScoutError, scout
+            try:
+                scout_meta = scout(
+                    need, n_max=args.n_max, client=LLMClient(),
+                    audit=not args.no_audit,
+                    accept_reasoning=getattr(args, "accept_reasoning", False),
+                )
+            except LLMClientError as exc:
+                print(f"LLM transport error: {exc}", file=sys.stderr)
+                print("  (give names explicitly with --name, or use --no-llm)",
+                      file=sys.stderr)
+                return 1
+            except ToolScoutError as exc:
+                print(f"scout parse error: {exc}", file=sys.stderr)
+                return 2
+            names = scout_meta.names
+            hints = scout_meta.hints
+        if not names:
+            print("no candidate names — supply --name when using --no-llm",
+                  file=sys.stderr)
+            return 2
+        try:
+            disc = discover_candidates(
+                need, names, hints=hints, timeout_s=args.timeout,
+                enrich=not args.no_enrich)
+        except PyPIError as exc:
+            print(f"PyPI discovery error: {exc}", file=sys.stderr)
+            return 1
+        report: list[dict[str, Any]] = []
+        for cand in disc.candidates:
+            ev = evaluate_candidate(
+                cand, need=need, allow_copyleft=args.allow_copyleft)
+            item: dict[str, Any] = {"candidate": cand.to_dict(), "evaluation": ev}
+            if ev["verdict"] != REJECT:
+                try:
+                    item["plan"] = acquisition_plan(cand)
+                except ValueError as exc:
+                    item["plan_error"] = str(exc)
+            report.append(item)
+        print(json.dumps({
+            "need": need,
+            "found": list(disc.found),
+            "not_found": list(disc.not_found),
+            "candidates": report,
+            "gate_env": ACQUIRE_GATE_ENV,
+            "note": (
+                "DRY-RUN. Nothing installed. Run a plan's install_command "
+                f"(after setting {ACQUIRE_GATE_ENV}=1), then "
+                "`ophamin acquire register <name>`."
+            ),
+        }, indent=2))
+        if scout_meta is not None:
+            print("", file=sys.stderr)
+            print(f"# scout model={scout_meta.model} runtime={scout_meta.runtime} "
+                  f"latency={scout_meta.latency_ms:.0f}ms", file=sys.stderr)
+            if scout_meta.call_record_path:
+                print(f"# audit={scout_meta.call_record_path}", file=sys.stderr)
+        return 0 if disc.candidates else 2
+
+    if action == "verify":
+        v = verify_acquired_tool(
+            args.import_name, expected_version=args.expect_version or "")
+        print(json.dumps(v, indent=2))
+        return 0 if v.get("verified") else 1
+
+    if action == "register":
+        try:
+            disc = discover_candidates(
+                f"register {args.name}", [args.name],
+                hints={args.name: {"import_name": args.import_name or ""}},
+                timeout_s=args.timeout,
+            )
+        except PyPIError as exc:
+            print(f"PyPI error: {exc}", file=sys.stderr)
+            return 1
+        if not disc.candidates:
+            print(f"not on PyPI: {args.name}", file=sys.stderr)
+            return 2
+        cand = disc.candidates[0]
+        ev = evaluate_candidate(cand, allow_copyleft=args.allow_copyleft)
+        import_name = args.import_name or cand.import_name or cand.name
+        verification = verify_acquired_tool(
+            import_name, expected_version=args.expect_version or "")
+        try:
+            entry = register_acquired_tool(
+                cand, ev, verification,
+                category=args.category or "acquired", role=args.role or "",
+            )
+        except ValueError as exc:
+            print(f"refused: {exc}", file=sys.stderr)
+            print(json.dumps(
+                {"evaluation": ev, "verification": verification}, indent=2),
+                file=sys.stderr)
+            return 1
+        from ophamin.interop.toolkit_registry import (
+            ToolkitConfigError,
+            persist_toolkit_entry,
+        )
+        try:
+            path = persist_toolkit_entry(entry, path=args.toolkits or None)
+        except ToolkitConfigError as exc:
+            print(json.dumps(entry, indent=2))
+            print(f"# not persisted: {exc}", file=sys.stderr)
+            print("# set --toolkits <path> or $OPHAMIN_TOOLKITS to list it",
+                  file=sys.stderr)
+            return 0
+        print(json.dumps(entry, indent=2))
+        print(f"# registered into {path}", file=sys.stderr)
+        return 0
+
+    if action == "list":
+        from ophamin.interop.toolkit_registry import toolkit_registry
+        reg = toolkit_registry(extra_path=args.toolkits or None)
+        if args.installed_only:
+            reg = {**reg, "toolkits": [
+                t for t in reg["toolkits"] if t["installed"]]}
+        print(json.dumps(reg, indent=2))
+        return 0
+
+    print(f"unknown acquire action: {action}", file=sys.stderr)
+    return 2
 
 
 def cmd_self_test(args: argparse.Namespace) -> int:
@@ -2679,9 +2833,43 @@ def _proof_verify(path: Path, key: bytes) -> int:
         return 2
     if ok:
         print(f"OK: signature verifies for {path}")
-        return 0
-    print(f"FAIL: signature did NOT verify for {path}", file=sys.stderr)
-    return 1
+    else:
+        print(f"FAIL: signature did NOT verify for {path}", file=sys.stderr)
+    att_ok = _verify_attestation_report(path)
+    return 0 if (ok and att_ok) else 1
+
+
+def _verify_attestation_report(path: Path) -> bool:
+    """Report + verify the ed25519 attestation (if any).
+
+    Returns False only when an attestation is PRESENT but invalid. An absent
+    attestation is not a failure — the HMAC seal is integrity-only and never
+    claimed authorship; this just makes that explicit in the output.
+    """
+    import json as _json
+
+    from ophamin.measuring.proof.record import EmpiricalProofRecord
+
+    try:
+        data = _json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        sys.stderr.write(f"  attestation: could not read proof ({exc})\n")
+        return False
+    if not isinstance(data, dict) or not data.get("attestation"):
+        print("attestation:    none (HMAC is integrity-only, not authorship)")
+        return True
+    record = EmpiricalProofRecord.from_dict(data)
+    att = record.attestation
+    if record.verify_attestation():
+        print(f"attestation:    OK — ed25519, author={att.get('author')!r}")
+        print(f"  public_key:   {att.get('public_key')}")
+        print("  (attribution: check this key against a trusted authors registry)")
+        return True
+    print(
+        "attestation:    FAIL — ed25519 signature does not match the body",
+        file=sys.stderr,
+    )
+    return False
 
 
 def _proof_validate(path: Path, key: bytes | None) -> int:
@@ -2844,12 +3032,13 @@ def cmd_author(args: argparse.Namespace) -> int:
     )
     if args.registry:
         reg_path = Path(args.registry)
-        data: dict = {}
+        data: dict[str, str] = {}
         if reg_path.exists():
-            data = json.loads(reg_path.read_text(encoding="utf-8"))
-            if not isinstance(data, dict):
+            loaded = json.loads(reg_path.read_text(encoding="utf-8"))
+            if not isinstance(loaded, dict):
                 print(f"error: {reg_path} is not a JSON object", file=sys.stderr)
                 return 2
+            data = loaded
         data[author] = key.public_hex
         reg_path.parent.mkdir(parents=True, exist_ok=True)
         reg_path.write_text(
@@ -4096,6 +4285,76 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     p_agent.set_defaults(func=cmd_agent)
+
+    # ---- acquire: extend the toolchain (discover/verify/register) ----------
+    p_acq = sub.add_parser(
+        "acquire",
+        help="discover / verify / register external measurement tools "
+             "(owner-gated install)",
+    )
+    acq_sub = p_acq.add_subparsers(dest="acquire_action")
+
+    p_acq_disc = acq_sub.add_parser(
+        "discover",
+        help="propose + ground candidate tools for a need (dry-run; never installs)",
+    )
+    p_acq_disc.add_argument("need", help="the measurement need, in plain language")
+    p_acq_disc.add_argument(
+        "--name", action="append", default=[],
+        help="explicit candidate package name (repeatable); skips the LLM scout")
+    p_acq_disc.add_argument(
+        "--no-llm", action="store_true",
+        help="don't call the scout agent (requires at least one --name)")
+    p_acq_disc.add_argument(
+        "--n-max", type=int, default=6, help="max candidates to propose")
+    p_acq_disc.add_argument(
+        "--allow-copyleft", action="store_true",
+        help="don't reject strong-copyleft (GPL/AGPL) licenses")
+    p_acq_disc.add_argument(
+        "--timeout", type=float, default=10.0, help="PyPI fetch timeout (seconds)")
+    p_acq_disc.add_argument(
+        "--no-audit", action="store_true", help="skip the signed LLMCallRecord")
+    p_acq_disc.add_argument(
+        "--accept-reasoning", action="store_true",
+        help="accept JSON from the reasoning_content channel if content is empty")
+    p_acq_disc.add_argument(
+        "--no-enrich", action="store_true",
+        help="skip stars/downloads enrichment (faster; verdicts stay 'caution')")
+    p_acq_disc.set_defaults(func=cmd_acquire)
+
+    p_acq_ver = acq_sub.add_parser(
+        "verify",
+        help="post-install gate: import + version check on an installed tool")
+    p_acq_ver.add_argument("import_name", help="module to import (e.g. sklearn)")
+    p_acq_ver.add_argument(
+        "--expect-version", default="", help="fail if installed version differs")
+    p_acq_ver.set_defaults(func=cmd_acquire)
+
+    p_acq_reg = acq_sub.add_parser(
+        "register",
+        help="ground+evaluate+verify an INSTALLED tool, add it to the toolkit index")
+    p_acq_reg.add_argument("name", help="PyPI distribution name")
+    p_acq_reg.add_argument(
+        "--import-name", default="", help="module to import if it differs from name")
+    p_acq_reg.add_argument(
+        "--expect-version", default="", help="fail if installed version differs")
+    p_acq_reg.add_argument("--category", default="acquired", help="registry category")
+    p_acq_reg.add_argument("--role", default="", help="one-line role in Ophamin")
+    p_acq_reg.add_argument("--allow-copyleft", action="store_true")
+    p_acq_reg.add_argument("--timeout", type=float, default=10.0)
+    p_acq_reg.add_argument(
+        "--toolkits", default="",
+        help="path to the OPHAMIN_TOOLKITS JSON index (default: $OPHAMIN_TOOLKITS)")
+    p_acq_reg.set_defaults(func=cmd_acquire)
+
+    p_acq_list = acq_sub.add_parser(
+        "list", help="show the unified toolkit index (core + plugged-in/acquired)")
+    p_acq_list.add_argument(
+        "--toolkits", default="", help="extra OPHAMIN_TOOLKITS JSON path to merge")
+    p_acq_list.add_argument("--installed-only", action="store_true")
+    p_acq_list.set_defaults(func=cmd_acquire)
+
+    p_acq.set_defaults(func=cmd_acquire)
 
     return parser
 

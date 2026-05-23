@@ -93,7 +93,7 @@ class Threshold:
         return cls(
             metric=str(d.get("metric", "")),
             comparator=str(d.get("comparator", "")),
-            value=d.get("value"),  # validated downstream; may be non-numeric
+            value=d.get("value"),  # type: ignore[arg-type]  # validated downstream; may be non-numeric
             units=str(d.get("units", "")),
         )
 

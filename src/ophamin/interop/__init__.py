@@ -102,9 +102,19 @@ from ophamin.interop.tool_acquisition import (
     register_acquired_tool,
     verify_acquired_tool,
 )
+from ophamin.interop.tool_discovery import (
+    DiscoveryResult,
+    PyPIError,
+    PyPINotFound,
+    discover_candidates,
+    enrich_candidate,
+    github_owner_repo,
+    resolve_pypi_candidate,
+)
 from ophamin.interop.toolkit_registry import (
     Toolkit,
     ToolkitConfigError,
+    persist_toolkit_entry,
     toolkit_registry,
 )
 
@@ -116,8 +126,16 @@ __all__ = [
     "evaluate_candidate",
     "register_acquired_tool",
     "verify_acquired_tool",
+    "DiscoveryResult",
+    "PyPIError",
+    "PyPINotFound",
+    "discover_candidates",
+    "enrich_candidate",
+    "github_owner_repo",
+    "resolve_pypi_candidate",
     "Toolkit",
     "ToolkitConfigError",
+    "persist_toolkit_entry",
     "toolkit_registry",
     "DEFAULT_NAMESPACE",
     "DEFAULT_PROOF_FILENAME",

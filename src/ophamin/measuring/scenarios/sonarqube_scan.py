@@ -161,7 +161,8 @@ def _http_get_json(url: str, *, token: str = "", timeout: float = 30.0) -> dict[
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
             payload = resp.read().decode("utf-8")
-            return json.loads(payload)
+            result: dict[str, Any] = json.loads(payload)
+            return result
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace") if exc.fp else ""
         raise SonarQubeAPIError(url, exc.code, body) from exc
@@ -362,7 +363,8 @@ class SonarQubeScanProof(Scenario):
             req.add_header("Authorization", f"Basic {auth}")
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # noqa: S310
-                return resp.read().decode("utf-8").strip()
+                text: str = resp.read().decode("utf-8").strip()
+                return text
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace") if exc.fp else ""
             raise SonarQubeAPIError(
@@ -371,7 +373,7 @@ class SonarQubeScanProof(Scenario):
 
     # ------------------------------------------------------------------ run --
 
-    def run(  # type: ignore[override]
+    def run(
         self,
         substrate: SubstrateUnderTest | None = None,
         *,

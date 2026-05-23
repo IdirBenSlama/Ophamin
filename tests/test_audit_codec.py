@@ -19,7 +19,6 @@ from ophamin import __version__
 from ophamin.auditing.audit_record import (
     AuditRecord,
     AuditSummary,
-    SCHEMA_VERSION,
 )
 from ophamin.auditing.base import Finding, FindingSeverity, PillarResult
 from ophamin.auditing.codec import (

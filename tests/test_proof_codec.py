@@ -24,7 +24,6 @@ from ophamin.measuring.proof import (
     EmpiricalProofRecord,
     PillarEvidence,
     Reproduction,
-    SCHEMA_VERSION,
     Verdict,
 )
 from ophamin.measuring.proof.codec import (
@@ -35,7 +34,6 @@ from ophamin.measuring.proof.codec import (
     ProofSchemaError,
     ProofSchemaVersionMismatchError,
     ProofSignatureError,
-    ProofValidationError,
     SCHEMA_PATH,
     ValidationReport,
     _family_from_filename,
@@ -54,7 +52,6 @@ from ophamin.measuring.proof.record import (
     DatasetRef,
     PreRegistration,
     Threshold,
-    build_environment_lock,
     content_hash,
 )
 from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY

@@ -36,7 +36,7 @@ Or via the ``ophamin pillar list / show`` CLI surface.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Callable, Iterator
 
 from ophamin.measuring.pillars.base import PillarBase
 from ophamin.protocols import Pillar
@@ -204,7 +204,6 @@ def register_substrate(name: str, cls: type) -> None:
     Loud-failure on duplicate. The class must structurally satisfy the
     :class:`SubstrateProbe` Protocol (checked at registration time).
     """
-    from ophamin.protocols import SubstrateProbe
 
     if not isinstance(cls, type):
         raise TypeError(

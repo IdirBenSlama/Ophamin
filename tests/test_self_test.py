@@ -13,7 +13,6 @@ Pins:
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 import pytest
@@ -165,7 +164,6 @@ def test_run_self_test_result_to_dict_is_json_serializable(fast_self_test):
 def test_run_self_test_handles_unregistered_scenario_gracefully(tmp_path, monkeypatch):
     """If SELF_TEST_SCENARIOS references a name not in SCENARIOS, the
     runner records an ERROR row but continues — doesn't abort the loop."""
-    from ophamin.self_test import SELF_TEST_SCENARIOS as _orig
     import ophamin.self_test as mod
     monkeypatch.setattr(mod, "SELF_TEST_SCENARIOS", (
         ("spearman-crosscheck", {}),

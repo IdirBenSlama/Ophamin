@@ -16,7 +16,6 @@ import json
 import subprocess
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pytest
 
@@ -24,8 +23,6 @@ from ophamin import __version__
 from ophamin.comparing.synthesis import (
     CampaignSummary,
     Diagnostic,
-    MetricTrajectory,
-    VerdictFlip,
     analyze_metric,
     diagnose_proof,
     summarize_directory,

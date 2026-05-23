@@ -15,7 +15,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
 
 from ophamin.measuring.proof import (
     Claim,

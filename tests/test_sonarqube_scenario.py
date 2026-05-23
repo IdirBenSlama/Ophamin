@@ -10,7 +10,6 @@ endpoint shape is part of the contract.
 from __future__ import annotations
 
 import io
-import json
 import urllib.error
 from typing import Any
 

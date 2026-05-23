@@ -322,6 +322,7 @@ class MemoryPermanenceFlowScenario(Scenario):
         self,
         substrate: SubstrateUnderTest | None = None,
         *,
+        data_root: object = None,
         sign_key: bytes = DEFAULT_SIGN_KEY,
     ) -> EmpiricalProofRecord:
         if substrate is None:
@@ -344,10 +345,10 @@ class MemoryPermanenceFlowScenario(Scenario):
         # ---- whole-run permanence: scar count must never decrease ---------
         scar_present = [(i, s) for i, s in enumerate(scar_series) if s is not None]
         scar_violations: list[dict[str, Any]] = []
-        for (ia, a), (ib, b) in zip(scar_present, scar_present[1:]):
-            if b < a:
+        for (ia, sa), (ib, sb) in zip(scar_present, scar_present[1:]):
+            if sb < sa:
                 scar_violations.append(
-                    {"cycle_a": ia, "cycle_b": ib, "scars_a": a, "scars_b": b}
+                    {"cycle_a": ia, "cycle_b": ib, "scars_a": sa, "scars_b": sb}
                 )
         permanence_holds = not scar_violations and len(scar_present) >= 2
 

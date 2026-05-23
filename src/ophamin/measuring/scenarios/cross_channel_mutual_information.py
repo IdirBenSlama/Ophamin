@@ -213,7 +213,7 @@ class CrossChannelMutualInformationScenario(Scenario):
     ) -> EmpiricalProofRecord:
         try:
             from ophamin.measuring.analytic_helpers import (
-                shannon_entropy_discrete,
+                shannon_entropy_discrete,  # noqa: F401 — availability probe for the optional pyitlib extra
             )
         except ImportError as e:
             raise RuntimeError(

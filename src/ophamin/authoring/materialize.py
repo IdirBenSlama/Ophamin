@@ -25,8 +25,11 @@ materializer reports ``needs_substrate`` so the caller wires the
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from ophamin.measuring.scenarios.base import Scenario
 
 from ophamin.authoring.spec import ScenarioSpec
 from ophamin.authoring.validation import is_acceptable, validate_spec
@@ -126,7 +129,7 @@ def materialize_spec(spec: ScenarioSpec, *, validate: bool = True) -> Materializ
         }
         if stimuli:
             kwargs["stimuli"] = tuple(stimuli)
-        scen = MemoryDeformationFlowScenario(**kwargs)
+        scen: "Scenario" = MemoryDeformationFlowScenario(**kwargs)
         plan = {
             "scenario_class": "MemoryDeformationFlowScenario",
             "scope": "flow", "facet": "neuro",

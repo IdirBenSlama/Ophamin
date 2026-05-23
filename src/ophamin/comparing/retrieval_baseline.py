@@ -34,8 +34,10 @@ when the two rankings are identical (the expected, structural result).
 
 from __future__ import annotations
 
+import math
 import random
-from typing import Protocol, Sequence
+from collections import Counter
+from typing import Any, Callable, Protocol, Sequence
 
 
 class Retriever(Protocol):
@@ -106,12 +108,12 @@ def ranking_signature(ranked: list[tuple[str, float]]) -> tuple[str, ...]:
 
 
 def order_divergence(
-    retriever_factory,
+    retriever_factory: Callable[[Sequence[str]], Retriever],
     docs: Sequence[str],
     query: str,
     *,
     seed: int = 0,
-) -> dict:
+) -> dict[str, Any]:
     """Build the retriever on ``docs`` and on a shuffled copy; rank the same
     query against both; return how much the ranking-by-doc-identity diverges.
 
@@ -147,7 +149,9 @@ def order_divergence(
     }
 
 
-def bag_representation_divergence(events_a, events_b) -> float:
+def bag_representation_divergence(
+    events_a: Sequence[str], events_b: Sequence[str],
+) -> float:
     """Cosine distance between the mean TF-IDF vectors of two event orderings.
 
     A set-based representation pools its document vectors order-invariantly
@@ -171,3 +175,71 @@ def bag_representation_divergence(events_a, events_b) -> float:
         return 0.0
     cos = float(a @ b / (na * nb))
     return max(0.0, 1.0 - cos)
+
+
+# ----------------------------------------------- order-BEARING comparators ----
+#
+# These exist to test, not assume, the claim that "retrieval conflates
+# order-different histories". bag_representation_divergence is order-blind
+# *because it mean-pools* (a representation choice), not because retrieval is
+# inherently order-blind. The two functions below are standard retrieval
+# representations that DO carry order; if they separate the same histories the
+# mean-pool conflates, then the Kimera-vs-RAG "advantage" is an artifact of the
+# representation/metric chosen for the baseline, not a capability gap.
+
+
+def ordered_representation_divergence(
+    events_a: Sequence[str], events_b: Sequence[str],
+) -> float:
+    """Cosine distance over an ORDER-BEARING shingle representation.
+
+    Represents each history by unigram + consecutive-event **bigram** counts
+    (shingling — a textbook IR technique). Bigrams encode local order, so
+    reordering the same multiset changes the profile and the distance is > 0.
+    Contrast with :func:`bag_representation_divergence` (mean-pooling →
+    commutative → 0): order-blindness is a property of the *bag* representation,
+    not of retrieval. Returns a cosine distance in ``[0, 1]``.
+    """
+    a_list = [str(e) for e in events_a]
+    b_list = [str(e) for e in events_b]
+    if not a_list or not b_list:
+        return 0.0
+
+    def _shingles(evs: list[str]) -> "Counter[tuple[str, ...]]":
+        feats: Counter[tuple[str, ...]] = Counter()
+        for e in evs:
+            feats[("1", e)] += 1
+        for x, y in zip(evs, evs[1:]):
+            feats[("2", x, y)] += 1
+        return feats
+
+    a, b = _shingles(a_list), _shingles(b_list)
+    keys = set(a) | set(b)
+    dot = float(sum(a[k] * b[k] for k in keys))
+    na = math.sqrt(sum(v * v for v in a.values()))
+    nb = math.sqrt(sum(v * v for v in b.values()))
+    if na == 0.0 or nb == 0.0:
+        return 0.0
+    # round away cosine float-epsilon so identical sequences read exactly 0.0
+    return round(max(0.0, 1.0 - dot / (na * nb)), 12)
+
+
+def event_set_jaccard_divergence(
+    events_a: Sequence[str], events_b: Sequence[str],
+) -> float:
+    """``1 − Jaccard`` over the two event SETS — the *matched-metric* control.
+
+    This is the SAME distance the finance scenario applies to Kimera's prime
+    sets (``1 − Jaccard(prime_chain)``), applied to the retriever's own
+    documents. When two orderings render to different (position, value) event
+    strings, their sets are largely disjoint → distance ≈ 1.0. So a matched
+    set comparison separates exactly the histories that mean-pooling reports as
+    distance 0 — demonstrating the "RAG conflates them" result is a consequence
+    of comparing Kimera and RAG with *different* metrics, not of retrieval.
+    """
+    a_set = {str(e) for e in events_a}
+    b_set = {str(e) for e in events_b}
+    if not a_set or not b_set:
+        return 0.0
+    union = len(a_set | b_set)
+    return 1.0 - len(a_set & b_set) / union if union else 0.0

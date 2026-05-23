@@ -141,7 +141,6 @@ def propose_followups(
     )
 
     followups: list[dict[str, Any]] = []
-    parse_source = "content"
     try:
         parsed = json.loads(resp.content)
         if isinstance(parsed, dict) and isinstance(parsed.get("followups"), list):
@@ -167,7 +166,6 @@ def propose_followups(
                 parsed = json.loads(text[start:end + 1])
                 if isinstance(parsed, dict) and isinstance(parsed.get("followups"), list):
                     followups = parsed["followups"][:n_max]
-                    parse_source = "reasoning"
         except (json.JSONDecodeError, TypeError):
             pass
 

@@ -38,10 +38,8 @@ from ophamin.measuring.scenarios import (
     PhilosophicalSelfReferenceScenario,
     RosettaScalingScenario,
     ThroughputCeilingScenario,
-    ThroughputCeilingScenario as _Throughput,  # alias for clarity
 )
-from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario
-from ophamin.seeing.substrate import MockSubstrate
+from ophamin.measuring.scenarios.base import Scenario
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent

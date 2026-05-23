@@ -41,7 +41,7 @@ real signal.
 from __future__ import annotations
 
 import ast
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -63,9 +63,8 @@ from ophamin.measuring.proof import (
     content_hash,
 )
 from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY, Scenario, ScenarioScore, Tier
-from ophamin.seeing.corpus import Corpus, CorpusRecord
+from ophamin.seeing.corpus import CorpusRecord
 from ophamin.seeing.discovery.kimera_inventory import (
-    StratumInventory,
     Surface,
     discover_interface,
 )

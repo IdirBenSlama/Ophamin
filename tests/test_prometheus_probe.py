@@ -16,13 +16,11 @@ from __future__ import annotations
 import http.server
 import json
 import threading
-import time
 
 import pytest
 
 from ophamin.seeing.telemetry import (
     DEFAULT_SIGN_KEY,
-    AlignedTelemetryWindow,
     MetricFamilySnapshot,
     MetricSample,
     PrometheusScrapeProbe,

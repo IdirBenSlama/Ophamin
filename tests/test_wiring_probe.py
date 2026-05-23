@@ -13,13 +13,11 @@ from pathlib import Path
 import pytest
 
 from ophamin.seeing.discovery import discover_all
-from ophamin.seeing.discovery.kimera_inventory import StratumInventory, Surface
+from ophamin.seeing.discovery.kimera_inventory import Surface
 from ophamin.seeing.wiring import (
     ANNOTATION_PATTERNS,
     CompletenessReport,
     DEFAULT_SIGN_KEY,
-    StratumCompleteness,
-    SurfaceCompleteness,
     WiringProbe,
     build_import_graph,
     classify_surface,

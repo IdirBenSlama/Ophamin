@@ -12,7 +12,6 @@ from __future__ import annotations
 from ophamin.authoring.grounding import (
     RESOLVED,
     UNREACHABLE,
-    UNRESOLVED,
     classify_ref,
     resolve_ref,
     verify_grounding,

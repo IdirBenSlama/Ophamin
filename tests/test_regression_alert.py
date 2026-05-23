@@ -8,14 +8,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import pytest
 
 from ophamin import __version__
 from ophamin.comparing.regression_alert import (
     REGRESSION_ALERT_SCHEMA_VERSION,
     ProofSnapshot,
     RegressionAlertRecord,
-    VerdictTransition,
     classify_transition,
     compute_regression_alert,
     dump_alert,

@@ -26,22 +26,16 @@ from fastapi.responses import (
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
-    CollectorRegistry,
-    Gauge,
-    Info,
-    generate_latest,
 )
 from pydantic import BaseModel, Field
 
 from ophamin import __version__
 from ophamin.http_api.bundle_browser import (
-    ALLOWED_BUNDLE_FILES,
     BundlePathError,
     bundle_tree,
     safe_bundle_file_path,
 )
 from ophamin.http_api.metrics import (
-    METRICS,
     http_metrics_middleware_factory,
     render_exposition,
 )
@@ -72,7 +66,6 @@ from ophamin.interfaces._impls import (
     validate_scenario_spec_impl,
     verify_proof_impl,
 )
-from ophamin.measuring.scenarios import SCENARIOS
 
 #: Path to the bundled static-asset directory (index.html + app.js + styles.css)
 #: served at `/ui/` when the SPA is enabled.

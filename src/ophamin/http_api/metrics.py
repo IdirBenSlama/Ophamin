@@ -35,14 +35,11 @@ care — see :func:`render_exposition` for the unified path.
 
 from __future__ import annotations
 
-import json
 import os
 import platform
-import re
-import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import psutil
 from prometheus_client import (
@@ -518,7 +515,7 @@ def render_exposition() -> tuple[bytes, str]:
 # --------------------------------------------------------------------------
 
 
-def http_metrics_middleware_factory():
+def http_metrics_middleware_factory() -> Callable[[Any, Any], Any]:
     """Build the FastAPI ASGI middleware that records HTTP metrics.
 
     Returns a callable suitable for ``app.middleware("http")(fn)``.
@@ -533,7 +530,7 @@ def http_metrics_middleware_factory():
     label cardinality stays bounded — otherwise every distinct URL
     would create a new time series and Prometheus would balk.
     """
-    async def middleware(request, call_next):
+    async def middleware(request: Any, call_next: Any) -> Any:
         # Skip /metrics itself — recursive accounting would just spin.
         # Skip static asset paths so each .css/.js doesn't pollute the
         # label set (FastAPI doesn't template these — they'd land as

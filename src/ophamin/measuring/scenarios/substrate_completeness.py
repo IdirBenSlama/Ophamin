@@ -44,7 +44,6 @@ record so the operator can navigate the action list directly.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import statsmodels as _sm  # noqa: F401
 from statsmodels.stats.proportion import proportion_confint

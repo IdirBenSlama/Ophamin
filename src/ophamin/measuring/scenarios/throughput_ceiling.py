@@ -29,7 +29,7 @@ process tree).
 from __future__ import annotations
 
 from pathlib import Path
-from statistics import mean, median
+from statistics import mean
 from typing import Iterator
 
 import statsmodels as _statsmodels

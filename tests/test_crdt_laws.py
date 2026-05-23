@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ophamin.measuring.proof import EmpiricalProofRecord, REFUTED, VALIDATED
+from ophamin.measuring.proof import EmpiricalProofRecord, VALIDATED
 from ophamin.measuring.scenarios.crdt_laws import CRDTLawsScenario
 
 

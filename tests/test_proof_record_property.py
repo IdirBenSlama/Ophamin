@@ -12,7 +12,6 @@ counter-examples so any drift surfaces with the simplest possible reproducer.
 
 from __future__ import annotations
 
-import math
 
 import pytest
 from hypothesis import given, settings
