@@ -7,7 +7,26 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.115.1] below for the latest cut.)
+(empty — see [0.115.2] below for the latest cut.)
+
+## [0.115.2] — 2026-05-23
+
+**The stale-server trap is gone — one double-click always lands on the current
+version.** Until now, `serve --open` was naively idempotent: if *any* server was
+already on the port, it just opened the browser to it. After an upgrade that
+meant the launcher kept reusing the OLD running server, so the new UI never
+showed (the "which sphere?" confusion). The launcher is now version-aware:
+
+- **current version on the port** → just open it (as before);
+- **an older Ophamin** → stop it and restart with the current version, so a
+  single double-click always serves the latest;
+- **a foreign process** → never killed — it says so plainly and exits non-zero.
+
+New helpers (`_running_framework_version`, `_pids_listening_on` via psutil→lsof,
+`_stop_port_listeners` with SIGTERM→SIGKILL + port-free wait), covered by
+`tests/test_launcher_helpers.py`. Also verified end-to-end in a browser that all
+six wheels (seeing · measuring · comparing · instrumenting · auditing ·
+reporting) render real live data with zero console errors.
 
 ## [0.115.1] — 2026-05-23
 

@@ -912,6 +912,91 @@ def cmd_verify(args: argparse.Namespace) -> int:
     return 1 if has_required_failure(results) else 0
 
 
+def _running_framework_version(host: str, port: int) -> "str | None":
+    """Framework version reported by an Ophamin server already on host:port.
+
+    Returns the ``framework_version`` string, or None if nothing
+    Ophamin-shaped answers ``GET /version`` within a second. Lets the
+    ``--open`` launcher tell a *current* server (just open it) from a *stale*
+    one (restart it) from a *foreign* process (leave it alone).
+    """
+    import json
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen(
+            f"http://{host}:{port}/version", timeout=1.0
+        ) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception:  # noqa: BLE001 — any failure means "not a reachable Ophamin"
+        return None
+    version = data.get("framework_version") if isinstance(data, dict) else None
+    return version if isinstance(version, str) else None
+
+
+def _pids_listening_on(port: int) -> "list[int]":
+    """PIDs LISTENING on ``port`` (psutil, falling back to lsof)."""
+    try:
+        import psutil
+
+        return sorted(
+            {
+                c.pid
+                for c in psutil.net_connections(kind="inet")
+                if c.pid
+                and c.laddr
+                and c.laddr.port == port
+                and c.status == psutil.CONN_LISTEN
+            }
+        )
+    except Exception:  # noqa: BLE001 — psutil missing/restricted; try lsof
+        pass
+    try:
+        import subprocess
+
+        out = subprocess.run(
+            ["lsof", "-ti", f"tcp:{port}", "-sTCP:LISTEN"],
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+        return sorted({int(x) for x in out.stdout.split() if x.strip().isdigit()})
+    except Exception:  # noqa: BLE001 — no lsof either; nothing we can do
+        return []
+
+
+def _stop_port_listeners(host: str, port: int) -> bool:
+    """Terminate whatever is LISTENING on ``port`` and wait for it to free.
+
+    SIGTERM first, then SIGKILL if still held. Returns True once the port is
+    free (or there was nothing to stop).
+    """
+    import os
+    import signal
+    import socket as _socket
+    import time
+
+    def _free() -> bool:
+        with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:
+            s.settimeout(0.3)
+            return s.connect_ex((host, port)) != 0
+
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        pids = _pids_listening_on(port)
+        if not pids:
+            return True
+        for pid in pids:
+            try:
+                os.kill(pid, sig)
+            except (ProcessLookupError, PermissionError):
+                pass
+        for _ in range(15):  # up to ~3s per signal
+            if _free():
+                return True
+            time.sleep(0.2)
+    return _free()
+
+
 def cmd_http_serve(args: argparse.Namespace) -> int:
     """Start the Ophamin HTTP REST API server (uvicorn-backed).
 
@@ -941,12 +1026,15 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
     # reachable at `/app` (React console) and `/ui` (provisional SPA).
     ui_url = f"http://{ui_host}:{args.port}/"
 
-    # Launcher idempotency: if --open and a server is ALREADY listening on this
-    # port, don't try to bind a second one (that fails with "address already in
-    # use" — the confusing error the double-click launcher hit). Just open the
-    # browser to the one already running and exit cleanly. A bare `serve` (no
-    # --open) still errors loudly on a taken port, which is the right signal
-    # for a developer.
+    # Launcher idempotency, version-aware. If --open and a server is ALREADY on
+    # this port, decide by *which version* it is:
+    #   • current version  → just open the browser to it (no second bind).
+    #   • older Ophamin    → restart it with the current version, so a single
+    #                        double-click ALWAYS lands on the current sphere
+    #                        (the stale-server trap that once showed old UI).
+    #   • foreign process  → never kill it; say so plainly and stop.
+    # A bare `serve` (no --open) still errors loudly on a taken port — the
+    # right signal for a developer.
     if getattr(args, "open", False):
         import socket as _socket
 
@@ -955,14 +1043,42 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
             _s.settimeout(0.4)
             already_running = _s.connect_ex((probe_host, args.port)) == 0
         if already_running:
-            print(f"\n  Ophamin is already running — opening it.\n  {ui_url}\n", flush=True)
-            import webbrowser
+            running = _running_framework_version(probe_host, args.port)
+            if running == __version__:
+                print(
+                    f"\n  Ophamin is already running — opening it.\n  {ui_url}\n",
+                    flush=True,
+                )
+                import webbrowser
 
-            try:
-                webbrowser.open(ui_url)
-            except Exception:  # noqa: BLE001 — opening a browser is best-effort
-                pass
-            return 0
+                try:
+                    webbrowser.open(ui_url)
+                except Exception:  # noqa: BLE001 — opening a browser is best-effort
+                    pass
+                return 0
+            if running is not None:
+                print(
+                    f"\n  An older Ophamin (v{running}) is on "
+                    f"{probe_host}:{args.port} — restarting with v{__version__}…",
+                    flush=True,
+                )
+                if not _stop_port_listeners(probe_host, args.port):
+                    print(
+                        f"  Couldn't free port {args.port}. Close the old "
+                        f"window, or run with --port <other>.",
+                        file=__import__("sys").stderr,
+                        flush=True,
+                    )
+                    return 1
+                # fall through to start fresh on the now-free port
+            else:
+                print(
+                    f"\n  Port {args.port} is in use by something that isn't "
+                    f"Ophamin. Free it, or run with --port <other>.\n",
+                    file=__import__("sys").stderr,
+                    flush=True,
+                )
+                return 1
 
     app = build_app()
     import uvicorn as _uvicorn
