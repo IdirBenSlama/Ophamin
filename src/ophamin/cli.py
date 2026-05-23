@@ -937,6 +937,30 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
     app = build_app()
     import uvicorn as _uvicorn
 
+    # Friendly, always-printed pointer — a non-technical owner needs to know
+    # exactly where to look, not hunt through uvicorn's log lines.
+    ui_host = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host
+    ui_url = f"http://{ui_host}:{args.port}/ui"
+    print(f"\n  Ophamin console:  {ui_url}\n  (press Ctrl+C to stop)\n", flush=True)
+
+    if getattr(args, "open", False):
+        # Open the browser shortly after uvicorn binds, from a background
+        # thread (uvicorn.run blocks). Best-effort: a failed open never stops
+        # the server.
+        import threading
+        import webbrowser
+
+        def _open_when_up() -> None:
+            import time
+
+            time.sleep(1.5)
+            try:
+                webbrowser.open(ui_url)
+            except Exception:  # noqa: BLE001 — opening a browser is best-effort
+                pass
+
+        threading.Thread(target=_open_when_up, daemon=True).start()
+
     _uvicorn.run(
         app,
         host=args.host,
@@ -3099,6 +3123,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="info",
         choices=["critical", "error", "warning", "info", "debug", "trace"],
         help="uvicorn log level (default: info)",
+    )
+    p_http_serve.add_argument(
+        "--open",
+        action="store_true",
+        help="open the console (/ui) in your browser once the server is up",
     )
     p_http_serve.set_defaults(func=cmd_http_serve)
 
