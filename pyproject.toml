@@ -348,6 +348,7 @@ module = [
     "rdflib.*",
     "lxml.*",
     "defusedxml.*",
+    "sentence_transformers.*",  # optional dense-retrieval extra; lazy-imported
     "dvc.*",
     "mlflow.*",
     "omegaconf.*",
