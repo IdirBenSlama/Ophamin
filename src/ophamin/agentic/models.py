@@ -22,7 +22,10 @@ from __future__ import annotations
 import enum
 import os
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from ophamin.agentic.client import LLMClient
 
 
 class TaskTier(str, enum.Enum):
@@ -250,6 +253,37 @@ def pick_model(task: str) -> ModelChoice:
         tier=tier, model=model, max_tokens=max_tokens,
         provider=provider, base_url=base_url, api_key_env=api_key_env,
     )
+
+
+def client_for_model(mc: ModelChoice, *, timeout_s: float | None = None) -> "LLMClient":
+    """Build an :class:`LLMClient` targeting the endpoint ``mc`` resolves to.
+
+    This is what makes per-tier routing *actually take effect*. ``pick_model``
+    already computes a tier's provider / base_url / api_key_env from the
+    ``OPHAMIN_LLM_PROVIDER_<TIER>`` family of env vars, and ``model_capabilities``
+    advertises them — but until a client is built from them, every call still
+    went to the one framework-wide endpoint.
+
+    - LOCAL tier (the default): framework-wide base_url → behaviour unchanged.
+    - EXTERNAL_API tier with its own ``base_url``: the client targets THAT
+      endpoint and reads the key from the env var named in ``api_key_env`` (never
+      the key itself). So one tier can run on an external API while others stay
+      local.
+    """
+    from ophamin.agentic.client import LLMClient
+
+    if mc.provider == Provider.EXTERNAL_API and mc.base_url:
+        kwargs: dict[str, Any] = {"base_url": mc.base_url}
+        if mc.api_key_env:
+            key = os.environ.get(mc.api_key_env, "")
+            if key:
+                kwargs["api_key"] = key
+        if timeout_s is not None:
+            kwargs["timeout_s"] = timeout_s
+        return LLMClient(**kwargs)
+    if timeout_s is not None:
+        return LLMClient(timeout_s=timeout_s)
+    return LLMClient()
 
 
 def model_capabilities(*, check_availability: bool = False) -> dict[str, Any]:

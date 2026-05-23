@@ -2410,9 +2410,18 @@ def cmd_agent(args: argparse.Namespace) -> int:
               file=__import__("sys").stderr)
         return 2
 
-    from ophamin.agentic import LLMClient, LLMClientError
+    from ophamin.agentic import LLMClientError
+    from ophamin.agentic.models import client_for_model, pick_model
     audit = not getattr(args, "no_audit", False)
-    client = LLMClient()
+    # Build the client for THIS action's tier, so a tier pointed at a different
+    # endpoint / external API (OPHAMIN_LLM_PROVIDER_<TIER>=external_api + its
+    # base_url) is honoured — not just the framework-wide default.
+    _action_task = {
+        "adapt": "adapter_gen", "brief": "proof_brief", "triage": "refuted_triage",
+        "scenario-gen": "scenario_gen", "prereg": "prereg_validator",
+        "confounds": "confound_enumerator", "query": "bundle_query",
+    }
+    client = client_for_model(pick_model(_action_task.get(action, "")))
 
     try:
         if action == "adapt":
@@ -2599,11 +2608,13 @@ def cmd_acquire(args: argparse.Namespace) -> int:
         hints: dict[str, dict[str, str]] = {}
         scout_meta = None
         if not names and not args.no_llm:
-            from ophamin.agentic import LLMClient, LLMClientError
+            from ophamin.agentic import LLMClientError
             from ophamin.agentic.agents.tool_scout import ToolScoutError, scout
+            from ophamin.agentic.models import client_for_model, pick_model
             try:
                 scout_meta = scout(
-                    need, n_max=args.n_max, client=LLMClient(),
+                    need, n_max=args.n_max,
+                    client=client_for_model(pick_model("tool_scout")),
                     audit=not args.no_audit,
                     accept_reasoning=getattr(args, "accept_reasoning", False),
                 )
