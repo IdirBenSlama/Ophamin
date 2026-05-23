@@ -935,10 +935,11 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
         return 1
 
     ui_host = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host
-    # Open the Ophamin Console (`/app`) — the UniFi-styled React GUI, which is
-    # the production front door. (`/ui` is the lighter provisional vanilla-JS
-    # SPA, still served, but the Console is what the owner expects to see.)
-    ui_url = f"http://{ui_host}:{args.port}/app"
+    # Open the spherical home (`/`) — Kimera at the centre with the six
+    # observatory wheels around it, the navigable structure itself. This is
+    # the front door, built for a visual thinker. The classic surfaces remain
+    # reachable at `/app` (React console) and `/ui` (provisional SPA).
+    ui_url = f"http://{ui_host}:{args.port}/"
 
     # Launcher idempotency: if --open and a server is ALREADY listening on this
     # port, don't try to bind a second one (that fails with "address already in

@@ -7,7 +7,47 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.114.1] below for the latest cut.)
+(empty — see [0.115.0] below for the latest cut.)
+
+## [0.115.0] — 2026-05-23
+
+**The spherical home — an interface a synesthetic, visual owner can actually
+navigate.** The owner said it plainly: a UniFi-style dashboard (a rail of icons,
+grids of numbers, tabs to memorise) fights concept-space / analogy cognition —
+*"I can't navigate nor use a single tool here."* So the front door is no longer a
+dashboard; it is **Ophamin's own structure, made navigable**: the Kimera sphere
+at the centre with the six observatory wheels around it (Ophanim = wheels within
+wheels). The shape *is* the map — touch a wheel to enter it, nothing to memorise.
+
+- **New front door at `/` (and `/home`)** — `static/home.{html,css,js}`: a calm,
+  dark, spacious SVG cosmos. Each wheel carries its own hue (colour-as-concept)
+  and a live count. Vanilla HTML/SVG/JS, no build step.
+- **Every wheel shows real data**, fetched live from this server — no fabricated
+  content:
+  - *Seeing* → the 15 living organs of Kimera (`/substrate`), each with its
+    latest measured outcome.
+  - *Measuring* → the proofs (`/scenarios`, `/proofs/bundles/tree`): 65 on disk
+    (48 held / 12 / 5), grouped by tier; click one to read its claim, verdict and
+    reasoning in plain English; **open the written report**, **see the signed
+    record**, **verify the proof**, or **run a check** (`POST .../run`).
+  - *Comparing* → the Kimera commits measured against (honest that side-by-side
+    drift is still CLI-side).
+  - *Instrumenting* → live counters + the per-cycle cost story (`/metrics`).
+  - *Auditing* → the analysis/stats toolkits and whether each is installed
+    (`/toolkits`).
+  - *Reporting* → the output formats + public standards each proof is held to
+    (`/reporting/standards`).
+- **Honest proof verification.** "Verify this proof" reports two independent
+  guarantees truthfully: content integrity (recomputed fingerprint vs the stored
+  `proof_id` — the anti-tamper anchor; 75/75 intact) and the HMAC seal under the
+  framework key (73/75; 2 were sealed with a project key). A different-key seal is
+  reported as *intact, can't confirm the seal here* — **not** as "tampering".
+- The launcher (`serve --open`) and `/` now open the spherical home. The classic
+  surfaces remain reachable: `/app` (React console) and `/ui` (provisional SPA),
+  linked quietly from the home's footer. Supersedes 0.114.1's `/ → /app`.
+- Verified end-to-end in a real browser (sphere render, Measuring → proof →
+  verify on both default- and project-key proofs, Seeing organs); redirect tests
+  updated; 83 HTTP + 109 CLI/packaging tests green.
 
 ## [0.114.1] — 2026-05-23
 

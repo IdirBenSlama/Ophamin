@@ -941,19 +941,58 @@ def build_app() -> FastAPI:
                 headers={"Cache-Control": "no-store, must-revalidate"},
             )
 
+        def _render_home() -> HTMLResponse:
+            # The spherical home — Kimera at the centre, six wheels around it
+            # (Ophanim = wheels within wheels). The shape IS the navigation:
+            # built for a visual / analogy thinker rather than a dashboard
+            # grid. Same cache-bust + no-store discipline as /ui.
+            home = _STATIC_DIR / "home.html"
+            if not home.is_file():
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"static/home.html missing under {_STATIC_DIR}",
+                )
+            html = home.read_text(encoding="utf-8")
+            html = html.replace(
+                "/ui/static/home.css",
+                f"/ui/static/home.css?v={__version__}",
+            ).replace(
+                "/ui/static/home.js",
+                f"/ui/static/home.js?v={__version__}",
+            )
+            return HTMLResponse(
+                content=html,
+                media_type="text/html; charset=utf-8",
+                headers={"Cache-Control": "no-store, must-revalidate"},
+            )
+
         @app.get(
             "/",
-            summary="Redirect / → the Ophamin Console (/app), falling back to /ui",
+            summary="The spherical home — Kimera + six wheels (front door)",
             include_in_schema=False,
+            response_class=HTMLResponse,
         )
-        def root_redirect():
-            from fastapi.responses import RedirectResponse
-            # The UniFi-styled React Console is the production front door.
-            # Fall back to the provisional /ui SPA only if the console bundle
-            # isn't present (both ship together in the package, so this is a
-            # safety net rather than an expected branch).
-            target = "/app" if _CONSOLE_DIR.is_dir() else "/ui"
-            return RedirectResponse(url=target, status_code=302)
+        def get_home_root() -> HTMLResponse:
+            return _render_home()
+
+        @app.get(
+            "/home",
+            summary="The spherical home — Kimera at the centre, six wheels around it",
+            description=(
+                "Ophamin's front door, served as the navigable structure "
+                "itself: the Kimera substrate at the centre with the six "
+                "observatory wheels (seeing · measuring · comparing · "
+                "instrumenting · auditing · reporting) around it. Click a "
+                "wheel to enter it. Vanilla HTML/SVG/JS, no build step; "
+                "every panel live-wires to this server's real REST surface "
+                "(no fabricated data). The classic surfaces remain at /app "
+                "(React console) and /ui (provisional SPA)."
+            ),
+            tags=["ui"],
+            response_class=HTMLResponse,
+        )
+        def get_home() -> HTMLResponse:
+            return _render_home()
 
     # ------------------------------------------------------------------
     # Ophamin Console — the serious React GUI (Claude Design export).

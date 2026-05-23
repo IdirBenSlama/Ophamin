@@ -610,14 +610,29 @@ class TestProvisionalGUIMount:
         assert "javascript" in ctype
         assert "(function ()" in r.text  # IIFE marker
 
-    def test_root_redirects_to_console(self, client: TestClient) -> None:
-        # follow_redirects=False so we can observe the 302. The root now
-        # leads to the Ophamin Console (/app) — the UniFi-styled production
-        # GUI — since the console bundle ships in the package. It only falls
-        # back to /ui when the console dir is absent.
-        r = client.get("/", follow_redirects=False)
-        assert r.status_code == 302
-        assert r.headers["location"] == "/app"
+    def test_root_serves_spherical_home(self, client: TestClient) -> None:
+        # The root now serves the spherical home directly (no redirect):
+        # Kimera at the centre, six wheels around it. Built for a visual
+        # thinker; the classic /app + /ui surfaces remain reachable.
+        r = client.get("/")
+        assert r.status_code == 200
+        assert "text/html" in r.headers["content-type"]
+        # The home stamps its assets with the version cache-buster and is
+        # served no-store (same discipline as /ui).
+        assert f"/ui/static/home.css?v={__version__}" in r.text
+        assert f"/ui/static/home.js?v={__version__}" in r.text
+        assert "no-store" in r.headers.get("cache-control", "")
+        # The shell carries Kimera at the centre + the cosmos container; the
+        # six wheels themselves are injected by home.js at runtime.
+        assert "KIMERA" in r.text
+        assert 'id="cosmos"' in r.text
+        assert "the observatory around Kimera" in r.text
+
+    def test_home_alias_serves_same(self, client: TestClient) -> None:
+        r = client.get("/home")
+        assert r.status_code == 200
+        assert "text/html" in r.headers["content-type"]
+        assert "KIMERA" in r.text
 
     def test_openapi_lists_new_endpoints(self, client: TestClient) -> None:
         """Verify the 3 new endpoints are advertised in the OpenAPI

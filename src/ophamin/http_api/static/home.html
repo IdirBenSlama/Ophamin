@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Ophamin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/ui/static/home.css"/>
+<link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="none" stroke="%237fd8c8" stroke-width="2" stroke-dasharray="20 18"/><circle cx="16" cy="16" r="11" fill="none" stroke="%237fd8c8" stroke-width="1.2" stroke-dasharray="34 40"/><circle cx="16" cy="16" r="2.4" fill="%237fd8c8"/></svg>'/>
+</head>
+<body>
+
+<!-- ========== THE SPHERE VIEW (front door) ========== -->
+<main id="stage" class="stage" aria-label="Ophamin — the observatory around Kimera">
+
+  <header class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">OPHAMIN</span>
+    <span class="brand-sub">the observatory around Kimera</span>
+    <span class="brand-spacer"></span>
+    <span class="brand-version" id="brand-version">&nbsp;</span>
+  </header>
+
+  <!-- The cosmos: Kimera sphere at the centre, six wheels around it.
+       JS positions the wheels + draws the spokes; this is the shell. -->
+  <section class="cosmos" id="cosmos" aria-label="Six wheels around the Kimera sphere">
+    <svg class="cosmos-svg" id="cosmos-svg" aria-hidden="true" preserveAspectRatio="xMidYMid meet"></svg>
+
+    <button class="core" id="core" type="button" aria-label="Kimera — the memory at the centre">
+      <span class="core-glow" aria-hidden="true"></span>
+      <span class="core-label">KIMERA</span>
+      <span class="core-sub" id="core-sub">the memory at the centre</span>
+    </button>
+
+    <div class="wheels" id="wheels"><!-- wheel buttons injected by home.js --></div>
+  </section>
+
+  <p class="hint" id="hint">Touch a wheel to enter it. The shape is the map — nothing to memorise.</p>
+
+  <footer class="stage-foot">
+    <span>Everything here is real, signed, and on your machine.</span>
+    <span class="foot-links">
+      Prefer a classic console?
+      <a href="/app">the dashboard</a> ·
+      <a href="/ui">the plain list</a>
+    </span>
+  </footer>
+</main>
+
+<!-- ========== A WHEEL, OPENED (panel) ========== -->
+<section id="panel-layer" class="panel-layer" hidden aria-modal="true" role="dialog" aria-label="Wheel">
+  <div class="panel" id="panel">
+    <header class="panel-head">
+      <button class="back" id="panel-back" type="button" aria-label="Back to the sphere">
+        <span aria-hidden="true">←</span> the sphere
+      </button>
+      <div class="panel-title-wrap">
+        <h1 class="panel-title" id="panel-title">Wheel</h1>
+        <p class="panel-blurb" id="panel-blurb"></p>
+      </div>
+    </header>
+    <div class="panel-body" id="panel-body"><!-- per-wheel content --></div>
+  </div>
+</section>
+
+<noscript>
+  <div style="padding:40px;color:#cdd6e0;font-family:sans-serif;max-width:640px;margin:0 auto">
+    <h1>Ophamin</h1>
+    <p>This page needs JavaScript to draw the wheels. You can still use the
+    <a href="/ui" style="color:#7fd8c8">plain list</a> or the
+    <a href="/app" style="color:#7fd8c8">dashboard</a>.</p>
+  </div>
+</noscript>
+
+<script src="/ui/static/home.js"></script>
+</body>
+</html>
