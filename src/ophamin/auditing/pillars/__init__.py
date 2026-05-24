@@ -29,9 +29,11 @@ from ophamin.auditing.base import AuditPillar
 from ophamin.auditing.pillars.bandit_pillar import BanditPillar
 from ophamin.auditing.pillars.coverage_pillar import CoveragePillar
 from ophamin.auditing.pillars.deptry_pillar import DeptryPillar
+from ophamin.auditing.pillars.detect_secrets_pillar import DetectSecretsPillar
 from ophamin.auditing.pillars.fawltydeps_pillar import FawltyDepsPillar
 from ophamin.auditing.pillars.interrogate_pillar import InterrogatePillar
 from ophamin.auditing.pillars.mypy_pillar import MypyPillar
+from ophamin.auditing.pillars.osv_scanner_pillar import OsvScannerPillar
 from ophamin.auditing.pillars.pip_audit_pillar import PipAuditPillar
 from ophamin.auditing.pillars.prospector_pillar import ProspectorPillar
 from ophamin.auditing.pillars.pylint_pillar import PylintPillar
@@ -40,6 +42,7 @@ from ophamin.auditing.pillars.refurb_pillar import RefurbPillar
 from ophamin.auditing.pillars.ruff_pillar import RuffPillar
 from ophamin.auditing.pillars.schemathesis_pillar import SchemathesisPillar
 from ophamin.auditing.pillars.semgrep_pillar import SemgrepPillar
+from ophamin.auditing.pillars.trivy_pillar import TrivyConfigPillar
 from ophamin.auditing.pillars.vulture_pillar import VulturePillar
 
 #: file-scope pillars — work on any source path. Default in audit runs.
@@ -72,6 +75,17 @@ PROJECT_PILLAR_CLASSES = (
     SchemathesisPillar,
 )
 
+#: security pillars (added 2026-05-24) — complementary OSS scanners that cover
+#: gaps the linters above don't: committed secrets (detect-secrets), OSV.dev
+#: dependency advisories (osv-scanner, Docker), and IaC/Dockerfile/compose
+#: misconfiguration (trivy config, Docker). Opt-in via ``--pillars=...`` since
+#: two of them require Docker + network. All Apache-2.0.
+SECURITY_PILLAR_CLASSES = (
+    DetectSecretsPillar,
+    OsvScannerPillar,
+    TrivyConfigPillar,
+)
+
 
 def default_pillars() -> list["AuditPillar"]:
     """Instantiate every file-scope pillar in declaration order."""
@@ -88,21 +102,29 @@ def deep_pillars() -> list["AuditPillar"]:
     return [cls() for cls in DEEP_PILLAR_CLASSES]
 
 
+def security_pillars() -> list["AuditPillar"]:
+    """Instantiate the complementary security scanners (secrets / SCA / IaC)."""
+    return [cls() for cls in SECURITY_PILLAR_CLASSES]
+
+
 def all_pillars() -> list["AuditPillar"]:
-    """Instantiate every pillar — file-scope, deep, and project-scope."""
-    return default_pillars() + deep_pillars() + project_pillars()
+    """Instantiate every pillar — file-scope, deep, project-scope, security."""
+    return default_pillars() + deep_pillars() + project_pillars() + security_pillars()
 
 
 __all__ = [
     "DEFAULT_PILLAR_CLASSES",
     "DEEP_PILLAR_CLASSES",
     "PROJECT_PILLAR_CLASSES",
+    "SECURITY_PILLAR_CLASSES",
     "BanditPillar",
     "CoveragePillar",
     "DeptryPillar",
+    "DetectSecretsPillar",
     "FawltyDepsPillar",
     "InterrogatePillar",
     "MypyPillar",
+    "OsvScannerPillar",
     "PipAuditPillar",
     "ProspectorPillar",
     "PylintPillar",
@@ -111,9 +133,11 @@ __all__ = [
     "RuffPillar",
     "SchemathesisPillar",
     "SemgrepPillar",
+    "TrivyConfigPillar",
     "VulturePillar",
     "all_pillars",
     "deep_pillars",
     "default_pillars",
     "project_pillars",
+    "security_pillars",
 ]

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "detect-secrets",
+    "category": "security",
+    "role": "committed-secret scanner (detect_secrets audit pillar)",
+    "homepage": "https://github.com/Yelp/detect-secrets",
+    "docs_url": "https://github.com/Yelp/detect-secrets",
+    "pip_name": "detect-secrets",
+    "native_ui": "",
+    "native_ui_kind": "",
+    "ophamin_module": "auditing.pillars.detect_secrets_pillar",
+    "_acquired": {
+      "version": "1.5.0",
+      "license_class": "permissive",
+      "verdict": "recommend",
+      "verified": true
+    }
+  },
+  {
+    "id": "osv-scanner",
+    "category": "security",
+    "role": "OSV.dev cross-ecosystem dependency scanner (osv_scanner pillar, Docker)",
+    "homepage": "https://github.com/google/osv-scanner",
+    "docs_url": "https://google.github.io/osv-scanner/",
+    "pip_name": "",
+    "native_ui": "docker run ghcr.io/google/osv-scanner:latest",
+    "native_ui_kind": "",
+    "ophamin_module": "auditing.pillars.osv_scanner_pillar",
+    "_acquired": {
+      "image": "ghcr.io/google/osv-scanner:latest",
+      "license_class": "permissive",
+      "verdict": "recommend",
+      "distribution": "docker"
+    }
+  },
+  {
+    "id": "trivy",
+    "category": "security",
+    "role": "IaC/Dockerfile/compose misconfiguration scanner (trivy_config pillar, Docker)",
+    "homepage": "https://github.com/aquasecurity/trivy",
+    "docs_url": "https://aquasecurity.github.io/trivy/",
+    "pip_name": "",
+    "native_ui": "docker run aquasec/trivy:latest",
+    "native_ui_kind": "",
+    "ophamin_module": "auditing.pillars.trivy_pillar",
+    "_acquired": {
+      "image": "aquasec/trivy:latest",
+      "license_class": "permissive",
+      "verdict": "recommend",
+      "distribution": "docker"
+    }
+  }
+]
