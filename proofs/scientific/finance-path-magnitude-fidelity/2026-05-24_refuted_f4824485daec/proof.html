@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — REFUTED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-REFUTED'>REFUTED</span></h1><p><strong>Proof ID:</strong> <code>f4824485daecda4dbf01b6281d402a922a7d15357937bc21e4cf4794b7d948f3</code><br><strong>Created:</strong> 2026-05-24T02:21:12.917643+00:00</p><h2>1. Claim</h2><blockquote><p>Kimera&#x27;s representation-distance (relative divergence of the manifold state: coupling / order_parameter / knowledge_mass) between same-multiset return histories GRADES their real |Δ max-drawdown| (Spearman fidelity) better than a standard order-aware retriever, by a margin: graded_fidelity_advantage = fidelity(kimera_state) − fidelity(order_aware) &gt;= 0.2. The prime set-distance is scored alongside as a saturation control.</p></blockquote><ul><li><strong>Operationalisation:</strong> For 8 real return multisets, generate 24+2 orderings spanning drawdowns; score each representation by Spearman(pairwise distance, |Δ max-drawdown|). Headline = mean over windows of fidelity(kimera_state) − fidelity(order_aware shingle); the prime set-distance fidelity (saturation control) and the order-blind mean-pool ~0 floor are reported alongside.</li><li><strong>Threshold:</strong> <code>graded_fidelity_advantage &gt;= 0.2 spearman_rho</code></li><li><strong>H0:</strong> H0: advantage &lt; margin — Kimera&#x27;s manifold-state divergence does not grade drawdown better than generic order-aware retrieval.</li><li><strong>H1:</strong> H1: advantage &gt;= margin — Kimera&#x27;s manifold-state divergence carries graded path-magnitude that generic order-aware retrieval does not.</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-REFUTED'>REFUTED</span> — observed <code>-0.07657866667550224</code></p><p>graded fidelity — kimera_state=-0.024, order-aware bar=0.053, order-blind floor=0.000; prime control=0.061 (saturation check); advantage=-0.077 vs margin 0.2.</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-24T02:21:12.567268+00:00</code></li><li>Config hash: <code>5f8c5da7f8defc3355090fb892506f67e7b8b23d86787258cc70cf086777e335</code></li><li>Data hash: <code>0753497b317e32f44850f531b693fd36eba436a9eb93b07533924f2a54658c5f</code></li></ul><p><em>Plan:</em> For each of 8 real multisets, build 24+2 orderings; run each through Kimera entity·batch; compute pairwise kimera_state = relative manifold-state divergence (coupling/order/mass), prime = 1 − Jaccard(prime_chain) (control), order_aware = shingle cosine, order_blind = mean-pool. graded_fidelity = Spearman(distance, |Δ max-drawdown|) per method per window. Headline = mean(fid_kimera_state − fid_order_aware). INCONCLUSIVE if fewer than 4 windows yield manifold state for all orderings; VALIDATED iff advantage &gt;= margin.</p><h2>4. Data</h2><ul><li>Substrate: <code>kimera-swm</code> @ <code>78cb9f9fc6a8</code></li><li>Dataset: <code>FRED SP500 (real market)</code> (market-returns, 8 records, hash <code>0753497b317e…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>graded-fidelity</code></td><td><code>graded_fidelity_advantage</code></td><td><code>-0.076579</code></td><td>—</td><td>scipy spearmanr</td></tr></tbody></table><h2>6. Signature</h2><p><code>9d9081aeecb3b0012676b7539708a5c81f767b22bf7bc60a6ec6520717b7382a</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.115.2 @ <code>f9e0012b75f2</code></footer></body></html>
