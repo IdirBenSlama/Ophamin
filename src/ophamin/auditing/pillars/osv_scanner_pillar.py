@@ -72,6 +72,26 @@ def _cvss_to_severity(score: str) -> FindingSeverity:
     return FindingSeverity.LOW
 
 
+_SEVERITY_RANK: dict[FindingSeverity, int] = {
+    FindingSeverity.CRITICAL: 4,
+    FindingSeverity.HIGH: 3,
+    FindingSeverity.MEDIUM: 2,
+    FindingSeverity.LOW: 1,
+    FindingSeverity.INFO: 0,
+}
+
+
+def _worst_severity(*candidates: FindingSeverity | None) -> FindingSeverity:
+    """Return the HIGHEST-rank (worst) non-None severity — a security scanner
+    must never downgrade a vuln, so a coarse db label can only RAISE, never lower,
+    the CVSS-derived rating. Defaults to HIGH when no signal is available (an
+    exploitable dependency with unknown severity is must-fix territory)."""
+    present = [c for c in candidates if c is not None]
+    if not present:
+        return FindingSeverity.HIGH
+    return max(present, key=lambda s: _SEVERITY_RANK[s])
+
+
 class OsvScannerPillar(DockerAuditPillar):
     """``osv-scanner --format json -r /src`` (Dockerized) as an audit pillar."""
 
@@ -127,16 +147,33 @@ class OsvScannerPillar(DockerAuditPillar):
                 pkg = pkg_entry.get("package", {}) or {}
                 name = pkg.get("name", "")
                 version = pkg.get("version", "")
-                # group max_severity (CVSS) as a fallback severity
-                group_sev = ""
+                # Per-vuln CVSS base score: map each vuln id/alias to ITS group's
+                # max_severity (osv groups bundle related ids with a numeric CVSS
+                # base). The old code kept only the LAST group's score and applied
+                # it to every vuln (B2); this keys it correctly per vuln.
+                cvss_by_id: dict[str, str] = {}
                 for g in pkg_entry.get("groups", []) or []:
-                    group_sev = g.get("max_severity", group_sev)
+                    ms = g.get("max_severity", "") or ""
+                    for gid in g.get("ids", []) or []:
+                        cvss_by_id[gid] = ms
                 for vuln in pkg_entry.get("vulnerabilities", []) or []:
                     vid = vuln.get("id", "")
+                    aliases = vuln.get("aliases", []) or []
                     db_sev = ((vuln.get("database_specific", {}) or {})
                               .get("severity", "") or "").upper()
-                    severity = _SEVERITY_MAP.get(db_sev) or _cvss_to_severity(group_sev)
-                    aliases = vuln.get("aliases", []) or []
+                    # CVSS base score for THIS vuln (by id, then any alias).
+                    cvss = cvss_by_id.get(vid, "")
+                    if not cvss:
+                        for a in aliases:
+                            if a in cvss_by_id:
+                                cvss = cvss_by_id[a]
+                                break
+                    # Worst of CVSS-derived and the coarse db label — NEVER let a
+                    # stale db_specific 'LOW' mask a real 9.1 CVSS (B1).
+                    severity = _worst_severity(
+                        _cvss_to_severity(cvss) if cvss else None,
+                        _SEVERITY_MAP.get(db_sev),
+                    )
                     fix_versions = _fixed_versions(vuln, name)
                     findings.append(
                         Finding(
@@ -157,7 +194,8 @@ class OsvScannerPillar(DockerAuditPillar):
                                 "vuln_id": vid,
                                 "aliases": aliases,
                                 "fix_versions": fix_versions,
-                                "max_cvss": group_sev,
+                                "max_cvss": cvss,
+                                "db_severity": db_sev,
                             },
                         )
                     )
