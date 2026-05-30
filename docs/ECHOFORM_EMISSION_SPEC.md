@@ -7,6 +7,21 @@
 
 ---
 
+## Update (2026-05-30) — the data is already retained; closing the partition is IN-LANE, not an engine change
+
+Investigating before specifying engine work, I found the Echoform operator sequence is **not discarded.** Kimera's `EchoformOperatorSystem.apply_operator` (the main transformation entry point) appends every application to `_transformation_history` (capped), exposed via the public `get_transformation_history()`; each `TransformationResult` carries `operator_id` + `delta_entropy` (the `{op, ΔS}` a partition needs). Takwin exercises this per cycle through its per-arm + Piovra-shared `EchoformOperatorSystem` instances. The Constitution's own language — *"grammar = Echoform (per-arm, ΔS≥0 enforced)"* — describes exactly this stream.
+
+**Consequence:** the `echoform_sequence` constituent does **not** require a Kimera engine change. Ophamin's own substrate runner (`seeing/substrate/kimera_adapter.py`) can, after a cycle, read the per-cycle delta of `get_transformation_history()` across the arms and fill `echoform_sequence` — pure observation, in-lane. `observables.echoform_sequence_from_history()` already maps that history to the partition's `[{op, delta_s}]` form (tested). That lifts `partition_faithfulness` **0.75 → 1.0** with no change to what Kimera *does*.
+
+**So this spec narrows to:**
+- **In-lane (mine, no gate):** wire the runner to snapshot the per-cycle `get_transformation_history()` delta across the per-arm echoform systems and emit `echoform_sequence`; verify with one live cycle (`partition_faithfulness → 1.0`). Mechanics (reaching the per-arm systems from the Takwin object; per-cycle snapshot) are an Ophamin runner change.
+- **One meaning confirmation (yours):** is the per-arm `apply_operator` ΔS≥0 stream THE faithful partition's Echoform operator sequence? The Constitution's "grammar = Echoform (per-arm, ΔS≥0)" strongly implies yes; you are the authority. A yes → I wire it and the partition closes to 1.0 in-lane.
+- **Still engine-side (separable):** `prime_chain_energies`, `geoid_trajectory`, `scar_positions` — for the deeper *magnitude / curvature / scar* metrology — may still need genuine emission additions. Those are separable from closing the partition.
+
+Headline: **closing the partition — and thus the gate to the mesh — is in-lane after all.** It needs a runner change + your one-line meaning confirmation, not the engine work this spec first assumed.
+
+---
+
 ## Why
 
 Ophamin reads Kimera across a JSON boundary (`seeing/substrate/kimera_adapter.py::jsonable`). Today that boundary carries the `prime_chain` + scalar telemetry, but **not** the native objects that make a partition *faithful* or the substrate *legible at the physics level*. Measured gaps (six-probe audit):

@@ -9,7 +9,43 @@ spec's value made into a number.
 """
 
 from ophamin.seeing.substrate.base import CycleResult
-from ophamin.seeing.substrate.observables import partition, partition_faithfulness
+from ophamin.seeing.substrate.observables import (
+    echoform_sequence_from_history,
+    partition,
+    partition_faithfulness,
+)
+
+
+class _TR:  # a Kimera TransformationResult-like object
+    def __init__(self, op, ds):
+        self.operator_id = op
+        self.delta_entropy = ds
+
+
+def test_echoform_sequence_from_history_objects_and_dicts():
+    seq = echoform_sequence_from_history(
+        [_TR("fuse", 0.1), {"operator_id": "split", "delta_entropy": 0.0}]
+    )
+    assert seq == [{"op": "fuse", "delta_s": 0.1}, {"op": "split", "delta_s": 0.0}]
+
+
+def test_echoform_sequence_skips_entries_without_operator():
+    seq = echoform_sequence_from_history([{"delta_entropy": 0.2}, {"operator_id": "x"}])
+    assert seq == [{"op": "x"}]  # entry with no op dropped; missing ΔS just omitted
+
+
+def test_echoform_sequence_empty_or_none():
+    assert echoform_sequence_from_history([]) == []
+    assert echoform_sequence_from_history(None) == []
+
+
+def test_runner_path_lifts_faithfulness_to_one():
+    # When the runner fills echoform_sequence from the retained history, the
+    # partition becomes fully faithful — no engine change, pure observation.
+    seq = echoform_sequence_from_history([_TR("fuse", 0.1)])
+    raw = {"prime_chain": ["2"], "substrate_state_stamp": 1, "gwf_verdict": "cleared",
+           "echoform_sequence": seq}
+    assert partition_faithfulness(CycleResult(cycle_index=0, success=True, raw=raw)) == 1.0
 
 
 def _cycle(raw, success=True):

@@ -260,6 +260,37 @@ def partition_faithfulness(result: CycleResult) -> "float | None":
     return present / len(_PARTITION_CONSTITUENTS)
 
 
+def echoform_sequence_from_history(history: "Sequence[Any]") -> "list[dict[str, Any]]":
+    """Map an Echoform transformation history to a partition's operator sequence.
+
+    Each entry — a Kimera ``TransformationResult`` (object with ``operator_id`` +
+    ``delta_entropy``) or its serialized dict — becomes ``{"op": <id>, "delta_s":
+    <ΔS>}``, preserving order. This is the mapping the substrate runner applies to
+    the per-cycle delta of ``EchoformOperatorSystem.get_transformation_history()``
+    to fill the ``echoform_sequence`` constituent — the ΔS≥0 grammar the
+    Constitution names as part of a faithful partition. The operator stream is
+    RETAINED by the substrate (apply_operator → _transformation_history), so this
+    needs no engine change: the runner reads it. Entries with no operator id are
+    skipped (an honest drop, never a fabricated op).
+    """
+    out: list[dict[str, Any]] = []
+    for entry in history or ():
+        if isinstance(entry, Mapping):
+            op = entry.get("operator_id")
+            ds = entry.get("delta_entropy", entry.get("delta_s"))
+        else:
+            op = getattr(entry, "operator_id", None)
+            ds = getattr(entry, "delta_entropy", None)
+        if op is None:
+            continue
+        item: dict[str, Any] = {"op": str(op)}
+        dsf = as_finite_float(ds)
+        if dsf is not None:
+            item["delta_s"] = dsf
+        out.append(item)
+    return out
+
+
 def scar_count(result: CycleResult) -> int | None:
     """The canonical permanent scar count for a cycle, or ``None``.
 
