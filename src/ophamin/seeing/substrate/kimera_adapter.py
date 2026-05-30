@@ -209,7 +209,38 @@ def invoke(target, stimulus, params, component):
     text = "" if stimulus is None else str(stimulus)
     extra = {}
     if target == "entity":
+        # Observe the Echoform operator sequence this cycle applies — the ΔS>=0
+        # grammar that is part of a faithful partition (CLAUDE.md). The substrate
+        # RETAINS it (apply_operator -> _transformation_history); we read the
+        # per-cycle delta. Pure observation of state Kimera already keeps; the
+        # core run() below is untouched, and extraction fails SOFT to a recorded
+        # gap (never a silent swallow, never a crash).
+        _eos = getattr(component, "_piovra_echoform_system", None)
+        _h0 = None
+        if _eos is not None and hasattr(_eos, "get_transformation_history"):
+            try:
+                _h0 = len(_eos.get_transformation_history())
+            except Exception as _e:
+                extra["echoform_extraction"] = "snapshot_failed:%s" % type(_e).__name__
+        else:
+            extra["echoform_extraction"] = "no_echoform_system"
         result = component.run(text)
+        if _h0 is not None:
+            try:
+                _seq = []
+                for _tr in _eos.get_transformation_history()[_h0:]:
+                    _op = getattr(_tr, "operator_id", None)
+                    if _op is None:
+                        continue
+                    _it = {"op": str(_op)}
+                    _ds = getattr(_tr, "delta_entropy", None)
+                    if isinstance(_ds, (int, float)) and not isinstance(_ds, bool) and _ds == _ds:
+                        _it["delta_s"] = float(_ds)
+                    _seq.append(_it)
+                extra["echoform_sequence"] = _seq
+            except Exception as _e:
+                extra["echoform_sequence"] = None
+                extra["echoform_extraction"] = "delta_failed:%s" % type(_e).__name__
     elif target == "pentecost":
         result = component.enforce_one_plus_three_plus_one(text)
     elif target == "ouroboros":
