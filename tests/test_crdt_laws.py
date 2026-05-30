@@ -57,6 +57,10 @@ def test_crdt_laws_run_returns_validated_signed_proof():
     assert "20/20" in proof.verdict.reasoning
     assert proof.signature  # signed
     assert proof.proof_id  # content-addressed
+    # library versions are the version anchor for this non-git substrate
+    assert proof.substrate_git_commit != ""
+    assert "pycrdt" in proof.substrate_git_commit
+    assert "y_py" in proof.substrate_git_commit
 
 
 def test_crdt_laws_evidence_carries_per_backend_timing():

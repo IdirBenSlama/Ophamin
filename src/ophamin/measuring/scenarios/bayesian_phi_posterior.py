@@ -453,7 +453,7 @@ class BayesianPhiPosteriorScenario(Scenario):
             preregistration=prereg,
             datasets=[dataset],
             substrate_name="phi_trajectory+pymc",
-            substrate_git_commit="",  # not git-tracked; data + library check
+            substrate_git_commit=f"pymc-{pymc_version}",
             evidence=evidence,
             verdict=verdict,
             reproduction=Reproduction(

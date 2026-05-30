@@ -214,6 +214,18 @@ class CRDTLawsScenario(Scenario):
                 f"Install via `pip install 'ophamin[crdt]'`. ({e})"
             ) from e
 
+        try:
+            import pycrdt as _pycrdt
+            _pycrdt_version = getattr(_pycrdt, "__version__", "unknown")
+        except ImportError:
+            _pycrdt_version = "unavailable"
+        try:
+            import y_py as _y_py
+            _ypy_version = getattr(_y_py, "__version__", "unknown")
+        except ImportError:
+            _ypy_version = "unavailable"
+        _substrate_version = f"pycrdt-{_pycrdt_version}+y_py-{_ypy_version}"
+
         rng = random.Random(self.seed)
 
         # Generate N op sequences. Each op is ("insert", position, value).
@@ -411,7 +423,7 @@ class CRDTLawsScenario(Scenario):
             preregistration=prereg,
             datasets=[dataset],
             substrate_name="pycrdt+y_py-cross-backend",
-            substrate_git_commit="",  # not git-tracked; this is a 3rd-party lib check
+            substrate_git_commit=_substrate_version,
             evidence=evidence,
             verdict=verdict,
             reproduction=Reproduction(

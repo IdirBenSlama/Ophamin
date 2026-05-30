@@ -126,10 +126,16 @@ class ProprioSelfDiscoveryScenario(Scenario):
         phase_4_report: str | Path,
         *,
         sub_tests_min: int = 2,
+        kimera_commit: str = "",
     ) -> None:
         self.phase_2_path = Path(phase_2_report).expanduser()
         self.phase_3_path = Path(phase_3_report).expanduser()
         self.phase_4_path = Path(phase_4_report).expanduser()
+        # _build_reproduction_command() resolves required ctor args by name;
+        # store the originals so it finds self.phase_{2,3,4}_report
+        self.phase_2_report = self.phase_2_path
+        self.phase_3_report = self.phase_3_path
+        self.phase_4_report = self.phase_4_path
         for p in (self.phase_2_path, self.phase_3_path, self.phase_4_path):
             if not p.is_file():
                 raise FileNotFoundError(f"phase report not found: {p}")
@@ -138,7 +144,7 @@ class ProprioSelfDiscoveryScenario(Scenario):
                 f"sub_tests_min must be in (0, 3], got {sub_tests_min}"
             )
         self.sub_tests_min = int(sub_tests_min)
-        self._kimera_commit = ""
+        self._kimera_commit = str(kimera_commit)
 
     def score(
         self,
@@ -376,12 +382,21 @@ class ProprioSelfDiscoveryScenario(Scenario):
         prov.was_attributed_to(result_entity, agent_kimera)
         prov.was_derived_from(result_entity, data_entity)
 
+        substrate_commit = self._kimera_commit
+        if not substrate_commit and substrate is not None:
+            getter = getattr(substrate, "git_commit", None)
+            if callable(getter):
+                try:
+                    substrate_commit = str(getter() or "")
+                except Exception:  # noqa: BLE001 — provenance best-effort
+                    substrate_commit = ""
+
         proof = EmpiricalProofRecord(
             claim=claim,
             preregistration=prereg,
             datasets=[dataset],
             substrate_name="kimera-swm",
-            substrate_git_commit=self._kimera_commit,
+            substrate_git_commit=substrate_commit,
             evidence=evidence,
             verdict=verdict,
             reproduction=Reproduction(

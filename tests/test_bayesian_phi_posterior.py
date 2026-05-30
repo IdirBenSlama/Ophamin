@@ -100,6 +100,9 @@ def test_simulated_run_produces_validated_signed_proof():
     assert proof.verdict.observed_value <= 0.50
     assert proof.signature
     assert proof.proof_id
+    # pymc version is the version anchor for this non-git substrate
+    assert proof.substrate_git_commit != ""
+    assert "pymc" in proof.substrate_git_commit
 
 
 def test_evidence_carries_per_size_posterior_summary():
