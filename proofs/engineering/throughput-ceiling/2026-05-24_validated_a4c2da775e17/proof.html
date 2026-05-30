@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>a4c2da775e1746fc0c0050b761179823c2eaa317b13e43a3eedaa950c429f22a</code><br><strong>Created:</strong> 2026-05-24T03:32:46.534089+00:00</p><h2>1. Claim</h2><blockquote><p>Under sustained load on a balanced text corpus, Kimera&#x27;s entity target completes each cycle in under 5.00 seconds at the 95th percentile (the architectural throughput ceiling).</p></blockquote><ul><li><strong>Operationalisation:</strong> 95th-percentile of per-cycle wall-time (raw[&#x27;cycle_seconds&#x27;]) across the streamed batch; cycles that failed to record a cycle_seconds are excluded from the denominator</li><li><strong>Threshold:</strong> <code>p95_cycle_wall_time_s &lt;= 5.0 seconds</code></li><li><strong>H0:</strong> p95 wall-time &gt; 5.00s</li><li><strong>H1:</strong> p95 wall-time &lt;= 5.00s</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>4.197375525604002</code></p><p>measured per-cycle wall-time on 40/40 cycles (0 adapter errors); distribution: median 1.47s, p95 4.20s, p99 6.69s (range 0.30-8.29s); batch totals: wall 90.59s, cpu 89.72s (periodic_subprocess_sampler), rss_peak 3822.3MB, max threads 93, max procs 3</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-24T03:31:15.714820+00:00</code></li><li>Config hash: <code>311bd781c294b3d83c2235bf6767fba83e5b1fa59be6230ca570d9e53f376cf5</code></li><li>Data hash: <code>83109a27c3df2a45b912398b969fa8f7250b3d04dee11916d73ecf679d828010</code></li></ul><p><em>Plan:</em> Stream up to 40 balanced text records through Kimera&#x27;s entity target wrapped in InstrumentedSubstrate, then compute the per-cycle wall-time distribution from the adapter&#x27;s own ``cycle_seconds`` field. Pre-registered threshold: 95th-percentile cycle wall-time &lt;= 5.00s. Secondary descriptive evidence reports the median / p50 / p99 wall-time, batch CPU total (from the periodic subprocess sampler), RSS peak, and process-tree maximums.</p><h2>4. Data</h2><ul><li>Substrate: <code>instrumented(kimera-swm)</code> @ <code>78cb9f9fc6a8</code></li><li>Dataset: <code>offensive-security-corpus</code> (adversarial_corpus, 4416305 records, hash <code>83109a27c3df…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>O.engineering.p95_wall_time</code></td><td><code>p95_cycle_wall_time_s</code></td><td><code>4.197375525604002</code></td><td>—</td><td>python-stdlib 3.14</td></tr><tr><td><code>O.engineering.wall_time_distribution</code></td><td><code>cycle_wall_time_distribution</code></td><td><code>1.4651527499081567</code></td><td>—</td><td>python-stdlib 3.14</td></tr><tr><td><code>O.engineering.batch_cpu</code></td><td><code>batch_cpu_total_s</code></td><td><code>89.722139759</code></td><td>—</td><td>psutil 7.x</td></tr><tr><td><code>O.engineering.rss_peak</code></td><td><code>rss_peak_bytes</code></td><td><code>3822256128.0</code></td><td>—</td><td>psutil 7.x</td></tr></tbody></table><h2>6. Signature</h2><p><code>24b38add7a4badc11db9a9a0f24dcda8f2b968e453a7eb43cd6b99f2d7fc57d3</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.115.2 @ <code>ad2afd4070ac</code></footer></body></html>

@@ -1,0 +1,153 @@
+\documentclass{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage{textcomp}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{newunicodechar}
+\newunicodechar{α}{\ensuremath{\alpha}}
+\newunicodechar{β}{\ensuremath{\beta}}
+\newunicodechar{γ}{\ensuremath{\gamma}}
+\newunicodechar{δ}{\ensuremath{\delta}}
+\newunicodechar{ε}{\ensuremath{\varepsilon}}
+\newunicodechar{ζ}{\ensuremath{\zeta}}
+\newunicodechar{η}{\ensuremath{\eta}}
+\newunicodechar{θ}{\ensuremath{\theta}}
+\newunicodechar{ι}{\ensuremath{\iota}}
+\newunicodechar{κ}{\ensuremath{\kappa}}
+\newunicodechar{λ}{\ensuremath{\lambda}}
+\newunicodechar{μ}{\ensuremath{\mu}}
+\newunicodechar{ν}{\ensuremath{\nu}}
+\newunicodechar{ξ}{\ensuremath{\xi}}
+\newunicodechar{π}{\ensuremath{\pi}}
+\newunicodechar{ρ}{\ensuremath{\rho}}
+\newunicodechar{ς}{\ensuremath{\varsigma}}
+\newunicodechar{σ}{\ensuremath{\sigma}}
+\newunicodechar{τ}{\ensuremath{\tau}}
+\newunicodechar{υ}{\ensuremath{\upsilon}}
+\newunicodechar{φ}{\ensuremath{\varphi}}
+\newunicodechar{χ}{\ensuremath{\chi}}
+\newunicodechar{ψ}{\ensuremath{\psi}}
+\newunicodechar{ω}{\ensuremath{\omega}}
+\newunicodechar{Γ}{\ensuremath{\Gamma}}
+\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{Θ}{\ensuremath{\Theta}}
+\newunicodechar{Λ}{\ensuremath{\Lambda}}
+\newunicodechar{Ξ}{\ensuremath{\Xi}}
+\newunicodechar{Π}{\ensuremath{\Pi}}
+\newunicodechar{Σ}{\ensuremath{\Sigma}}
+\newunicodechar{Υ}{\ensuremath{\Upsilon}}
+\newunicodechar{Φ}{\ensuremath{\Phi}}
+\newunicodechar{Ψ}{\ensuremath{\Psi}}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{≡}{\ensuremath{\equiv}}
+\newunicodechar{∝}{\ensuremath{\propto}}
+\newunicodechar{∈}{\ensuremath{\in}}
+\newunicodechar{∉}{\ensuremath{\notin}}
+\newunicodechar{⊂}{\ensuremath{\subset}}
+\newunicodechar{⊃}{\ensuremath{\supset}}
+\newunicodechar{⊆}{\ensuremath{\subseteq}}
+\newunicodechar{⊇}{\ensuremath{\supseteq}}
+\newunicodechar{∪}{\ensuremath{\cup}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{∅}{\ensuremath{\emptyset}}
+\newunicodechar{∀}{\ensuremath{\forall}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{√}{\ensuremath{\surd}}
+\newunicodechar{∑}{\ensuremath{\sum}}
+\newunicodechar{∏}{\ensuremath{\prod}}
+\newunicodechar{∫}{\ensuremath{\int}}
+\newunicodechar{∞}{\ensuremath{\infty}}
+\newunicodechar{∂}{\ensuremath{\partial}}
+\newunicodechar{∇}{\ensuremath{\nabla}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+\newunicodechar{⇐}{\ensuremath{\Leftarrow}}
+\newunicodechar{⇔}{\ensuremath{\Leftrightarrow}}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{±}{\ensuremath{\pm}}
+\newunicodechar{∓}{\ensuremath{\mp}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{÷}{\ensuremath{\div}}
+\newunicodechar{⋅}{\ensuremath{\cdot}}
+\newunicodechar{∘}{\ensuremath{\circ}}
+\newunicodechar{⊗}{\ensuremath{\otimes}}
+\newunicodechar{⊕}{\ensuremath{\oplus}}
+\newunicodechar{′}{\ensuremath{\prime}}
+\newunicodechar{ℝ}{\ensuremath{\mathbb{R}}}
+\newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
+\newunicodechar{ℤ}{\ensuremath{\mathbb{Z}}}
+\newunicodechar{ℚ}{\ensuremath{\mathbb{Q}}}
+\newunicodechar{ℂ}{\ensuremath{\mathbb{C}}}
+\newunicodechar{—}{\textemdash{}}
+\newunicodechar{–}{\textendash{}}
+\newunicodechar{…}{\ldots{}}
+\newunicodechar{§}{\S{}}
+\newunicodechar{¶}{\P{}}
+\newunicodechar{·}{\textperiodcentered{}}
+\newunicodechar{°}{\textdegree{}}
+\newunicodechar{²}{\textsuperscript{2}}
+\newunicodechar{³}{\textsuperscript{3}}
+\newunicodechar{¹}{\textsuperscript{1}}
+\newunicodechar{⁰}{\textsuperscript{0}}
+\newunicodechar{⁴}{\textsuperscript{4}}
+\newunicodechar{⁵}{\textsuperscript{5}}
+\newunicodechar{⁶}{\textsuperscript{6}}
+\newunicodechar{⁷}{\textsuperscript{7}}
+\newunicodechar{⁸}{\textsuperscript{8}}
+\newunicodechar{⁹}{\textsuperscript{9}}
+\newunicodechar{‘}{\textquoteleft{}}
+\newunicodechar{’}{\textquoteright{}}
+\newunicodechar{“}{\textquotedblleft{}}
+\newunicodechar{”}{\textquotedblright{}}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: VALIDATED}
+\date{2026-05-20T15:34:50.234075+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{validated}{\textbf{VALIDATED}}}
+\textbf{Proof ID:} \texttt{0def893eb9321562a14d9541929b3a07\dots}\\
+\textbf{Created:} 2026-05-20T15:34:50.234075+00:00
+\subsection*{1. Claim}
+\begin{quote}Across 30 synthetic two-sample pairs of size 50 per group with varying effect sizes and variance ratios (seed=20260518), ``scipy.stats.ttest\_ind(equal\_var=False)``, ``statsmodels.stats.weightstats.ttest\_ind(usevar='unequal')``, and ``pingouin.ttest(correction=True)`` produce Welch t-statistics AND two-sided p-values that agree to ≤ 1e-09 across all pairwise comparisons. (RFC 0002 Phase E1: cross-framework validation; three-way variant with genuinely-independent statsmodels.)\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} Generate N (x, y) pairs where x \textasciitilde{} Normal(0, σ\_x²) and y \textasciitilde{} Normal(δ, σ\_y²) for a sweep of δ across [-1.0, 1.0] and variance-ratio σ\_y/σ\_x across [0.5, 2.0]. Compute Welch's t and two-sided p under each backend. Compute max\_abs\_diff = max over (pair, statistic ∈ \{t, p\}, backend-pair) of |stat\_a - stat\_b|. VALIDATED iff max\_abs\_diff ≤ tolerance.
+\item \textbf{Threshold:} \texttt{max\_absolute\_welch\_difference <= 1e-09 t\_or\_p}
+\item \textbf{H0:} At least one backend pair disagrees on the Welch t-statistic OR the two-sided p-value by more than the floating-point tolerance.
+\item \textbf{H1:} All three backends compute identical Welch t AND p to floating-point tolerance across every pair.
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{validated}{\textbf{VALIDATED}} --- observed \texttt{1.7763568394002505e-15}\\
+30 pairs × 3 backends × 2 statistics; max pairwise |Δ| = 1.776e-15 on (t, scipy\_vs\_statsmodels) (≤ 1e-09 tol)
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{welch\_t\_scipy\_vs\_statsmodels\_vs\_pingouin} & \texttt{max\_absolute\_welch\_difference} & \texttt{1.7763568394002505e-15} & --- & scipy 1.17.1 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-20T15:34:50.003601+00:00}
+\item Config hash: \texttt{650f785bb6c4c650aa559236e9e29db3\dots}
+\item Data hash: \texttt{650f785bb6c4c650aa559236e9e29db3\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{7eb7781079344eff11878e9669edf470b0e0866a50dfe7c3dc654664818b5ac5}\\
+
+\end{document}

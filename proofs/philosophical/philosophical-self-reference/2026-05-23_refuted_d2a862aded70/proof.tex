@@ -1,0 +1,158 @@
+\documentclass{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage{textcomp}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{newunicodechar}
+\newunicodechar{α}{\ensuremath{\alpha}}
+\newunicodechar{β}{\ensuremath{\beta}}
+\newunicodechar{γ}{\ensuremath{\gamma}}
+\newunicodechar{δ}{\ensuremath{\delta}}
+\newunicodechar{ε}{\ensuremath{\varepsilon}}
+\newunicodechar{ζ}{\ensuremath{\zeta}}
+\newunicodechar{η}{\ensuremath{\eta}}
+\newunicodechar{θ}{\ensuremath{\theta}}
+\newunicodechar{ι}{\ensuremath{\iota}}
+\newunicodechar{κ}{\ensuremath{\kappa}}
+\newunicodechar{λ}{\ensuremath{\lambda}}
+\newunicodechar{μ}{\ensuremath{\mu}}
+\newunicodechar{ν}{\ensuremath{\nu}}
+\newunicodechar{ξ}{\ensuremath{\xi}}
+\newunicodechar{π}{\ensuremath{\pi}}
+\newunicodechar{ρ}{\ensuremath{\rho}}
+\newunicodechar{ς}{\ensuremath{\varsigma}}
+\newunicodechar{σ}{\ensuremath{\sigma}}
+\newunicodechar{τ}{\ensuremath{\tau}}
+\newunicodechar{υ}{\ensuremath{\upsilon}}
+\newunicodechar{φ}{\ensuremath{\varphi}}
+\newunicodechar{χ}{\ensuremath{\chi}}
+\newunicodechar{ψ}{\ensuremath{\psi}}
+\newunicodechar{ω}{\ensuremath{\omega}}
+\newunicodechar{Γ}{\ensuremath{\Gamma}}
+\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{Θ}{\ensuremath{\Theta}}
+\newunicodechar{Λ}{\ensuremath{\Lambda}}
+\newunicodechar{Ξ}{\ensuremath{\Xi}}
+\newunicodechar{Π}{\ensuremath{\Pi}}
+\newunicodechar{Σ}{\ensuremath{\Sigma}}
+\newunicodechar{Υ}{\ensuremath{\Upsilon}}
+\newunicodechar{Φ}{\ensuremath{\Phi}}
+\newunicodechar{Ψ}{\ensuremath{\Psi}}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{≡}{\ensuremath{\equiv}}
+\newunicodechar{∝}{\ensuremath{\propto}}
+\newunicodechar{∈}{\ensuremath{\in}}
+\newunicodechar{∉}{\ensuremath{\notin}}
+\newunicodechar{⊂}{\ensuremath{\subset}}
+\newunicodechar{⊃}{\ensuremath{\supset}}
+\newunicodechar{⊆}{\ensuremath{\subseteq}}
+\newunicodechar{⊇}{\ensuremath{\supseteq}}
+\newunicodechar{∪}{\ensuremath{\cup}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{∅}{\ensuremath{\emptyset}}
+\newunicodechar{∀}{\ensuremath{\forall}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{√}{\ensuremath{\surd}}
+\newunicodechar{∑}{\ensuremath{\sum}}
+\newunicodechar{∏}{\ensuremath{\prod}}
+\newunicodechar{∫}{\ensuremath{\int}}
+\newunicodechar{∞}{\ensuremath{\infty}}
+\newunicodechar{∂}{\ensuremath{\partial}}
+\newunicodechar{∇}{\ensuremath{\nabla}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+\newunicodechar{⇐}{\ensuremath{\Leftarrow}}
+\newunicodechar{⇔}{\ensuremath{\Leftrightarrow}}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{±}{\ensuremath{\pm}}
+\newunicodechar{∓}{\ensuremath{\mp}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{÷}{\ensuremath{\div}}
+\newunicodechar{⋅}{\ensuremath{\cdot}}
+\newunicodechar{∘}{\ensuremath{\circ}}
+\newunicodechar{⊗}{\ensuremath{\otimes}}
+\newunicodechar{⊕}{\ensuremath{\oplus}}
+\newunicodechar{′}{\ensuremath{\prime}}
+\newunicodechar{ℝ}{\ensuremath{\mathbb{R}}}
+\newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
+\newunicodechar{ℤ}{\ensuremath{\mathbb{Z}}}
+\newunicodechar{ℚ}{\ensuremath{\mathbb{Q}}}
+\newunicodechar{ℂ}{\ensuremath{\mathbb{C}}}
+\newunicodechar{—}{\textemdash{}}
+\newunicodechar{–}{\textendash{}}
+\newunicodechar{…}{\ldots{}}
+\newunicodechar{§}{\S{}}
+\newunicodechar{¶}{\P{}}
+\newunicodechar{·}{\textperiodcentered{}}
+\newunicodechar{°}{\textdegree{}}
+\newunicodechar{²}{\textsuperscript{2}}
+\newunicodechar{³}{\textsuperscript{3}}
+\newunicodechar{¹}{\textsuperscript{1}}
+\newunicodechar{⁰}{\textsuperscript{0}}
+\newunicodechar{⁴}{\textsuperscript{4}}
+\newunicodechar{⁵}{\textsuperscript{5}}
+\newunicodechar{⁶}{\textsuperscript{6}}
+\newunicodechar{⁷}{\textsuperscript{7}}
+\newunicodechar{⁸}{\textsuperscript{8}}
+\newunicodechar{⁹}{\textsuperscript{9}}
+\newunicodechar{‘}{\textquoteleft{}}
+\newunicodechar{’}{\textquoteright{}}
+\newunicodechar{“}{\textquotedblleft{}}
+\newunicodechar{”}{\textquotedblright{}}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: REFUTED}
+\date{2026-05-23T23:13:21.778494+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{refuted}{\textbf{REFUTED}}}
+\textbf{Proof ID:} \texttt{d2a862aded70ce6739a9e4761074c6eb\dots}\\
+\textbf{Created:} 2026-05-23T23:13:21.778494+00:00
+\subsection*{1. Claim}
+\begin{quote}When fed text describing Kimera's own primitives, the substrate's dissonance signal (dissonance\_events\_count) is measurably higher than on neutral text — Cohen's d effect size >= 0.30 (one-sided, self-referential > neutral). A REFUTED verdict means the substrate does not differentially process content about itself.\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} Cohen's d effect size on per-cycle dissonance\_events\_count between the self-referential group and the neutral group (pooled-variance form, one-sided)
+\item \textbf{Threshold:} \texttt{dissonance\_cohens\_d\_self\_ref\_vs\_neutral >= 0.3 cohens\_d}
+\item \textbf{H0:} Cohen's d < 0.30 (substrate does not differentiate self-referential content)
+\item \textbf{H1:} Cohen's d >= 0.30 (substrate differentially processes content about itself)
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{refuted}{\textbf{REFUTED}} --- observed \texttt{-0.21832963290079094}\\
+Cohen's d (self\_ref - neutral)/pooled\_sd = -0.218; self\_ref dissonance: n=30 median=4.5 mean=7.67 (range 0-21); neutral dissonance: n=10 median=5.5 mean=9.20 (range 0-23); Mann-Whitney U=136.5, one-sided p=0.6696; 40 cycles, 0 adapter errors
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{O.philosophical.cohens\_d} & \texttt{dissonance\_cohens\_d\_self\_ref\_vs\_neutral} & \texttt{-0.21832963290079094} & --- & python-stdlib 3.14 \\
+\texttt{O.philosophical.mannwhitneyu} & \texttt{dissonance\_mannwhitneyu\_p\_value} & \texttt{0.669638774944353} & --- & scipy scipy.stats \\
+\texttt{O.philosophical.self\_ref\_dissonance} & \texttt{self\_ref\_dissonance\_median} & \texttt{4.5} & --- & python-stdlib 3.14 \\
+\texttt{O.philosophical.neutral\_dissonance} & \texttt{neutral\_dissonance\_median} & \texttt{5.5} & --- & python-stdlib 3.14 \\
+\texttt{O.philosophical.self\_ref\_phi} & \texttt{self\_ref\_phi\_median} & \texttt{0.6524345227680417} & --- & python-stdlib 3.14 \\
+\texttt{O.philosophical.neutral\_phi} & \texttt{neutral\_phi\_median} & \texttt{0.6360755133242495} & --- & python-stdlib 3.14 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-23T23:11:45.601773+00:00}
+\item Config hash: \texttt{a6849a2807fd2bef4900b84b42422662\dots}
+\item Data hash: \texttt{b3da1b3fe0369ec3140bb4fbce94702c\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{9a66ea7be4ad98fe0f8bd848624b296713a7141f38780f0f535b2f16d6bff492}\\
+
+\end{document}

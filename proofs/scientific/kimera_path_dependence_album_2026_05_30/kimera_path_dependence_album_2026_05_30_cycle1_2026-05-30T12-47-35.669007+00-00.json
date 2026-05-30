@@ -1,0 +1,106 @@
+{
+  "proof_id": "477bc329fa944a15f4ca17d0eac1f28493f816b19326347d82870a7baacfb221",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T12:47:36.879311+00:00"
+  },
+  "claim": {
+    "statement": "Kimera-SWM (Takwin) walked the trajectory shown below on prompt 'The river carries water to the sea under the sun.'; the Partition is re-performable from its primes, native Cronos stamp, and GWF signature; the rendered walk_1.png is a faithful artefact of this act.",
+    "operationalization": "One Takwin cycle on prompt='The river carries water to the sea under the sun.'; trajectory of 13 concepts; native Cronos stamp; GWF verdict; re-performable from primes + Cronos + GWF.",
+    "threshold": {
+      "metric": "trajectory_present_and_signed",
+      "comparator": ">=",
+      "value": 1.0,
+      "units": "acts"
+    },
+    "h0": "No act recorded (empty trajectory)",
+    "h1": "Substrate emitted one re-performable Partition for this cycle"
+  },
+  "preregistration": {
+    "config_hash": "album_715b131f",
+    "data_hash": "cycle_1_5f564635",
+    "analysis_plan": "Pre-registered: same prompt \u00d7 N cycles, one signed Partition each.",
+    "sweep_grid": {
+      "cycle_index": 1,
+      "n_cycles_total": 5
+    },
+    "preregistered_at": "2026-05-30T12:47:35.669007+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "715b131f183c8cd2369b9ee9fa2f31bbf4d4a011",
+    "datasets": [
+      {
+        "name": "kimera_cognition_cycle",
+        "content_hash": "album_v1_cycle_1_5f564635-7ae",
+        "n_records": 13,
+        "source": "kimera-swm-takwin-live",
+        "kind": "cognitive_act_partition"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "trajectory_length",
+      "statistic_name": "n_concepts",
+      "statistic_value": 13.0,
+      "library": "kimera-swm-expression",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "trajectory": [
+          "carries",
+          "boat",
+          "ship",
+          "submarine",
+          "ocean",
+          "sea",
+          "water",
+          "liquid",
+          "heat",
+          "energy",
+          "sun",
+          "moon",
+          "rain"
+        ],
+        "primes_first_3": [
+          "1282299858947",
+          "3117699657053",
+          "3221299645657"
+        ],
+        "resolution": "amplitude_death",
+        "phi": 0.47314653413475816,
+        "cronos": "\u03c62.521098/clean/coh0.1880/lock1.000",
+        "gwf": "cleared",
+        "scar_id": "5f564635-7aec-4325-b175-973381430181"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 13.0,
+    "threshold": {
+      "metric": "trajectory_present_and_signed",
+      "comparator": ">=",
+      "value": 1.0,
+      "units": "acts"
+    },
+    "reasoning": "Cycle 1: emitted Partition with 13 concepts, resolution='amplitude_death', \u03a6=0.473, Cronos='\u03c62.521098/clean/coh0.1880/lock1.000'."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M45_path_dependence_album_20260530/album_run.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "715b131f183c8cd2369b9ee9fa2f31bbf4d4a011"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

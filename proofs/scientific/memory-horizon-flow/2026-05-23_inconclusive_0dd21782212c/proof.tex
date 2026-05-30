@@ -1,0 +1,153 @@
+\documentclass{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage{textcomp}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{newunicodechar}
+\newunicodechar{α}{\ensuremath{\alpha}}
+\newunicodechar{β}{\ensuremath{\beta}}
+\newunicodechar{γ}{\ensuremath{\gamma}}
+\newunicodechar{δ}{\ensuremath{\delta}}
+\newunicodechar{ε}{\ensuremath{\varepsilon}}
+\newunicodechar{ζ}{\ensuremath{\zeta}}
+\newunicodechar{η}{\ensuremath{\eta}}
+\newunicodechar{θ}{\ensuremath{\theta}}
+\newunicodechar{ι}{\ensuremath{\iota}}
+\newunicodechar{κ}{\ensuremath{\kappa}}
+\newunicodechar{λ}{\ensuremath{\lambda}}
+\newunicodechar{μ}{\ensuremath{\mu}}
+\newunicodechar{ν}{\ensuremath{\nu}}
+\newunicodechar{ξ}{\ensuremath{\xi}}
+\newunicodechar{π}{\ensuremath{\pi}}
+\newunicodechar{ρ}{\ensuremath{\rho}}
+\newunicodechar{ς}{\ensuremath{\varsigma}}
+\newunicodechar{σ}{\ensuremath{\sigma}}
+\newunicodechar{τ}{\ensuremath{\tau}}
+\newunicodechar{υ}{\ensuremath{\upsilon}}
+\newunicodechar{φ}{\ensuremath{\varphi}}
+\newunicodechar{χ}{\ensuremath{\chi}}
+\newunicodechar{ψ}{\ensuremath{\psi}}
+\newunicodechar{ω}{\ensuremath{\omega}}
+\newunicodechar{Γ}{\ensuremath{\Gamma}}
+\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{Θ}{\ensuremath{\Theta}}
+\newunicodechar{Λ}{\ensuremath{\Lambda}}
+\newunicodechar{Ξ}{\ensuremath{\Xi}}
+\newunicodechar{Π}{\ensuremath{\Pi}}
+\newunicodechar{Σ}{\ensuremath{\Sigma}}
+\newunicodechar{Υ}{\ensuremath{\Upsilon}}
+\newunicodechar{Φ}{\ensuremath{\Phi}}
+\newunicodechar{Ψ}{\ensuremath{\Psi}}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{≡}{\ensuremath{\equiv}}
+\newunicodechar{∝}{\ensuremath{\propto}}
+\newunicodechar{∈}{\ensuremath{\in}}
+\newunicodechar{∉}{\ensuremath{\notin}}
+\newunicodechar{⊂}{\ensuremath{\subset}}
+\newunicodechar{⊃}{\ensuremath{\supset}}
+\newunicodechar{⊆}{\ensuremath{\subseteq}}
+\newunicodechar{⊇}{\ensuremath{\supseteq}}
+\newunicodechar{∪}{\ensuremath{\cup}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{∅}{\ensuremath{\emptyset}}
+\newunicodechar{∀}{\ensuremath{\forall}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{√}{\ensuremath{\surd}}
+\newunicodechar{∑}{\ensuremath{\sum}}
+\newunicodechar{∏}{\ensuremath{\prod}}
+\newunicodechar{∫}{\ensuremath{\int}}
+\newunicodechar{∞}{\ensuremath{\infty}}
+\newunicodechar{∂}{\ensuremath{\partial}}
+\newunicodechar{∇}{\ensuremath{\nabla}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+\newunicodechar{⇐}{\ensuremath{\Leftarrow}}
+\newunicodechar{⇔}{\ensuremath{\Leftrightarrow}}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{±}{\ensuremath{\pm}}
+\newunicodechar{∓}{\ensuremath{\mp}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{÷}{\ensuremath{\div}}
+\newunicodechar{⋅}{\ensuremath{\cdot}}
+\newunicodechar{∘}{\ensuremath{\circ}}
+\newunicodechar{⊗}{\ensuremath{\otimes}}
+\newunicodechar{⊕}{\ensuremath{\oplus}}
+\newunicodechar{′}{\ensuremath{\prime}}
+\newunicodechar{ℝ}{\ensuremath{\mathbb{R}}}
+\newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
+\newunicodechar{ℤ}{\ensuremath{\mathbb{Z}}}
+\newunicodechar{ℚ}{\ensuremath{\mathbb{Q}}}
+\newunicodechar{ℂ}{\ensuremath{\mathbb{C}}}
+\newunicodechar{—}{\textemdash{}}
+\newunicodechar{–}{\textendash{}}
+\newunicodechar{…}{\ldots{}}
+\newunicodechar{§}{\S{}}
+\newunicodechar{¶}{\P{}}
+\newunicodechar{·}{\textperiodcentered{}}
+\newunicodechar{°}{\textdegree{}}
+\newunicodechar{²}{\textsuperscript{2}}
+\newunicodechar{³}{\textsuperscript{3}}
+\newunicodechar{¹}{\textsuperscript{1}}
+\newunicodechar{⁰}{\textsuperscript{0}}
+\newunicodechar{⁴}{\textsuperscript{4}}
+\newunicodechar{⁵}{\textsuperscript{5}}
+\newunicodechar{⁶}{\textsuperscript{6}}
+\newunicodechar{⁷}{\textsuperscript{7}}
+\newunicodechar{⁸}{\textsuperscript{8}}
+\newunicodechar{⁹}{\textsuperscript{9}}
+\newunicodechar{‘}{\textquoteleft{}}
+\newunicodechar{’}{\textquoteright{}}
+\newunicodechar{“}{\textquotedblleft{}}
+\newunicodechar{”}{\textquotedblright{}}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: INCONCLUSIVE}
+\date{2026-05-23T23:11:26.204263+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{inconclusive}{\textbf{INCONCLUSIVE}}}
+\textbf{Proof ID:} \texttt{0dd21782212c19b5f1ae2cebb887ddf9\dots}\\
+\textbf{Created:} 2026-05-23T23:11:26.204263+00:00
+\subsection*{1. Claim}
+\begin{quote}Across a long single-pass stream, the substrate still recalls earlier experiences beyond a fixed context window: □ (for every probe whose lag exceeds window\_ref=256, recall Jaccard ≥ 0.50). The reported floor is the worst beyond-window probe.\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} Stream 8 distinct stimuli once through Kimera's entity target, then re-probe 8 positions spread over the stream. For each probe, recall = Jaccard(concept set at first exposure, concept set at probe); lag = intervening cycles. recall\_floor\_beyond\_window = min recall over probes with lag > 256; the □ invariant holds iff that floor ≥ 0.50.
+\item \textbf{Threshold:} \texttt{recall\_floor\_beyond\_window >= 0.5 jaccard}
+\item \textbf{H0:} H0: recall < 0.50 for some item recalled beyond window\_ref=256 — the horizon is shorter than the reference window
+\item \textbf{H1:} H1: recall ≥ 0.50 for every beyond-window probe — memory reaches past a fixed window of that size
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{inconclusive}{\textbf{INCONCLUSIVE}} --- observed \texttt{0.0}\\
+recall floor 0.0000 over 0 beyond-window probes (lag > 256); mean recall 0.0000, stdev 0.0000; memory horizon (max lag with recall ≥ 0.50) = 8 cycles; max lag measured 8; 8-item single-pass stream; 0 probes produced no concept set; too few beyond-window probes (<3) to decide — widen the stream or lower window\_ref
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{O.flow.memory\_horizon} & \texttt{recall\_floor\_beyond\_window} & \texttt{0.0} & --- & ophamin 0.115.2 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-23T23:11:25.978419+00:00}
+\item Config hash: \texttt{97758cc1fa8320dc018877a25a8d436e\dots}
+\item Data hash: \texttt{221a8a035c85eee67ce8bccf6670a709\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{70219d4947950ccf3e93411cc1c0783d4204ae1d61502affd4ba3888334485c3}\\
+
+\end{document}

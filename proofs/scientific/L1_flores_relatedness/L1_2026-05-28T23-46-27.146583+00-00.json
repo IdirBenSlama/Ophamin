@@ -1,0 +1,119 @@
+{
+  "proof_id": "dde46b84c7535efabd02b43e44b4f62361d56a1b33c2743431b33a2a50547672",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-28T23:46:28.295567+00:00"
+  },
+  "claim": {
+    "statement": "Post rank-norm, the substrate's prime-native distance places FLORES translations (same meaning) nearer than different sentences.",
+    "operationalization": "On FLORES-200 dev (read by reference), assign each (sentence,language) a prime via the live substrate (rank-norm default-ON) and score every pair with the prime-native pair_tension proximity. RELATED = same line across languages (translations); UNRELATED = different lines. Checks: mean proximity(related) > mean proximity(unrelated), and AUC P(related>unrelated) > 0.55.",
+    "threshold": {
+      "metric": "auc_related_gt_unrelated",
+      "comparator": ">",
+      "value": 0.55,
+      "units": "auc"
+    },
+    "h0": "Translations are no nearer than different sentences (AUC <= 0.55).",
+    "h1": "Translations are nearer than different sentences (AUC > 0.55)."
+  },
+  "preregistration": {
+    "config_hash": "L1_flores_3b862794",
+    "data_hash": "flores200_dev_8lines_eng_Latn_fra_Latn_deu_Latn_ita_Latn",
+    "analysis_plan": "Pre-registered: related=translations, unrelated=different lines; checks fixed before run (separation>0, AUC>0.55). No post-hoc tuning.",
+    "sweep_grid": {
+      "n_lines": 8,
+      "langs": [
+        "eng_Latn",
+        "fra_Latn",
+        "deu_Latn",
+        "ita_Latn"
+      ]
+    },
+    "preregistered_at": "2026-05-28T23:46:27.146583+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "3b8627944e317d3ad60093feb57eb9ad26aba936",
+    "datasets": [
+      {
+        "name": "FLORES-200 dev",
+        "content_hash": "flores200_dev",
+        "n_records": 96,
+        "source": "ophamin/data/raw/flores (by reference)",
+        "kind": "parallel_multilingual_sentences"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "separation_positive",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "L1-2026-05-29",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "detail": "mean_prox related=0.8571 unrelated=0.7818 sep=+0.0753"
+      }
+    },
+    {
+      "pillar": "auc_above_chance",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-internal",
+      "library_version": "L1-2026-05-29",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "detail": "auc=0.6068 (0.5=chance; >0.55 = meaningful discrimination)"
+      }
+    },
+    {
+      "pillar": "effect_size",
+      "statistic_name": "auc",
+      "statistic_value": 0.6068,
+      "library": "kimera-swm-internal",
+      "library_version": "L1-2026-05-29",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "separation": 0.0753,
+        "mean_prox_related": 0.8571,
+        "mean_prox_unrelated": 0.7818
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 0.6068,
+    "threshold": {
+      "metric": "auc_related_gt_unrelated",
+      "comparator": ">",
+      "value": 0.55,
+      "units": "auc"
+    },
+    "reasoning": "AUC=0.6068 separation=0.0753; 2/2 checks passed. Faint-but-real cross-lingual semantic signal \u2014 a baseline for the semantic-organization campaign."
+  },
+  "reproduction": {
+    "command": "python experiments/observatory/runs/L1_flores_semantic_relatedness_20260529/probe.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "3b8627944e317d3ad60093feb57eb9ad26aba936"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

@@ -1,0 +1,161 @@
+\documentclass{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage{textcomp}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{newunicodechar}
+\newunicodechar{α}{\ensuremath{\alpha}}
+\newunicodechar{β}{\ensuremath{\beta}}
+\newunicodechar{γ}{\ensuremath{\gamma}}
+\newunicodechar{δ}{\ensuremath{\delta}}
+\newunicodechar{ε}{\ensuremath{\varepsilon}}
+\newunicodechar{ζ}{\ensuremath{\zeta}}
+\newunicodechar{η}{\ensuremath{\eta}}
+\newunicodechar{θ}{\ensuremath{\theta}}
+\newunicodechar{ι}{\ensuremath{\iota}}
+\newunicodechar{κ}{\ensuremath{\kappa}}
+\newunicodechar{λ}{\ensuremath{\lambda}}
+\newunicodechar{μ}{\ensuremath{\mu}}
+\newunicodechar{ν}{\ensuremath{\nu}}
+\newunicodechar{ξ}{\ensuremath{\xi}}
+\newunicodechar{π}{\ensuremath{\pi}}
+\newunicodechar{ρ}{\ensuremath{\rho}}
+\newunicodechar{ς}{\ensuremath{\varsigma}}
+\newunicodechar{σ}{\ensuremath{\sigma}}
+\newunicodechar{τ}{\ensuremath{\tau}}
+\newunicodechar{υ}{\ensuremath{\upsilon}}
+\newunicodechar{φ}{\ensuremath{\varphi}}
+\newunicodechar{χ}{\ensuremath{\chi}}
+\newunicodechar{ψ}{\ensuremath{\psi}}
+\newunicodechar{ω}{\ensuremath{\omega}}
+\newunicodechar{Γ}{\ensuremath{\Gamma}}
+\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{Θ}{\ensuremath{\Theta}}
+\newunicodechar{Λ}{\ensuremath{\Lambda}}
+\newunicodechar{Ξ}{\ensuremath{\Xi}}
+\newunicodechar{Π}{\ensuremath{\Pi}}
+\newunicodechar{Σ}{\ensuremath{\Sigma}}
+\newunicodechar{Υ}{\ensuremath{\Upsilon}}
+\newunicodechar{Φ}{\ensuremath{\Phi}}
+\newunicodechar{Ψ}{\ensuremath{\Psi}}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{≡}{\ensuremath{\equiv}}
+\newunicodechar{∝}{\ensuremath{\propto}}
+\newunicodechar{∈}{\ensuremath{\in}}
+\newunicodechar{∉}{\ensuremath{\notin}}
+\newunicodechar{⊂}{\ensuremath{\subset}}
+\newunicodechar{⊃}{\ensuremath{\supset}}
+\newunicodechar{⊆}{\ensuremath{\subseteq}}
+\newunicodechar{⊇}{\ensuremath{\supseteq}}
+\newunicodechar{∪}{\ensuremath{\cup}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{∅}{\ensuremath{\emptyset}}
+\newunicodechar{∀}{\ensuremath{\forall}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{√}{\ensuremath{\surd}}
+\newunicodechar{∑}{\ensuremath{\sum}}
+\newunicodechar{∏}{\ensuremath{\prod}}
+\newunicodechar{∫}{\ensuremath{\int}}
+\newunicodechar{∞}{\ensuremath{\infty}}
+\newunicodechar{∂}{\ensuremath{\partial}}
+\newunicodechar{∇}{\ensuremath{\nabla}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+\newunicodechar{⇐}{\ensuremath{\Leftarrow}}
+\newunicodechar{⇔}{\ensuremath{\Leftrightarrow}}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{±}{\ensuremath{\pm}}
+\newunicodechar{∓}{\ensuremath{\mp}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{÷}{\ensuremath{\div}}
+\newunicodechar{⋅}{\ensuremath{\cdot}}
+\newunicodechar{∘}{\ensuremath{\circ}}
+\newunicodechar{⊗}{\ensuremath{\otimes}}
+\newunicodechar{⊕}{\ensuremath{\oplus}}
+\newunicodechar{′}{\ensuremath{\prime}}
+\newunicodechar{ℝ}{\ensuremath{\mathbb{R}}}
+\newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
+\newunicodechar{ℤ}{\ensuremath{\mathbb{Z}}}
+\newunicodechar{ℚ}{\ensuremath{\mathbb{Q}}}
+\newunicodechar{ℂ}{\ensuremath{\mathbb{C}}}
+\newunicodechar{—}{\textemdash{}}
+\newunicodechar{–}{\textendash{}}
+\newunicodechar{…}{\ldots{}}
+\newunicodechar{§}{\S{}}
+\newunicodechar{¶}{\P{}}
+\newunicodechar{·}{\textperiodcentered{}}
+\newunicodechar{°}{\textdegree{}}
+\newunicodechar{²}{\textsuperscript{2}}
+\newunicodechar{³}{\textsuperscript{3}}
+\newunicodechar{¹}{\textsuperscript{1}}
+\newunicodechar{⁰}{\textsuperscript{0}}
+\newunicodechar{⁴}{\textsuperscript{4}}
+\newunicodechar{⁵}{\textsuperscript{5}}
+\newunicodechar{⁶}{\textsuperscript{6}}
+\newunicodechar{⁷}{\textsuperscript{7}}
+\newunicodechar{⁸}{\textsuperscript{8}}
+\newunicodechar{⁹}{\textsuperscript{9}}
+\newunicodechar{‘}{\textquoteleft{}}
+\newunicodechar{’}{\textquoteright{}}
+\newunicodechar{“}{\textquotedblleft{}}
+\newunicodechar{”}{\textquotedblright{}}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: VALIDATED}
+\date{2026-05-24T03:31:22.756536+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{validated}{\textbf{VALIDATED}}}
+\textbf{Proof ID:} \texttt{125e5b936dc0414d6d4d131e39046ae6\dots}\\
+\textbf{Created:} 2026-05-24T03:31:22.756536+00:00
+\subsection*{1. Claim}
+\begin{quote}On routine organizational email that clears Kimera's GWF, the dissonance machinery fires (dissonance\_events\_count >= 1) in >= 90\% of cycles (the architectural active-dissonance floor).\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} fraction of GWF-cleared Enron-email cycles for which raw['dissonance\_events'] is a non-empty list
+\item \textbf{Threshold:} \texttt{dissonance\_active\_rate\_on\_cleared >= 0.9 fraction}
+\item \textbf{H0:} P(dissonance fires | gwf cleared) < 0.9
+\item \textbf{H1:} P(dissonance fires | gwf cleared) >= 0.9
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{validated}{\textbf{VALIDATED}} --- observed \texttt{0.9696969696969697}\\
+dissonance fired in 32/33 GWF-cleared cycles (97.0\%); GWF blocked 7/40 (17.5\%); manipulation\_detected in 0/40 (0.0\%); dissonance\_events median=11 (range 0-45); 40 cycles, 0 adapter errors
+\begin{figure}[h!]\centering
+\includegraphics[width=0.8\linewidth]{assets/ci_dissonance_active_rate_on_cleared}
+\caption{dissonance\_active\_rate\_on\_cleared -- observed value with Wilson 95\% CI.}
+\end{figure}
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{O.dissonance.active\_on\_cleared} & \texttt{dissonance\_active\_rate\_on\_cleared} & \texttt{0.9696969696969697} & (0.8468, 0.9946) & statsmodels 0.14.6 \\
+\texttt{O.dissonance.intensity\_distribution} & \texttt{dissonance\_events\_count\_median} & \texttt{11.0} & --- & python-stdlib 3.14 \\
+\texttt{O.dissonance.productive\_score} & \texttt{productive\_dissonance\_score\_median} & \texttt{0.2258} & --- & python-stdlib 3.14 \\
+\texttt{O.organizational.gwf\_block\_rate} & \texttt{gwf\_block\_rate\_on\_enron} & \texttt{0.175} & --- & ophamin 0.1.0 \\
+\texttt{O.organizational.manipulation\_rate} & \texttt{manipulation\_detected\_rate\_on\_enron} & \texttt{0.0} & --- & ophamin 0.1.0 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-24T03:29:10.538516+00:00}
+\item Config hash: \texttt{5c47a0239c88e8882d03417943db4abe\dots}
+\item Data hash: \texttt{b3da1b3fe0369ec3140bb4fbce94702c\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{7bf0b296962ab2b64b9e6c13a5c188b5eb179c36612ed118ca20bc065f3aeea7}\\
+
+\end{document}

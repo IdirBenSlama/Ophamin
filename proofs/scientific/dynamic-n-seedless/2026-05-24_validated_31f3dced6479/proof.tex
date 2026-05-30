@@ -1,0 +1,157 @@
+\documentclass{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage{textcomp}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{newunicodechar}
+\newunicodechar{α}{\ensuremath{\alpha}}
+\newunicodechar{β}{\ensuremath{\beta}}
+\newunicodechar{γ}{\ensuremath{\gamma}}
+\newunicodechar{δ}{\ensuremath{\delta}}
+\newunicodechar{ε}{\ensuremath{\varepsilon}}
+\newunicodechar{ζ}{\ensuremath{\zeta}}
+\newunicodechar{η}{\ensuremath{\eta}}
+\newunicodechar{θ}{\ensuremath{\theta}}
+\newunicodechar{ι}{\ensuremath{\iota}}
+\newunicodechar{κ}{\ensuremath{\kappa}}
+\newunicodechar{λ}{\ensuremath{\lambda}}
+\newunicodechar{μ}{\ensuremath{\mu}}
+\newunicodechar{ν}{\ensuremath{\nu}}
+\newunicodechar{ξ}{\ensuremath{\xi}}
+\newunicodechar{π}{\ensuremath{\pi}}
+\newunicodechar{ρ}{\ensuremath{\rho}}
+\newunicodechar{ς}{\ensuremath{\varsigma}}
+\newunicodechar{σ}{\ensuremath{\sigma}}
+\newunicodechar{τ}{\ensuremath{\tau}}
+\newunicodechar{υ}{\ensuremath{\upsilon}}
+\newunicodechar{φ}{\ensuremath{\varphi}}
+\newunicodechar{χ}{\ensuremath{\chi}}
+\newunicodechar{ψ}{\ensuremath{\psi}}
+\newunicodechar{ω}{\ensuremath{\omega}}
+\newunicodechar{Γ}{\ensuremath{\Gamma}}
+\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{Θ}{\ensuremath{\Theta}}
+\newunicodechar{Λ}{\ensuremath{\Lambda}}
+\newunicodechar{Ξ}{\ensuremath{\Xi}}
+\newunicodechar{Π}{\ensuremath{\Pi}}
+\newunicodechar{Σ}{\ensuremath{\Sigma}}
+\newunicodechar{Υ}{\ensuremath{\Upsilon}}
+\newunicodechar{Φ}{\ensuremath{\Phi}}
+\newunicodechar{Ψ}{\ensuremath{\Psi}}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{≡}{\ensuremath{\equiv}}
+\newunicodechar{∝}{\ensuremath{\propto}}
+\newunicodechar{∈}{\ensuremath{\in}}
+\newunicodechar{∉}{\ensuremath{\notin}}
+\newunicodechar{⊂}{\ensuremath{\subset}}
+\newunicodechar{⊃}{\ensuremath{\supset}}
+\newunicodechar{⊆}{\ensuremath{\subseteq}}
+\newunicodechar{⊇}{\ensuremath{\supseteq}}
+\newunicodechar{∪}{\ensuremath{\cup}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{∅}{\ensuremath{\emptyset}}
+\newunicodechar{∀}{\ensuremath{\forall}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{√}{\ensuremath{\surd}}
+\newunicodechar{∑}{\ensuremath{\sum}}
+\newunicodechar{∏}{\ensuremath{\prod}}
+\newunicodechar{∫}{\ensuremath{\int}}
+\newunicodechar{∞}{\ensuremath{\infty}}
+\newunicodechar{∂}{\ensuremath{\partial}}
+\newunicodechar{∇}{\ensuremath{\nabla}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+\newunicodechar{⇐}{\ensuremath{\Leftarrow}}
+\newunicodechar{⇔}{\ensuremath{\Leftrightarrow}}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{±}{\ensuremath{\pm}}
+\newunicodechar{∓}{\ensuremath{\mp}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{÷}{\ensuremath{\div}}
+\newunicodechar{⋅}{\ensuremath{\cdot}}
+\newunicodechar{∘}{\ensuremath{\circ}}
+\newunicodechar{⊗}{\ensuremath{\otimes}}
+\newunicodechar{⊕}{\ensuremath{\oplus}}
+\newunicodechar{′}{\ensuremath{\prime}}
+\newunicodechar{ℝ}{\ensuremath{\mathbb{R}}}
+\newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
+\newunicodechar{ℤ}{\ensuremath{\mathbb{Z}}}
+\newunicodechar{ℚ}{\ensuremath{\mathbb{Q}}}
+\newunicodechar{ℂ}{\ensuremath{\mathbb{C}}}
+\newunicodechar{—}{\textemdash{}}
+\newunicodechar{–}{\textendash{}}
+\newunicodechar{…}{\ldots{}}
+\newunicodechar{§}{\S{}}
+\newunicodechar{¶}{\P{}}
+\newunicodechar{·}{\textperiodcentered{}}
+\newunicodechar{°}{\textdegree{}}
+\newunicodechar{²}{\textsuperscript{2}}
+\newunicodechar{³}{\textsuperscript{3}}
+\newunicodechar{¹}{\textsuperscript{1}}
+\newunicodechar{⁰}{\textsuperscript{0}}
+\newunicodechar{⁴}{\textsuperscript{4}}
+\newunicodechar{⁵}{\textsuperscript{5}}
+\newunicodechar{⁶}{\textsuperscript{6}}
+\newunicodechar{⁷}{\textsuperscript{7}}
+\newunicodechar{⁸}{\textsuperscript{8}}
+\newunicodechar{⁹}{\textsuperscript{9}}
+\newunicodechar{‘}{\textquoteleft{}}
+\newunicodechar{’}{\textquoteright{}}
+\newunicodechar{“}{\textquotedblleft{}}
+\newunicodechar{”}{\textquotedblright{}}
+\definecolor{validated}{HTML}{047857}
+\definecolor{refuted}{HTML}{B91C1C}
+\definecolor{inconclusive}{HTML}{9A3412}
+\title{Empirical Proof Record: VALIDATED}
+\date{2026-05-24T20:12:56.297179+00:00}
+\begin{document}
+\maketitle
+\section*{Empirical Proof Record --- \textcolor{validated}{\textbf{VALIDATED}}}
+\textbf{Proof ID:} \texttt{31f3dced6479b557c45d8950f2fb2bbd\dots}\\
+\textbf{Created:} 2026-05-24T20:12:56.297179+00:00
+\subsection*{1. Claim}
+\begin{quote}A default Takwin() with NO seed and no flags bootstraps its own learned geoid manifold from its OWN lived cloud at the first rich consolidation (cold N=5 → learned-N, no seed) and grows it as experience accumulates, with the cycle staying coherent (post-bootstrap mean Φ >= 0.5). Nothing is imposed; dynamic-N is mandatory and intrinsic.\end{quote}
+\begin{itemize}
+\item \textbf{Operationalisation:} Default Takwin() (cold N=5 hash, \_use\_learned\_geoid=False) → stream of accumulating experience → \_refit\_geoid\_dimension fires at consolidation, bootstrapping the first learned manifold from the lived \_geoid\_map cloud; observed = post-bootstrap mean Φ, gated on bootstrapped (cold→learned) AND N grew.
+\item \textbf{Threshold:} \texttt{post\_bootstrap\_mean\_phi >= 0.5 phi}
+\item \textbf{H0:} H0: no cold-start bootstrap, or post-bootstrap Φ < 0.5 — seedless dynamic-N not viable
+\item \textbf{H1:} H1: bootstrapped from cold (no seed) and post-Φ >= 0.50 — nothing imposed
+\end{itemize}
+\subsection*{2. Verdict}
+\textcolor{validated}{\textbf{VALIDATED}} --- observed \texttt{0.7262}\\
+cold start N=5 (learned=False); bootstrapped at cycle 4 → learned-N from the substrate's OWN cloud (no seed); grew to N=91 (4 grows); post-bootstrap mean Φ 0.726 (min 0.692) — coherent through the bootstrap. Nothing imposed; mandatory, intrinsic dynamic-N.
+\begin{figure}[h!]\centering
+\includegraphics[width=0.8\linewidth]{assets/ci_post_bootstrap_mean_phi}
+\caption{post\_bootstrap\_mean\_phi -- observed value with Wilson 95\% CI.}
+\end{figure}
+\subsection*{3. Evidence}
+\begin{tabular}{llrrl}\toprule
+\textbf{Pillar} & \textbf{Statistic} & \textbf{Value} & \textbf{95\% CI} & \textbf{Library} \\\midrule
+\texttt{seedless\_self\_dimensioning} & \texttt{post\_bootstrap\_mean\_phi} & \texttt{0.7262} & (0.0000, 0.0000) & numpy 2.4.4 \\
+\bottomrule\end{tabular}
+\subsection*{4. Pre-registration}
+\begin{itemize}
+\item Registered at: \texttt{2026-05-24T20:12:56.034864+00:00}
+\item Config hash: \texttt{1cd54890719f7a2f7fbaeac678d009b3\dots}
+\item Data hash: \texttt{e67f0113a391d32d01e13aa7538f4976\dots}
+\end{itemize}
+\subsection*{5. Signature}
+\texttt{be20a9321b358ce2da9900d80722d399f42bca6801271fcc3d13fbde3a3d302c}\\
+
+\end{document}

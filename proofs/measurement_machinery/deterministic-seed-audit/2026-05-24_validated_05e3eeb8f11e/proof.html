@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>05e3eeb8f11e9781d28d5afd1c7f04f8785b6354901e8897e2536f9ad2580698</code><br><strong>Created:</strong> 2026-05-24T03:29:05.469582+00:00</p><h2>1. Claim</h2><blockquote><p>Two independent invocations of the &#x27;crdt-laws&#x27; scenario with constructor kwargs {&#x27;n_sequences&#x27;: 5, &#x27;ops_per_sequence&#x27;: 5, &#x27;seed&#x27;: 20260517} produce bit-identical reproducibility-form proof hashes. (RFC 0002 Phase E4: research-grade reproducibility — every scenario must be deterministic given a fixed seed + corpus + substrate_commit + ophamin_commit.)</p></blockquote><ul><li><strong>Operationalisation:</strong> Instantiate the target scenario twice with identical kwargs; run each to emit a signed proof record; compute reproducibility_hash(proof) on each (SHA-256 over the canonical body with wall-clock fields stripped); assert the two hashes match exactly.</li><li><strong>Threshold:</strong> <code>reproducibility_hash_match &gt;= 1.0 proportion</code></li><li><strong>H0:</strong> Two independent runs of the target scenario produce different reproducibility-form hashes — non-determinism is leaking somewhere in the measurement pipeline.</li><li><strong>H1:</strong> Two independent runs produce bit-identical reproducibility-form hashes — the scenario honours the seed + config contract.</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>1.0</code></p><p>match: reproducibility_hash_a=f79d459fa0d0d7ea..., reproducibility_hash_b=f79d459fa0d0d7ea... — target scenario was &#x27;crdt-laws&#x27;</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-24T03:29:05.251653+00:00</code></li><li>Config hash: <code>7ffe47f60a2a3087c17fd9d7cc332ccca581272f6cf3f7eeb885032bff206928</code></li><li>Data hash: <code>7ffe47f60a2a3087c17fd9d7cc332ccca581272f6cf3f7eeb885032bff206928</code></li></ul><p><em>Plan:</em> Instantiate SCENARIOS[&#x27;crdt-laws&#x27;] twice with identical kwargs {&#x27;n_sequences&#x27;: 5, &#x27;ops_per_sequence&#x27;: 5, &#x27;seed&#x27;: 20260517}. Run each to emit a signed proof. Compute SHA-256 over the canonical body with wall-clock fields stripped per _REPRODUCIBILITY_EXCLUDED_PATHS + per-pillar timing keys matching _REPRODUCIBILITY_EXCLUDED_DETAIL_KEY_SUFFIXES. VALIDATED iff the two hashes match (binary; 1.0 / 0.0).</p><h2>4. Data</h2><ul><li>Substrate: <code>ophamin-self-audit</code> @ <code>ad2afd4070ac</code></li><li>Dataset: <code>synthetic-self-audit</code> (self-audit-replay, 2 records, hash <code>7ffe47f60a2a…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>reproducibility_audit</code></td><td><code>reproducibility_hash_match</code></td><td><code>1.0</code></td><td>—</td><td>ophamin 0.115.2</td></tr></tbody></table><h2>6. Signature</h2><p><code>f370bef90b43cf5c6a525e996b2a3819fc40eb5865eddbbe4289da31aef195bb</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.115.2 @ <code>ad2afd4070ac</code></footer></body></html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>46579fd975238b022e6355b50b484b62d30164e92f74e4329bcb679b2eb6bfe1</code><br><strong>Created:</strong> 2026-05-24T03:29:05.435281+00:00</p><h2>1. Claim</h2><blockquote><p>Across 30 synthetic three-group datasets of size 30 per group sweeping effect size from null to strong (seed=20260518), ``scipy.stats.f_oneway``, ``statsmodels.stats.anova.anova_lm`` (via OLS), and ``pingouin.anova`` produce F-statistics AND two-sided p-values that agree to ≤ 1e-09 across all pairwise comparisons. (RFC 0002 Phase E1: cross-framework validation; three-way ANOVA variant.)</p></blockquote><ul><li><strong>Operationalisation:</strong> Generate N three-group datasets where each group has size n and is drawn from Normal(μ_g, σ²) for a sweep of (μ_0, μ_1, μ_2) configurations including null (all μ equal) and alternatives. Compute F and two-sided p under scipy.stats.f_oneway, statsmodels OLS+anova_lm, and pingouin.anova. Compute max_abs_diff = max over (dataset, statistic ∈ {F, p}, backend-pair) of |stat_a - stat_b|. VALIDATED iff max_abs_diff ≤ tolerance.</li><li><strong>Threshold:</strong> <code>max_absolute_anova_difference &lt;= 1e-09 F_or_p</code></li><li><strong>H0:</strong> At least one backend pair disagrees on the ANOVA F statistic OR the two-sided p value by more than the floating-point tolerance.</li><li><strong>H1:</strong> All three backends compute identical F AND p to floating-point tolerance across every dataset.</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>7.105427357601002e-14</code></p><p>30 datasets × 3 backends × 2 statistics; max pairwise |Δ| = 7.105e-14 on (F, scipy_vs_statsmodels) (≤ 1e-09 tol)</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-24T03:29:05.180056+00:00</code></li><li>Config hash: <code>c8e368fe8b61be3829c27bb61d9b320882814e8146783a5fd6f8c5cad4f16f58</code></li><li>Data hash: <code>c8e368fe8b61be3829c27bb61d9b320882814e8146783a5fd6f8c5cad4f16f58</code></li></ul><p><em>Plan:</em> Generate 30 three-group datasets of size 30 per group, sweeping effect magnitude from null to 1.5σ, seed=20260518. Compute F and two-sided p under scipy.stats.f_oneway, statsmodels OLS+anova_lm (Type II SS), and pingouin.anova. For each dataset, compute all six pairwise distances (3 backend pairs × 2 statistics). Track the maximum. VALIDATED iff max_abs_diff ≤ 1e-09.</p><h2>4. Data</h2><ul><li>Substrate: <code>scipy+statsmodels+pingouin-cross-framework</code> @ <code>ad2afd4070ac</code></li><li>Dataset: <code>synthetic-anova-three-group</code> (synthetic-anova-three-group, 30 records, hash <code>c8e368fe8b61…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>anova_scipy_vs_statsmodels_vs_pingouin</code></td><td><code>max_absolute_anova_difference</code></td><td><code>7.105427357601002e-14</code></td><td>—</td><td>scipy 1.17.1</td></tr></tbody></table><h2>6. Signature</h2><p><code>d453e1a9d3c370b2da0b5429be6f35bf454796e84862bcbf98d65c5d78d9eefc</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.115.2 @ <code>ad2afd4070ac</code></footer></body></html>

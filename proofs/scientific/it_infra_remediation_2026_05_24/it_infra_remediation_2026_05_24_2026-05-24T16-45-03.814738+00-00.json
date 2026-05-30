@@ -1,0 +1,315 @@
+{
+  "proof_id": "73a4e403a5e8784bbbaa8b11e5869d5fe83a5a00727af8931daf4175551df954",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-24T16:45:05.284477+00:00"
+  },
+  "claim": {
+    "statement": "The IT-infra remediation holds: THRML no longer globally pins JAX to CPU at import; the DB config imports standalone (circular import broken) and resolves real credentials that connect; and the optimized computational engine no longer fires the runtime GPU->CPU substitution on MPS for eig/inverse/svd (it selects CPU at the decision point) while matmul still uses the Metal GPU, with all numerical results correct.",
+    "operationalization": "Deterministic suite of N=17 binary checks (THRML JAX pin, DB standalone import + creds + connect, GPU eig/inverse/svd no-fallback, matmul-on-MPS, numerical correctness); ALL must PASS.",
+    "threshold": {
+      "metric": "checks_all_passed",
+      "comparator": ">=",
+      "value": 17.0,
+      "units": "passing_checks"
+    },
+    "h0": "At least one check fails (n_passed < 17)",
+    "h1": "All checks pass (n_passed == 17)"
+  },
+  "preregistration": {
+    "config_hash": "it_infra_78eb32f7",
+    "data_hash": "it_infra_checks_17",
+    "analysis_plan": "Pre-registered binary checks in experiments/it_infra/it_infra_remediation_ophamin.py; no post-hoc threshold change.",
+    "sweep_grid": {
+      "n_checks": 17
+    },
+    "preregistered_at": "2026-05-24T16:45:03.814738+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "78eb32f731e3690b2a34720d5445e04b74f622f6",
+    "datasets": [
+      {
+        "name": "it_infra_remediation_checks",
+        "content_hash": "it_infra_v1_17",
+        "n_records": 17,
+        "source": "kimera-swm-it-infra-2026-05-24",
+        "kind": "binary_check_results"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "thrml_no_global_jax_cpu_pin_on_import",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "result": "OK"
+      }
+    },
+    {
+      "pillar": "db_config_standalone_import",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "result": "OK"
+      }
+    },
+    {
+      "pillar": "db_password_resolves_nonempty",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {}
+    },
+    {
+      "pillar": "db_connect_ok",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {}
+    },
+    {
+      "pillar": "no_runtime_gpu_cpu_fallback_fired",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "warnings": []
+      }
+    },
+    {
+      "pillar": "cuda_family_flag_false_on_mps",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "gpu_available": true
+      }
+    },
+    {
+      "pillar": "matmul_uses_gpu_mps",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "gpu_ops": 1,
+        "cpu_ops": 3
+      }
+    },
+    {
+      "pillar": "eig_inverse_svd_matmul_correct",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "eig": true,
+        "inv": true,
+        "svd_matmul": true
+      }
+    },
+    {
+      "pillar": "gpu_monitor_no_fabricated_metrics",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "backend": "fallback",
+        "gpu_count": 0,
+        "fabrication_raises": true
+      }
+    },
+    {
+      "pillar": "jax_processor_numpy_fallback_disabled",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {}
+    },
+    {
+      "pillar": "compose_files_all_parse",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "docker-compose.arangodb.yml": "ok",
+        "docker-compose.full-stack.yml": "ok",
+        "docker-compose.gpu.yml": "ok",
+        "docker-compose.mac-dev.yml": "ok",
+        "docker-compose.secrets.yml": "ok",
+        "docker-compose.yml": "ok"
+      }
+    },
+    {
+      "pillar": "compose_no_hardcoded_creds",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "hits": []
+      }
+    },
+    {
+      "pillar": "compose_healthcheck_uses_health",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {}
+    },
+    {
+      "pillar": "dockerfiles_license_proprietary",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {}
+    },
+    {
+      "pillar": "requirements_cve_floors_aligned",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {}
+    },
+    {
+      "pillar": "prime_persistence_atomic_write",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {}
+    },
+    {
+      "pillar": "weak_sha256_hash_acceptance_removed",
+      "statistic_name": "check_passed",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-it-infra",
+      "library_version": "2026-05-24",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {}
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 17.0,
+    "threshold": {
+      "metric": "checks_all_passed",
+      "comparator": ">=",
+      "value": 17.0,
+      "units": "passing_checks"
+    },
+    "reasoning": "n_passed=17/17. All checks PASS."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/it_infra/it_infra_remediation_ophamin.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "78eb32f731e3690b2a34720d5445e04b74f622f6"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}
