@@ -213,6 +213,53 @@ def energy_path_divergence(a: "Sequence[str]", b: "Sequence[str]") -> "float | N
     return area
 
 
+_PARTITION_CONSTITUENTS = ("primes", "echoform_sequence", "cronos_timestamp", "gwf_signature")
+
+
+def partition(result: CycleResult) -> "dict[str, Any] | None":
+    """Assemble the native partition — the re-performable wire-unit — from a cycle,
+    as far as the current emission allows; ``None`` on a failed cycle.
+
+    A FAITHFUL partition (CLAUDE.md) is **primes + Echoform operator sequence +
+    Cronos timestamp + GWF signature**: the re-performable instruction the
+    Indra's-Net wire carries between Nodes. Each constituent is read from the
+    emitted telemetry; a constituent the substrate does not yet emit is ``None`` —
+    an honest gap, never fabricated. Today's hard gap is the **Echoform operator
+    sequence**: the substrate emits a single ``echoform_event`` dict, not the
+    ordered ΔS sequence, so this reads the spec'd ``echoform_sequence`` list
+    (absent until the emission contract widens — see docs/ECHOFORM_EMISSION_SPEC.md).
+    """
+    if not result.success:
+        return None
+    raw = result.raw or {}
+    echo = raw.get("echoform_sequence")
+    return {
+        "primes": prime_chain(result),
+        "echoform_sequence": list(echo) if isinstance(echo, list) and echo else None,
+        "cronos_timestamp": raw.get("cronos_timestamp") or raw.get("substrate_state_stamp"),
+        "gwf_signature": raw.get("gwf_signature") or raw.get("gwf_verdict"),
+    }
+
+
+def partition_faithfulness(result: CycleResult) -> "float | None":
+    """Fraction of a faithful partition's four constituents the substrate emits this
+    cycle ∈ {0, .25, .5, .75, 1}; ``None`` on a failed cycle.
+
+    < 1 means the wire-unit is not yet fully re-performable, and the missing
+    constituents name exactly what the emission contract must add. On a healthy
+    cycle today this reads 0.75 — primes + Cronos stamp + GWF present, the Echoform
+    operator sequence absent — which is the measured size of the gap the
+    Echoform-emission spec closes (0.75 → 1.0).
+    """
+    p = partition(result)
+    if p is None:
+        return None
+    present = sum(
+        1 for k in _PARTITION_CONSTITUENTS if p.get(k) not in (None, "", [], {})
+    )
+    return present / len(_PARTITION_CONSTITUENTS)
+
+
 def scar_count(result: CycleResult) -> int | None:
     """The canonical permanent scar count for a cycle, or ``None``.
 
