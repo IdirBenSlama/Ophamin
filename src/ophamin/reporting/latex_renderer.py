@@ -24,6 +24,7 @@ from ophamin.reporting.chart_helpers import (
     pie_chart,
 )
 from ophamin.reporting.html_renderer import _short_path
+from ophamin.reporting.significance import plain_significance
 
 
 _LATEX_ESCAPE = str.maketrans({
@@ -217,6 +218,11 @@ def _render_proof_latex(record: dict[str, Any], tex_path: Path) -> str:
                  f"{{\\textbf{{{_esc(outcome)}}}}}}}")
     parts.append(f"\\textbf{{Proof ID:}} \\texttt{{{_esc(record.get('proof_id', '')[:32])}\\dots}}\\\\")
     parts.append(f"\\textbf{{Created:}} {_esc(identity.get('created_at', ''))}")
+
+    sig = plain_significance(record)
+    if sig:
+        parts.append("\\subsection*{What this means}")
+        parts.append(_esc(sig))
 
     parts.append("\\subsection*{1. Claim}")
     parts.append(f"\\begin{{quote}}{_esc(claim.get('statement', ''))}\\end{{quote}}")
