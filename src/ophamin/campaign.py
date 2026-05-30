@@ -47,11 +47,44 @@ from ophamin.comparing.fwer import (
     CorrectionInput,
     apply_correction,
 )
+import os as _os
+from concurrent.futures import ProcessPoolExecutor
+
 from ophamin.measuring.proof import dump as proof_dump
 from ophamin.measuring.proof.codec import iter_proofs
 from ophamin.measuring.scenarios import SCENARIOS, Scenario
 from ophamin.measuring.scenarios.base import DEFAULT_SIGN_KEY
 from ophamin.seeing.substrate.base import SubstrateUnderTest
+
+# ── Measuring-phase throughput (2026-05-24, the "fix once and for all") ────────
+# Root cause of the days-long run-all: scenarios ran SERIALLY on ONE shared
+# substrate (1 of N cores), and the base Scenario default is n_cycles=1000 — so
+# each scenario streamed up to 1000 full Takwin cycles. Fix, baked into the
+# canonical orchestrator: (1) hard-cap each scenario's cycle/record count for
+# the SWEEP (individual scenario runs keep their own defaults); (2) run scenarios
+# as separate processes across the cores, each building its OWN KimeraAdapter
+# (the substrate is a per-process Kimera subprocess, so it cannot be shared).
+# GPU (MPS) is already used by the encoder — throughput, not GPU, was the wall.
+# Overridable via env so deployments can tune without code changes.
+_MEASURING_CYCLE_CAP: int = int(_os.environ.get("OPHAMIN_MEASURING_CYCLE_CAP", "64"))
+def _default_measuring_workers() -> int:
+    """Use most cores, bounded by RAM (~12 GB/Kimera worker; MPS shares unified
+    memory). This host (16 cores / 128 GB) → 10. Robust: any probe failure → 6."""
+    cores = _os.cpu_count() or 2
+    try:
+        gb = (_os.sysconf("SC_PAGE_SIZE") * _os.sysconf("SC_PHYS_PAGES")) / (1024**3)
+        by_mem = int(gb // 12)
+    except (ValueError, OSError, AttributeError):
+        by_mem = 6
+    return max(1, min(cores - 2, by_mem))
+
+
+_MEASURING_MAX_WORKERS: int = int(
+    _os.environ.get("OPHAMIN_MEASURING_MAX_WORKERS", str(_default_measuring_workers()))
+)
+_MEASURING_CAP_ATTRS: tuple[str, ...] = (
+    "n_cycles", "max_series", "per_corpus_cycles", "max_steps", "n_stimuli",
+)
 
 
 #: the wire-format schema version a fresh writer emits.
@@ -487,6 +520,43 @@ def _phase_seeing(*, substrate: SubstrateUnderTest, scenarios: list[type[Scenari
         )
 
 
+def _cap_scenario(scenario: Any) -> None:
+    """Hard-cap a scenario's cycle/record count for the sweep (2026-05-24)."""
+    for attr in _MEASURING_CAP_ATTRS:
+        v = getattr(scenario, attr, None)
+        if isinstance(v, int) and v > _MEASURING_CYCLE_CAP:
+            setattr(scenario, attr, _MEASURING_CYCLE_CAP)
+
+
+def _proof_path_for(proofs_dir: Path, cls: type[Scenario], record: Any) -> Path:
+    tier_value = cls.tier.value if hasattr(cls.tier, "value") else str(cls.tier)
+    filename = (
+        f"{cls.name}_{(record.substrate_git_commit or 'no-commit')[:8]}_"
+        f"{record.proof_id[:12]}.json"
+    )
+    return proofs_dir / tier_value / cls.family / filename
+
+
+def _measure_one(payload: tuple) -> dict[str, Any]:
+    """Worker (separate process): reconstruct an adapter, run ONE capped
+    scenario, write its signed proof. Returns a picklable result dict."""
+    name, adapter_cfg, proofs_dir_str = payload
+    try:
+        from ophamin.measuring.proof import dump as _dump
+        from ophamin.measuring.scenarios import SCENARIOS as _SC
+        from ophamin.seeing.substrate import KimeraAdapter
+
+        cls = _SC[name]
+        scenario = cls()
+        _cap_scenario(scenario)
+        record = scenario.run(KimeraAdapter(**adapter_cfg))
+        proof_path = _proof_path_for(Path(proofs_dir_str), cls, record)
+        _dump(record, proof_path)
+        return {"name": name, "outcome": record.verdict.outcome, "path": str(proof_path)}
+    except Exception as exc:  # noqa: BLE001 — surfaced via summary
+        return {"name": name, "error": f"{type(exc).__name__}: {exc}"}
+
+
 def _phase_measuring(*, substrate: SubstrateUnderTest, scenarios: list[type[Scenario]], out_dir: Path, sign_key: bytes) -> CampaignPhase:
     started = _now()
     proofs_dir = out_dir / "proofs"
@@ -497,31 +567,56 @@ def _phase_measuring(*, substrate: SubstrateUnderTest, scenarios: list[type[Scen
         "n_refuted": 0,
         "n_inconclusive": 0,
         "n_errored": 0,
+        "execution": "serial",
     }
-    for cls in scenarios:
-        try:
-            scenario = cls()
-            record = scenario.run(substrate)
-            tier_value = (
-                cls.tier.value if hasattr(cls.tier, "value") else str(cls.tier)
-            )
-            family_dir = proofs_dir / tier_value / cls.family
-            filename = (
-                f"{cls.name}_{(record.substrate_git_commit or 'no-commit')[:8]}_"
-                f"{record.proof_id[:12]}.json"
-            )
-            proof_path = family_dir / filename
-            proof_dump(record, proof_path)
-            artifact_paths.append(str(proof_path))
-            outcome = record.verdict.outcome
-            key = f"n_{outcome.lower()}"
-            summary.setdefault(key, 0)
-            summary[key] += 1
-        except Exception as exc:  # noqa: BLE001 — surfaced via summary
+
+    def _tally(name: str, *, outcome: Any = None, path: str | None = None, error: str | None = None) -> None:
+        if error is not None:
             summary["n_errored"] += 1
-            summary.setdefault("errors", []).append(
-                f"{cls.name}: {type(exc).__name__}: {exc}"
-            )
+            summary.setdefault("errors", []).append(f"{name}: {error}")
+            return
+        if path:
+            artifact_paths.append(path)
+        key = f"n_{str(outcome).lower()}"
+        summary.setdefault(key, 0)
+        summary[key] += 1
+
+    # Parallel path (2026-05-24 throughput fix): only when the substrate is a
+    # per-process KimeraAdapter (reconstructable; a Kimera subprocess can't be
+    # shared across worker processes) and there's >1 scenario. Each worker
+    # builds its own adapter → scenarios run across the cores instead of serially
+    # on one. Falls back to the (capped) serial path for MockSubstrate / single.
+    parallel = (
+        type(substrate).__name__ == "KimeraAdapter"
+        and len(scenarios) > 1
+        and _MEASURING_MAX_WORKERS > 1
+    )
+    if parallel:
+        adapter_cfg = {
+            "kimera_repo": str(substrate.kimera_repo),
+            "target": getattr(substrate, "target", "entity"),
+            "mode": getattr(substrate, "mode", "batch"),
+            "python_exe": str(substrate.python_exe) if getattr(substrate, "python_exe", None) else None,
+            "batch_timeout": float(getattr(substrate, "batch_timeout", 3600.0)),
+        }
+        summary["execution"] = f"parallel(workers={_MEASURING_MAX_WORKERS},cap={_MEASURING_CYCLE_CAP})"
+        payloads = [(cls.name, adapter_cfg, str(proofs_dir)) for cls in scenarios]
+        with ProcessPoolExecutor(max_workers=_MEASURING_MAX_WORKERS) as ex:
+            for res in ex.map(_measure_one, payloads):
+                _tally(res["name"], outcome=res.get("outcome"), path=res.get("path"), error=res.get("error"))
+    else:
+        summary["execution"] = f"serial(cap={_MEASURING_CYCLE_CAP})"
+        for cls in scenarios:
+            try:
+                scenario = cls()
+                _cap_scenario(scenario)
+                record = scenario.run(substrate)
+                proof_path = _proof_path_for(proofs_dir, cls, record)
+                proof_dump(record, proof_path)
+                _tally(cls.name, outcome=record.verdict.outcome, path=str(proof_path))
+            except Exception as exc:  # noqa: BLE001 — surfaced via summary
+                _tally(cls.name, error=f"{type(exc).__name__}: {exc}")
+
     return CampaignPhase(
         wheel="measuring",
         started_at=started,
