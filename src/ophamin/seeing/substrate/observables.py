@@ -102,6 +102,117 @@ def prime_set(result: CycleResult) -> "frozenset[str] | None":
     return None
 
 
+def prime_chain(result: CycleResult) -> "tuple[str, ...] | None":
+    """The per-cycle prime-address as an ORDERED sequence, or ``None``.
+
+    The order-keeping sibling of :func:`prime_set`. ``prime_set`` discards order
+    and repetition; this preserves both — the chain *is* the walk, and the walk's
+    order is the path-dependence Kimera claims as its differentiator. A set
+    metric over ``prime_set`` is order-blind by construction; this is the input a
+    trajectory metric needs. ``None`` on a failed/empty cycle (a gap, never a
+    fabricated empty walk).
+    """
+    if not result.success:
+        return None
+    chain = (result.raw or {}).get("prime_chain")
+    if isinstance(chain, list) and chain:
+        seq = tuple(str(p).strip() for p in chain if str(p).strip())
+        if seq:
+            return seq
+    return None
+
+
+def sequence_edit_divergence(a: "Sequence[str]", b: "Sequence[str]") -> float:
+    """Order-sensitive divergence of two prime sequences ∈ [0, 1].
+
+    Length-normalised Levenshtein (edit) distance over the ordered tokens.
+    Where ``1 - jaccard(prime_set(...))`` is a *set* operation — 0 whenever the
+    two chains share the same primes, regardless of order — this is 0 only when
+    the sequences match in BOTH content and order, and strictly > 0 for a
+    re-ordering of the same primes. Two empty sequences are identical (0.0); a
+    chain against an empty one is maximally divergent (1.0).
+    """
+    sa, sb = list(a), list(b)
+    if not sa and not sb:
+        return 0.0
+    n, m = len(sa), len(sb)
+    if n == 0 or m == 0:
+        return 1.0
+    prev = list(range(m + 1))
+    for i in range(1, n + 1):
+        cur = [i] + [0] * m
+        ai = sa[i - 1]
+        for j in range(1, m + 1):
+            cost = 0 if ai == sb[j - 1] else 1
+            cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+        prev = cur
+    return prev[m] / max(n, m)
+
+
+def prime_energy_path(chain: "Sequence[str]") -> "tuple[float, ...]":
+    """Per-step native energy of an ordered prime chain: ``E_p = ln(p)``.
+
+    The prime energy scale is the logarithm of the prime itself (Kimera's
+    founding spec). Tokens that aren't integers > 1 contribute nothing (a chain
+    may carry non-numeric address fragments). Returns the ordered step-energy
+    sequence — the walk, read in energy.
+    """
+    out: list[float] = []
+    for tok in chain:
+        try:
+            p = int(str(tok).strip())
+        except (TypeError, ValueError):
+            continue
+        if p > 1:
+            out.append(math.log(p))
+    return tuple(out)
+
+
+def energy_path_divergence(a: "Sequence[str]", b: "Sequence[str]") -> "float | None":
+    """Order-sensitive divergence of two chains *as energy walks* ∈ [0, 1].
+
+    Reads each chain as its native energy accumulation (``E_p = ln p`` per step)
+    and compares the normalised cumulative-energy curves — the fraction of the
+    walk's total energy accrued by each fraction of its steps — returning the
+    area between them. This is the physics-native trajectory metric: two chains
+    built from the SAME primes in a DIFFERENT order share a set (and a total
+    energy) but trace different accumulation curves, so divergence is > 0 exactly
+    where a Jaccard/set metric reads 0. ``None`` if either chain carries no
+    usable prime energy.
+    """
+    ea, eb = prime_energy_path(a), prime_energy_path(b)
+    if not ea or not eb:
+        return None
+    grid = 64
+
+    def _curve(energies: "tuple[float, ...]") -> list[float]:
+        total = math.fsum(energies)
+        if total <= 0.0:
+            return [0.0] * (grid + 1)
+        cum = [0.0]
+        acc = 0.0
+        for e in energies:
+            acc += e
+            cum.append(acc / total)
+        n = len(cum) - 1
+        out: list[float] = []
+        for g in range(grid + 1):
+            pos = (g / grid) * n
+            lo = int(math.floor(pos))
+            if lo >= n:
+                out.append(cum[n])
+            else:
+                frac = pos - lo
+                out.append(cum[lo] * (1.0 - frac) + cum[lo + 1] * frac)
+        return out
+
+    ca, cb = _curve(ea), _curve(eb)
+    area = 0.0
+    for k in range(grid):
+        area += 0.5 * (abs(ca[k] - cb[k]) + abs(ca[k + 1] - cb[k + 1])) / grid
+    return area
+
+
 def scar_count(result: CycleResult) -> int | None:
     """The canonical permanent scar count for a cycle, or ``None``.
 
