@@ -22,6 +22,7 @@ from ophamin.reporting.chart_helpers import (
     confidence_interval_plot,
     pie_chart,
 )
+from ophamin.reporting.significance import plain_significance
 
 _INLINE_CSS = """
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -96,6 +97,17 @@ def _render_proof_body(record: dict[str, Any]) -> str:
                  f"<span class='verdict-{_esc(outcome)}'>{_esc(outcome)}</span></h1>")
     parts.append(f"<p><strong>Proof ID:</strong> <code>{_esc(record.get('proof_id', ''))}</code><br>"
                  f"<strong>Created:</strong> {_esc(identity.get('created_at', ''))}</p>")
+
+    # Plain-language meaning FIRST — the corpus explaining itself to an outsider,
+    # above the technical record. Omitted (no section) when unauthored: an honest
+    # gap, never a fabricated meaning.
+    sig = plain_significance(record)
+    if sig:
+        parts.append(
+            "<div style=\"background:#f0f9ff;border-left:4px solid #0284c7;"
+            "padding:0.6em 1em;margin:1.2em 0;border-radius:4px;\">"
+            f"<strong>What this means.</strong> {_esc(sig)}</div>"
+        )
 
     parts.append("<h2>1. Claim</h2>")
     parts.append(f"<blockquote><p>{_esc(claim.get('statement', ''))}</p></blockquote>")

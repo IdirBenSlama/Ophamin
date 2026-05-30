@@ -20,6 +20,7 @@ from ophamin.reporting.chart_helpers import (
     pie_chart,
 )
 from ophamin.reporting.html_renderer import _short_path
+from ophamin.reporting.significance import plain_significance
 
 
 def _write_chart(
@@ -49,6 +50,13 @@ def _render_proof_md(record: dict[str, Any], md_path: Path) -> str:
     lines.append(f"# Empirical Proof Record — **{outcome}**\n")
     lines.append(f"**Proof ID:** `{record.get('proof_id', '')}`  ")
     lines.append(f"**Created:** {identity.get('created_at', '')}\n")
+
+    # Plain-language meaning FIRST — the corpus explaining itself. Omitted when
+    # unauthored (an honest gap, never a fabricated meaning).
+    sig = plain_significance(record)
+    if sig:
+        lines.append("## What this means\n")
+        lines.append(f"{sig}\n")
 
     lines.append("## 1. Claim\n")
     lines.append(f"> {claim.get('statement', '')}\n")
