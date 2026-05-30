@@ -81,6 +81,11 @@ from ophamin.seeing.substrate.base import CycleResult, SubstrateUnderTest
 from ophamin.seeing.substrate.field_catalog import FieldContract, ScenarioFieldContract
 from ophamin.seeing.substrate.observables import jaccard as _toolbox_jaccard
 from ophamin.seeing.substrate.observables import prime_set as _toolbox_prime_set
+from ophamin.seeing.substrate.observables import prime_chain as _toolbox_prime_chain
+from ophamin.seeing.substrate.observables import (
+    energy_path_divergence as _toolbox_energy_div,
+    sequence_edit_divergence as _toolbox_seq_div,
+)
 
 # Curated genesis documents (the "corpus") and disjoint held-out probes (the
 # "queries"). Documents are re-ordered; probes are asked identically in both
@@ -204,6 +209,11 @@ class MemoryOrderHysteresisScenario(Scenario):
         }
 
     _jaccard = staticmethod(_toolbox_jaccard)
+    # Order-keeping (path-aware) siblings — diagnostic companions to the set
+    # metric above. They read the ORDERED prime_chain the set metric discards.
+    _prime_chain = staticmethod(_toolbox_prime_chain)
+    _seq_div = staticmethod(_toolbox_seq_div)
+    _energy_div = staticmethod(_toolbox_energy_div)
 
     # --------------------------------------------------------------- claim ---
 
@@ -308,6 +318,12 @@ class MemoryOrderHysteresisScenario(Scenario):
         per_probe: list[dict[str, Any]] = []
         order_divs: list[float] = []
         noise_floors: list[float] = []
+        # Order-keeping diagnostic, accumulated in parallel. The verdict stays on
+        # the pre-registered set-based order_hysteresis; these only enrich evidence.
+        edit_order_divs: list[float] = []
+        edit_noise_floors: list[float] = []
+        energy_order_divs: list[float] = []
+        energy_noise_floors: list[float] = []
         for i, probe in enumerate(probes):
             sA1 = self._prime_set(pa1[i]) if i < len(pa1) else None
             sA2 = self._prime_set(pa2[i]) if i < len(pa2) else None
@@ -319,19 +335,52 @@ class MemoryOrderHysteresisScenario(Scenario):
             nf = 1.0 - self._jaccard(sA1, sA2)
             order_divs.append(od)
             noise_floors.append(nf)
-            per_probe.append({
+            entry = {
                 "probe": probe[:60],
                 "order_divergence": round(od, 6),
                 "noise_floor": round(nf, 6),
                 "hysteresis": round(od - nf, 6),
                 "n_primes_a1": len(sA1), "n_primes_a2": len(sA2), "n_primes_b": len(sB),
                 "gap": False,
-            })
+            }
+            # Path-aware reading on the ORDERED chain (None where unavailable —
+            # e.g. only the order-blind rosetta/alexandria map was emitted).
+            cA1 = self._prime_chain(pa1[i]) if i < len(pa1) else None
+            cA2 = self._prime_chain(pa2[i]) if i < len(pa2) else None
+            cB = self._prime_chain(pb[i]) if i < len(pb) else None
+            if cA1 is not None and cA2 is not None and cB is not None:
+                eod = self._seq_div(cA1, cB)
+                enf = self._seq_div(cA1, cA2)
+                edit_order_divs.append(eod)
+                edit_noise_floors.append(enf)
+                entry["order_divergence_edit"] = round(eod, 6)
+                entry["noise_floor_edit"] = round(enf, 6)
+                god = self._energy_div(cA1, cB)
+                gnf = self._energy_div(cA1, cA2)
+                if god is not None and gnf is not None:
+                    energy_order_divs.append(god)
+                    energy_noise_floors.append(gnf)
+                    entry["order_divergence_energy"] = round(god, 6)
+                    entry["noise_floor_energy"] = round(gnf, 6)
+            per_probe.append(entry)
 
         n_valid = len(order_divs)
         od_mean = mean(order_divs) if order_divs else 0.0
         nf_mean = mean(noise_floors) if noise_floors else 0.0
         order_hysteresis = od_mean - nf_mean
+
+        # Path-aware (order-keeping) hysteresis — diagnostic companion to the
+        # set-based primary above. > 0 means order matters read natively; bigger
+        # than the set-based order_hysteresis means the path-dependence is LARGER
+        # than the order-blind Jaccard can see. None where no ordered chain landed.
+        edit_hysteresis = (
+            mean(edit_order_divs) - mean(edit_noise_floors)
+            if edit_order_divs and edit_noise_floors else None
+        )
+        energy_hysteresis = (
+            mean(energy_order_divs) - mean(energy_noise_floors)
+            if energy_order_divs and energy_noise_floors else None
+        )
 
         # --- RAG baseline: order-divergence of TF-IDF retrieval (structural 0)
         baseline_divs: list[float] = []
@@ -452,6 +501,23 @@ class MemoryOrderHysteresisScenario(Scenario):
                         "<=0 = accumulation is commutative; the differentiator "
                         "is permanence + path-depth, not order."
                     ),
+                    "trajectory_order_hysteresis": {
+                        "edit": edit_hysteresis,
+                        "energy_path": energy_hysteresis,
+                        "set_based_for_comparison": order_hysteresis,
+                        "n_edit_probes": len(edit_order_divs),
+                        "n_energy_probes": len(energy_order_divs),
+                        "note": (
+                            "ORDER-KEEPING diagnostic, NOT the pre-registered claim "
+                            "(the verdict stays on the set-based order_hysteresis). "
+                            "edit = length-normalised Levenshtein on the ordered "
+                            "prime_chain; energy_path = area between normalised "
+                            "cumulative-energy (E_p=ln p) walks. The set metric is "
+                            "blind to a pure reorder by construction; these read the "
+                            "chain AS THE ORDERED WALK. edit/energy > set_based ⇒ the "
+                            "path-dependence is LARGER than the set metric can see."
+                        ),
+                    },
                     "grounding_anchor": (
                         "set-based retrieval is order-invariant by construction "
                         "(ophamin.comparing.retrieval_baseline, demonstrated "
