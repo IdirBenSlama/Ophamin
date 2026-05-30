@@ -177,6 +177,19 @@ _SIGNIFICANCE: dict[str, dict[str, str]] = {
                    "meaning's address was instance-private, which would block pooling.",
         "INCONCLUSIVE": "Not enough resolved concepts to tell yet.",
     },
+    "graded_fidelity_advantage": {
+        "what": "whether Kimera measures HOW MUCH worse one history is — grading the "
+                "SIZE of the drawdown difference, not just telling histories apart — "
+                "above what a plain order-aware reader already manages",
+        "VALIDATED": "It does: its manifold-state distance grades the magnitude of "
+                     "the drawdown difference above the order-aware bar. A real "
+                     "size-meter — telling-apart AND sizing.",
+        "REFUTED": "Not yet: it registers the order (which history) but does not grade "
+                   "proportional magnitude (how much worse) above the order-aware bar. "
+                   "This is the honest magnitude gap — telling-apart works, sizing does "
+                   "not on the current readouts.",
+        "INCONCLUSIVE": "Too few orderings resolved to tell yet.",
+    },
 }
 
 

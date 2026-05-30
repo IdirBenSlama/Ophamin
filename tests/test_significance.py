@@ -41,7 +41,7 @@ def test_size_meter_inconclusive_is_honest_about_the_gap():
 def test_every_authored_metric_has_all_three_branches():
     # Each authored meaning must resolve for every verdict (no half-authored entry
     # that would silently drop the section on a REFUTED/INCONCLUSIVE proof).
-    assert len(covered_metrics()) >= 14
+    assert len(covered_metrics()) >= 16
     for m in covered_metrics():
         for outcome in ("VALIDATED", "REFUTED", "INCONCLUSIVE"):
             assert plain_significance(_rec(m, outcome, 1.0)), f"{m}/{outcome} missing"
