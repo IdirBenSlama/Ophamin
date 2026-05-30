@@ -6,7 +6,11 @@ deterministically, branches on the verdict, stays honest on unknown metrics, and
 carries the owner's framing for the open size-meter gap.
 """
 
-from ophamin.reporting.significance import has_significance, plain_significance
+from ophamin.reporting.significance import (
+    covered_metrics,
+    has_significance,
+    plain_significance,
+)
 
 
 def _rec(metric, outcome, observed=None):
@@ -34,15 +38,19 @@ def test_size_meter_inconclusive_is_honest_about_the_gap():
     assert s and "size-meter" in s
 
 
-def test_all_seven_flagship_metrics_have_all_three_branches():
-    metrics = [
-        "memory_path_dependence", "order_hysteresis", "recognition_jaccard_floor",
-        "memory_lift", "history_separation_advantage", "drawdown_tracking_rho",
-        "phi_floor",
-    ]
-    for m in metrics:
+def test_every_authored_metric_has_all_three_branches():
+    # Each authored meaning must resolve for every verdict (no half-authored entry
+    # that would silently drop the section on a REFUTED/INCONCLUSIVE proof).
+    assert len(covered_metrics()) >= 14
+    for m in covered_metrics():
         for outcome in ("VALIDATED", "REFUTED", "INCONCLUSIVE"):
             assert plain_significance(_rec(m, outcome, 1.0)), f"{m}/{outcome} missing"
+
+
+def test_cross_instance_invariance_names_the_pooling_stakes():
+    # The cross-instance prime-identity meaning must connect to Indra's-Net pooling.
+    s = plain_significance(_rec("cross_instance_p_identity_invariance_rate", "VALIDATED", 1.0))
+    assert s and ("pool" in s.lower() or "node" in s.lower())
 
 
 def test_missing_observed_value_omits_the_parenthetical():

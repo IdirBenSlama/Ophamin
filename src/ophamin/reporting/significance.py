@@ -94,6 +94,89 @@ _SIGNIFICANCE: dict[str, dict[str, str]] = {
         "REFUTED": "It dropped below the floor — integration was not maintained here.",
         "INCONCLUSIVE": "Not enough cycles resolved to tell yet.",
     },
+    "arrow_detection_rate": {
+        "what": "whether Kimera can feel time's arrow — recover which way a real "
+                "process actually ran from its exact time-reversal, off its own "
+                "path-dependent entropy production, where an order-blind reader cannot",
+        "VALIDATED": "It can: it recovers the true temporal direction above chance. "
+                     "The substrate's path leaves an arrow that reversal can't hide.",
+        "REFUTED": "It could not here: forward and reversed looked alike — no arrow "
+                   "recovered above chance.",
+        "INCONCLUSIVE": "Not enough resolved trials to tell yet.",
+    },
+    "number_line_spearman": {
+        "what": "whether Kimera's native number sense lays real numbers on a faithful "
+                "line — magnitude-ordered, monotone, neighbours-near — straight from "
+                "the energy law (E_p = ln p), with no scale imposed from outside",
+        "VALIDATED": "It does: bigger numbers land at bigger energies, in order, "
+                     "neighbours close. A number line emerges from the substrate's "
+                     "own physics.",
+        "REFUTED": "It did not here: the ordering broke — magnitude did not map "
+                   "monotonically onto the prime energy.",
+        "INCONCLUSIVE": "Not enough resolved magnitudes to tell yet.",
+    },
+    "interoception_fidelity_spearman": {
+        "what": "whether the substrate's sense of its OWN internal events is "
+                "magnitude-faithful — bigger internal magnitudes landing on ordered "
+                "primes, where a name-fingerprint shortcut collapsed it",
+        "VALIDATED": "It does: the live internal-event chain orders magnitude "
+                     "faithfully. Kimera feels the size of its own states, not just "
+                     "their labels.",
+        "REFUTED": "It did not here: internal magnitude did not map in order — "
+                   "interoception stayed name-shaped, not magnitude-shaped.",
+        "INCONCLUSIVE": "Not enough resolved internal events to tell yet.",
+    },
+    "zero_void_proximity": {
+        "what": "whether the number ZERO lands in Kimera's VOID/collapse state rather "
+                "than idle rest — whether nothing is felt as absence, not as just "
+                "another quiet number",
+        "VALIDATED": "It does: zero collocates with the void/collapse state, not idle "
+                     "rest. Nothing is felt as nothing — a presence of absence.",
+        "REFUTED": "It did not here: zero sat in ordinary rest, not the void — no "
+                   "special collapse signature.",
+        "INCONCLUSIVE": "Not enough resolved trials to tell yet.",
+    },
+    "adaptive_vs_generous_recall_ratio": {
+        "what": "whether the substrate chooses its OWN geoid dimension as its "
+                "concept-cloud grows (N tracking its participation ratio) instead of "
+                "a dimension picked by a person — without losing recall",
+        "VALIDATED": "It does: a self-determined N tracks the growing concept cloud "
+                     "and holds recall near a generously-sized fixed N. The shape is "
+                     "found, not assigned.",
+        "REFUTED": "It did not here: the self-chosen N lost ground to a fixed generous "
+                   "N — self-sizing cost recall.",
+        "INCONCLUSIVE": "Not enough growth resolved to tell yet.",
+    },
+    "aggregate_orphan_rate": {
+        "what": "how much of Kimera's own machinery is actually wired in — the share "
+                "of canonical components that are NOT orphaned (dead or unreachable)",
+        "VALIDATED": "Most of it is wired: the orphan rate sits under the bar. The "
+                     "body is connected, not a pile of disconnected parts.",
+        "REFUTED": "Too much is orphaned here: the orphan rate exceeded the bar — a "
+                   "wiring gap (which is fixable), not necessarily an architectural one.",
+        "INCONCLUSIVE": "Not enough of the tree resolved to tell yet.",
+    },
+    # Prime determinism — single-instance and cross-instance share one meaning.
+    "p_identity_invariance_rate": {
+        "what": "whether the same concept always gets the same identity prime, so "
+                "meaning has a fixed address rather than a random one per run",
+        "VALIDATED": "It does: the identity prime is invariant — same concept, same "
+                     "prime, every run. Meaning has a stable address.",
+        "REFUTED": "It did not here: the identity prime drifted — meaning's address "
+                   "was not stable across runs.",
+        "INCONCLUSIVE": "Not enough resolved concepts to tell yet.",
+    },
+    "cross_instance_p_identity_invariance_rate": {
+        "what": "whether the same concept gets the same identity prime across "
+                "SEPARATE instances — so meaning is shared, not private to one run, "
+                "which is what lets Nodes ever pool experience",
+        "VALIDATED": "It does: separate instances agree on the identity prime — same "
+                     "concept, same address everywhere. The prerequisite for a shared "
+                     "memory across Nodes holds.",
+        "REFUTED": "It did not here: instances disagreed on the identity prime — "
+                   "meaning's address was instance-private, which would block pooling.",
+        "INCONCLUSIVE": "Not enough resolved concepts to tell yet.",
+    },
 }
 
 
@@ -124,3 +207,13 @@ def plain_significance(record: dict[str, Any]) -> str | None:
 def has_significance(metric: str | None) -> bool:
     """Whether an authored meaning exists for a metric (coverage/tooling)."""
     return bool(metric) and str(metric) in _SIGNIFICANCE
+
+
+def covered_metrics() -> "frozenset[str]":
+    """The metrics with an authored plain-language meaning.
+
+    A scenario whose metric is NOT in here renders no 'What this means' section —
+    an honest, visible gap. Use this to audit legibility coverage rather than let
+    silent omission read as 'covered'.
+    """
+    return frozenset(_SIGNIFICANCE)
