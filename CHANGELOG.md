@@ -57,6 +57,24 @@ prime_chain=[2,7,13,…]`). All of it is gone.
   facet toggle (`control.jsx`), turning orphaned dead code into the honest
   skeleton of the machinery-control plane.
 
+### Fixed — the Run screen never invents a verdict
+
+The Run screen (`run.jsx`) had a runtime fallback that, when the live
+`POST /scenarios/{name}/run` failed, **fabricated a random verdict**
+(`validated`/`refuted`/`inconclusive`) with a fake `proof_id` + `short_hash`
+and surfaced it as a viewable bundle — a no-fallback violation, and the gravest
+kind for a tool whose whole claim is *signed, falsifiable proofs*. The
+live-success path also minted a fake `proof_id` when the backend omitted one.
+
+- The simulated fallback is **gone**. A failed live run now **fails loudly**
+  (the UI's `Error · loud-fail` state, with the real error) — no verdict, no
+  bundle, nothing fabricated.
+- A live run that returns no `proof_id` shows the real absence (`—`,
+  "no proof_id returned"), never a minted one.
+- The "Live console" no longer prints fabricated telemetry (a hardcoded commit,
+  `500 records, seed=17`, fixed timestamps, a fake session id) — only the real
+  request, the real result, or an honest error.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current

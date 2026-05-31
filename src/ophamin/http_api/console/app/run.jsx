@@ -12,6 +12,7 @@ function RunScreen({ initialScenario, onJumpToProof }) {
   const [elapsed, setElapsed] = useRunState(0);
   const [result, setResult] = useRunState(null);
   const [history, setHistory] = useRunState([]);
+  const [errMsg, setErrMsg] = useRunState('');
 
   useRunEffect(() => {
     if (status !== 'running') return;
@@ -19,44 +20,10 @@ function RunScreen({ initialScenario, onJumpToProof }) {
     const t0 = Date.now();
     const id = setInterval(() => setElapsed((Date.now() - t0) / 1000), 100);
 
-    const finish = (newBundle, viaLive) => {
-      if (cancelled) return;
-      clearInterval(id);
-      setStatus('done');
-      setResult(newBundle);
-      setHistory(h => [{
-        time: new Date().toLocaleTimeString(), scenario: scenario.name,
-        verdict: newBundle.verdict, elapsed: ((Date.now() - t0) / 1000).toFixed(2), live: viaLive,
-      }, ...h].slice(0, 6));
-      window.toast && window.toast({
-        kind: newBundle.verdict === 'validated' ? 'success' : newBundle.verdict === 'refuted' ? 'error' : 'warn',
-        title: `${scenario.name} · ${newBundle.verdict}${viaLive ? '' : ' (simulated)'}`,
-        msg: `observed ${typeof newBundle.observed === 'number' ? newBundle.observed.toFixed(4) : newBundle.observed} · bundle ${newBundle.short_hash}`,
-        action: { label: 'View', onClick: () => onJumpToProof(newBundle) },
-      });
-    };
-
-    // Offline / file:// / fresh-instance fallback — a labelled simulation
-    // so the screen still demonstrates the flow when no backend answers.
-    const simulate = () => {
-      const verdicts = ['validated','validated','validated','refuted','inconclusive'];
-      const verdict = verdicts[Math.floor(Math.random() * verdicts.length)];
-      const obs = scenario.claim?.threshold?.value
-        ? scenario.claim.threshold.value * (verdict === 'validated' ? 0.7 : verdict === 'refuted' ? 1.4 : 0.95)
-        : 0.42;
-      finish({
-        tier: scenario.tier, scenario: scenario.name,
-        date: new Date().toISOString().slice(0,10), verdict,
-        short_hash: Math.random().toString(16).slice(2, 14),
-        files: ['proof.json','proof.md','proof.html','proof.tex','proof.pdf'],
-        observed: obs, threshold: scenario.claim?.threshold?.value || 0.5,
-        ci: [obs * 0.93, obs * 1.07],
-        proof_id: Math.random().toString(16).slice(2) + 'abcdef',
-      }, false);
-    };
-
-    // Live: actually POST /scenarios/{name}/run and map the signed-proof
-    // summary into a bundle row. This is the one screen that changes state.
+    // Live run — POST /scenarios/{name}/run and map the signed-proof summary
+    // into a bundle row. This is the one screen that changes state. There is
+    // NO simulated fallback: a proof tool must never invent a verdict or a
+    // proof_id. If the backend doesn't answer, the run fails loudly.
     (async () => {
       const base = window.OPHAMIN_API_BASE || '';
       try {
@@ -65,25 +32,41 @@ function RunScreen({ initialScenario, onJumpToProof }) {
           headers: { 'content-type': 'application/json', accept: 'application/json' },
           body: JSON.stringify({ kwargs_json: kwargs || '{}' }),
         });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
+        if (!r.ok) throw new Error('HTTP ' + r.status + (r.statusText ? ' ' + r.statusText : ''));
         const resp = await r.json();
         if (cancelled) return;
+        clearInterval(id);
         const v = String(resp.verdict?.outcome || 'INCONCLUSIVE').toLowerCase();
         const obs = resp.verdict ? resp.verdict.observed_value : null;
         const thr = resp.verdict?.threshold?.value ?? scenario.claim?.threshold?.value ?? null;
-        const pid = resp.proof_id || (Math.random().toString(16).slice(2) + 'abcdef');
-        finish({
+        const pid = resp.proof_id || null;  // never fabricate — show the real absence
+        const bundle = {
           tier: scenario.tier, scenario: scenario.name,
           date: new Date().toISOString().slice(0, 10), verdict: v,
-          short_hash: String(pid).slice(0, 12),
+          short_hash: pid ? String(pid).slice(0, 12) : '—',
           files: ['proof.json','proof.md','proof.html','proof.tex','proof.pdf'],
           observed: obs, threshold: thr, ci: [null, null],
           proof_id: pid,
           reasoning: resp.verdict ? resp.verdict.reasoning : undefined,
-        }, true);
+        };
+        setStatus('done');
+        setResult(bundle);
+        setHistory(h => [{
+          time: new Date().toLocaleTimeString(), scenario: scenario.name,
+          verdict: v, elapsed: ((Date.now() - t0) / 1000).toFixed(2), live: true,
+        }, ...h].slice(0, 6));
+        window.toast && window.toast({
+          kind: v === 'validated' ? 'success' : v === 'refuted' ? 'error' : 'warn',
+          title: `${scenario.name} · ${v}`,
+          msg: `observed ${typeof obs === 'number' ? obs.toFixed(4) : obs} · bundle ${bundle.short_hash}`,
+          action: { label: 'View', onClick: () => onJumpToProof(bundle) },
+        });
       } catch (e) {
-        console.warn('[ophamin] live run failed — simulating:', e.message);
-        if (!cancelled) setTimeout(simulate, 1200 + Math.random() * 800);
+        if (cancelled) return;
+        clearInterval(id);
+        console.warn('[ophamin] live run failed (no fabrication):', e.message);
+        setStatus('error');
+        setErrMsg(e.message || 'no response from backend');
       }
     })();
 
@@ -91,7 +74,7 @@ function RunScreen({ initialScenario, onJumpToProof }) {
   }, [status]);
 
   useRunEffect(() => {
-    setStatus('idle'); setResult(null); setElapsed(0);
+    setStatus('idle'); setResult(null); setElapsed(0); setErrMsg('');
     setKwargs(scenario.claim_available ? '{}' : (scenario.claim_unavailable_reason || '').includes('trajectory') ? '{\n  "trajectory_path": "/data/cycle-trace.parquet"\n}' : '{\n  "n_workers": 4\n}');
   }, [scenarioName]);
 
@@ -219,6 +202,7 @@ function RunScreen({ initialScenario, onJumpToProof }) {
                   {status === 'confirming' && 'this is the one write surface — runs are heavy'}
                   {status === 'running' && 'sending to substrate · awaiting proof bundle'}
                   {status === 'done' && result && <>verdict <span style={{ color: `var(--${result.verdict})` }}>{result.verdict.toUpperCase()}</span> · observed {formatNum(result.observed)} · {result.short_hash}</>}
+                  {status === 'error' && <>live run failed · <span style={{ color: 'var(--refuted)' }}>{errMsg || 'no response from backend'}</span> · nothing fabricated</>}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -257,7 +241,7 @@ function RunScreen({ initialScenario, onJumpToProof }) {
           <div className="card">
             <div className="card-header">
               <div className="card-title">Live console</div>
-              <span className="mono faint" style={{ fontSize: 10 }}>SESSION ABC2-91F</span>
+              <span className="mono faint" style={{ fontSize: 10 }}>POST /scenarios/…/run</span>
             </div>
             <div style={{
               padding: 14,
@@ -269,26 +253,23 @@ function RunScreen({ initialScenario, onJumpToProof }) {
               maxHeight: 280,
               overflow: 'auto',
             }}>
-              <LogLine ts="11:42:01" lvl="info" msg={'$ ophamin run --scenario ' + scenarioName}/>
-              <LogLine ts="11:42:01" lvl="info" msg={'POST /scenarios/' + scenarioName + '/run'}/>
-              <LogLine ts="11:42:01" lvl="dim"  msg={'kwargs: ' + (valid ? kwargs.replace(/\s+/g, ' ') : '<invalid>')}/>
+              <LogLine ts="·" lvl="info" msg={'$ ophamin run --scenario ' + scenarioName}/>
+              <LogLine ts="·" lvl="info" msg={'POST /scenarios/' + scenarioName + '/run'}/>
+              <LogLine ts="·" lvl="dim"  msg={'kwargs: ' + (valid ? kwargs.replace(/\s+/g, ' ') : '<invalid>')}/>
               {status === 'running' && <>
-                <LogLine ts="11:42:01" lvl="info" msg="loading substrate kimera-swm @ 6e4477ebb"/>
-                <LogLine ts="11:42:02" lvl="info" msg={'corpus: ' + scenario.corpus_name + ' (500 records, seed=17)'}/>
-                <LogLine ts="11:42:02" lvl="info" msg={'method: ' + scenario.method}/>
-                <LogLine ts="11:42:02" lvl="dim" msg="preregistering analysis plan…"/>
-                <LogLine ts="11:42:03" lvl="info" msg="computing pillars: sinew · memory · prime · attention · coherence · entropy"/>
-                {elapsed > 1.5 && <LogLine ts="11:42:03" lvl="dim" msg="bootstrapping 95% CI (n=1000)…"/>}
-                {elapsed > 2.5 && <LogLine ts="11:42:04" lvl="info" msg="signing bundle…"/>}
+                <LogLine ts="·" lvl="dim" msg="awaiting the substrate — preregister plan, compute pillars, sign the bundle…"/>
+                {elapsed > 2.5 && <LogLine ts="·" lvl="dim" msg="still running — heavy scenarios take a while"/>}
               </>}
               {status === 'done' && result && <>
-                <LogLine ts="11:42:01" lvl="info" msg="loading substrate kimera-swm @ 6e4477ebb"/>
-                <LogLine ts="11:42:02" lvl="info" msg={'corpus: ' + scenario.corpus_name + ' (500 records, seed=17)'}/>
-                <LogLine ts="11:42:03" lvl="info" msg="computing pillars · bootstrapping 95% CI"/>
-                <LogLine ts="11:42:04" lvl="info" msg={'observed: ' + formatNum(result.observed)}/>
-                <LogLine ts="11:42:04" lvl="ok"   msg={'verdict: ' + result.verdict.toUpperCase()}/>
-                <LogLine ts="11:42:04" lvl="info" msg={'wrote: ' + result.tier + '/' + result.scenario + '/' + result.date + '_' + result.verdict + '_' + result.short_hash + ' (5 files)'}/>
-                <LogLine ts="11:42:04" lvl="ok"   msg={'done in ' + elapsed.toFixed(2) + 's'}/>
+                <LogLine ts="·" lvl="info" msg={'method: ' + scenario.method}/>
+                <LogLine ts="·" lvl="info" msg={'observed: ' + formatNum(result.observed)}/>
+                <LogLine ts="·" lvl="ok"   msg={'verdict: ' + result.verdict.toUpperCase()}/>
+                <LogLine ts="·" lvl="info" msg={'bundle: ' + result.short_hash + (result.proof_id ? '' : ' (no proof_id returned)')}/>
+                <LogLine ts="·" lvl="ok"   msg={'done in ' + elapsed.toFixed(2) + 's'}/>
+              </>}
+              {status === 'error' && <>
+                <LogLine ts="·" lvl="err" msg={'live run failed: ' + (errMsg || 'no response from backend')}/>
+                <LogLine ts="·" lvl="dim" msg="no verdict, no bundle — nothing fabricated"/>
               </>}
               {status === 'idle' && <div className="faint">awaiting input · press Run to fire</div>}
             </div>
