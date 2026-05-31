@@ -75,6 +75,17 @@ live-success path also minted a fake `proof_id` when the backend omitted one.
   `500 records, seed=17`, fixed timestamps, a fake session id) — only the real
   request, the real result, or an honest error.
 
+### Changed — the Audit wheel stops synthesizing findings
+
+The `audit.jsx` screen presented **synthesized** static-analysis output as if
+real — fabricated findings (fake files, line numbers, rules), invented per-tool
+versions / timings / counts, mocked source previews (`sourceContext` was even
+commented "Mocked source preview"), a "no HIGH findings" reassurance, and dead
+export buttons. The real `auditing/` orchestrator (`runner.py`) exists but isn't
+HTTP-exposed. The screen now shows the real **tool catalogue** + export formats
+as reference, with an honest "not wired into the console" state — synthesizing
+nothing. The rich findings UI can be rebuilt on a real `/auditing` endpoint.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current
