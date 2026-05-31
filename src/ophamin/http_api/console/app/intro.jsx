@@ -1,49 +1,48 @@
 /** @jsxRuntime classic */ /** @jsx React.createElement */
 /* global React, Icon, SixWheelsRing, OPHAMIN */
 // Intro — full-screen welcome / orientation overlay. Auto-shows on first
-// visit (gated by localStorage); reopenable from the ? help modal or
-// the design-preview pill. 5 panels with prev/next + skip.
+// visit (gated by localStorage); reopenable from the ? help modal. 5 panels
+// with prev/next + skip. Leads with WHAT KIMERA IS, then how Ophamin proves it.
 
 const { useState: useIntroState, useEffect: useIntroEffect } = React;
 
 const PANELS = [
   {
-    title: 'Ophamin Console',
-    kicker: 'An empirical observatory wrapped around a substrate under test.',
-    body: 'Built for Kimera-SWM. Independent of it. Six wheels — seeing, measuring, comparing, instrumenting, auditing, reporting — observe a running substrate and emit signed, content-addressed, falsifiable proof bundles. This console is the operator surface.',
+    title: 'Kimera remembers history, not inventory',
+    kicker: "Today's memory systems store what they were given. Kimera stores how things unfolded.",
+    body: 'A filing cabinet — search, RAG — hands back the documents that look similar, blind to the order they arrived: two histories made of the same events in a different order look identical to it. Kimera is a landscape you walk. Every experience wears a permanent groove; the order of walking shapes the terrain; the terrain is the memory. Where order, permanence, and the path of experience carry meaning, the filing cabinet is blind and Kimera is not.',
+    icon: 'activity',
+  },
+  {
+    title: 'Ophamin makes it legible',
+    kicker: 'An observatory wrapped around Kimera — proof, not promises.',
+    body: "Kimera is a new kind of intelligence, and the words for it don't quite exist yet — so Ophamin shows what it actually does. Six wheels — seeing, measuring, comparing, instrumenting, auditing, reporting — watch the running substrate and emit signed, content-addressed, falsifiable evidence. The point is that you don't have to take anyone's word for what Kimera is.",
     wheels: true,
   },
   {
     title: 'Claims are pre-registered',
     kicker: 'Every measurement records its threshold before the substrate runs.',
-    body: 'A claim has a metric, a comparator, a threshold value, units, H₀ and H₁. Its config_hash and data_hash are captured before measurement begins. The threshold a verdict is judged against is byte-identical to what was committed in advance.',
+    body: 'A claim has a metric, a comparator, a threshold, units, H₀ and H₁ — with its config and data hashes captured before measurement begins. The bar a verdict is judged against is byte-identical to what was committed in advance. No moving the goalposts after the fact.',
     icon: 'eye',
   },
   {
-    title: 'Verdicts are signed',
-    kicker: 'Three outcomes: VALIDATED · REFUTED · INCONCLUSIVE.',
-    body: 'A REFUTED verdict is the framework working — the substrate did not meet a threshold committed before measurement. The bundle is HMAC-SHA256 signed; the content hash is its proof_id. Cross-language verifiers in Rust, JS, and Python all enforce the same canonical bytes.',
+    title: 'Verdicts are signed — re-verify them yourself',
+    kicker: 'Three outcomes: VALIDATED · REFUTED · INCONCLUSIVE. No trust required.',
+    body: 'A REFUTED verdict is the framework working — the substrate did not meet a threshold committed before measurement, and that is kept, not hidden. Every bundle is HMAC-signed and content-addressed (its hash is its proof_id), and verifiers in Rust, JS, and Python all enforce the same canonical bytes. Re-run any line; you do not have to believe us.',
     icon: 'check',
     verdicts: true,
   },
   {
     title: 'Where to start',
-    kicker: 'Five entry points depending on what you want to do.',
+    kicker: 'A few entry points, depending on what you want to do.',
     body: '',
     icon: 'rocket',
     entries: [
-      { id: 'chat',     label: 'Chat',       desc: 'Ask anything — routed to one of seven specialized agents. Best first stop.' },
-      { id: 'overview', label: 'Overview',   desc: 'Where the substrate stands today. Six-wheels health, verdict mix, recent runs.' },
-      { id: 'roadmap',  label: 'Roadmap',    desc: 'The 7-phase Kimera autonomous campaign in flight. Every measurement Ophamin-signed.' },
-      { id: 'proofs',   label: 'Proofs',     desc: 'Bundle explorer. Filter, drill, cross-verify in 4 languages, inspect provenance.' },
-      { id: 'control',  label: 'Control',    desc: 'Live cockpit · parameters · containers · databases · logs. Two perspectives.' },
+      { id: 'proofs',   label: 'Proofs',     desc: 'The evidence. Filter, drill into any proof, read what it means in plain words, cross-verify in four languages.' },
+      { id: 'overview', label: 'Overview',   desc: 'Where Kimera stands today — six-wheels health, verdict mix, recent runs.' },
+      { id: 'roadmap',  label: 'Roadmap',    desc: 'The Kimera campaign in flight — every measurement Ophamin-signed.' },
+      { id: 'chat',     label: 'Chat',       desc: 'Ask anything — routed to one of seven specialized agents.' },
     ],
-  },
-  {
-    title: 'This is a design preview',
-    kicker: 'Mock data wired through real shapes.',
-    body: 'The console renders signed proof bundles in their actual 9-section structure, the real OFAMIN pillar evidence schema, and the canonical wire format. The live numbers (Φ, GWF rate, HTTP req/s) tick on a heartbeat but are not connected to a running instrument. The amber "design preview" pill in the topbar will be there until that changes.',
-    icon: 'activity',
   },
 ];
 
