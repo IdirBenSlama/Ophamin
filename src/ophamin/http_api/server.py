@@ -259,6 +259,27 @@ class ChatRequest(BaseModel):
     )
 
 
+class MeshRequest(BaseModel):
+    """Body of ``POST /comparing/mesh`` — one partition exchange to observe.
+
+    The mesh observatory MEASURES a mesh, it never drives one. Supply the
+    partition a Node emitted and the partition the receiving Node re-performed
+    (each a dict with at least a ``primes`` chain, optionally an
+    ``echoform_sequence``), plus each Node's experienced prime-set. Works on a
+    controlled two-Node rig today and on the live wire the moment it flows.
+    """
+
+    emitted: dict[str, Any] | None = Field(
+        default=None, description="Partition emitted by the sending Node (primes + echoform_sequence)."
+    )
+    received: dict[str, Any] | None = Field(
+        default=None, description="Partition the receiving Node re-performed."
+    )
+    node_prime_sets: list[list[str]] = Field(
+        default_factory=list, description="Each Node's experienced prime-set (for pooled convergence)."
+    )
+
+
 # --------------------------------------------------------------------------
 # build_app() — assemble the FastAPI app with all routes registered.
 # --------------------------------------------------------------------------
@@ -420,6 +441,53 @@ def build_app() -> FastAPI:
             "outcome": outcome,
             "significance": plain_significance(record),
         }
+
+    @app.post(
+        "/comparing/mesh",
+        summary="Observe a mesh partition exchange (Node → Archipel → Indra's Net)",
+        description=(
+            "Measure one partition exchange across the wire — it does NOT drive a "
+            "mesh, it observes one. Returns the re-performance fidelity (did the "
+            "receiving Node re-perform the same primes + Echoform operators, in "
+            "order?) and the pooled-experience convergence (the Indra's-Net "
+            "readout across N Nodes). Both order-aware where the substrate is "
+            "path-dependent; either is null (an honest gap) when there is nothing "
+            "to score. Works on a controlled two-Node rig today (POST the two "
+            "Nodes' partitions) and on the live wire the moment it flows — computed "
+            "from the real partition data provided, nothing fabricated."
+        ),
+        tags=["comparing"],
+    )
+    def comparing_mesh(body: MeshRequest) -> dict[str, Any]:
+        from ophamin.comparing.mesh import mesh_observation
+
+        obs = mesh_observation(body.emitted, body.received, body.node_prime_sets)
+        meaning: dict[str, str] = {}
+        fidelity = obs["reperformance_fidelity"]
+        if fidelity is None:
+            meaning["reperformance_fidelity"] = (
+                "No partition exchange to score — supply an emitted and a received "
+                "partition, each with a prime chain."
+            )
+        else:
+            meaning["reperformance_fidelity"] = (
+                f"The wire carried the partition with fidelity {fidelity:.3f}. 1.0 "
+                "means the receiving Node re-performed the same primes and the same "
+                "Echoform operator sequence in the same order; lower means the "
+                "re-performance diverged — the path is the meaning, so order counts."
+            )
+        convergence = obs["pooled_convergence"]
+        if convergence is None:
+            meaning["pooled_convergence"] = (
+                "Pooled convergence needs at least two Nodes with experience."
+            )
+        else:
+            meaning["pooled_convergence"] = (
+                f"Across {obs['n_nodes']} Nodes, pooled experience overlaps "
+                f"{convergence:.3f} (the Indra's-Net readout): 1.0 = fully converged "
+                "(the same lived experience), 0 = isolated Nodes sharing nothing."
+            )
+        return {"observation": obs, "meaning": meaning}
 
     # ------------------------------------------------------------------
     # Agentic layer — read-only surfaces

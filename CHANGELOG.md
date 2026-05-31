@@ -239,6 +239,21 @@ calls were previously the one un-audited LLM path). `POST /chat` returns the
 Best-effort write: an audit-write failure surfaces as `audited: false` (call_id
 null) — never silently dropped, and the answer still returns.
 
+### Added — mesh observation endpoint (`POST /comparing/mesh`)
+
+The mesh-observatory metrics (`comparing/mesh.py` — partition re-performance
+fidelity + pooled-experience convergence, both order-aware, built + tested) are
+now callable. `POST /comparing/mesh` takes one partition exchange — the emitted
+partition, the partition the receiving Node re-performed, and each Node's
+prime-set — and returns the observation with plain-language meaning. It
+*measures* a mesh, never drives one; honest nulls where there's nothing to
+score. Works on a controlled two-Node rig today and on the live wire the moment
+it flows. Verified live: a faithful exchange scores fidelity `1.0`; a reordered
+re-performance scores `0.5` (the path is the meaning, so order counts); pooled
+convergence is the real pairwise prime overlap across Nodes (`0.4` across 2).
+The live two-Node / Archipel exchange still awaits the engine — the observation
+is ready for it.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current
