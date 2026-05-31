@@ -291,6 +291,93 @@ def echoform_sequence_from_history(history: "Sequence[Any]") -> "list[dict[str, 
     return out
 
 
+def _angular_dispersion(points: "Sequence[Any]", cap: int = 100) -> "float | None":
+    """Mean pairwise great-circle angle (radians) over a set of vectors, or ``None``.
+
+    The native "how spread" of a point cloud on a sphere. Bounded to ``cap`` usable
+    vectors to keep the pairwise cost finite; non-numeric / zero-norm entries skip.
+    """
+    vecs: list[list[float]] = []
+    for p in points:
+        if (
+            isinstance(p, (list, tuple)) and p
+            and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in p)
+        ):
+            vecs.append([float(x) for x in p])
+        if len(vecs) >= cap:
+            break
+    if len(vecs) < 2:
+        return None
+    angles: list[float] = []
+    for i in range(len(vecs)):
+        na = math.sqrt(sum(x * x for x in vecs[i]))
+        if na == 0.0:
+            continue
+        for j in range(i + 1, len(vecs)):
+            nb = math.sqrt(sum(x * x for x in vecs[j]))
+            if nb == 0.0:
+                continue
+            dot = sum(a * b for a, b in zip(vecs[i], vecs[j])) / (na * nb)
+            angles.append(math.acos(max(-1.0, min(1.0, dot))))
+    return sum(angles) / len(angles) if angles else None
+
+
+def geoid_dispersion(result: CycleResult) -> "float | None":
+    """Angular spread of the cycle's geoid points on the manifold ∈ [0, π], or ``None``.
+
+    Mean pairwise great-circle angle between the concept positions Kimera placed on
+    its S⁴ surface this cycle. Low = a focused, concentrated thought (the points
+    cluster); high = a broad, dispersed one. Reads the substrate's ACTUAL positions
+    (``raw['geoid_positions']``), not a proxy — ``None`` if fewer than two emitted.
+    """
+    if not result.success:
+        return None
+    return _angular_dispersion((result.raw or {}).get("geoid_positions") or [])
+
+
+def manifold_deformation(result: CycleResult) -> "dict[str, Any] | None":
+    """The scar load on the manifold this cycle — the shape of memory (deformation
+    *is* the memory, per CLAUDE.md), or ``None``.
+
+    Reads ``raw['scar_state']``: ``n_scars``, ``total_deformation``, and
+    ``scar_dispersion`` (how spread the dents sit on the surface). ``None`` if no
+    scar state was emitted — a gap, never a fabricated zero.
+    """
+    if not result.success:
+        return None
+    sc = (result.raw or {}).get("scar_state")
+    if not isinstance(sc, dict):
+        return None
+    out: dict[str, Any] = {}
+    n = sc.get("n_scars")
+    if isinstance(n, (int, float)) and not isinstance(n, bool):
+        out["n_scars"] = int(n)
+    td = as_finite_float(sc.get("total_deformation"))
+    if td is not None:
+        out["total_deformation"] = td
+    disp = _angular_dispersion(sc.get("positions") or [])
+    if disp is not None:
+        out["scar_dispersion"] = disp
+    return out or None
+
+
+def thermo_magnitude(result: CycleResult) -> "float | None":
+    """The substrate's thermodynamic magnitude this cycle — the entropy change ΔS
+    (``raw['entropy_validation']['delta_entropy']``), or ``None``.
+
+    The native "how much" signal: a candidate size-meter. (The manifold-state
+    magnitude readout was REFUTED; this is the distinct *thermodynamic* one, worth
+    testing path-aware against |Δ magnitude|.) ``None`` if not emitted — no
+    substitute signal is read in its place.
+    """
+    if not result.success:
+        return None
+    ev = (result.raw or {}).get("entropy_validation")
+    if isinstance(ev, dict):
+        return as_finite_float(ev.get("delta_entropy"))
+    return None
+
+
 def scar_count(result: CycleResult) -> int | None:
     """The canonical permanent scar count for a cycle, or ``None``.
 
