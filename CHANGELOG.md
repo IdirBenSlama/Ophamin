@@ -7,6 +7,22 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added — two live wedge proofs + the combined exhibit
+
+Both halves of the wedge, run against live Kimera (clean HEAD 1b510a85) and signed:
+- **v1 `scar-accumulation-flow`** (proof_id 84d8258707cd): VALIDATED — total manifold
+  deformation accumulated 1→16 monotonically, zero resets, 8/8 same-stimulus accumulation.
+  Memory is physical.
+- **v2 `memory-order-hysteresis`** (proof_id b7c76de72016): VALIDATED — order_hysteresis
+  +0.9444 (Kimera order-divergence 1.0 vs determinism noise-floor 0.056; RAG/TF-IDF
+  baseline 0.0, order-blind by construction; paired Wilcoxon p=0.016). Memory is
+  conditional / order-dependent. Reproduces the 2026-05-22 proof on fresh live data.
+- **`scripts/compose_wedge_exhibit.py`** → `exhibits/wedge_memory_2026-05-31/` — a
+  self-contained, narrative-led exhibit that gathers both signed proofs, re-verifies each
+  signature, emits a DSSE in-toto attestation per proof, and frames them in plain language
+  with honest caveats (v1 uniform magnitude; v2 n=6). The world-facing artifact — the
+  legibility layer's actual output.
+
 ### Added — the first wedge exhibit (mechanism-deep proof + shippable formats)
 
 The first step toward the north-star: a signed proof that traces Kimera's *physical
