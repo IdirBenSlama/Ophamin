@@ -244,6 +244,21 @@ class RunScenarioRequest(BaseModel):
     )
 
 
+class ChatRequest(BaseModel):
+    """Body of ``POST /chat`` — one turn for the local-LLM advisory layer.
+
+    An LLM is allowed HERE (Ophamin is the layer *about* Kimera): it only
+    advises, never overrides ``Verdict.decide()``, and never runs inside
+    Kimera's measurement path. The substrate itself contains no LLM.
+    """
+
+    question: str = Field(..., description="The user's natural-language question.")
+    history: list[dict[str, str]] = Field(
+        default_factory=list,
+        description="Prior turns as [{role, content}] (role: 'user' | 'assistant').",
+    )
+
+
 # --------------------------------------------------------------------------
 # build_app() — assemble the FastAPI app with all routes registered.
 # --------------------------------------------------------------------------
@@ -803,6 +818,128 @@ def build_app() -> FastAPI:
             return read_proof_index_impl(body.directory)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    # ------------------------------------------------------------------
+    # Advisory chat — Ophamin's local LLM (NEVER Kimera's substrate)
+    # ------------------------------------------------------------------
+
+    @app.post(
+        "/chat",
+        summary="Ask Ophamin's local-LLM advisory layer (never the substrate)",
+        description=(
+            "Route a natural-language question to Ophamin's local LLM "
+            "(OpenAI-compatible runtime at OPHAMIN_LLM_BASE_URL — Ollama / "
+            "LM Studio / MLX-LM). An LLM is allowed HERE because Ophamin is the "
+            "layer *about* Kimera: it only advises, never overrides "
+            "verdict.decide(), and never runs inside Kimera's measurement path "
+            "(the substrate itself contains no LLM). Gated on a reachable local "
+            "LLM serving a real model — returns 503 when none is running, so the "
+            "console falls back to an honest 'not wired' state rather than "
+            "fabricate a reply. Picks a model actually present on the runtime "
+            "(no silent default to an absent one). Chat turns are ephemeral "
+            "advisory and are NOT persisted as signed records; the agent tasks "
+            "that produce durable artifacts do persist. NOTE: this exposes LLM "
+            "inference over HTTP — fine on a local console; gate/auth it before "
+            "a shared deployment."
+        ),
+        responses={
+            400: {"description": "Empty question"},
+            502: {"description": "The LLM runtime errored mid-generation"},
+            503: {"description": "No local LLM reachable (set OPHAMIN_LLM_BASE_URL + run a model)"},
+        },
+        tags=["chat"],
+    )
+    def chat(body: ChatRequest) -> dict[str, Any]:
+        import os as _os
+
+        from ophamin.agentic import LLMClient, LLMClientError
+        from ophamin.agentic.models import DEFAULT_TIER_MODELS, TaskTier
+
+        question = (body.question or "").strip()
+        if not question:
+            raise HTTPException(status_code=400, detail="empty question")
+
+        client = LLMClient()
+        # Probe what the runtime actually serves; never default to a model that
+        # isn't installed (a 404 surprise) — and 503 honestly if nothing is up.
+        try:
+            available = client.list_models()
+        except LLMClientError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"No local LLM reachable at {client.base_url} "
+                    f"({client.runtime_hint}). Start one (e.g. `ollama serve` + "
+                    f"`ollama pull llama3.1:8b`) or set OPHAMIN_LLM_BASE_URL. {exc}"
+                ),
+            ) from exc
+        if not available:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Local LLM at {client.base_url} serves no models.",
+            )
+
+        def _present(tag: str) -> bool:
+            return tag in available or any(
+                m == tag or m.split(":")[0] == tag.split(":")[0] for m in available
+            )
+
+        preferred = _os.environ.get("OPHAMIN_LLM_MODEL_CHAT", "").strip()
+        fast = DEFAULT_TIER_MODELS[TaskTier.FAST]
+        model = (
+            preferred if (preferred and _present(preferred))
+            else fast if _present(fast)
+            else available[0]
+        )
+
+        system = (
+            "You are Ophamin's assistant — the observatory layer that makes "
+            "Kimera-SWM legible. Ground EVERY answer in the facts below and do "
+            "not contradict or embellish them:\n"
+            "- SWM = Spherical Word Memory. Kimera's memory IS a spherical "
+            "manifold; a concept is a point on it; experience permanently "
+            "deforms it (a 'scar'); recall follows the deformed topology.\n"
+            "- Kimera-SWM is an attempt to create a cybernetic, physics-based "
+            "intelligence — NOT a language model, NOT human cognition. Its "
+            "substrate operates on primes (native energy scale E_p = log p), "
+            "geoids, scars, a Walker that resolves contradictions, and Piovra "
+            "sensory arms. The substrate causes its own intelligence and "
+            "contains NO LLM of any kind.\n"
+            "- Ophamin is the observatory around Kimera: it measures the "
+            "substrate and emits signed, content-addressed, falsifiable proofs "
+            "(verdicts VALIDATED / REFUTED / INCONCLUSIVE).\n"
+            "You only ADVISE: you never decide a verdict, and you are not part "
+            "of Kimera's substrate. If you do not know a specific (a number, a "
+            "proof, an acronym's expansion), SAY you do not know and point to "
+            "the Proofs / Agents / Roadmap screens — NEVER guess or invent. "
+            "Admitting a gap is always better than a plausible-sounding "
+            "falsehood."
+        )
+        messages: list[dict[str, str]] = [{"role": "system", "content": system}]
+        for turn in body.history[-8:]:
+            role = turn.get("role")
+            content = turn.get("content")
+            if role in ("user", "assistant") and isinstance(content, str):
+                messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": question})
+
+        try:
+            resp = client.chat(
+                model=model, messages=messages, max_tokens=1024, temperature=0.3,
+            )
+        except LLMClientError as exc:
+            raise HTTPException(
+                status_code=502, detail=f"LLM runtime error: {exc}",
+            ) from exc
+
+        return {
+            "reply": resp.content,
+            "reasoning": resp.reasoning or None,
+            "model": resp.model,
+            "runtime": client.runtime_hint,
+            "latency_ms": round(resp.latency_ms, 1),
+            "completion_tokens": resp.completion_tokens,
+        }
 
     # ------------------------------------------------------------------
     # Heavyweight: run a scenario

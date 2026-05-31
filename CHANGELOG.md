@@ -148,6 +148,24 @@ mark it unambiguously as an editable DEMO (proof_id/signature are
 `will_be_recomputed` placeholders), inviting a real proof.json paste. The crypto
 was always real — only the framing needed to stop implying the demo was real.
 
+### Added — Chat wired to a real local LLM (advisory; never the substrate)
+
+`POST /chat` routes a question to Ophamin's local LLM (`ophamin.agentic.LLMClient`
+→ Ollama / LM Studio / MLX-LM via `OPHAMIN_LLM_BASE_URL`) and returns the real
+reply with real model / latency / token metrics. An LLM is allowed here because
+Ophamin is the layer *about* Kimera — it only advises, never overrides
+`verdict.decide()`, never enters Kimera's measurement path; the substrate itself
+contains no LLM. Gated on a reachable model (503 → the console shows an honest
+"couldn't reach the LLM" with routes to Proofs/Agents/Roadmap, never a fabricated
+reply); picks a model actually present on the runtime. The system prompt is
+**grounded** in accurate Kimera facts (SWM = Spherical Word Memory; the
+prime/geoid/scar/Walker/Piovra substrate; no LLM inside it) and forbids guessing,
+so the assistant admits gaps instead of hallucinating — verified live: it expands
+SWM correctly and states there is no LLM in Kimera. `chat.jsx` renders the real
+reply + metrics, with the honest error state as fallback. Chat turns are
+ephemeral (not persisted as signed records). This supersedes the prior "chat
+answers nothing" stub — it now answers for real, grounded, when a local model is up.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current
