@@ -343,6 +343,23 @@ function SummaryView({ bundle, proof }) {
   const obs = bundle.observed;
   const lo = bundle.ci[0], hi = bundle.ci[1];
 
+  // Plain-language "what this means about Kimera" — fetched from the API's single
+  // source (reporting.significance), so the console shows the same meaning a
+  // rendered proof carries. Honest gap: stays hidden when unauthored.
+  const [meaning, setMeaning] = useProofState(null);
+  useProofEffect(() => {
+    const base = window.OPHAMIN_API_BASE || '';
+    const url = base + '/significance?metric=' + encodeURIComponent(t.metric)
+      + '&outcome=' + encodeURIComponent(proof.verdict.outcome)
+      + (obs != null ? '&observed=' + encodeURIComponent(obs) : '');
+    let live = true;
+    fetch(url, { headers: { accept: 'application/json' } })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (live && d) setMeaning(d.significance); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [t.metric, proof.verdict.outcome, obs]);
+
   // map observed onto a normalized 0..1 axis around threshold (for visual)
   const axisRange = computeAxisRange(t.value, lo, hi, obs);
   const pct = v => Math.max(0, Math.min(1, (v - axisRange[0]) / (axisRange[1] - axisRange[0])));
@@ -388,6 +405,15 @@ function SummaryView({ bundle, proof }) {
           {proof.verdict.reasoning}
         </div>
       </div>
+
+      {/* What this means — plain-language meaning, near the top, above the rigor */}
+      {meaning && (
+        <div style={{ border: '1px solid var(--border)', background: 'var(--bg-base)',
+                      borderRadius: 'var(--r-md)', padding: 14 }}>
+          <div className="micro" style={{ color: 'var(--accent)', marginBottom: 6 }}>WHAT THIS MEANS</div>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{meaning}</div>
+        </div>
+      )}
 
       {/* Pre-registration receipt strip — surfaces the epistemic spine */}
       <PreregReceipt proof={proof}/>
