@@ -138,6 +138,16 @@ the console. So the chat now answers nothing: it states plainly that the LLM
 backend isn't connected and routes the question to the real surface (Proofs /
 Agents / Roadmap). No canned answers, no fake metrics, no fake signatures.
 
+### Changed — Lab labels its demo proof unmistakably
+
+`lab.jsx` is a real client-side crypto playground (canonicalize → SHA-256 → HMAC
+via Web Crypto — genuinely live in-browser). It pre-loads an editable `DEMO_PROOF`
+to play with; the risk was that the pre-filled proof (a VALIDATED verdict, a
+version, hashes) could read as a real loaded record. The subtitle + banner now
+mark it unambiguously as an editable DEMO (proof_id/signature are
+`will_be_recomputed` placeholders), inviting a real proof.json paste. The crypto
+was always real — only the framing needed to stop implying the demo was real.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current

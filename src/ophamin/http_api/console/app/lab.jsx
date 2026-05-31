@@ -167,7 +167,7 @@ function LabScreen() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Lab</h1>
-          <div className="page-subtitle mono">Paste a proof. Watch its bytes, hash, and signature recompute live. Break it on purpose to see what the framework guarantees.</div>
+          <div className="page-subtitle mono">Pre-loaded with an editable DEMO proof (not a real record). Paste your own to verify it — bytes, hash, and signature recompute live, in your browser.</div>
         </div>
         <div className="page-actions">
           <span className="live-pill">
@@ -205,7 +205,7 @@ function LabScreen() {
       <div className="lab-banner">
         <Icon name="eye" size={16}/>
         <div>
-          <b>This is your wire-format laboratory.</b> Paste a proof.json (or mutate the demo below) and watch its canonical bytes, sha256 content-hash, and HMAC signature recompute live. Toggle the helpers to break the canonicalization on purpose — the framework's epistemic guarantees are bytes, not promises.
+          <b>This is your wire-format laboratory.</b> The editor below is pre-filled with an <b>editable DEMO proof</b> — its <span className="mono">proof_id</span> and <span className="mono">signature</span> are <span className="mono">will_be_recomputed</span> placeholders, not a real record. Paste a real proof.json (or mutate the demo) and watch its canonical bytes, sha256 content-hash, and HMAC signature recompute live, in your browser. Break the canonicalization on purpose — the guarantees are bytes, not promises.
         </div>
       </div>
 
