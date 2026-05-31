@@ -7,6 +7,38 @@ const { useState: useOvState, useMemo: useOvMemo } = React;
 function OverviewScreen({ onNavToProofs }) {
   const D = OPHAMIN;
 
+  // Real instrument telemetry from /metrics (uptime + proof storage). null =
+  // loading, false = unreachable → honest "—"; never a fabricated value.
+  const [metrics, setMetrics] = useOvState(null);
+  React.useEffect(() => {
+    let alive = true;
+    const base = window.OPHAMIN_API_BASE || '';
+    fetch(base + '/metrics', { headers: { accept: 'text/plain' } })
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error('HTTP ' + r.status))))
+      .then((text) => {
+        if (!alive) return;
+        const num = (re) => { const m = text.match(re); return m ? parseFloat(m[1]) : null; };
+        setMetrics({
+          uptime_s: num(/^ophamin_uptime_seconds\s+([0-9.eE+]+)/m),
+          storage_bytes: num(/^ophamin_proof_bundle_storage_bytes\s+([0-9.eE+]+)/m),
+        });
+      })
+      .catch(() => { if (alive) setMetrics(false); });
+    return () => { alive = false; };
+  }, []);
+  const fmtUptime = (s) => {
+    if (s == null) return '—';
+    const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+    return d ? `${d}d ${h}h ${m}m` : h ? `${h}h ${m}m` : `${m}m`;
+  };
+  const fmtBytes = (b) => {
+    if (b == null) return '—';
+    const mib = b / 1048576;
+    return mib >= 1024 ? (mib / 1024).toFixed(1) + ' GiB' : mib.toFixed(1) + ' MiB';
+  };
+  const uptimeStr = metrics === null ? '…' : fmtUptime(metrics ? metrics.uptime_s : null);
+  const storageStr = metrics === null ? '…' : fmtBytes(metrics ? metrics.storage_bytes : null);
+
   const stats = [
     { id: 'scenarios', label: 'Scenarios', value: D.totals.scenarios, kind: 'neutral' },
     { id: 'bundles', label: 'Bundles', value: D.totals.bundles, kind: 'neutral' },
@@ -20,7 +52,7 @@ function OverviewScreen({ onNavToProofs }) {
       <div className="page-header">
         <div>
           <h1 className="page-title">Overview</h1>
-          <div className="page-subtitle">Where the substrate stands today. {D.totals.bundles} signed proofs across {D.totals.tiers} tiers — last run 19 May.</div>
+          <div className="page-subtitle">Where the substrate stands today. {D.totals.bundles} signed proofs across {D.totals.tiers} tiers.</div>
         </div>
         <div className="page-actions">
           <span className="live-pill"><span className="dot"></span>Live</span>
@@ -115,12 +147,11 @@ function OverviewScreen({ onNavToProofs }) {
               <span className="run-status done"><span className="dot"></span>ok</span>
             </div>
             <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Kv k="framework" v="ophamin 0.64.1" />
-              <Kv k="substrate" v="kimera-swm" mono />
-              <Kv k="substrate_commit" v="4552de7ee80c" mono truncate />
-              <Kv k="uptime" v="2d 3h 12m" mono />
-              <Kv k="storage" v="40.0 MiB · 172 GiB free" mono />
-              <Kv k="python" v="3.14.3" mono />
+              <Kv k="framework" v={'ophamin ' + (D.version || '—')} />
+              <Kv k="substrate" v={D.substrate || 'kimera-swm'} mono />
+              <Kv k="substrate_commit" v={D.substrate_commit || '—'} mono truncate />
+              <Kv k="uptime" v={uptimeStr} mono />
+              <Kv k="proof storage" v={storageStr} mono />
             </div>
           </div>
         </div>
@@ -527,14 +558,14 @@ function TopologyView({ D, onNavToProofs }) {
             fontFamily="JetBrains Mono" fontWeight="600" letterSpacing="0.12em">SUBSTRATE</text>
             <text x={subX} y={subY - 18} textAnchor="middle" fontSize="16" fontWeight="600" fill="var(--text-primary)">kimera-swm</text>
             <text x={subX} y={subY + 2} textAnchor="middle" fontSize="10"
-            fontFamily="JetBrains Mono" fill="var(--text-muted)">6e4477ebb</text>
+            fontFamily="JetBrains Mono" fill="var(--text-muted)">{D.substrate_commit || '—'}</text>
             <circle cx={subX - 50} cy={subY + 26} r="3" fill="var(--validated)" />
             <text x={subX - 42} y={subY + 30} fontSize="10" fill="var(--text-secondary)" fontFamily="JetBrains Mono">healthy</text>
             <text x={subX + 60} y={subY + 30} textAnchor="end" fontSize="10" fill="var(--text-muted)" fontFamily="JetBrains Mono">{D.totals.bundles}b</text>
             <rect x={subX - 70} y={subY + 46} width="140" height="14" rx="0 0 8 8"
             fill="var(--bg-card-head)" />
             <text x={subX} y={subY + 56} textAnchor="middle" fontSize="9" fill="var(--text-muted)"
-            fontFamily="JetBrains Mono" letterSpacing="0.06em">2d 3h 12m · ophamin 0.64.1</text>
+            fontFamily="JetBrains Mono" letterSpacing="0.06em">{'ophamin ' + (D.version || '—')}</text>
           </g>
 
           {/* Tier nodes + scenarios + bundle dots */}

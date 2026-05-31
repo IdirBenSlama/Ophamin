@@ -188,6 +188,19 @@ model to synthesise from it (never beyond it). Verified live:
 Best-effort: an unreadable source degrades the chat to fewer real facts, never to
 fabricated ones.
 
+### Fixed — Overview shows real instrument identity (no mock-on-success)
+
+The Overview "Instrument identity" card hardcoded `ophamin 0.64.1`, a fake
+`2d 3h 12m` uptime, fake storage (`40 MiB · 172 GiB free`), and a stale commit —
+shown even on a *working* backend (hydrate replaced proofs/scenarios but not
+these fields), the one mock-on-success the SAMPLE-DATA banner couldn't catch.
+Now it reads the real hydrated version (`0.115.2`), substrate + commit, and
+fetches the **real uptime + proof storage from `/metrics`** (honest "—" if
+unreachable). The same fakes in the topology substrate-node visual (commit,
+version) are wired to the real fields, and the hardcoded "last run 19 May"
+subtitle is dropped. Verified live: `ophamin 0.115.2 · uptime 7m · proof storage
+14.5 MiB`.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current
