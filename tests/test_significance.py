@@ -7,6 +7,7 @@ carries the owner's framing for the open size-meter gap.
 """
 
 from ophamin.reporting.significance import (
+    coverage_report,
     covered_metrics,
     has_significance,
     plain_significance,
@@ -45,6 +46,16 @@ def test_every_authored_metric_has_all_three_branches():
     for m in covered_metrics():
         for outcome in ("VALIDATED", "REFUTED", "INCONCLUSIVE"):
             assert plain_significance(_rec(m, outcome, 1.0)), f"{m}/{outcome} missing"
+
+
+def test_coverage_report_surfaces_the_gap_honestly():
+    rep = coverage_report(["order_hysteresis", "phi_floor", "some_unauthored_metric"])
+    assert "order_hysteresis" in rep["covered"]
+    assert "some_unauthored_metric" in rep["uncovered"]
+    assert 0.0 < rep["fraction"] < 1.0
+    assert coverage_report(["order_hysteresis"])["fraction"] == 1.0
+    assert coverage_report(["nope"])["fraction"] == 0.0
+    assert coverage_report([])["fraction"] == 0.0
 
 
 def test_cross_instance_invariance_names_the_pooling_stakes():

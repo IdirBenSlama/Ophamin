@@ -20,6 +20,7 @@ language, which is meaning-work, not mechanism).
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any
 
 # metric -> {"what": <what it tests>, "<OUTCOME>": <plain reading>}
@@ -230,3 +231,22 @@ def covered_metrics() -> "frozenset[str]":
     silent omission read as 'covered'.
     """
     return frozenset(_SIGNIFICANCE)
+
+
+def coverage_report(metrics: Iterable[str]) -> dict[str, Any]:
+    """Which of the given scenario metrics carry an authored plain-language meaning.
+
+    Surfaces the legibility gap honestly (no silent caps): pass the corpus's
+    pre-registered metrics and get ``{covered, uncovered, fraction}``. Every metric
+    in ``uncovered`` renders no 'What this means' today — the explicit to-do list
+    for extending the meaning layer, rather than a silent omission that reads as
+    'covered'.
+    """
+    seen = {str(m) for m in metrics if m}
+    covered = sorted(m for m in seen if m in _SIGNIFICANCE)
+    uncovered = sorted(m for m in seen if m not in _SIGNIFICANCE)
+    return {
+        "covered": covered,
+        "uncovered": uncovered,
+        "fraction": len(covered) / len(seen) if seen else 0.0,
+    }
