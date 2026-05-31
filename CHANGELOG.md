@@ -7,7 +7,35 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-(empty — see [0.115.2] below for the latest cut.)
+### Added — inside-out metrology + plain-language legibility
+
+The observatory now reads the substrate's **actual physics**, not its self-report,
+and explains every proof in plain words on every surface. All in-lane (no Kimera
+engine change): the substrate already retained these; Ophamin now reads them.
+
+- **Order-keeping trajectory metrics** (`seeing.substrate.observables`):
+  `sequence_edit_divergence` + `energy_path_divergence` (the `E_p = ln p`
+  cumulative-energy walk) read the *ordered* prime-chain the set/Jaccard metrics
+  discarded. Wired into `memory-order-hysteresis` as diagnostic evidence beside the
+  set metric (the pre-registered claim is unchanged).
+- **Partition observation** (`observables.partition` + `partition_faithfulness`):
+  assembles the re-performable wire-unit — primes + Echoform operator sequence +
+  Cronos + GWF. The runner extracts the Echoform operator sequence and the live
+  manifold state (geoid positions, scar load) the substrate already retains;
+  faithfulness reaches 1.0 (live-verified).
+- **Manifold readers** (`observables`): `geoid_dispersion` (a thought's spread on
+  S⁴), `manifold_deformation` (scar load — the shape of memory), `thermo_magnitude`
+  (the entropy change ΔS).
+- **Mesh observation** (`comparing.mesh`): `partition_reperformance_fidelity`
+  (order-keeping) + `pooled_experience_convergence` — the Archipel / Indra's-Net
+  readouts; measures a mesh without driving one.
+- **Plain-language significance** (`reporting.significance`): authored,
+  verdict-aware "what this means about Kimera" for the flagship metrics, rendered in
+  HTML / Markdown / LaTeX, served at `GET /significance`, and shown in the React
+  console under the verdict; `coverage_report` surfaces the gap. No model in the
+  loop; honest gap (no section) on an unauthored metric.
+- Field catalog registers the new emitted fields (`echoform_sequence`,
+  `geoid_positions`, `scar_state`).
 
 ## [0.115.2] — 2026-05-23
 
