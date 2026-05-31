@@ -23,10 +23,15 @@ routable tools are now connected for real, and the wiring survives a restart.
   ruff,bandit` → `ophamin export … --format sarif` → uploaded to this repo's GitHub
   Code Scanning (16 real findings, processing `complete`, no errors).
   `OPHAMIN_SARIF_URL` now points at the live Security tab.
-- **Known limitation flagged:** the SARIF exporter emits **absolute `file://` URIs**;
-  GitHub Code Scanning needs repo-relative ones, so the upload path relativizes them
-  first. Follow-up: make the exporter emit repo-relative URIs (with a `uriBaseId`) so
-  its SARIF is portable without post-processing.
+- **SARIF exporter now emits repo-relative URIs** (`interop/sarif.py`) — was a flagged
+  limitation, now fixed. It finds the `.git` root (self-contained, no subprocess) and
+  writes each artifact path relative to it, falling back to absolute `file://` only for
+  paths outside the repo (e.g. a venv dependency). Previously every URI was an absolute
+  producer-side `file://` path that maps to nothing on GitHub / GitLab / the VS Code
+  viewer. The repo root is recorded in `properties.ophamin_src_root` for traceability.
+  Verified end-to-end: the exporter's **raw** output (135 results, 0 absolute) uploaded
+  to GitHub Code Scanning and processed `complete` — no relativization step needed. Two
+  new tests in `test_interop.py` pin the relative emission and the no-`.git` fallback.
 - **Still honestly not-configured:** DVC Studio (cloud-only, no local service) and the
   Provenance viewer (no PROV-O viewer running). Shown as "not configured", not faked.
 

@@ -198,6 +198,54 @@ def test_sarif_exporter_respects_existing_extension(tmp_path):
     assert out.exists()
 
 
+def _audit_record_under(root) -> dict:
+    """An audit record whose target + findings live under ``root`` — used to
+    exercise repo-relative URI emission."""
+    rec = _audit_record()
+    root = str(root)
+    rec["target"]["target_path"] = root
+    for pillar in rec["pillars"]:
+        pillar["target_path"] = root
+        for f in pillar.get("findings", []):
+            f["path"] = f"{root}/src/pkg/{f['rule_id']}.py"
+    return rec
+
+
+def test_audit_record_to_sarif_emits_repo_relative_uris_under_git_root(tmp_path):
+    # A SARIF whose artifact URIs are absolute file:// paths maps to nothing on
+    # GitHub Code Scanning / GitLab / the VS Code viewer. With a .git ancestor,
+    # the exporter must emit repo-relative URIs.
+    (tmp_path / ".git").mkdir()
+    sarif = audit_record_to_sarif(_audit_record_under(tmp_path))
+
+    assert sarif["properties"]["ophamin_src_root"] == str(tmp_path.resolve())
+    uris = [
+        loc["physicalLocation"]["artifactLocation"]["uri"]
+        for run in sarif["runs"]
+        for r in run.get("results", [])
+        for loc in r.get("locations", [])
+    ]
+    assert uris, "expected at least one located result"
+    for u in uris:
+        assert not u.startswith("file:"), f"absolute file URI leaked: {u}"
+        assert not u.startswith("/"), f"absolute path leaked: {u}"
+    assert "src/pkg/E501.py" in uris
+
+
+def test_audit_record_to_sarif_falls_back_to_absolute_when_no_git(tmp_path):
+    # No .git ancestor ⇒ no repo root to relativize against; the exporter keeps
+    # the absolute file:// URI rather than inventing a base. src_root is None.
+    sarif = audit_record_to_sarif(_audit_record_under(tmp_path))  # no .git created
+    assert sarif["properties"]["ophamin_src_root"] is None
+    uris = [
+        loc["physicalLocation"]["artifactLocation"]["uri"]
+        for run in sarif["runs"]
+        for r in run.get("results", [])
+        for loc in r.get("locations", [])
+    ]
+    assert uris and all(u.startswith("file:") for u in uris)
+
+
 # --------------------------------------------------------------------------
 # JUnit XML exporter
 # --------------------------------------------------------------------------

@@ -58,17 +58,64 @@ def _level_for(severity: str) -> tuple[str, str, int]:
     )
 
 
-def _file_uri(path: str) -> str:
-    """Convert a filesystem path into a SARIF artifactLocation URI."""
-    # SARIF allows absolute URIs; relative paths must be relative to a
-    # ``run.originalUriBaseIds`` entry. We use file:// absolute paths since
-    # audit findings are typically absolute on the producer side anyway.
+def _repo_root(start: str) -> Path | None:
+    """Walk up from a path to the git repository root (the dir containing
+    ``.git``). Self-contained — no subprocess — and returns None when no
+    ``.git`` ancestor exists (e.g. auditing a directory outside any repo)."""
+    if not start:
+        return None
+    try:
+        p = Path(start).resolve()
+    except (OSError, ValueError, RuntimeError):
+        return None
+    if p.is_file():
+        p = p.parent
+    for candidate in (p, *p.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return None
+
+
+def _src_root_for(record: dict[str, Any]) -> Path | None:
+    """Determine the repo root spanning this audit, so SARIF artifact URIs can be
+    emitted relative to it. Repo-relative URIs are what GitHub Code Scanning,
+    GitLab, and the VS Code SARIF viewer map to source files; absolute file://
+    URIs (the producer-side path) map to nothing on the consumer. Anchors on the
+    record's declared target first, then the first absolute finding path."""
+    target = (record.get("target") or {}).get("target_path") or ""
+    root = _repo_root(target)
+    if root is not None:
+        return root
+    for pillar in record.get("pillars", []) or []:
+        for f in pillar.get("findings", []) or []:
+            path = f.get("path", "")
+            if path and not path.startswith("<dependency:") and Path(path).is_absolute():
+                root = _repo_root(path)
+                if root is not None:
+                    return root
+    return None
+
+
+def _file_uri(path: str, src_root: Path | None = None) -> str:
+    """Convert a filesystem path into a SARIF artifactLocation URI.
+
+    When ``src_root`` is given and ``path`` lives under it, emits a repo-relative
+    POSIX URI — portable across SARIF consumers, which resolve repo-relative
+    paths against the analyzed checkout. Falls back to an absolute file:// URI
+    for paths outside the repo (e.g. a venv dependency) or when no root is known.
+    """
     if not path:
         return ""
     if path.startswith("<dependency:"):
         # pip-audit findings have synthetic <dependency:pkg> paths — keep as-is
         return path
-    return Path(path).as_uri() if Path(path).is_absolute() else path
+    p = Path(path)
+    if src_root is not None and p.is_absolute():
+        try:
+            return p.resolve().relative_to(src_root).as_posix()
+        except (ValueError, OSError):
+            pass  # outside src_root — fall through to an absolute URI
+    return p.as_uri() if p.is_absolute() else path
 
 
 def _build_rule(rule_id: str, finding_sample: dict[str, Any]) -> dict[str, Any]:
@@ -92,13 +139,13 @@ def _build_rule(rule_id: str, finding_sample: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _build_result(finding: dict[str, Any]) -> dict[str, Any]:
+def _build_result(finding: dict[str, Any], src_root: Path | None = None) -> dict[str, Any]:
     """Build a SARIF result entry from one Ophamin Finding dict."""
     severity = finding.get("severity", "low")
     level, sec_severity, rank = _level_for(severity)
     location: dict[str, Any] = {
         "physicalLocation": {
-            "artifactLocation": {"uri": _file_uri(finding.get("path", ""))},
+            "artifactLocation": {"uri": _file_uri(finding.get("path", ""), src_root)},
         },
     }
     line = int(finding.get("line", 0) or 0)
@@ -122,7 +169,7 @@ def _build_result(finding: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _build_run_for_pillar(pillar: dict[str, Any], record: dict[str, Any]) -> dict[str, Any] | None:
+def _build_run_for_pillar(pillar: dict[str, Any], record: dict[str, Any], src_root: Path | None = None) -> dict[str, Any] | None:
     """One SARIF run per pillar — but only when the pillar status is 'ok'.
 
     Unavailable / errored pillars are surfaced in invocations.properties so
@@ -159,7 +206,7 @@ def _build_run_for_pillar(pillar: dict[str, Any], record: dict[str, Any]) -> dic
             },
         },
         "invocations": [invocation],
-        "results": [_build_result(f) for f in findings],
+        "results": [_build_result(f, src_root) for f in findings],
         "properties": {
             "ophamin_pillar": pillar.get("pillar_name"),
             "ophamin_pillar_status": pillar.get("status"),
@@ -181,9 +228,11 @@ def audit_record_to_sarif(record: dict[str, Any]) -> dict[str, Any]:
             "(missing 'pillars' and/or 'audit_id')"
         )
 
+    src_root = _src_root_for(record)
+
     runs: list[dict[str, Any]] = []
     for pillar in record.get("pillars", []):
-        run = _build_run_for_pillar(pillar, record)
+        run = _build_run_for_pillar(pillar, record, src_root)
         if run is not None:
             runs.append(run)
 
@@ -200,6 +249,9 @@ def audit_record_to_sarif(record: dict[str, Any]) -> dict[str, Any]:
             "ophamin_target_content_hash": record.get("target", {}).get(
                 "target_content_hash"
             ),
+            # repo root the artifact URIs are relative to (None ⇒ URIs stay
+            # absolute file:// because no .git ancestor was found)
+            "ophamin_src_root": str(src_root) if src_root is not None else None,
         },
     }
 
