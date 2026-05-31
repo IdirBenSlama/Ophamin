@@ -377,6 +377,35 @@ def build_app() -> FastAPI:
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
+    @app.get(
+        "/significance",
+        summary="Plain-language meaning of a proof outcome",
+        description=(
+            "Return the authored, verdict-aware plain-language significance for a "
+            "proof — 'what this means about Kimera' — keyed by the pre-registered "
+            "metric. Same single source the static renderers use "
+            "(ophamin.reporting.significance); no model in the loop. "
+            "``significance`` is null when the metric has no authored meaning (an "
+            "honest gap, never fabricated). Lets the console + any client render "
+            "the same meaning a rendered proof carries."
+        ),
+        tags=["proofs"],
+    )
+    def get_significance(
+        metric: str, outcome: str, observed: float | None = None
+    ) -> dict[str, Any]:
+        from ophamin.reporting.significance import plain_significance
+
+        record = {
+            "claim": {"threshold": {"metric": metric}},
+            "verdict": {"outcome": outcome, "observed_value": observed},
+        }
+        return {
+            "metric": metric,
+            "outcome": outcome,
+            "significance": plain_significance(record),
+        }
+
     # ------------------------------------------------------------------
     # Agentic layer — read-only surfaces
     #
