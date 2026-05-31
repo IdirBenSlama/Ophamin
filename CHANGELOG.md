@@ -126,6 +126,18 @@ not replace, so they can show stale/mock values (`ophamin 0.64.1`, a fake
 uptime) even on a reachable backend. The banner closes the gross silent
 fallback; per-field hydrate coverage is follow-up.
 
+### Changed — Chat stops faking agent replies (and a live LLM)
+
+`chat.jsx` served scripted canned answers (`agentReply` pattern-matched the
+question → hardcoded replies with fabricated specifics: `39.6%`, `3.2%
+VALIDATED`, CIs, proof refs), while the UI claimed a live local model
+(`qwen2.5-coder:14b · 47ms p50`), per-reply signatures (`signed · 04c1b2be…`),
+and a fake conversation history. An LLM **is** allowed in Ophamin's chat (it only
+advises; it never enters Kimera's measurement path) — but it is not wired into
+the console. So the chat now answers nothing: it states plainly that the LLM
+backend isn't connected and routes the question to the real surface (Proofs /
+Agents / Roadmap). No canned answers, no fake metrics, no fake signatures.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current
