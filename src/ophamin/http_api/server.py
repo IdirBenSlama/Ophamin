@@ -1065,13 +1065,22 @@ def build_app() -> FastAPI:
             # Absolutize + cache-bust every bundle asset reference so the
             # page loads its JS/CSS/data from /app/static and an upgrade
             # never serves a stale mix.
-            html = _CONSOLE_ASSET_RE.sub(
-                lambda m: (
-                    f'{m.group(1)}="/app/static/app/{m.group(2)}'
-                    f'?v={__version__}"'
-                ),
-                html,
-            )
+            def _asset_buster(m: "re.Match[str]") -> str:
+                asset = m.group(2)
+                # Bust on content change, not just release: append the asset's
+                # mtime, so an edited .jsx/.css/.js is re-fetched even within a
+                # version. The HTML is no-store; without this, a returning
+                # browser pins stale console JS until the version bumps — which
+                # makes iterating on the GUI invisible to anyone who has visited.
+                ver = __version__
+                try:
+                    mtime = int((_CONSOLE_DIR / "app" / asset).stat().st_mtime)
+                    ver = f"{__version__}-{mtime}"
+                except OSError:
+                    pass
+                return f'{m.group(1)}="/app/static/app/{asset}?v={ver}"'
+
+            html = _CONSOLE_ASSET_RE.sub(_asset_buster, html)
             # Tell the bundle where its assets + REST surface live. The
             # force-load fallback in app.jsx reads OPHAMIN_ASSET_BASE; the
             # hydrate() in data.js reads OPHAMIN_API_BASE. Injected right
