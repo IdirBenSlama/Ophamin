@@ -37,6 +37,26 @@ engine change): the substrate already retained these; Ophamin now reads them.
 - Field catalog registers the new emitted fields (`echoform_sequence`,
   `geoid_positions`, `scar_state`).
 
+### Changed — the machinery surface tells the truth
+
+The Control Room's infrastructure panels were an elaborate fabrication — and
+*orphaned* (loaded by `index.html`, mounted by nothing): invented container
+CPU/memory, dead start/stop buttons, fabricated database sizes, and — worst —
+synthetic substrate log lines (`Takwin.run cycle_index=2841 · phi=0.284 ·
+prime_chain=[2,7,13,…]`). All of it is gone.
+
+- **Parameters** now reads the live `/configuring/` surface (source-scanned
+  substrate env knobs + effective `.env`, read-only; mutation stays CLI-gated
+  by design) — the same real data the Configure screen exposes in full. Honest
+  "no substrate connected" empty-state when no repo is set.
+- **Containers / Databases / Logs** are honest "not wired" scaffolds — they
+  become real when their introspection backends exist, and invent nothing until
+  then. (Container start/stop is deploy orchestration — argocd/helm's job, not
+  the observatory's.)
+- The panels are now **reachable**: the Control Room gains a `Manage | Infra`
+  facet toggle (`control.jsx`), turning orphaned dead code into the honest
+  skeleton of the machinery-control plane.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current
