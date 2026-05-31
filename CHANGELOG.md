@@ -171,18 +171,22 @@ answers nothing" stub — it now answers for real, grounded, when a local model 
 The advisory chat no longer answers from the model's training data — it answers
 from Ophamin's own signed corpus. New `chat_grounding.py`: for each question it
 retrieves the most relevant scenarios (lexical token overlap over ~54 scenario
-names / goals / falsification consequences — no embeddings needed) and assembles
-a REAL context block: goal, pre-registered claim + threshold, latest signed
-verdict, the **observed value read from the signed `proof.json`**, and the
+names / goals / falsification consequences — no embeddings; **verdict-aware**, so
+"what failed?" surfaces REFUTED proofs) and assembles a REAL context block — a
+**corpus snapshot** (proof + scenario counts + verdict mix), then per scenario
+the goal, pre-registered claim + threshold, latest signed verdict, the **observed
+value AND the verdict's reasoning read from the signed `proof.json`**, and the
 authored plain-language significance. `/chat` injects that and instructs the
-model to synthesise from it (never beyond it). Verified live: *"why was
-logic-topology-siege refuted?"* cites the real threshold
-(`sustained_traversal_rate_on_cleared >= 0.6`) and the real REFUTED verdict;
-*"what is the GWF false-positive rate?"* gives the real ≤10% ceiling in plain
-words — where pre-grounding the model invented "Sigma-Wave-Mathematics". When a
-question has no matching record it still says so rather than guess. Best-effort:
-an unreadable source degrades the chat to fewer real facts, never to fabricated
-ones.
+model to synthesise from it (never beyond it). Verified live:
+- *"why was logic-topology-siege refuted? give the numbers"* → the real reasoning:
+  the walker reached sustained traversal in 4/32 cycles (observed `0.125`) vs the
+  pre-registered `>= 0.6` threshold — straight from the signed proof.
+- *"what is the GWF false-positive rate?"* → the real ≤10% ceiling, plain words
+  (pre-grounding the model invented "Sigma-Wave-Mathematics").
+- a question with no matching record → it says so rather than guess.
+
+Best-effort: an unreadable source degrades the chat to fewer real facts, never to
+fabricated ones.
 
 ## [0.115.2] — 2026-05-23
 
