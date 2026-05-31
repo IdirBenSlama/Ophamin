@@ -77,9 +77,8 @@ function AgentsScreen() {
               <textarea spellCheck="false" style={{ width: '100%', minHeight: 120, padding: 10, background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', color: 'var(--text-primary)', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, resize: 'vertical' }}
                 defaultValue={agentExampleInput(agent.id)}/>
 
-              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button className="btn primary" style={{ fontSize: 12 }}><Icon name="play" size={12}/> Run agent</button>
-                <button className="btn" style={{ fontSize: 12 }}>Dry-run</button>
+              <div style={{ marginTop: 12, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                To actually run this agent, ask in <b>Chat</b> (it routes to the right agent) or use the CLI above — this screen is a reference catalog, so nothing is invoked from here.
               </div>
             </div>
 

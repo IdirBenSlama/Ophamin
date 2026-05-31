@@ -215,10 +215,14 @@ hardcoded values in otherwise-real screens:
   configured; export is CLI-only" state.
 - `shell.jsx`: dropped a stale hardcoded commit from the substrate glossary entry.
 
-Known remaining: the telemetry "requests / 5s" gauge still shows a placeholder
-(a real rate needs time-windowing the point-in-time `/metrics`); a value-by-value
-pass of the remaining secondary screens (flow / cockpit / substrate / models /
-agents) is not yet done.
+Then swept those five screens value-by-value: **flow / cockpit / substrate /
+models are clean** (they render real `OPHAMIN`/route data, no hardcoded fakes);
+`agents.jsx` is an honest reference catalog (examples labelled `EXAMPLE REPLY ·
+SAMPLE`, call records real + live from `/agents/calls` with an honest empty-state)
+— removed its dead "Run agent / Dry-run" buttons that posed as live invocation
+(agents are invoked via Chat / CLI, as the screen says). Known remaining: the
+telemetry "requests / 5s" gauge still shows a placeholder (a real rate needs
+time-windowing the point-in-time `/metrics`).
 
 ## [0.115.2] — 2026-05-23
 
