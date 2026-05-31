@@ -115,8 +115,10 @@ function TelemetryScreen() {
 
       {/* HTTP group */}
       <SectionHeader label="HTTP REQUESTS" count={httpTotal} suffix="requests"/>
-      <div className="grid-3" style={{ marginBottom: 24 }}>
-        <Gauge label="REQUESTS / 5s" value={42} max={120} unit="req"/>
+      {/* No requests/sec gauge: point-in-time /metrics has no real rate (that
+          needs time-windowing). The real total is in the header above; latency +
+          per-route below are real. No fabricated rate shown. */}
+      <div className="grid-2" style={{ marginBottom: 24 }}>
         <LatencyHist buckets={buckets}/>
         <RouteTable routes={byLabel('ophamin_http_requests_total', 'path').sort((a,b) => b.v-a.v).slice(0,7)}/>
       </div>

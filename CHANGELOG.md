@@ -220,9 +220,12 @@ models are clean** (they render real `OPHAMIN`/route data, no hardcoded fakes);
 `agents.jsx` is an honest reference catalog (examples labelled `EXAMPLE REPLY ·
 SAMPLE`, call records real + live from `/agents/calls` with an honest empty-state)
 — removed its dead "Run agent / Dry-run" buttons that posed as live invocation
-(agents are invoked via Chat / CLI, as the screen says). Known remaining: the
-telemetry "requests / 5s" gauge still shows a placeholder (a real rate needs
-time-windowing the point-in-time `/metrics`).
+(agents are invoked via Chat / CLI, as the screen says). Finally, the telemetry
+"requests / 5s" gauge (the last fake `value={42}`) is **removed** — point-in-time
+`/metrics` has no real per-second rate, and the real request total is already in
+the section header; that row now shows only the real latency histogram + the
+real per-route table. With this, every console fake found across the screen-by-
+screen + fingerprint + value-pattern audit is real-or-honest.
 
 ## [0.115.2] — 2026-05-23
 
