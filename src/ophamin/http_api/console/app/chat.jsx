@@ -200,7 +200,7 @@ function Message({ m, onCta }) {
         </div>
         {isLLM && (
           <div className="mono faint" style={{ marginTop: 8, fontSize: 10, color: 'var(--text-muted)' }}>
-            {m.meta.model} · {m.meta.runtime} · {(m.meta.latency_ms / 1000).toFixed(1)}s · {m.meta.completion_tokens} tokens
+            {m.meta.model} · {m.meta.runtime} · {(m.meta.latency_ms / 1000).toFixed(1)}s · {m.meta.completion_tokens} tokens{m.meta.call_id ? ' · signed ' + m.meta.call_id + '…' : ''}
           </div>
         )}
       </div>

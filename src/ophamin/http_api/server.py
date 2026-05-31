@@ -952,6 +952,27 @@ def build_app() -> FastAPI:
                 status_code=502, detail=f"LLM runtime error: {exc}",
             ) from exc
 
+        # Persist a signed LLMCallRecord — the same discipline as the agents:
+        # every LLM call is auditable and surfaces in /agents/calls. Best-effort:
+        # an audit-write hiccup must not deny the user their answer, but the
+        # outcome is surfaced (call_id null) rather than silently dropped.
+        from ophamin.agentic.audit import LLMCallRecord, persist_call
+
+        call_id: str | None = None
+        try:
+            record = LLMCallRecord(
+                task="console_chat", runtime=client.runtime_hint, model=resp.model,
+                messages=messages, max_tokens=1024, temperature=0.3,
+                response_format="text", content=resp.content,
+                finish_reason=resp.finish_reason, prompt_tokens=resp.prompt_tokens,
+                completion_tokens=resp.completion_tokens, latency_ms=resp.latency_ms,
+                ophamin_version=SERVER_VERSION,
+            ).sign()
+            persist_call(record)
+            call_id = record.call_id[:16]
+        except OSError:
+            call_id = None  # audit write failed (disk/permission); surfaced below
+
         return {
             "reply": resp.content,
             "reasoning": resp.reasoning or None,
@@ -959,6 +980,8 @@ def build_app() -> FastAPI:
             "runtime": client.runtime_hint,
             "latency_ms": round(resp.latency_ms, 1),
             "completion_tokens": resp.completion_tokens,
+            "call_id": call_id,
+            "audited": call_id is not None,
         }
 
     # ------------------------------------------------------------------

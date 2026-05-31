@@ -227,6 +227,18 @@ the section header; that row now shows only the real latency histogram + the
 real per-route table. With this, every console fake found across the screen-by-
 screen + fingerprint + value-pattern audit is real-or-honest.
 
+### Added — chat turns are signed + auditable (closes the agentic-discipline gap)
+
+Every advisory chat answer now persists a content-hashed, HMAC-signed
+`LLMCallRecord` under `proofs/llm_calls/` — the same discipline the agents
+follow, so a chat answer is as auditable as a scenario proof (the `/chat` LLM
+calls were previously the one un-audited LLM path). `POST /chat` returns the
+`call_id` + an `audited` flag; the turn surfaces in `/agents/calls` → the Agents
+"Signed LLM-call audit" table (verified live: a `console_chat` call appears with
+`verified: true`), and the chat reply footer shows `· signed <call_id>`.
+Best-effort write: an audit-write failure surfaces as `audited: false` (call_id
+null) — never silently dropped, and the answer still returns.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current
