@@ -7,6 +7,29 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added — integrations wired live + made persistent (4 of 6)
+
+The `/integrations` catalogue stopped being "all not-configured" — four of the six
+routable tools are now connected for real, and the wiring survives a restart.
+
+- **`scripts/integrations_up.sh` / `integrations_down.sh`** — the persistence layer.
+  `ophamin http serve` does **not** auto-load a `.env` for its own `OPHAMIN_*_URL`
+  vars, so the wiring has to be exported into the server's environment at launch.
+  `up` idempotently starts MLflow (:5000) + mkdocs (:8000), points Grafana at the
+  existing instance (:3000), derives the Code-scanning URL from the git remote, then
+  `exec`s the server with all four exported. `down` stops only the services it
+  started — it never touches your Grafana / Prometheus / SonarQube.
+- **Code scanning (SARIF) wired for real** — `ophamin audit src/ophamin --pillars
+  ruff,bandit` → `ophamin export … --format sarif` → uploaded to this repo's GitHub
+  Code Scanning (16 real findings, processing `complete`, no errors).
+  `OPHAMIN_SARIF_URL` now points at the live Security tab.
+- **Known limitation flagged:** the SARIF exporter emits **absolute `file://` URIs**;
+  GitHub Code Scanning needs repo-relative ones, so the upload path relativizes them
+  first. Follow-up: make the exporter emit repo-relative URIs (with a `uriBaseId`) so
+  its SARIF is portable without post-processing.
+- **Still honestly not-configured:** DVC Studio (cloud-only, no local service) and the
+  Provenance viewer (no PROV-O viewer running). Shown as "not configured", not faked.
+
 ### Added — inside-out metrology + plain-language legibility
 
 The observatory now reads the substrate's **actual physics**, not its self-report,

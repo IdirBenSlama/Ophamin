@@ -41,6 +41,7 @@ Thumbs.db
 # artifacts are content-addressed and excluded by default. Commit selectively.
 runs/
 mlruns/
+mlartifacts/
 data/raw/
 data/processed/
 *.pkl
