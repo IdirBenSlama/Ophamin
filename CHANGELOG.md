@@ -201,6 +201,25 @@ version) are wired to the real fields, and the hardcoded "last run 19 May"
 subtitle is dropped. Verified live: `ophamin 0.115.2 · uptime 7m · proof storage
 14.5 MiB`.
 
+### Fixed — stray hardcoded fakes in real-data screens (telemetry / interop / glossary)
+
+Sweeping for more Overview-style mock-on-success residue turned up stray
+hardcoded values in otherwise-real screens:
+- `telemetry.jsx`: SIGNED-PROOFS count `33` → real `OPHAMIN.totals.bundles`
+  (137); REGISTERED-SCENARIOS `33` → real count; build-info `ophamin 0.64.1` →
+  the real hydrated version (commit/python have no real source → honest "—");
+  fabricated sparkline trend arrays dropped (metrics are point-in-time, no real
+  history); hardcoded bundle date-range → real min/max from the corpus.
+- `interop.jsx`: the "Connector status" table was 5 fabricated live-connector
+  rows (invented push dates + record counts) — now an honest "no connectors
+  configured; export is CLI-only" state.
+- `shell.jsx`: dropped a stale hardcoded commit from the substrate glossary entry.
+
+Known remaining: the telemetry "requests / 5s" gauge still shows a placeholder
+(a real rate needs time-windowing the point-in-time `/metrics`); a value-by-value
+pass of the remaining secondary screens (flow / cockpit / substrate / models /
+agents) is not yet done.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current

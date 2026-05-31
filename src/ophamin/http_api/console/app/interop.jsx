@@ -209,25 +209,12 @@ function InteropScreen() {
           <div className="card-title">Connector status</div>
           <span className="micro">CONFIGURED TARGETS</span>
         </div>
-        <table className="table">
-          <thead>
-            <tr>
-              <th style={{ width: 100 }}>Status</th>
-              <th>Target</th>
-              <th>Format</th>
-              <th>URL</th>
-              <th style={{ width: 110 }}>Last push</th>
-              <th style={{ width: 80 }}>Records</th>
-            </tr>
-          </thead>
-          <tbody>
-            <ConnectorRow status="ok" target="github-code-scanning" format="SARIF" url="api.github.com/repos/.../code-scanning/sarifs" last="2026-05-19" count="0"/>
-            <ConnectorRow status="ok" target="mlflow-internal"      format="MLflow" url="http://mlflow-tracking:5000" last="2026-05-19" count="33"/>
-            <ConnectorRow status="ok" target="ci-junit-archive"     format="JUnit"  url="file:///var/ci-results/" last="2026-05-19" count="33"/>
-            <ConnectorRow status="warn" target="dependency-track"   format="CycloneDX" url="https://dtrack.internal/api/v1/bom" last="2d ago" count="1"/>
-            <ConnectorRow status="off"  target="custom-webhook"     format="JSON"   url="not configured" last="—" count="0"/>
-          </tbody>
-        </table>
+        <div style={{ padding: 18, fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          No live export connectors are configured. Exports run via the CLI shown above,
+          against your signed proof corpus. Standing connectors (push-on-new-proof to
+          GitHub Code Scanning, MLflow, a CI archive, Dependency-Track…) aren't wired into
+          the console yet — no targets, push history, or record counts are invented here.
+        </div>
       </div>
     </div>
   );

@@ -122,7 +122,7 @@ function TelemetryScreen() {
       </div>
 
       {/* Proofs group */}
-      <SectionHeader label="SIGNED PROOFS" count={33} suffix="bundles · 40.0 MiB"/>
+      <SectionHeader label="SIGNED PROOFS" count={OPHAMIN.totals.bundles} suffix="signed bundles"/>
       <div className="grid-3" style={{ marginBottom: 24 }}>
         <BarStack title="BY TIER" data={byLabel('ophamin_proof_bundles_by_tier', 'tier')}/>
         <BarStack title="BY VERDICT" data={byLabel('ophamin_proof_verdicts', 'verdict')} colorMap={{ validated: 'var(--validated)', refuted: 'var(--refuted)', inconclusive: 'var(--inconclusive)' }}/>
@@ -133,8 +133,8 @@ function TelemetryScreen() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 12 }}>
               <KV label="bundle storage" v={formatBytes(storage)}/>
               <KV label="disk free" v={formatBytes(diskFree)}/>
-              <KV label="latest bundle" v="2026-05-19"/>
-              <KV label="oldest bundle" v="2026-05-10"/>
+              <KV label="latest bundle" v={(() => { const ds = (OPHAMIN.bundles || []).map(b => b.date).filter(Boolean).sort(); return ds.length ? ds[ds.length - 1] : '—'; })()}/>
+              <KV label="oldest bundle" v={(() => { const ds = (OPHAMIN.bundles || []).map(b => b.date).filter(Boolean).sort(); return ds.length ? ds[0] : '—'; })()}/>
             </div>
           </div>
         </div>
@@ -143,22 +143,22 @@ function TelemetryScreen() {
       {/* Process group */}
       <SectionHeader label="PROCESS HEALTH" count={Math.floor(uptime)} suffix={`s uptime · ${formatUptime(uptime)}`}/>
       <div className="grid-4" style={{ marginBottom: 24 }}>
-        <MetricTile label="CPU" v={cpu.toFixed(1)} unit="s" trend={[800, 850, 920, 980, 1040, 1100, 1142]}/>
-        <MetricTile label="RSS" v={(rss / 1024 / 1024).toFixed(0)} unit="MiB" trend={[140, 152, 165, 170, 175, 180, 184]}/>
-        <MetricTile label="THREADS" v={threads} unit="" trend={[8, 10, 12, 13, 13, 14, 14]}/>
-        <MetricTile label="OPEN FDs" v={fds} unit="" trend={[24, 28, 32, 33, 35, 37, 38]}/>
+        <MetricTile label="CPU" v={cpu.toFixed(1)} unit="s"/>
+        <MetricTile label="RSS" v={(rss / 1024 / 1024).toFixed(0)} unit="MiB"/>
+        <MetricTile label="THREADS" v={threads} unit=""/>
+        <MetricTile label="OPEN FDs" v={fds} unit=""/>
       </div>
 
       {/* Scenarios group */}
-      <SectionHeader label="REGISTERED SCENARIOS" count={33} suffix="registered"/>
+      <SectionHeader label="REGISTERED SCENARIOS" count={OPHAMIN.totals.scenarios} suffix="registered"/>
       <div className="grid-2" style={{ marginBottom: 24 }}>
         <BarStack title="REGISTERED BY TIER" data={byLabel('ophamin_scenarios_registered_by_tier', 'tier')}/>
         <div className="card">
           <div className="card-header"><div className="card-title">Build &amp; runtime</div><span className="micro">INFO</span></div>
           <div style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <KV label="version" v="ophamin 0.64.1" mono/>
-            <KV label="commit" v="7f1ad9c" mono/>
-            <KV label="python" v="3.12.4" mono/>
+            <KV label="version" v={'ophamin ' + (OPHAMIN.version || '—')} mono/>
+            <KV label="commit" v="—" mono/>
+            <KV label="python" v="—" mono/>
             <KV label="health" v={<span style={{ color: 'var(--validated)' }}>● ok</span>}/>
             <KV label="uptime" v={formatUptime(uptime)}/>
           </div>
@@ -376,7 +376,7 @@ function MetricTile({ label, v, unit, trend }) {
     <div className="card" style={{ padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div className="micro">{label}</div>
-        <Sparkline values={trend} width={50} height={18}/>
+        {trend && trend.length ? <Sparkline values={trend} width={50} height={18}/> : null}
       </div>
       <div style={{ marginTop: 6, display: 'flex', alignItems: 'baseline', gap: 4 }}>
         <span className="mono tnum" style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.02em' }}>{v}</span>

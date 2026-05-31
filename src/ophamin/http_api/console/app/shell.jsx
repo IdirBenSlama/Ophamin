@@ -511,7 +511,7 @@ const GLOSSARY_TERMS = {
   },
   'substrate': {
     title: 'Substrate under test',
-    code: 'kimera-swm @ 6e4477ebb',
+    code: 'kimera-swm',
     body: 'The system Ophamin is observing. Default is Kimera-SWM. Anything implementing the SubstrateUnderTest protocol works — Ophamin is built for Kimera but not coupled to it.',
   },
 };
