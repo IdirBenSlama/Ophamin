@@ -534,9 +534,55 @@ def cmd_export(args: argparse.Namespace) -> int:
         if args.tracking_uri:
             print(f"tracking uri : {args.tracking_uri}")
         return 0
+    elif fmt in ("in-toto", "intoto"):
+        if "claim" not in payload or "verdict" not in payload:
+            print(
+                "--format=in-toto requires an Empirical Proof Record "
+                "(missing 'claim' and/or 'verdict'); use --format=sarif for audit records",
+                file=sys.stderr,
+            )
+            return 2
+        from ophamin.interop import to_dsse_envelope
+        from ophamin.measuring.proof.record import EmpiricalProofRecord
+        try:
+            proof = EmpiricalProofRecord.from_dict(payload)
+            envelope = to_dsse_envelope(proof, _resolve_proof_key(args.key))
+        except (ValueError, KeyError, TypeError) as exc:
+            print(f"in-toto export failed: {exc}", file=sys.stderr)
+            return 2
+        out = out_path or record_path.with_suffix(".intoto.json")
+        out.write_text(
+            json.dumps(envelope, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        print(f"record  : {record_path}")
+        print("format  : in-toto (DSSE-signed envelope)")
+        print(f"written : {out}")
+        return 0
+    elif fmt in ("ro-crate", "rocrate"):
+        if "claim" not in payload or "verdict" not in payload:
+            print(
+                "--format=ro-crate requires an Empirical Proof Record "
+                "(missing 'claim' and/or 'verdict'); use --format=sarif for audit records",
+                file=sys.stderr,
+            )
+            return 2
+        from ophamin.interop import write_ro_crate
+        from ophamin.measuring.proof.record import EmpiricalProofRecord
+        crate_dir = out_path or record_path.parent / f"{record_path.stem}_ro_crate"
+        try:
+            proof = EmpiricalProofRecord.from_dict(payload)
+            written = write_ro_crate(proof, crate_dir)
+        except (ValueError, KeyError, TypeError, OSError) as exc:
+            print(f"ro-crate export failed: {exc}", file=sys.stderr)
+            return 2
+        print(f"record  : {record_path}")
+        print("format  : ro-crate")
+        print(f"written : {written}")
+        return 0
     else:
         print(
-            f"unknown format {args.format!r}; choose from: sarif, junit-xml, mlflow",
+            f"unknown format {args.format!r}; choose from: sarif, junit-xml, "
+            "mlflow, cyclonedx, in-toto, ro-crate",
             file=sys.stderr,
         )
         return 2
@@ -3598,17 +3644,21 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_export = sub.add_parser(
         "export",
-        help="export a signed record to a standard interop format (SARIF / JUnit XML)",
+        help="export a signed record to a standard interop format "
+             "(SARIF / JUnit XML / MLflow / CycloneDX / in-toto / RO-Crate)",
     )
     p_export.add_argument("record", help="path to a signed Ophamin record JSON")
     p_export.add_argument(
         "--format", required=True,
-        choices=["sarif", "junit-xml", "junit", "mlflow", "cyclonedx", "sbom"],
+        choices=["sarif", "junit-xml", "junit", "mlflow", "cyclonedx", "sbom",
+                 "in-toto", "intoto", "ro-crate", "rocrate"],
         help=(
             "target format: sarif (audit → SARIF 2.1.0); "
             "junit-xml (proof → JUnit XML); "
             "mlflow (proof/audit → MLflow tracking run); "
-            "cyclonedx / sbom (proof → CycloneDX 1.5 SBOM)"
+            "cyclonedx / sbom (proof → CycloneDX 1.5 SBOM); "
+            "in-toto (proof → DSSE-signed in-toto attestation); "
+            "ro-crate (proof → RO-Crate research-package directory)"
         ),
     )
     p_export.add_argument(
@@ -3624,6 +3674,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--experiment-name", default="",
         help="MLflow experiment name (default: ophamin-proof / ophamin-audit); "
              "only for --format=mlflow",
+    )
+    p_export.add_argument(
+        "--key", default="",
+        help="HMAC sign key for the in-toto DSSE envelope "
+             "(default: built-in DEFAULT_SIGN_KEY); only for --format=in-toto",
     )
     p_export.set_defaults(func=cmd_export)
 

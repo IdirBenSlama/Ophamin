@@ -7,6 +7,37 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added — the first wedge exhibit (mechanism-deep proof + shippable formats)
+
+The first step toward the north-star: a signed proof that traces Kimera's *physical
+cognition mechanism* (a scar / a manifold deformation), packaged in formats the world
+can verify — an artifact no LLM stack can produce.
+
+- **`scar-accumulation-flow` scenario** (`measuring/scenarios/scar_accumulation_flow.py`)
+  — Ophamin's first **mechanism-deep** proof. Where `memory-deformation-flow` scores on
+  *concept recognition* (what Kimera reports), this reads the substrate's **physical
+  state**: live `total_deformation` + `n_scars` per cycle (via the entity adapter's
+  `raw["scar_state"]` and `observables.manifold_deformation` / `geoid_dispersion`). It
+  tests the founding invariant as a flow property — `ALWAYS(total_deformation_{i+1} >=
+  total_deformation_i)`, scars accumulate and never reset (CLAUDE.md §4, an anchored bar,
+  not invented) — and emits the deformation series itself as the evidence. Cross-check:
+  each stimulus's last exposure must sit on a more-deformed manifold than its first
+  (same-stimulus accumulation), so flat deformation validates the invariant but fails the
+  cross-check (no silent credit). 12 new tests in `test_scar_accumulation_flow.py` pin
+  monotonic→VALIDATED, a reset→REFUTED (offending pair named), gaps recorded not faked,
+  and signature/tamper-evidence. *(The real proof needs a live Kimera run — the Ophamin
+  side is built and verified on a programmable adapter; the live run is the meeting point.)*
+- **`export --format in-toto` and `--format ro-crate`** (`cli.py`) — the supply-chain /
+  FAIR-research formats were built and tested in `interop/` but only callable from Python.
+  Now CLI-shippable: `in-toto` emits a DSSE-signed in-toto attestation (verified to
+  round-trip via `verify_dsse_envelope`); `ro-crate` writes an RO-Crate 1.2 research
+  package. Added a `--key` arg for the DSSE envelope (defaults to `DEFAULT_SIGN_KEY`).
+- **No-fake sweep — last console fabrication removed** (`console/app/proofs.jsx`):
+  `triageFor()`/`confoundsFor()` returned hardcoded "agent outputs" rendered as if real.
+  Removed — agent triage/confounds are CLI-driven by design (no run-agent HTTP endpoint;
+  `server.py:498`), so the proof view now shows the honest `ophamin agent triage|confounds
+  <scenario>` command instead of invented results.
+
 ### Added — integrations wired live + made persistent (4 of 6)
 
 The `/integrations` catalogue stopped being "all not-configured" — four of the six
