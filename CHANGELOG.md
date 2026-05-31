@@ -98,6 +98,15 @@ Two screens dressed hardcoded content as live measurement:
   placeholder `proof_id` on a hardcoded campaign. It's now the **plan** (mirrors
   `ROADMAP_2026_05_18.md`), clearly point-in-time-not-live, with cited values
   labelled as doc snapshots and a pointer to Run/Proofs for real signed verdicts.
+- `inspector.jsx` embedded fabricated specific measurements (`p95 < 8ms`,
+  `2.36s`, `53 MiB`, `≥99%`, `14 SLOC`, commit refs) in its per-wheel notes and
+  had dead Re-inspect / Run / journal buttons. It's now an honest **reference
+  map** — how each wheel is wired to observe each primitive — with the fake
+  numbers removed and the real `ophamin inspect` CLI shown for live values.
+- `interop.jsx` had a "0 failed" status, dead "Export all / Pick scenarios /
+  Stream to remote" buttons, and a **fabricated "LAST EXPORT" record** (date,
+  `142 KB`, `✓ signed manifest`). Now: the four formats + their (clearly
+  labelled) sample outputs + the real export CLI; no fake actions or records.
 
 ## [0.115.2] — 2026-05-23
 

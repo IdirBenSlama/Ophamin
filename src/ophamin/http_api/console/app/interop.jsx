@@ -122,7 +122,7 @@ function InteropScreen() {
           <div className="page-subtitle">Push signed proofs and audit findings into the tools you already trust. Four formats; one signed record at the source.</div>
         </div>
         <div className="page-actions">
-          <span className="live-pill ok"><span className="dot"></span>4 exporters · 0 failed</span>
+          <span className="live-pill muted"><span className="dot"></span>4 export formats · reference</span>
         </div>
       </div>
 
@@ -151,7 +151,7 @@ function InteropScreen() {
               <div className="card-title">{ex.name}</div>
               <div className="mono" style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{ex.consumers}</div>
             </div>
-            <span className="live-pill ok"><span className="dot"></span>ready</span>
+            <span className="chip">format</span>
           </div>
 
           <div style={{ padding: '14px 18px 0' }}>
@@ -186,26 +186,9 @@ function InteropScreen() {
               </div>
 
               <div>
-                <div className="micro" style={{ marginBottom: 6 }}>EXPORT NOW</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <button className="btn primary" style={{ justifyContent: 'flex-start' }}>
-                    <Icon name="download" size={12}/> Export all {OPHAMIN.totals.bundles} bundles
-                  </button>
-                  <button className="btn" style={{ justifyContent: 'flex-start' }}>
-                    <Icon name="filter" size={12}/> Pick scenarios…
-                  </button>
-                  <button className="btn ghost" style={{ justifyContent: 'flex-start' }}>
-                    <Icon name="external" size={12}/> Stream to remote target
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <div className="micro" style={{ marginBottom: 6 }}>LAST EXPORT</div>
-                <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '8px 10px', fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  <div className="mono">2026-05-19 14:32</div>
-                  <div>{OPHAMIN.totals.bundles} bundles · 142 KB</div>
-                  <div className="mono" style={{ color: 'var(--validated)', marginTop: 2 }}>✓ signed manifest</div>
+                <div className="micro" style={{ marginBottom: 6 }}>HOW TO EXPORT</div>
+                <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '8px 10px', fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                  Exports run via the CLI above, against your signed proof corpus. Console-driven export + remote streaming aren't wired yet — no export is performed from this screen, and nothing here is a record of one.
                 </div>
               </div>
             </div>
