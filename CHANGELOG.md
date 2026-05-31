@@ -108,6 +108,24 @@ Two screens dressed hardcoded content as live measurement:
   `142 KB`, `✓ signed manifest`). Now: the four formats + their (clearly
   labelled) sample outputs + the real export CLI; no fake actions or records.
 
+### Changed — the grounded mock never silently poses as real
+
+The console boots by rendering `data.js`'s grounded mock (realistic fake
+proofs/verdicts/metrics) and hydrating real API data over it — but on hydrate
+failure it kept the mock with only a `console.warn`: a down backend silently
+showed fabricated proofs as real (a no-fake violation, the foundational one).
+Boot now tracks data state and shows a loud, persistent **"SAMPLE DATA — the
+live backend is unreachable. Nothing shown here is real"** banner whenever the
+mock is on screen, a subtle "loading" note while hydrating, and nothing once
+live data lands. (Verified: real corpus on the dev server is 137 bundles / 54
+scenarios / 98-24-15 verdicts — hydrate succeeds, no banner.)
+
+Known residual (tracked): hydrate is **partial** — some cards (e.g. Overview's
+instrument identity: framework version, uptime) read mock fields hydrate does
+not replace, so they can show stale/mock values (`ophamin 0.64.1`, a fake
+uptime) even on a reachable backend. The banner closes the gross silent
+fallback; per-field hydrate coverage is follow-up.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current

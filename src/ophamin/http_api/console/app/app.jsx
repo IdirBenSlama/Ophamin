@@ -693,22 +693,58 @@ async function mountWhenReady() {
 }
 
 // Boot in two phases:
-//   1. Render with the grounded mock as soon as components are ready
-//      (render never waits on the network, so a slow / down backend can't
-//      blank the screen).
-//   2. Overlay live REST data in the background, then re-render. React
-//      reconciles the same root, so screen state is preserved and the UI
-//      simply upgrades from mock to live data in place.
+//   1. Render with the grounded mock as soon as components are ready, so a
+//      slow / down backend can't blank the screen. While in this state the
+//      data is NOT real — a banner says so (see _setDataBanner).
+//   2. Overlay live REST data in the background, then re-render in place.
+//      On success the banner clears; on failure it becomes a loud, persistent
+//      "SAMPLE DATA — backend unreachable" warning. The mock is NEVER silently
+//      shown as real (was: a console.warn only — a no-fake violation).
+function _setDataBanner(state) {
+  // state: 'pending' (loading, subtle) | 'mock' (hydrate failed, loud) | 'live' (clear)
+  const ID = 'ophamin-data-banner';
+  let el = document.getElementById(ID);
+  if (state === 'live') { if (el) el.remove(); document.body.style.removeProperty('padding-top'); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.id = ID;
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100000;'
+      + 'font:600 12px/1.4 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;'
+      + 'padding:7px 16px;text-align:center;letter-spacing:0.02em;';
+    document.body.appendChild(el);
+  }
+  if (state === 'mock') {
+    el.textContent = '⚠  SAMPLE DATA — the live backend is unreachable. Nothing shown here is real — not the proofs, verdicts, metrics, or counts.';
+    el.style.background = '#7a1f1f';
+    el.style.color = '#ffe2e2';
+    document.body.style.paddingTop = '30px';
+  } else { // pending — brief, while hydrate is in flight
+    el.textContent = 'Loading live data… (showing placeholder until the backend responds)';
+    el.style.background = '#222834';
+    el.style.color = '#9fb0c8';
+    document.body.style.paddingTop = '28px';
+  }
+}
+
 mountWhenReady();
+_setDataBanner('pending');
 (async () => {
   try {
-    if (window.OPHAMIN && typeof window.OPHAMIN.hydrate === 'function') {
-      const live = await window.OPHAMIN.hydrate(window.OPHAMIN_API_BASE || '');
-      if (live && Object.values(live).some(Boolean)) {
-        mountWhenReady();
-      }
+    if (!(window.OPHAMIN && typeof window.OPHAMIN.hydrate === 'function')) {
+      _setDataBanner('mock');
+      console.warn('[ophamin] no hydrate() — SAMPLE DATA banner shown; mock data is NOT real');
+      return;
+    }
+    const live = await window.OPHAMIN.hydrate(window.OPHAMIN_API_BASE || '');
+    if (live && Object.values(live).some(Boolean)) {
+      _setDataBanner('live');
+      mountWhenReady();
+    } else {
+      _setDataBanner('mock');
+      console.warn('[ophamin] hydrate returned no live data — SAMPLE DATA banner shown; mock is NOT real');
     }
   } catch (e) {
-    console.warn('[ophamin] hydrate failed — keeping grounded mock data', e);
+    _setDataBanner('mock');
+    console.warn('[ophamin] hydrate failed — SAMPLE DATA banner shown; mock data is NOT real', e);
   }
 })();
