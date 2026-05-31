@@ -1,14 +1,14 @@
 {
-  "proof_id": "b7c76de7201677eba6ab61ff942859b14196f49db96a4be5981886b20680bafe",
+  "proof_id": "436d337cb75c5f83b63d8f437a73f7b6a04297c8883e096d6c56d97fb2ad65b2",
   "schema_version": "1.0",
   "identity": {
     "ophamin_version": "0.115.2",
-    "ophamin_git_commit": "20808f2a553754116f32afa2f7a8cd663e369173",
-    "created_at": "2026-05-31T19:26:02.096914+00:00"
+    "ophamin_git_commit": "b57d3a3f08d4fe1a27142d5e1d09dda07711f95f",
+    "created_at": "2026-05-31T20:24:29.611071+00:00"
   },
   "claim": {
     "statement": "After the same documents in a different ORDER, the same identically-recognised query gets a different prime-address from Kimera (hysteresis) beyond its own run-noise, whereas a set-based retriever returns the identical ranking (order-blind by construction): order_hysteresis = mean(order_divergence) \u2212 mean(noise_floor) > 0.",
-    "operationalization": "Run 6 documents + 6 held-out probes through Kimera's entity target (batch) in order A, order A again (determinism control), and order B (shuffled). Per probe: order_divergence = 1 \u2212 Jaccard(prime_chain|A, prime_chain|B); noise_floor = 1 \u2212 Jaccard(prime_chain|A1, prime_chain|A2). order_hysteresis = mean(order_divergence) \u2212 mean(noise_floor). Baseline: TF-IDF retrieval order-divergence over the same docs/queries (= 0). VALIDATED iff order_hysteresis > 0 with a significant paired order_divergence > noise_floor test.",
+    "operationalization": "Run 6 documents + 15 held-out probes through Kimera's entity target (batch) in order A, order A again (determinism control), and order B (shuffled). Per probe: order_divergence = 1 \u2212 Jaccard(prime_chain|A, prime_chain|B); noise_floor = 1 \u2212 Jaccard(prime_chain|A1, prime_chain|A2). order_hysteresis = mean(order_divergence) \u2212 mean(noise_floor). Baseline: TF-IDF retrieval order-divergence over the same docs/queries (= 0). VALIDATED iff order_hysteresis > 0 with a significant paired order_divergence > noise_floor test.",
     "threshold": {
       "metric": "order_hysteresis",
       "comparator": ">",
@@ -19,20 +19,20 @@
     "h1": "H1: order_hysteresis > 0 \u2014 the same query after the same documents in a different order gets a different prime-address; Kimera carries the ORDER of experience (hysteresis) where RAG carries only the inventory"
   },
   "preregistration": {
-    "config_hash": "e9e0949b499b8b4758262350a7ec8186c65d34268517b474db214c627bb3688c",
-    "data_hash": "3896f14d8eaa26af9e1b43a0bcd7ece78d21d5ea1163e34de76c5ed375a27662",
-    "analysis_plan": "Three batches of 6 docs + 6 probes (order A, A again, B-shuffled) through Kimera entity/batch. Per probe compute prime-address (prime_chain) order_divergence (A vs B) and noise_floor (A vs A). order_hysteresis = mean difference. Baseline TF-IDF order-divergence (= 0) is the contrast. INCONCLUSIVE if fewer than 4 probes yield a prime address in all three runs, or the paired Wilcoxon (order_divergence > noise_floor) is not significant; else VALIDATED iff order_hysteresis > 0. Per-probe series + aggregate manifold-state divergence (coupling/mass) are evidence.",
+    "config_hash": "91269c9c9238ea1f32695ba2a90a0ad059d1a2d073e8441047753c4fa0bd9660",
+    "data_hash": "b22b0bfc0b009088ddc2a6536a912cc77ca22df80cacd1ba63431f8b6c062577",
+    "analysis_plan": "Three batches of 6 docs + 15 probes (order A, A again, B-shuffled) through Kimera entity/batch. Per probe compute prime-address (prime_chain) order_divergence (A vs B) and noise_floor (A vs A). order_hysteresis = mean difference. Baseline TF-IDF order-divergence (= 0) is the contrast. INCONCLUSIVE if fewer than 4 probes yield a prime address in all three runs, or the paired Wilcoxon (order_divergence > noise_floor) is not significant; else VALIDATED iff order_hysteresis > 0. Per-probe series + aggregate manifold-state divergence (coupling/mass) are evidence.",
     "sweep_grid": {},
-    "preregistered_at": "2026-05-31T19:26:01.711896+00:00"
+    "preregistered_at": "2026-05-31T20:24:29.409326+00:00"
   },
   "data": {
     "substrate_name": "kimera-swm",
-    "substrate_git_commit": "e6f4a36ab56d",
+    "substrate_git_commit": "9227694980fb",
     "datasets": [
       {
         "name": "kimera-order-hysteresis-trajectory",
-        "content_hash": "3896f14d8eaa26af9e1b43a0bcd7ece78d21d5ea1163e34de76c5ed375a27662",
-        "n_records": 36,
+        "content_hash": "b22b0bfc0b009088ddc2a6536a912cc77ca22df80cacd1ba63431f8b6c062577",
+        "n_records": 63,
         "source": "kimera-swm",
         "kind": "substrate-trajectory+order-permutation+rag-baseline"
       }
@@ -42,19 +42,19 @@
     {
       "pillar": "O.comparison.order_hysteresis",
       "statistic_name": "order_hysteresis",
-      "statistic_value": 0.9444444444444444,
+      "statistic_value": 0.0,
       "library": "ophamin",
       "library_version": "0.115.2",
       "effect_size": null,
       "ci_low": null,
       "ci_high": null,
-      "p_value": 0.015625,
-      "cross_check": "passed",
+      "p_value": null,
+      "cross_check": "skipped",
       "detail": {
         "scope": "comparison",
         "kimera_order_divergence_mean": 1.0,
         "kimera_order_divergence_median": 1.0,
-        "kimera_noise_floor_mean": 0.05555555555555556,
+        "kimera_noise_floor_mean": 1.0,
         "rag_baseline_order_divergence_mean": 0.0,
         "rag_baseline": [
           {
@@ -92,125 +92,294 @@
             "order_divergence": 0.0,
             "identical_ranking": true,
             "top1_changed": false
+          },
+          {
+            "probe": "Echoform is the grammar of transformation; no operator may l",
+            "order_divergence": 0.0,
+            "identical_ranking": true,
+            "top1_changed": false
+          },
+          {
+            "probe": "The octopus arms of Piovra make contact with everything not ",
+            "order_divergence": 0.0,
+            "identical_ranking": true,
+            "top1_changed": false
+          },
+          {
+            "probe": "Cronos stamps each event so the order of experience cannot b",
+            "order_divergence": 0.0,
+            "identical_ranking": true,
+            "top1_changed": false
+          },
+          {
+            "probe": "The Ouroboros feeds the substrate its own output back into t",
+            "order_divergence": 0.0,
+            "identical_ranking": true,
+            "top1_changed": false
+          },
+          {
+            "probe": "Thermodynamics is the root; the intelligence is the heat, no",
+            "order_divergence": 0.0,
+            "identical_ranking": true,
+            "top1_changed": false
+          },
+          {
+            "probe": "Sleep consolidates the day's scars while the homology settle",
+            "order_divergence": 0.0,
+            "identical_ranking": true,
+            "top1_changed": false
+          },
+          {
+            "probe": "The mycelial network computes where the flow thickens, not b",
+            "order_divergence": 0.0,
+            "identical_ranking": true,
+            "top1_changed": false
+          },
+          {
+            "probe": "Arachne keeps the registry where every channel deposits its ",
+            "order_divergence": 0.0,
+            "identical_ranking": true,
+            "top1_changed": false
+          },
+          {
+            "probe": "A partition is re-performable: primes, the operator sequence",
+            "order_divergence": 0.0,
+            "identical_ranking": true,
+            "top1_changed": false
           }
         ],
-        "order_hysteresis": 0.9444444444444444,
-        "n_valid_probes": 6,
+        "order_hysteresis": 0.0,
+        "n_valid_probes": 14,
         "manifold_state_order_effect": {
-          "coupling": 0.231499,
-          "mass": 0.389913,
-          "order_param": 0.000696
+          "coupling": 2.374707,
+          "mass": 0.982999,
+          "order_param": 8e-06
         },
         "manifold_state_noise_floor": {
-          "coupling": 0.291579,
+          "coupling": 3.411841,
           "mass": 0.0,
-          "order_param": 0.000509
+          "order_param": 1.4e-05
         },
         "per_probe": [
           {
             "probe": "The walker traverses the manifold and resolves contradiction",
             "order_divergence": 1.0,
-            "noise_floor": 0.0,
-            "hysteresis": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
             "n_primes_a1": 9,
-            "n_primes_a2": 9,
-            "n_primes_b": 11,
+            "n_primes_a2": 15,
+            "n_primes_b": 17,
             "gap": false,
             "order_divergence_edit": 1.0,
-            "noise_floor_edit": 0.0,
-            "order_divergence_energy": 0.004197,
-            "noise_floor_energy": 0.0
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.003778,
+            "noise_floor_energy": 0.00357
           },
           {
             "probe": "Resonance binds concepts whose primes share multiplicative s",
             "order_divergence": 1.0,
-            "noise_floor": 0.0,
-            "hysteresis": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
             "n_primes_a1": 11,
-            "n_primes_a2": 11,
-            "n_primes_b": 13,
+            "n_primes_a2": 17,
+            "n_primes_b": 16,
             "gap": false,
             "order_divergence_edit": 1.0,
-            "noise_floor_edit": 0.181818,
-            "order_divergence_energy": 0.006445,
-            "noise_floor_energy": 0.001019
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.004659,
+            "noise_floor_energy": 0.00622
           },
           {
             "probe": "Experience carves the surface and later recall follows that ",
             "order_divergence": 1.0,
-            "noise_floor": 0.0,
-            "hysteresis": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
             "n_primes_a1": 7,
-            "n_primes_a2": 7,
-            "n_primes_b": 8,
+            "n_primes_a2": 21,
+            "n_primes_b": 14,
             "gap": false,
             "order_divergence_edit": 1.0,
-            "noise_floor_edit": 0.0,
-            "order_divergence_energy": 0.001171,
-            "noise_floor_energy": 0.0
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.002518,
+            "noise_floor_energy": 0.002581
           },
           {
             "probe": "Contradiction is the engine; the substrate moves to resolve ",
             "order_divergence": 1.0,
-            "noise_floor": 0.0,
-            "hysteresis": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
             "n_primes_a1": 9,
-            "n_primes_a2": 9,
-            "n_primes_b": 9,
+            "n_primes_a2": 14,
+            "n_primes_b": 14,
             "gap": false,
             "order_divergence_edit": 1.0,
-            "noise_floor_edit": 0.0,
-            "order_divergence_energy": 0.001614,
-            "noise_floor_energy": 0.0
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.002558,
+            "noise_floor_energy": 0.002029
           },
           {
             "probe": "Meaning is a point on the sphere that experience pushes and ",
             "order_divergence": 1.0,
-            "noise_floor": 0.333333,
-            "hysteresis": 0.666667,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
             "n_primes_a1": 12,
-            "n_primes_a2": 18,
-            "n_primes_b": 9,
+            "n_primes_a2": 15,
+            "n_primes_b": 18,
             "gap": false,
             "order_divergence_edit": 1.0,
-            "noise_floor_edit": 0.555556,
-            "order_divergence_energy": 0.006767,
-            "noise_floor_energy": 0.001873
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.002372,
+            "noise_floor_energy": 0.003298
           },
           {
             "probe": "The prime energy scale is the logarithm of the prime itself.",
             "order_divergence": 1.0,
-            "noise_floor": 0.0,
-            "hysteresis": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
             "n_primes_a1": 14,
             "n_primes_a2": 14,
             "n_primes_b": 14,
             "gap": false,
             "order_divergence_edit": 1.0,
-            "noise_floor_edit": 0.0,
-            "order_divergence_energy": 0.001253,
-            "noise_floor_energy": 0.0
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.000946,
+            "noise_floor_energy": 0.000931
+          },
+          {
+            "probe": "Echoform is the grammar of transformation; no operator may l",
+            "order_divergence": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
+            "n_primes_a1": 18,
+            "n_primes_a2": 15,
+            "n_primes_b": 5,
+            "gap": false,
+            "order_divergence_edit": 1.0,
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.002367,
+            "noise_floor_energy": 0.003236
+          },
+          {
+            "probe": "The octopus arms of Piovra make contact with everything not ",
+            "order_divergence": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
+            "n_primes_a1": 14,
+            "n_primes_a2": 15,
+            "n_primes_b": 15,
+            "gap": false,
+            "order_divergence_edit": 1.0,
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.003718,
+            "noise_floor_energy": 0.00374
+          },
+          {
+            "probe": "Cronos stamps each event so the order of experience cannot b",
+            "order_divergence": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
+            "n_primes_a1": 21,
+            "n_primes_a2": 21,
+            "n_primes_b": 21,
+            "gap": false,
+            "order_divergence_edit": 1.0,
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.000787,
+            "noise_floor_energy": 0.000789
+          },
+          {
+            "probe": "The Ouroboros feeds the substrate its own output back into t",
+            "gap": true
+          },
+          {
+            "probe": "Thermodynamics is the root; the intelligence is the heat, no",
+            "order_divergence": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
+            "n_primes_a1": 15,
+            "n_primes_a2": 15,
+            "n_primes_b": 15,
+            "gap": false,
+            "order_divergence_edit": 1.0,
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.000801,
+            "noise_floor_energy": 0.00387
+          },
+          {
+            "probe": "Sleep consolidates the day's scars while the homology settle",
+            "order_divergence": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
+            "n_primes_a1": 12,
+            "n_primes_a2": 23,
+            "n_primes_b": 23,
+            "gap": false,
+            "order_divergence_edit": 1.0,
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.004581,
+            "noise_floor_energy": 0.004303
+          },
+          {
+            "probe": "The mycelial network computes where the flow thickens, not b",
+            "order_divergence": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
+            "n_primes_a1": 8,
+            "n_primes_a2": 16,
+            "n_primes_b": 14,
+            "gap": false,
+            "order_divergence_edit": 1.0,
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.00268,
+            "noise_floor_energy": 0.002011
+          },
+          {
+            "probe": "Arachne keeps the registry where every channel deposits its ",
+            "order_divergence": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
+            "n_primes_a1": 9,
+            "n_primes_a2": 12,
+            "n_primes_b": 12,
+            "gap": false,
+            "order_divergence_edit": 1.0,
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.001265,
+            "noise_floor_energy": 0.002068
+          },
+          {
+            "probe": "A partition is re-performable: primes, the operator sequence",
+            "order_divergence": 1.0,
+            "noise_floor": 1.0,
+            "hysteresis": 0.0,
+            "n_primes_a1": 12,
+            "n_primes_a2": 19,
+            "n_primes_b": 19,
+            "gap": false,
+            "order_divergence_edit": 1.0,
+            "noise_floor_edit": 1.0,
+            "order_divergence_energy": 0.001607,
+            "noise_floor_energy": 0.001167
           }
         ],
         "control": {
           "control": "paired_order_divergence_gt_noise_floor_wilcoxon",
-          "n_pairs": 6,
+          "n_pairs": 14,
           "order_divergence_median": 1.0,
-          "noise_floor_median": 0.0,
-          "status": "passed",
-          "wilcoxon_stat": 21.0,
-          "p_value": 0.015625,
-          "significant": true,
-          "library": "scipy"
+          "noise_floor_median": 1.0,
+          "status": "skipped",
+          "reason": "too few pairs or no order effect",
+          "p_value": null,
+          "significant": false
         },
         "determinism_note": "noise_floor is the prime-address divergence of order A run twice; ~0 confirms Kimera is deterministic for identical input, so order_hysteresis is the ORDER effect, not run-noise.",
         "interpretation": "order_hysteresis>0 + significant = Kimera carries the ORDER of experience (hysteresis) where set-based retrieval (RAG, baseline=0) carries only the inventory. <=0 = accumulation is commutative; the differentiator is permanence + path-depth, not order.",
         "trajectory_order_hysteresis": {
-          "edit": 0.877104377104377,
-          "energy_path": 0.003092543200882155,
-          "set_based_for_comparison": 0.9444444444444444,
-          "n_edit_probes": 6,
-          "n_energy_probes": 6,
+          "edit": 0.0,
+          "energy_path": -0.0003698127632622704,
+          "set_based_for_comparison": 0.0,
+          "n_edit_probes": 14,
+          "n_energy_probes": 14,
           "note": "ORDER-KEEPING diagnostic, NOT the pre-registered claim (the verdict stays on the set-based order_hysteresis). edit = length-normalised Levenshtein on the ordered prime_chain; energy_path = area between normalised cumulative-energy (E_p=ln p) walks. The set metric is blind to a pure reorder by construction; these read the chain AS THE ORDERED WALK. edit/energy > set_based \u21d2 the path-dependence is LARGER than the set metric can see."
         },
         "grounding_anchor": "set-based retrieval is order-invariant by construction (ophamin.comparing.retrieval_baseline, demonstrated divergence 0.0); Kimera hysteresis per CLAUDE.md data model + live prime_chain probe (2026-05-22)."
@@ -218,15 +387,15 @@
     }
   ],
   "verdict": {
-    "outcome": "VALIDATED",
-    "observed_value": 0.9444444444444444,
+    "outcome": "REFUTED",
+    "observed_value": 0.0,
     "threshold": {
       "metric": "order_hysteresis",
       "comparator": ">",
       "value": 0.0,
       "units": "jaccard_distance"
     },
-    "reasoning": "order_hysteresis +0.9444 = Kimera order-divergence 1.0000 \u2212 noise-floor 0.0556 over 6 probes (prime-address); RAG (TF-IDF) order-divergence 0.0000 (set-based, order-blind by construction); paired order>noise Wilcoxon p=0.016 (significant \u2014 order matters); manifold-state order-effect coupling \u0394=0.231499, mass \u0394=0.389913 (noise coupling \u0394=0.291579)"
+    "reasoning": "order_hysteresis +0.0000 = Kimera order-divergence 1.0000 \u2212 noise-floor 1.0000 over 14 probes (prime-address); RAG (TF-IDF) order-divergence 0.0000 (set-based, order-blind by construction); manifold-state order-effect coupling \u0394=2.374707, mass \u0394=0.982999 (noise coupling \u0394=3.411841)"
   },
   "reproduction": {
     "command": "PYTHONPATH=src .venv/bin/python -u examples/run_memory_order_hysteresis.py",
@@ -666,9 +835,9 @@
     },
     "entity": {
       "ophamin:corpus_kimera-order-hysteresis-trajectory": {
-        "ophamin:content_hash": "3896f14d8eaa26af9e1b43a0bcd7ece78d21d5ea1163e34de76c5ed375a27662",
+        "ophamin:content_hash": "b22b0bfc0b009088ddc2a6536a912cc77ca22df80cacd1ba63431f8b6c062577",
         "ophamin:n_records": {
-          "$": 36,
+          "$": 63,
           "type": "xsd:int"
         },
         "ophamin:kind": "substrate-trajectory+order-permutation+rag-baseline"
@@ -679,7 +848,7 @@
       "ophamin:scenario_memory-order-hysteresis": {
         "ophamin:target": "entity",
         "ophamin:n_cycles": {
-          "$": 36,
+          "$": 63,
           "type": "xsd:int"
         }
       }
@@ -723,11 +892,11 @@
       }
     }
   },
-  "signature": "2644a5707cd2d401576ff7fb56d9fb1f3942d3c2c6dbfc215fe7388dd396cf92",
+  "signature": "5c64f72023e5427a693cb15bcd525f57a3bf39b374a5bdaa231d8b68c86010ec",
   "attestation": {
     "author": "ben.slama.idir@gmail.com",
     "algorithm": "ed25519",
     "public_key": "1c0049bf886605d96defb43cb0a24969788b8a0076a3c7e83d32a9b166009b3c",
-    "signature": "a5619f0c7fb4100d62c8367c9d45343057b663075ab745b82a697d4223817d1dfa80cef75987c5b408ba43aa8841892f2d8fb62e9916597ee38afe794860b805"
+    "signature": "190be83241f9e310aa7bd41e313ea33964da760301b6201108d0a61c0e5f4cb21ce8469ea9c29f629f6590a1c95463edad69013908d4248f5d0912285338720f"
   }
 }

@@ -13,15 +13,15 @@
       "attestation": "proofs/2026-05-31_validated_84d8258707cd/proof.intoto.json"
     },
     {
-      "scenario": "2026-05-31_validated_b7c76de72016",
-      "proof_id": "b7c76de7201677eba6ab61ff942859b14196f49db96a4be5981886b20680bafe",
-      "verdict": "VALIDATED",
+      "scenario": "2026-05-31_refuted_436d337cb75c",
+      "proof_id": "436d337cb75c5f83b63d8f437a73f7b6a04297c8883e096d6c56d97fb2ad65b2",
+      "verdict": "REFUTED",
       "statistic": {
-        "order_hysteresis": "0.9444"
+        "order_hysteresis": "0.0000"
       },
       "signature_verified": true,
-      "bundle": "proofs/2026-05-31_validated_b7c76de72016/proof.html",
-      "attestation": "proofs/2026-05-31_validated_b7c76de72016/proof.intoto.json"
+      "bundle": "proofs/2026-05-31_refuted_436d337cb75c/proof.html",
+      "attestation": "proofs/2026-05-31_refuted_436d337cb75c/proof.intoto.json"
     }
   ]
 }

@@ -42,7 +42,7 @@
 </style></head><body><div class="wrap">
   <h1>The Memory Wedge</h1>
   <p class="sub">Two signed proofs from Kimera-SWM — measured on the live substrate.</p>
-  <div class="lead">Kimera-SWM is a non-LLM, physics-based intelligence. These are two measurements of its <b>memory</b>, each taken from the live substrate and cryptographically signed. Together they show something a rented model cannot: Kimera's memory is a <b>physical</b> thing that accumulates and never resets, and it carries the <b>order</b> of experience, not merely the inventory of it.</div>
+  <div class="lead">Kimera-SWM is a non-LLM, physics-based intelligence. These are two falsifiable measurements of its <b>memory</b>, taken from the live substrate and cryptographically signed. One <b>held</b> under stronger testing; one was <b>refuted</b> when the sample was widened — and the refutation is signed too. That is the point of this layer: metrology you can trust <i>because</i> it falsifies itself, not a dashboard that only ever agrees with you.</div>
   
     <section class="card">
       <div class="verdict validated">VALIDATED</div>
@@ -59,19 +59,19 @@
     </section>
 
     <section class="card">
-      <div class="verdict validated">VALIDATED</div>
-      <h2>Memory is conditional — it carries the order of experience.</h2>
-      <p class="plain">We asked Kimera the same question after reading the same documents in a different order. Its answer's prime-address came out completely different (divergence 1.0) — while a standard retrieval engine (RAG / TF-IDF), measured in the same proof, is order-blind by construction (divergence 0.0). Run the same order twice and Kimera is near-identical (noise 0.056), so the effect is the order of experience, not chance (Wilcoxon p = 0.016).</p>
+      <div class="verdict refuted">REFUTED</div>
+      <h2>Is memory order-dependent? Tested harder — REFUTED.</h2>
+      <p class="plain">At six probes this looked striking: the same question after a different document order gave a fully divergent answer (1.0), while a RAG retriever stayed order-blind (0.0). Widening to fifteen probes broke it. The control — running the <i>same</i> order twice — also diverged fully (noise-floor 1.0), which means Kimera's prime-address is not reproducible run-to-run at this scale. So the order-effect cannot be separated from run noise: order_hysteresis collapsed to 0.0. The small-sample result did not replicate.</p>
       <table class="kv">
         <tr><td>scenario</td><td class="mono">order_hysteresis</td></tr>
-        <tr><td>primary statistic</td><td class="mono">order_hysteresis = 0.9444</td></tr>
-        <tr><td>proof id</td><td class="mono">b7c76de7201677eba6ab61ff942859b1…</td></tr>
+        <tr><td>primary statistic</td><td class="mono">order_hysteresis = 0.0000</td></tr>
+        <tr><td>proof id</td><td class="mono">436d337cb75c5f83b63d8f437a73f7b6…</td></tr>
         <tr><td>signature</td><td class="ok">✓ signature verified</td></tr>
       </table>
-      <p class="caveat"><b>Honest caveat.</b> Six probes — significant, but a small sample; and the divergence was total (1.0), a large effect whose magnitude we have not yet characterized.</p>
-      <a class="btn" href="proofs/2026-05-31_validated_b7c76de72016/proof.html">Open the full signed proof →</a>
+      <p class="caveat"><b>Honest caveat.</b> This is the proof doing its job. The open question it surfaces is foundational and bigger than this claim: is the substrate non-deterministic run-to-run (a seeding issue), or is the prime-chain fingerprint too brittle? Settling that is the next step — not salvaging this claim.</p>
+      <a class="btn" href="proofs/2026-05-31_refuted_436d337cb75c/proof.html">Open the full signed proof →</a>
     </section>
-  <div class="note"><h3>Why no LLM or RAG stack can produce these</h3><p>An LLM or a RAG stack has no owned, inspectable, accumulating substrate to point at — there is no scar to measure and no manifold whose order-of-deformation you can sign. These artifacts are not 'hard' for a rented-cognition stack to produce; they are impossible by construction. That is the wedge: not a better model, but a kind of intelligence whose mechanism can be measured, signed, and reproduced.</p></div>
+  <div class="note"><h3>Why no LLM or RAG stack can produce these</h3><p>The first proof reads a physical change to an owned substrate — a scar an LLM stack has no equivalent of, because it owns no accumulating manifold to measure. The second proof matters for a different reason: a marketing dashboard never reports that its own earlier result failed to replicate. This layer does, and signs the failure. The wedge is not any single claim — it is owning a mechanism you can measure, sign, reproduce, and <i>refute</i>.</p></div>
   <div class="note"><h3>What these do and do not claim</h3><p>These proofs establish the <b>legibility wedge</b> — that Ophamin can see, sign, and reproduce Kimera's mechanism. They do <b>not</b> claim Kimera out-thinks any other system; that is a separate, open question. Read them as early, falsifiable, signed measurements — verdicts that could have come back REFUTED and did not.</p></div>
   <div class="note"><h3>Verify it yourself</h3><p>Each proof carries an HMAC signature
     (re-checked when this page was built) and a DSSE in-toto attestation

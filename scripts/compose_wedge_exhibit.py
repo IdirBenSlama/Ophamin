@@ -43,37 +43,42 @@ PROOFS = [
         ),
     },
     {
-        "glob": "proofs/scientific/memory-order-hysteresis/2026-05-31_*/proof.json",
-        "headline": "Memory is conditional — it carries the order of experience.",
+        "glob": "proofs/scientific/memory-order-hysteresis/2026-05-31_refuted_*/proof.json",
+        "headline": "Is memory order-dependent? Tested harder — REFUTED.",
         "plain": (
-            "We asked Kimera the same question after reading the same documents in a "
-            "different order. Its answer's prime-address came out completely different "
-            "(divergence 1.0) — while a standard retrieval engine (RAG / TF-IDF), "
-            "measured in the same proof, is order-blind by construction (divergence "
-            "0.0). Run the same order twice and Kimera is near-identical (noise 0.056), "
-            "so the effect is the order of experience, not chance (Wilcoxon p = 0.016)."
+            "At six probes this looked striking: the same question after a different "
+            "document order gave a fully divergent answer (1.0), while a RAG retriever "
+            "stayed order-blind (0.0). Widening to fifteen probes broke it. The control "
+            "— running the <i>same</i> order twice — also diverged fully (noise-floor "
+            "1.0), which means Kimera's prime-address is not reproducible run-to-run at "
+            "this scale. So the order-effect cannot be separated from run noise: "
+            "order_hysteresis collapsed to 0.0. The small-sample result did not replicate."
         ),
         "caveat": (
-            "Six probes — significant, but a small sample; and the divergence was "
-            "total (1.0), a large effect whose magnitude we have not yet characterized."
+            "This is the proof doing its job. The open question it surfaces is "
+            "foundational and bigger than this claim: is the substrate non-deterministic "
+            "run-to-run (a seeding issue), or is the prime-chain fingerprint too brittle? "
+            "Settling that is the next step — not salvaging this claim."
         ),
     },
 ]
 
 THESIS = (
-    "Kimera-SWM is a non-LLM, physics-based intelligence. These are two measurements "
-    "of its <b>memory</b>, each taken from the live substrate and cryptographically "
-    "signed. Together they show something a rented model cannot: Kimera's memory is a "
-    "<b>physical</b> thing that accumulates and never resets, and it carries the "
-    "<b>order</b> of experience, not merely the inventory of it."
+    "Kimera-SWM is a non-LLM, physics-based intelligence. These are two falsifiable "
+    "measurements of its <b>memory</b>, taken from the live substrate and "
+    "cryptographically signed. One <b>held</b> under stronger testing; one was "
+    "<b>refuted</b> when the sample was widened — and the refutation is signed too. "
+    "That is the point of this layer: metrology you can trust <i>because</i> it "
+    "falsifies itself, not a dashboard that only ever agrees with you."
 )
 
 WHY = (
-    "An LLM or a RAG stack has no owned, inspectable, accumulating substrate to point "
-    "at — there is no scar to measure and no manifold whose order-of-deformation you "
-    "can sign. These artifacts are not 'hard' for a rented-cognition stack to produce; "
-    "they are impossible by construction. That is the wedge: not a better model, but a "
-    "kind of intelligence whose mechanism can be measured, signed, and reproduced."
+    "The first proof reads a physical change to an owned substrate — a scar an LLM "
+    "stack has no equivalent of, because it owns no accumulating manifold to measure. "
+    "The second proof matters for a different reason: a marketing dashboard never "
+    "reports that its own earlier result failed to replicate. This layer does, and "
+    "signs the failure. The wedge is not any single claim — it is owning a mechanism "
+    "you can measure, sign, reproduce, and <i>refute</i>."
 )
 
 HONEST = (
