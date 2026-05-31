@@ -234,31 +234,6 @@ function KV({ label, v, mono }) {
   );
 }
 
-// Gauge — circular
-function Gauge({ label, value, max, unit }) {
-  const pct = Math.min(1, value / max);
-  const c = 2 * Math.PI * 42;
-  return (
-    <div className="card">
-      <div className="card-header"><div className="card-title">Requests per second</div><span className="micro">LIVE</span></div>
-      <div style={{ padding: 18, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-        <div className="gauge">
-          <svg width={140} height={120} viewBox="0 0 120 100">
-            {/* arc background */}
-            <path d="M 12 80 A 48 48 0 1 1 108 80" fill="none" stroke="var(--border)" strokeWidth="8" strokeLinecap="round"/>
-            <path d="M 12 80 A 48 48 0 1 1 108 80" fill="none" stroke="var(--accent)" strokeWidth="8" strokeLinecap="round"
-              strokeDasharray={`${c * 0.75 * pct} ${c}`}
-              style={{ filter: 'drop-shadow(0 0 6px var(--accent))' }}/>
-            <text x="60" y="60" textAnchor="middle" fontSize="20" fontWeight="600" fontFamily="JetBrains Mono" fill="var(--text-primary)">{value}</text>
-            <text x="60" y="75" textAnchor="middle" fontSize="9" letterSpacing="0.18em" fill="var(--text-muted)">{unit.toUpperCase()}</text>
-          </svg>
-        </div>
-        <div className="mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{label} · ceiling {max}</div>
-      </div>
-    </div>
-  );
-}
-
 // Latency histogram from buckets
 function LatencyHist({ buckets }) {
   // Convert cumulative buckets to per-bucket counts
