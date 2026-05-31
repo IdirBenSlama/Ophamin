@@ -241,6 +241,46 @@ def invoke(target, stimulus, params, component):
             except Exception as _e:
                 extra["echoform_sequence"] = None
                 extra["echoform_extraction"] = "delta_failed:%s" % type(_e).__name__
+        # Manifold state Kimera already keeps: the live geoid positions
+        # (_geoid_map[*].position_5d) + scar deformation (_ymir). Reachable in-lane,
+        # same discipline — core run() untouched, fails SOFT to a recorded gap.
+        try:
+            _gmap = getattr(component, "_geoid_map", None)
+            if isinstance(_gmap, dict):
+                _coords = []
+                for _g in _gmap.values():
+                    _p = getattr(_g, "position_5d", None)
+                    if isinstance(_p, (list, tuple)) and _p:
+                        _coords.append([float(_x) for _x in _p])
+                if _coords:
+                    extra["geoid_positions"] = _coords[:400]
+        except Exception as _e:
+            extra["geoid_extraction"] = "failed:%s" % type(_e).__name__
+        try:
+            _ymir = getattr(component, "_ymir", None)
+            if _ymir is not None:
+                _sc = {}
+                _pos = getattr(_ymir, "_pos", None)
+                if _pos is not None:
+                    try:
+                        _sc["positions"] = [[float(_x) for _x in _row] for _row in list(_pos)[:400]]
+                    except Exception:
+                        pass
+                _n = getattr(_ymir, "n_scars", None)
+                if isinstance(_n, (int, float)) and not isinstance(_n, bool):
+                    _sc["n_scars"] = int(_n)
+                _td = getattr(_ymir, "total_deformation", None)
+                if callable(_td):
+                    try:
+                        _tv = _td()
+                        if isinstance(_tv, (int, float)) and not isinstance(_tv, bool):
+                            _sc["total_deformation"] = float(_tv)
+                    except Exception:
+                        pass
+                if _sc:
+                    extra["scar_state"] = _sc
+        except Exception as _e:
+            extra["scar_extraction"] = "failed:%s" % type(_e).__name__
     elif target == "pentecost":
         result = component.enforce_one_plus_three_plus_one(text)
     elif target == "ouroboros":
