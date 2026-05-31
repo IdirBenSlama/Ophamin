@@ -320,6 +320,21 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
         nullable=True,
     ),
     CatalogedField(
+        "geoid_positions", ("list",), "substrate_state",
+        "Per-cycle live geoid S⁴ coordinates — the substrate's ACTUAL positions on "
+        "the manifold this cycle, read by the runner from _geoid_map[*].position_5d. "
+        "Feeds observables.geoid_dispersion + curvature. Added 2026-05-31 "
+        "(manifold-state extraction, in-lane, no engine change).",
+        nullable=True,
+    ),
+    CatalogedField(
+        "scar_state", ("dict",), "substrate_state",
+        "Per-cycle scar load read from Ymir: {positions, n_scars, "
+        "total_deformation}. The shape of memory (deformation IS the memory). Feeds "
+        "observables.manifold_deformation. Added 2026-05-31; Ymir default-on.",
+        nullable=True,
+    ),
+    CatalogedField(
         "atlas_violations_count", ("int",), "substrate_state",
         "Atlas (Geoid 1+3+1 enforcer, post-Q4 organ rename) violation count. "
         "Atlas catches 7 violation types.",
@@ -390,6 +405,15 @@ KIMERA_FIELD_CATALOG: tuple[CatalogedField, ...] = (
         "Per-cycle Echoform event with the 6 genesis White Paper §V fields: "
         "actor/action/object/target/time+context/outcome/causal_links. "
         "Landed in Gap 5 closure 2026-05-12.",
+        nullable=True,
+    ),
+    CatalogedField(
+        "echoform_sequence", ("list",), "echoform",
+        "Per-cycle ORDERED Echoform operator sequence, [{op, delta_s}] — the ΔS>=0 "
+        "grammar of a faithful partition (CLAUDE.md). Read by the runner from "
+        "EchoformOperatorSystem.get_transformation_history() (the operator stream "
+        "the substrate retains). Feeds observables.partition / "
+        "echoform_sequence_from_history. Added 2026-05-31, in-lane (no engine change).",
         nullable=True,
     ),
     CatalogedField(
