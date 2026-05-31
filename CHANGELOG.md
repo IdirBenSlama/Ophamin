@@ -254,6 +254,19 @@ convergence is the real pairwise prime overlap across Nodes (`0.4` across 2).
 The live two-Node / Archipel exchange still awaits the engine — the observation
 is ready for it.
 
+### Added — Mesh console surface (the Indra's-Net observatory, made legible)
+
+A dedicated **Mesh** screen (`mesh.jsx`, under Observatory) makes the mesh
+observatory visible, not just an API: the **Node → Archipel → Indra's-Net**
+topology + a paste-an-exchange playground (Lab-style) that POSTs to
+`/comparing/mesh` and renders the real observation — re-performance fidelity +
+pooled convergence, each with plain-language meaning, order-aware, honest nulls.
+Pre-filled with a clearly-marked **editable EXAMPLE** (a controlled two-Node
+rig); an honest "no live mesh · controlled rig" state until the wire flows.
+Verified live: the example exchange observes fidelity `1.000` + pooled
+convergence `0.500`. Wired into the nav + screen router (`app.jsx` / `shell.jsx`
+/ `index.html`).
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current

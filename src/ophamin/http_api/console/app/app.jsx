@@ -41,6 +41,7 @@ function App() {
   const SubstrateScreen   = window.SubstrateScreen;
   const CockpitScreen     = window.CockpitScreen;
   const FlowScreen        = window.FlowScreen;
+  const MeshScreen        = window.MeshScreen;
   const ConfigScreen      = window.ConfigScreen;
   const ModelsScreen      = window.ModelsScreen;
   const ToolkitsScreen    = window.ToolkitsScreen;
@@ -131,6 +132,7 @@ function App() {
         {screen === 'substrate' && <SubstrateScreen/>}
         {screen === 'cockpit'   && <CockpitScreen/>}
         {screen === 'flow'      && <FlowScreen/>}
+        {screen === 'mesh'      && <MeshScreen/>}
         {screen === 'config'    && <ConfigScreen/>}
         {screen === 'models'    && <ModelsScreen/>}
         {screen === 'toolkits'  && <ToolkitsScreen/>}
@@ -607,7 +609,7 @@ class ErrorBoundary extends React.Component {
 }
 
 const appRoot = ReactDOM.createRoot(document.getElementById('root'));
-const REQUIRED = ['AppShell','OverviewScreen','ProofsScreen','ScenariosScreen','RunScreen','TelemetryScreen','AgentsScreen','LabScreen','AuditScreen','ChatScreen','RoadmapScreen','DiscoveryScreen','InspectorScreen','ControlRoomScreen','InteropScreen','IntegrationsScreen','SubstrateScreen','CockpitScreen','FlowScreen','ConfigScreen','ModelsScreen','ToolkitsScreen','VerifyScreen','CommandPalette','TweaksPanel'];
+const REQUIRED = ['AppShell','OverviewScreen','ProofsScreen','ScenariosScreen','RunScreen','TelemetryScreen','AgentsScreen','LabScreen','AuditScreen','ChatScreen','RoadmapScreen','DiscoveryScreen','InspectorScreen','ControlRoomScreen','InteropScreen','IntegrationsScreen','SubstrateScreen','CockpitScreen','FlowScreen','MeshScreen','ConfigScreen','ModelsScreen','ToolkitsScreen','VerifyScreen','CommandPalette','TweaksPanel'];
 // FORCE_FETCH_FALLBACK — Babel-standalone occasionally silently skips a
 // script-tag transform. Map every required component to the file it lives in,
 // and if it's missing after polling, fetch+compile+eval that file directly.

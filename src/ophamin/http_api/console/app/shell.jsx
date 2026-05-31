@@ -72,6 +72,7 @@ function AppShell({ active, onNav, totals, accent, theme, density, onToggleTheme
       { id: 'flow',      label: 'Flow',      icon: 'activity' },
       { id: 'proofs',    label: 'Proofs',    icon: 'proofs', count: totals.bundles },
       { id: 'substrate', label: 'Substrate', icon: 'cpu' },
+      { id: 'mesh',      label: 'Mesh',      icon: 'activity' },
     ]},
     { group: 'R&D', items: [
       { id: 'compose',      label: 'Compose',      icon: 'code' },
