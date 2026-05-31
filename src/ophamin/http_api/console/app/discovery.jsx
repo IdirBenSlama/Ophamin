@@ -1,6 +1,13 @@
 /** @jsxRuntime classic */ /** @jsx React.createElement */
-/* global React, OPHAMIN, Icon, Glossary */
-// Discovery — clean & narrative. What does the substrate currently expose?
+/* global React, Icon */
+// Discovery — the substrate's output-field contract, as reference.
+//
+// NO FABRICATION (2026-05-31): this is the documented contract of what
+// Takwin.run emits each cycle — what `ophamin discover <kimera-repo>` mines.
+// It is REFERENCE, not a live read. The screen used to pose as live ("watching"
+// toggle, "exposes N fields today", a hardcoded current-commit, and a
+// fabricated "what changed since last time" diff) — all removed. Live mining /
+// diff / watch run via the CLI (shown below) and aren't wired into the console.
 
 const { useState: useDiState, useMemo: useDiMemo } = React;
 
@@ -12,7 +19,7 @@ const FIELD_SCHEMA = [
   { path: 'trajectory[*].geoid_prime', group: 'cognitive',  type: 'int',         cardinality: 'always',  desc: 'Prime assigned to the visited geoid via Arachne' },
   { path: 'phi',                       group: 'metrics',    type: 'float',       cardinality: 'always',  desc: 'Integrated Information (IIT) measure' },
   { path: 'graph_coherence',           group: 'metrics',    type: 'float',       cardinality: 'always',  desc: 'Coherence across the substrate graph this cycle' },
-  { path: 'prime_chain',               group: 'metrics',    type: 'list[int]',   cardinality: 'always',  desc: 'The cycles canonical prime chain' },
+  { path: 'prime_chain',               group: 'metrics',    type: 'list[int]',   cardinality: 'always',  desc: 'The cycle’s canonical prime chain' },
   { path: 'substrate_state_stamp',     group: 'identity',   type: 'str',         cardinality: 'always',  desc: 'Content-hash of substrate state when cycle ran' },
   { path: 'scar_formed',               group: 'memory',     type: 'bool',        cardinality: 'always',  desc: 'true if contradiction-gate fired and a scar was deposited' },
   { path: 'cycle_seconds',             group: 'engineering',type: 'float',       cardinality: 'always',  desc: 'Wall-time spent in Takwin.run()' },
@@ -31,15 +38,6 @@ const FIELD_SCHEMA = [
   { path: 'identity.substrate_git_commit', group: 'identity', type: 'str',       cardinality: 'always',  desc: 'Kimera-SWM substrate commit observed' },
 ];
 
-const SNAPSHOT_DIFFS = [
-  { kind: 'added',     path: 'raw.bge_m3_encoding_ms',     note: 'New with the BGE-M3 swap (6e4477eb).' },
-  { kind: 'added',     path: 'raw.cross_cycle_pair_count', note: 'New from Phase 3 cross-cycle helper.' },
-  { kind: 'removed',   path: 'raw.fasttext_vocab_hit',     note: 'FastText eradicated 2026-05-17.' },
-  { kind: 'removed',   path: 'raw.fasttext_oov_rate',      note: 'FastText eradicated 2026-05-17.' },
-  { kind: 'type',      path: 'phi',                        note: 'Precision normalized (was sometimes float32).' },
-  { kind: 'cardinality', path: 'raw.cross_arm_jaccard',    note: 'Now measured-only-when-present (was always pre-Stage 39).' },
-];
-
 const GROUP_META = {
   output:      { color: '#5e9eff', label: 'OUTPUT' },
   cognitive:   { color: '#2dd4bf', label: 'COGNITIVE' },
@@ -51,7 +49,6 @@ const GROUP_META = {
 };
 
 function DiscoveryScreen() {
-  const [watching, setWatching] = useDiState(false);
   const [filter, setFilter] = useDiState('');
   const [showPowerUser, setShowPowerUser] = useDiState(false);
 
@@ -70,70 +67,29 @@ function DiscoveryScreen() {
     return [...m.entries()];
   }, [filtered]);
 
-  const counts = {
-    added:   SNAPSHOT_DIFFS.filter(d => d.kind === 'added').length,
-    removed: SNAPSHOT_DIFFS.filter(d => d.kind === 'removed').length,
-    changed: SNAPSHOT_DIFFS.filter(d => d.kind === 'type' || d.kind === 'cardinality').length,
-  };
-
   return (
     <div className="content-inner page" style={{ maxWidth: 1100 }}>
       <div className="page-header">
         <div>
           <h1 className="page-title">Discovery</h1>
-          <div className="page-subtitle">What the substrate exposes right now, and what has changed since you last looked.</div>
+          <div className="page-subtitle">Kimera's output-field contract — what every cycle emits. Reference, not a live read; live mining runs via <span className="mono">ophamin discover</span> (below) and isn't wired into the console yet.</div>
         </div>
         <div className="page-actions">
-          <span className={'live-pill' + (watching ? '' : ' muted')}>
-            <span className="dot"></span>{watching ? 'watching' : 'snapshot'}
-          </span>
-          <button className="btn" onClick={() => setWatching(w => !w)}>
-            <Icon name={watching ? 'x' : 'eye'} size={13}/> {watching ? 'Stop watch' : 'Start watch'}
-          </button>
+          <span className="live-pill muted"><span className="dot"></span>reference</span>
         </div>
       </div>
 
-      {/* Narrative hero */}
+      {/* Reference hero — count only, nothing computed live */}
       <div className="discovery-hero">
         <div className="discovery-hero-headline">
-          The substrate exposes <span className="discovery-hero-num">{FIELD_SCHEMA.length}</span> fields today.
-          {(counts.added + counts.removed + counts.changed) > 0 && <> Since the last snapshot, <span className="discovery-hero-num discovery-hero-num-warn">{counts.added + counts.removed + counts.changed}</span> have changed.</>}
+          The output contract documents <span className="discovery-hero-num">{FIELD_SCHEMA.length}</span> fields, grouped by area.
         </div>
         <div className="discovery-hero-deltas">
-          {counts.added   > 0 && <span className="discovery-hero-delta added"><Icon name="check" size={11}/> {counts.added} added</span>}
-          {counts.removed > 0 && <span className="discovery-hero-delta removed"><Icon name="x"     size={11}/> {counts.removed} removed</span>}
-          {counts.changed > 0 && <span className="discovery-hero-delta changed"><Icon name="refresh" size={11}/> {counts.changed} changed</span>}
-          <span style={{ flex: 1 }}/>
-          <span className="mono" style={{ fontSize: 11, color: 'var(--text-muted)' }}>kimera-swm @ 6e4477eb</span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            A live snapshot/diff against a connected substrate isn't wired into the console — nothing here is measured live. Use the CLI for live mining.
+          </span>
         </div>
       </div>
-
-      {/* Changes since last snapshot — prominent, scrollable card */}
-      {SNAPSHOT_DIFFS.length > 0 && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div className="card-header">
-            <div>
-              <div className="card-title">What changed since last time</div>
-              <div className="micro" style={{ marginTop: 2 }}>SINCE 2026-05-12</div>
-            </div>
-            <button className="btn ghost" style={{ fontSize: 11 }}><Icon name="download" size={11}/> Export diff</button>
-          </div>
-          <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {SNAPSHOT_DIFFS.map((d, i) => (
-              <div key={i} className={'discovery-diff-row discovery-diff-' + d.kind}>
-                <span className={'discovery-diff-kind discovery-diff-kind-' + d.kind}>
-                  {d.kind === 'added' && <Icon name="check" size={11}/>}
-                  {d.kind === 'removed' && <Icon name="x" size={11}/>}
-                  {(d.kind === 'type' || d.kind === 'cardinality') && <Icon name="refresh" size={11}/>}
-                  <span>{d.kind}</span>
-                </span>
-                <span className="mono" style={{ fontSize: 12, color: 'var(--text-primary)' }}>{d.path}</span>
-                <span style={{ flex: 1, fontSize: 12, color: 'var(--text-muted)' }}>{d.note}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Field schema, grouped — clean and friendly */}
       <div className="card">
@@ -175,18 +131,18 @@ function DiscoveryScreen() {
         </div>
       </div>
 
-      {/* Power-user expandable */}
+      {/* Power-user expandable — the real CLI that mines/diffs/watches live */}
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-header" onClick={() => setShowPowerUser(v => !v)} style={{ cursor: 'pointer' }}>
           <div className="card-title">
             <Icon name={showPowerUser ? 'chevronD' : 'chevronR'} size={12}/>{' '}
-            For power users · CLI equivalents
+            Live mining · CLI equivalents
           </div>
           <span className="micro">SEEING/ WHEEL</span>
         </div>
         {showPowerUser && (
           <div style={{ padding: 14, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-            <CliCard cmd="ophamin discover <kimera-repo>"        desc="One-shot field-schema mining"/>
+            <CliCard cmd="ophamin discover <kimera-repo>"        desc="One-shot field-schema mining (live)"/>
             <CliCard cmd="ophamin discover-diff a.json b.json"   desc="Structural diff between two snapshots"/>
             <CliCard cmd="ophamin watch <kimera-repo>"           desc="Continuous re-discover + diff"/>
             <CliCard cmd="ophamin inventory <kimera-repo>"       desc="Primitive inventory"/>

@@ -86,6 +86,19 @@ HTTP-exposed. The screen now shows the real **tool catalogue** + export formats
 as reference, with an honest "not wired into the console" state — synthesizing
 nothing. The rich findings UI can be rebuilt on a real `/auditing` endpoint.
 
+### Changed — reference screens stop posing as live
+
+Two screens dressed hardcoded content as live measurement:
+- `discovery.jsx` had a "watching" toggle that did nothing, "exposes N fields
+  **today**", a hardcoded current-commit, and a fabricated "what changed since
+  last time" diff. It's now honestly the **output-field contract reference**
+  (what `ophamin discover` mines), with the real CLI shown — nothing posing as
+  live, no fake diff/commit.
+- `roadmap.jsx` showed "Live execution", a fake substrate commit, and a
+  placeholder `proof_id` on a hardcoded campaign. It's now the **plan** (mirrors
+  `ROADMAP_2026_05_18.md`), clearly point-in-time-not-live, with cited values
+  labelled as doc snapshots and a pointer to Run/Proofs for real signed verdicts.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current

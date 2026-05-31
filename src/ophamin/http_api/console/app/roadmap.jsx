@@ -19,7 +19,6 @@ const ROADMAP = [
       { label: 'Pre-existing failures inventory',  pass: true },
     ],
     branch: 'ALL PASS → Phase 1',
-    proof_id: 'ph0b2f7a3c91d4e5...',
   },
   {
     id: 1, name: 'Re-baseline on BGE-M3', status: 'running',
@@ -98,13 +97,12 @@ function RoadmapScreen({ onNavToProofs }) {
       <div className="page-header">
         <div>
           <h1 className="page-title">Roadmap</h1>
-          <div className="page-subtitle mono" style={{ whiteSpace: 'nowrap' }}>
-            The 7-phase Kimera campaign in flight. Every measurement is Ophamin-signed before commit.
+          <div className="page-subtitle">
+            The 7-phase Kimera campaign plan, mirrored from ROADMAP_2026_05_18.md — pre-registered questions + thresholds. Point-in-time from the doc, not a live read; live signed verdicts come from running each scenario (Proofs).
           </div>
         </div>
         <div className="page-actions">
-          <span className="live-pill"><span className="dot"></span>Live execution</span>
-          <button className="btn"><Icon name="download" size={13}/> Export DD snapshot</button>
+          <span className="live-pill muted"><span className="dot"></span>plan · not live</span>
         </div>
       </div>
 
@@ -113,7 +111,7 @@ function RoadmapScreen({ onNavToProofs }) {
         <div><span className="micro">IN FLIGHT</span><span className="mono tnum" style={{ color: 'var(--accent)', fontSize: 22 }}>{overallStats.running}</span></div>
         <div><span className="micro">PENDING</span><span className="mono tnum" style={{ color: 'var(--text-muted)', fontSize: 22 }}>{overallStats.pending}</span></div>
         <div style={{ flex: 1 }}/>
-        <div><span className="micro">SUBSTRATE STATE</span><span className="mono" style={{ fontSize: 13 }}>BGE-M3 @ 6e4477ebb</span></div>
+        <div><span className="micro">SOURCE</span><span className="mono" style={{ fontSize: 13 }}>ROADMAP_2026_05_18.md</span></div>
         <div><span className="micro">FAMILY</span><span className="mono" style={{ fontSize: 13, color: 'var(--accent)' }}>EE (roadmap)</span></div>
       </div>
 
@@ -209,15 +207,8 @@ function RoadmapScreen({ onNavToProofs }) {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 6, marginTop: 14, flexWrap: 'wrap' }}>
-              <button className="btn primary" style={{ fontSize: 12 }}><Icon name="play" size={12}/> Run phase</button>
-              <button className="btn" style={{ fontSize: 12 }}><Icon name="copy" size={12}/> Copy CLI</button>
-              <button className="btn" style={{ fontSize: 12 }}><Icon name="external" size={12}/> Journal entry</button>
-              {phase.proof_id && (
-                <div style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', alignSelf: 'center' }}>
-                  proof_id: {phase.proof_id}
-                </div>
-              )}
+            <div style={{ marginTop: 14, padding: '10px 12px', background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.55 }}>
+              Run this phase's scenario from the <b>Run</b> screen; its live, signed verdict then lands in <b>Proofs</b>. Any status / observed value shown above is from the roadmap doc (point-in-time), not a live read.
             </div>
           </div>
         </div>
