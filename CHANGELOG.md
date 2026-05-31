@@ -166,6 +166,24 @@ reply + metrics, with the honest error state as fallback. Chat turns are
 ephemeral (not persisted as signed records). This supersedes the prior "chat
 answers nothing" stub — it now answers for real, grounded, when a local model is up.
 
+### Added — Chat is grounded in the real proof corpus (retrieval / RAG)
+
+The advisory chat no longer answers from the model's training data — it answers
+from Ophamin's own signed corpus. New `chat_grounding.py`: for each question it
+retrieves the most relevant scenarios (lexical token overlap over ~54 scenario
+names / goals / falsification consequences — no embeddings needed) and assembles
+a REAL context block: goal, pre-registered claim + threshold, latest signed
+verdict, the **observed value read from the signed `proof.json`**, and the
+authored plain-language significance. `/chat` injects that and instructs the
+model to synthesise from it (never beyond it). Verified live: *"why was
+logic-topology-siege refuted?"* cites the real threshold
+(`sustained_traversal_rate_on_cleared >= 0.6`) and the real REFUTED verdict;
+*"what is the GWF false-positive rate?"* gives the real ≤10% ceiling in plain
+words — where pre-grounding the model invented "Sigma-Wave-Mathematics". When a
+question has no matching record it still says so rather than guess. Best-effort:
+an unreadable source degrades the chat to fewer real facts, never to fabricated
+ones.
+
 ## [0.115.2] — 2026-05-23
 
 **The stale-server trap is gone — one double-click always lands on the current

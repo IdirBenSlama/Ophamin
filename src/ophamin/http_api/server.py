@@ -915,7 +915,27 @@ def build_app() -> FastAPI:
             "Admitting a gap is always better than a plausible-sounding "
             "falsehood."
         )
+        # Ground the reply in the real proof corpus (RAG): retrieve the most
+        # relevant scenarios / verdicts / significance and hand them to the model
+        # as context, so it cites real proofs — not its training data. Best-effort:
+        # empty when nothing matches; the model then leans on its seeded facts.
+        from ophamin.http_api.chat_grounding import ground
+        grounded = ground(question)
+
         messages: list[dict[str, str]] = [{"role": "system", "content": system}]
+        if grounded:
+            messages.append({
+                "role": "system",
+                "content": (
+                    "Relevant REAL records from Ophamin's signed-proof corpus, "
+                    "below. Answer the user by SYNTHESISING from them — the goal, "
+                    "claim, threshold, latest verdict, observed value, and "
+                    "what-it-means are all real and citable. Only say you don't "
+                    "have something when these records genuinely lack it; never "
+                    "invent a number or verdict beyond them:\n"
+                    + grounded
+                ),
+            })
         for turn in body.history[-8:]:
             role = turn.get("role")
             content = turn.get("content")
