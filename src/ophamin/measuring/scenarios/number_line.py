@@ -61,7 +61,8 @@ def _real_numbers(value_range: float, max_n: int) -> list[float]:
 def _spearman(a, b) -> float:
     import numpy as np
     ra, rb = np.argsort(np.argsort(a)).astype(float), np.argsort(np.argsort(b)).astype(float)
-    ra -= ra.mean(); rb -= rb.mean()
+    ra -= ra.mean()
+    rb -= rb.mean()
     d = float(np.linalg.norm(ra) * np.linalg.norm(rb))
     return float(np.dot(ra, rb) / d) if d else 0.0
 

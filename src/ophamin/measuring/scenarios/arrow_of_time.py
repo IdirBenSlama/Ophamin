@@ -287,7 +287,6 @@ class ArrowOfTimeScenario(Scenario):
         # vote; sign-agnostic so a flipped-but-consistent detector still counts).
         best_key = None
         best_rate = 0.0
-        best_pos = 0
         per_key: dict[str, float] = {}
         for key, ds in deltas.items():
             nz = [d for d in ds if abs(d) > 1e-12]
@@ -297,7 +296,7 @@ class ArrowOfTimeScenario(Scenario):
             rate = max(pos, len(nz) - pos) / len(nz)  # consistency (sign-agnostic)
             per_key[key] = rate
             if rate > best_rate:
-                best_rate, best_key, best_pos = rate, key, pos
+                best_rate, best_key, _best_pos = rate, key, pos
 
         observed = float(best_rate)
         n_eff = len(deltas.get(best_key, [])) if best_key else n_series

@@ -39,12 +39,17 @@ N_MELS, N_FRAMES, HELD_OUT_FOLD = 64, 128, 5
 
 
 def _metrics(addr, labels, k=5):
-    A = addr.astype(np.float64); A = A / (np.linalg.norm(A, axis=1, keepdims=True) + 1e-9)
-    S = A @ A.T; n = len(labels)
-    same = labels[:, None] == labels[None, :]; off = ~np.eye(n, dtype=bool)
-    within = float(S[same & off].mean()); cross = float(S[~same].mean())
+    A = addr.astype(np.float64)
+    A = A / (np.linalg.norm(A, axis=1, keepdims=True) + 1e-9)
+    S = A @ A.T
+    n = len(labels)
+    same = labels[:, None] == labels[None, :]
+    off = ~np.eye(n, dtype=bool)
+    within = float(S[same & off].mean())
+    cross = float(S[~same].mean())
     np.fill_diagonal(S, -np.inf)
-    nn = np.argsort(-S, axis=1)[:, :k]; nn_lab = labels[nn]
+    nn = np.argsort(-S, axis=1)[:, :k]
+    nn_lab = labels[nn]
     return {"margin": within - cross, "prec@5": float((nn_lab == labels[:, None]).mean())}
 
 
@@ -120,10 +125,14 @@ class EarDiscriminationScenario(Scenario):
         class Ear(nn.Module):  # matches ear_m1_learned_probe (3 conv blocks)
             def __init__(self, emb=128, n_cls=50):
                 super().__init__()
-                self.c1 = nn.Conv2d(1, 32, 3, padding=1); self.b1 = nn.BatchNorm2d(32)
-                self.c2 = nn.Conv2d(32, 64, 3, padding=1); self.b2 = nn.BatchNorm2d(64)
-                self.c3 = nn.Conv2d(64, 128, 3, padding=1); self.b3 = nn.BatchNorm2d(128)
-                self.fc = nn.Linear(128, emb); self.head = nn.Linear(emb, n_cls)
+                self.c1 = nn.Conv2d(1, 32, 3, padding=1)
+                self.b1 = nn.BatchNorm2d(32)
+                self.c2 = nn.Conv2d(32, 64, 3, padding=1)
+                self.b2 = nn.BatchNorm2d(64)
+                self.c3 = nn.Conv2d(64, 128, 3, padding=1)
+                self.b3 = nn.BatchNorm2d(128)
+                self.fc = nn.Linear(128, emb)
+                self.head = nn.Linear(emb, n_cls)
 
             def embed(self, x):
                 x = F.max_pool2d(F.relu(self.b1(self.c1(x))), 2)
@@ -133,7 +142,9 @@ class EarDiscriminationScenario(Scenario):
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            ear = Ear(); ear.load_state_dict(ck["state"]); ear.eval()
+            ear = Ear()
+            ear.load_state_dict(ck["state"])
+            ear.eval()
             te = folds == HELD_OUT_FOLD
             specs_n = (specs[te].astype(np.float32) - mu) / sd
             emb = ear.embed(torch.from_numpy(specs_n).unsqueeze(1)).detach().numpy()
