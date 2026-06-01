@@ -294,19 +294,27 @@ class ScarAccumulationFlowScenario(Scenario):
                 "geoid_dispersion": gd,
             })
 
-        # --- primary: monotonic non-decrease over cycles that emitted a value --
-        td_seq = [
-            (s["cycle"], s["total_deformation"])
-            for s in series if s["total_deformation"] is not None
-        ]
-        pairs = list(zip(td_seq, td_seq[1:]))
+        # --- primary: monotonic non-decrease over CONSECUTIVE cycle pairs ------
+        # The claim is defined on (i, i+1) pairs; pairs spanning a gap (cycle i
+        # OR cycle i+1 had total_deformation=None) are NOT consecutive in the
+        # substrate trajectory and must not be counted toward monotonicity.
+        # Track those separately as n_skipped_pairs_due_to_gaps so consumers
+        # can see how much of the run was unscorable.
+        pairs: list[tuple[int, float, int, float]] = []
+        n_skipped_pairs_due_to_gaps = 0
+        for i in range(len(series) - 1):
+            a, b = series[i], series[i + 1]
+            if a["total_deformation"] is None or b["total_deformation"] is None:
+                n_skipped_pairs_due_to_gaps += 1
+                continue
+            pairs.append((a["cycle"], a["total_deformation"], b["cycle"], b["total_deformation"]))
         n_pairs = len(pairs)
-        n_nondec = sum(1 for (_, a), (_, b) in pairs if b >= a - _EPS)
+        n_nondec = sum(1 for (_, av, _bc, bv) in pairs if bv >= av - _EPS)
         frac = (n_nondec / n_pairs) if n_pairs else 0.0
         first_violation = next(
             (
-                {"cycle_a": ca, "cycle_b": cb, "td_a": round(a, 6), "td_b": round(b, 6)}
-                for (ca, a), (cb, b) in pairs if b < a - _EPS
+                {"cycle_a": ca, "cycle_b": cb, "td_a": round(av, 6), "td_b": round(bv, 6)}
+                for (ca, av, cb, bv) in pairs if bv < av - _EPS
             ),
             None,
         )
@@ -406,6 +414,7 @@ class ScarAccumulationFlowScenario(Scenario):
                     "monotonic_nondecrease_fraction": frac,
                     "n_pairs": n_pairs,
                     "n_gap_cycles": n_gap,
+                    "n_skipped_pairs_due_to_gaps": n_skipped_pairs_due_to_gaps,
                     "first_violation": first_violation,
                     "n_scars_first": n_scars_first,
                     "n_scars_last": n_scars_last,

@@ -547,7 +547,21 @@ def cmd_export(args: argparse.Namespace) -> int:
         from ophamin.measuring.proof.record import EmpiricalProofRecord
         try:
             proof = EmpiricalProofRecord.from_dict(payload)
-            envelope = to_dsse_envelope(proof, _resolve_proof_key(args.key))
+            key = _resolve_proof_key(args.key)
+            # Verify the INNER EmpiricalProofRecord HMAC signature under the
+            # same key before wrapping it in a DSSE envelope. Without this,
+            # a tampered or differently-keyed proof can still be wrapped in
+            # a "valid" DSSE envelope and mislead downstream consumers that
+            # validate only the outer layer.
+            if not proof.verify_signature(key):
+                print(
+                    "in-toto export refused: inner EmpiricalProofRecord signature "
+                    "does not verify under the provided key. Re-sign the proof or "
+                    "use --key matching the signing key.",
+                    file=sys.stderr,
+                )
+                return 2
+            envelope = to_dsse_envelope(proof, key)
         except (ValueError, KeyError, TypeError) as exc:
             print(f"in-toto export failed: {exc}", file=sys.stderr)
             return 2

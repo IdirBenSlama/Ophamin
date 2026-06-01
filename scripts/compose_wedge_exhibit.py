@@ -134,13 +134,22 @@ def main() -> None:
         bundle = pjson.parent
         proof = EmpiricalProofRecord.from_dict(json.loads(pjson.read_text()))
         verified = proof.verify_signature(DEFAULT_SIGN_KEY)
+        if not verified:
+            raise RuntimeError(
+                f"refusing to compose exhibit for {bundle.name}: inner "
+                f"EmpiricalProofRecord signature does not verify under "
+                f"DEFAULT_SIGN_KEY. The exhibit cannot ship a DSSE envelope "
+                f"around a proof that fails inner-signature verification — "
+                f"that would be a self-inconsistent double-signature."
+            )
 
         dest = EXHIBIT / "proofs" / bundle.name
         dest.mkdir(parents=True, exist_ok=True)
         shutil.copy2(pjson, dest / "proof.json")
         if (bundle / "proof.html").exists():
             shutil.copy2(bundle / "proof.html", dest / "proof.html")
-        # machine-verifiable DSSE in-toto attestation alongside the proof
+        # machine-verifiable DSSE in-toto attestation alongside the proof.
+        # Inner signature verified above — refuses to compose otherwise.
         envelope = to_dsse_envelope(proof, DEFAULT_SIGN_KEY)
         (dest / "proof.intoto.json").write_text(
             json.dumps(envelope, indent=2, sort_keys=True)
