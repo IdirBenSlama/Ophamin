@@ -54,7 +54,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 from ophamin import __version__
 from ophamin.config.sweep import SweepSpec, get_in, load_config, load_sweep
@@ -713,15 +713,15 @@ def cmd_audit(args: argparse.Namespace) -> int:
     # filter pillars by --pillars list if given. Project-scope pillars
     # (deptry / fawltydeps) AND deep pillars (pylint) are NOT in
     # DEFAULT_PILLAR_CLASSES — include them in the lookup pool when named.
-    # The pillar tuples don't carry an explicit type annotation so mypy widens
-    # the union to ABCMeta when concatenated. Cast to the narrower type — every
-    # tuple member IS an AuditPillar subclass by construction.
-    available_classes = cast(
-        list[type[AuditPillar]],
-        list(DEFAULT_PILLAR_CLASSES) +
-        list(DEEP_PILLAR_CLASSES) +
-        list(PROJECT_PILLAR_CLASSES)
-    )
+    # The pillar tuples don't carry an explicit type annotation so mypy may
+    # widen the union to ABCMeta when concatenating with `+`. Using extend()
+    # against a typed empty list lets each tuple member match `type[AuditPillar]`
+    # by structural subtyping — works under both old-mypy-strict (which needs
+    # the cast) and new-mypy-strict (which considers the cast redundant).
+    available_classes: list[type[AuditPillar]] = []
+    available_classes.extend(DEFAULT_PILLAR_CLASSES)
+    available_classes.extend(DEEP_PILLAR_CLASSES)
+    available_classes.extend(PROJECT_PILLAR_CLASSES)
     if args.pillars:
         wanted = {name.strip() for name in args.pillars.split(",") if name.strip()}
         pillar_classes = [cls for cls in available_classes if cls.name in wanted]
