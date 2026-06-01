@@ -54,7 +54,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from ophamin import __version__
 from ophamin.config.sweep import SweepSpec, get_in, load_config, load_sweep
@@ -70,6 +70,7 @@ from ophamin.seeing.discovery import (
     write_schema_markdown,
 )
 from ophamin.auditing import AuditRunner
+from ophamin.auditing.base import AuditPillar
 from ophamin.auditing.pillars import (
     DEEP_PILLAR_CLASSES,
     DEFAULT_PILLAR_CLASSES,
@@ -712,7 +713,11 @@ def cmd_audit(args: argparse.Namespace) -> int:
     # filter pillars by --pillars list if given. Project-scope pillars
     # (deptry / fawltydeps) AND deep pillars (pylint) are NOT in
     # DEFAULT_PILLAR_CLASSES — include them in the lookup pool when named.
-    available_classes = (
+    # The pillar tuples don't carry an explicit type annotation so mypy widens
+    # the union to ABCMeta when concatenated. Cast to the narrower type — every
+    # tuple member IS an AuditPillar subclass by construction.
+    available_classes = cast(
+        list[type[AuditPillar]],
         list(DEFAULT_PILLAR_CLASSES) +
         list(DEEP_PILLAR_CLASSES) +
         list(PROJECT_PILLAR_CLASSES)
@@ -727,7 +732,7 @@ def cmd_audit(args: argparse.Namespace) -> int:
             return 2
     else:
         pillar_classes = list(DEFAULT_PILLAR_CLASSES)
-    runner = AuditRunner(pillars=[cls() for cls in pillar_classes])  # type: ignore[abstract]
+    runner = AuditRunner(pillars=[cls() for cls in pillar_classes])
     print(f"auditing: {target}")
     print(f"pillars : {', '.join(p.name for p in runner.pillars)}")
     print(f"          ({len(runner.available_pillars())} available locally)")
