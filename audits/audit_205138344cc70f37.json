@@ -1,0 +1,123 @@
+{
+  "audit_id": "205138344cc70f373f76d2ca861320dffd7b604dc14f5f847c5d808dd4771aeb",
+  "schema_version": "audit/1.1",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "179df78b0109752154784ac39e2a11b044786943",
+    "captured_at": "2026-05-31T17:37:32.142475+00:00"
+  },
+  "target": {
+    "target_path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/managing/status.py",
+    "target_content_hash": "254245b019ed811fe9dbce7ae3108c823e752519588b27fd544bb145620a40dd"
+  },
+  "pillars": [
+    {
+      "pillar_name": "ruff",
+      "tool_name": "ruff",
+      "tool_version": "ruff 0.15.13",
+      "status": "ok",
+      "target_path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/managing/status.py",
+      "finding_count": 0,
+      "findings": [],
+      "severity_histogram": {},
+      "per_file_top10": [],
+      "per_rule_top10": [],
+      "raw_stdout_bytes": 2,
+      "raw_stderr_bytes": 0,
+      "exit_code": 0,
+      "wall_time_s": 0.09183362500334624,
+      "error_message": "",
+      "extra": {}
+    },
+    {
+      "pillar_name": "bandit",
+      "tool_name": "bandit",
+      "tool_version": "bandit 1.9.4",
+      "status": "ok",
+      "target_path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/managing/status.py",
+      "finding_count": 0,
+      "findings": [],
+      "severity_histogram": {},
+      "per_file_top10": [],
+      "per_rule_top10": [],
+      "raw_stdout_bytes": 788,
+      "raw_stderr_bytes": 0,
+      "exit_code": 0,
+      "wall_time_s": 0.0962973330024397,
+      "error_message": "",
+      "extra": {}
+    },
+    {
+      "pillar_name": "vulture",
+      "tool_name": "vulture",
+      "tool_version": "vulture 2.16",
+      "status": "ok",
+      "target_path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/managing/status.py",
+      "finding_count": 1,
+      "findings": [
+        {
+          "pillar_name": "vulture",
+          "rule_id": "vulture/function",
+          "severity": "medium",
+          "message": "unused function 'substrate_status'",
+          "path": "src/ophamin/managing/status.py",
+          "line": 60,
+          "column": 0,
+          "extra": {
+            "kind": "function",
+            "confidence": 60
+          }
+        }
+      ],
+      "severity_histogram": {
+        "medium": 1
+      },
+      "per_file_top10": [
+        [
+          "src/ophamin/managing/status.py",
+          1
+        ]
+      ],
+      "per_rule_top10": [
+        [
+          "vulture/function",
+          1
+        ]
+      ],
+      "raw_stdout_bytes": 87,
+      "raw_stderr_bytes": 0,
+      "exit_code": 3,
+      "wall_time_s": 0.04388350000954233,
+      "error_message": "",
+      "extra": {}
+    }
+  ],
+  "summary": {
+    "total_findings": 1,
+    "severity_histogram": {
+      "medium": 1
+    },
+    "findings_per_pillar": {
+      "ruff": 0,
+      "bandit": 0,
+      "vulture": 1
+    },
+    "top_files": [
+      [
+        "src/ophamin/managing/status.py",
+        1
+      ]
+    ],
+    "pillars_run": [
+      "ruff",
+      "bandit",
+      "vulture"
+    ],
+    "pillars_unavailable": [],
+    "pillars_errored": []
+  },
+  "reproduction": {
+    "command": "ophamin audit /Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/managing/status.py"
+  },
+  "signature": "21a582354e443b367dbd633ba0f7cbf612b3aa04a5fac88249a9f74a8c7d1e6e"
+}

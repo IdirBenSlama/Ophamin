@@ -1,0 +1,108 @@
+{
+  "proof_id": "038b45a2816088ae6bc8124837712ecccd2e53aa0b2d1b59c5ef0bfeb038a90f",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T20:23:47.380129+00:00"
+  },
+  "claim": {
+    "statement": "Zetetic operates at the EMBEDDING + PRIME + GEOID layer, NOT at the REASONING pipeline layer. Triage of all 13 zetetic files shows zero references to entropy_profile, cognitive_rhythm/CognitiveRhythm, prime_topology_walker/PrimeTopologyWalker, geoid_graph/GeoidGraph, leader_band, amplitude_death, or cr_state. The actual interface (takwin.py:18145-18152) passes concept_a/b, embedding_a/b, prime_a/b \u2014 i.e., perceptual-vocabulary data, not reasoning-pipeline state.",
+    "operationalization": "Grep all 13 zetetic files for pipeline-organ references; grep call sites to confirm what data is passed in; confirm the interface signature.",
+    "threshold": {
+      "metric": "pipeline_organ_references_in_zetetic",
+      "comparator": "==",
+      "value": 0.0,
+      "units": "references"
+    },
+    "h0": "Zetetic interacts with the reasoning pipeline machinery",
+    "h1": "Zetetic operates independently of the reasoning pipeline machinery"
+  },
+  "preregistration": {
+    "config_hash": "m51_b78b1bd4_k2_zetetic_operates_at_embedding_prime_layer_not_reasoning_layer",
+    "data_hash": "m51_v1_zetetic_layer",
+    "analysis_plan": "Grep all zetetic files; confirm zero pipeline-organ references; verify interface signature.",
+    "sweep_grid": {
+      "n_zetetic_files": 13,
+      "n_pipeline_organ_patterns": 7
+    },
+    "preregistered_at": "2026-05-30T20:23:43.962980+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "b78b1bd4f5cd26afe02ce93d32a02864624f640e",
+    "datasets": [
+      {
+        "name": "kimera_m51_zetetic_layer_verdict",
+        "content_hash": "m51_v1_zetetic_layer",
+        "n_records": 13,
+        "source": "kimera-swm-m51",
+        "kind": "zetetic_layer_verdict"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "grep_pipeline_organ_refs",
+      "statistic_name": "n",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-m51",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "files_checked": 13,
+        "pattern": "entropy_profile|cognitive_rhythm|prime_topology_walker|geoid_graph|leader_band|amplitude_death|cr_state",
+        "result": "0 hits in all 13 files"
+      }
+    },
+    {
+      "pillar": "interface_signature",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m51",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "takwin.py",
+        "lines": "18145-18152",
+        "args": [
+          "concept_a",
+          "concept_b",
+          "embedding_a",
+          "embedding_b",
+          "prime_a",
+          "prime_b"
+        ]
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 0.0,
+    "threshold": {
+      "metric": "pipeline_organ_references_in_zetetic",
+      "comparator": "==",
+      "value": 0.0,
+      "units": "references"
+    },
+    "reasoning": "Zero references across 13 files to entropy_profile / cognitive_rhythm / prime_topology_walker / geoid_graph / leader_band / amplitude_death / cr_state. The takwin call site passes concept strings + embeddings + primes \u2014 vocabulary data. Zetetic detects pair-level dissonance but does not read the substrate's reasoning state. This makes zetetic ORTHOGONAL to the Walker/oscillator loop, not integrated."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M51_zetetic_layer_verdict_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "b78b1bd4f5cd26afe02ce93d32a02864624f640e"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

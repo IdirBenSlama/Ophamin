@@ -1,0 +1,102 @@
+{
+  "proof_id": "2ba8e4ec50f76c4906756f9d1edc820d9f5f47092a889cf7e4f4ffa7c5d3a83a",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T20:18:13.457814+00:00"
+  },
+  "claim": {
+    "statement": "Kimera's reasoning signal does not depend on the literal text; it depends on the GeoidGraph topology produced when that text reaches the substrate. The same text reaching a different substrate state (different prior experience, different registered primes, different geoid positions) builds a different GeoidGraph, produces a different entropy_profile, propagates to a different \u03b1_gamma, and reasons differently. This is path-dependence at the PERCEPTION level \u2014 a deeper layer than the M.20 path-dependence observed at the trajectory level.",
+    "operationalization": "The _geoid_entropy method reads from self._current_graph._edge_weights, NOT from raw text or token frequencies. The GeoidGraph is built per-cycle by code that depends on substrate state (geoid positions, prior coupling, Arachne registry, etc.). Therefore entropy_profile depends on substrate state, not on text alone.",
+    "threshold": {
+      "metric": "entropy_input_is_graph_topology_not_text",
+      "comparator": "==",
+      "value": 1.0,
+      "units": "boolean_present"
+    },
+    "h0": "Entropy is computed from text frequencies, making reasoning text-deterministic",
+    "h1": "Entropy is computed from GeoidGraph topology, making reasoning state-dependent"
+  },
+  "preregistration": {
+    "config_hash": "m50_fc6b6542_j2_reasoning_driven_by_graph_topology_not_text",
+    "data_hash": "m50_v1_topology_not_text",
+    "analysis_plan": "Read _geoid_entropy input source; confirm it's graph topology, not text.",
+    "sweep_grid": {
+      "input_source": "graph_edge_weights"
+    },
+    "preregistered_at": "2026-05-30T20:18:10.839102+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "fc6b6542ab6e0a7b93d477459e2748a83d6a2028",
+    "datasets": [
+      {
+        "name": "kimera_m50_topology_dependence",
+        "content_hash": "m50_v1_topology_not_text",
+        "n_records": 1,
+        "source": "kimera-swm-m50",
+        "kind": "perception_to_entropy_rule_mapping"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "input_to_entropy",
+      "statistic_name": "graph_not_text",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m50",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "actual_input": "self._current_graph._edge_weights",
+        "not_used": [
+          "raw_text",
+          "token_frequencies",
+          "literal_words"
+        ]
+      }
+    },
+    {
+      "pillar": "consequence_for_m20",
+      "statistic_name": "explained",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m50",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "m20_observation": "walk-order drifts with experience-gap (r=-0.76)",
+        "mechanism": "experience-gap changes the geoid graph topology \u2192 different entropy_profile \u2192 different \u03b1_gamma \u2192 different walk"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 1.0,
+    "threshold": {
+      "metric": "entropy_input_is_graph_topology_not_text",
+      "comparator": "==",
+      "value": 1.0,
+      "units": "boolean_present"
+    },
+    "reasoning": "_geoid_entropy reads edge weights from a per-cycle constructed graph. The graph is built from concept-to-concept relationships which depend on substrate state, not on text frequencies. Therefore reasoning behavior for the same input text can vary as the substrate's accumulated state changes \u2014 a mechanistic root cause for M.20 path-dependence (r=-0.76)."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M50_perception_to_entropy_localised_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "fc6b6542ab6e0a7b93d477459e2748a83d6a2028"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

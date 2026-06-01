@@ -1,0 +1,121 @@
+{
+  "proof_id": "c6da9aa0cc648226e733be01e782267883b405e79f188d170552c6fa0cef0086",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T18:52:58.329424+00:00"
+  },
+  "claim": {
+    "statement": "Kimera-SWM's PrimeTopologyWalker \u2014 the substrate's reasoning organ \u2014 has exactly four oscillator-gated operators and three halt reasons, documented verbatim at prime_topology_walker.py:1-28, 90-93, 512-660. The Walker has no autonomous decisions; every action is a reactive interpretation of a CognitiveRhythm (Cronos) oscillator signal.",
+    "operationalization": "Four operators (per-step): M1 COMMIT when leader_band=='gamma' (Stuart-Landau Hopf, Deco 2017); M2 HALT amplitude_death when Routh-Hurwitz delay \u03c4 > \u03c4_crit=1/(4\u03c9) debounced (Reddy/Sen/Johnston 1998); M3 ROLLBACK when hallucinating==True (Allan deviation slope > 0, novel application of Allan 1966); M4 LATERAL LEAP when annealing_active==True (Kirkpatrick 1983 phase-kick). Three halt reasons: amplitude_death (M2 fired), exhausted (visited all nodes), selective (step budget exhausted before all nodes visited). Verification: M.46 corpus of 515 cycles shows halt reasons are exactly the predicted subset (plus 1 'no-partition' edge case from probe-level error, unrelated to Walker physics).",
+    "threshold": {
+      "metric": "halt_reason_subset_match",
+      "comparator": ">=",
+      "value": 0.99,
+      "units": "fraction_in_predicted_vocabulary"
+    },
+    "h0": "Walker halt vocabulary does not match the predicted 4-operator/3-halt-reason model",
+    "h1": "Walker halt vocabulary matches the predicted model"
+  },
+  "preregistration": {
+    "config_hash": "m47_7f35879c_g1_walker_operator_vocabulary",
+    "data_hash": "m47_v1_515_cycles_halt_vocabulary",
+    "analysis_plan": "Read Walker code; derive halt vocabulary; verify against 515 M.46 cycles.",
+    "sweep_grid": {
+      "n_operators": 4,
+      "n_halt_reasons": 3,
+      "n_verification_cycles": 515
+    },
+    "preregistered_at": "2026-05-30T18:52:55.182060+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "7f35879ce512556d2c6ab84f009341b9e5cbd3e0",
+    "datasets": [
+      {
+        "name": "kimera_m47_walker_vocabulary_verification",
+        "content_hash": "m47_v1_515_cycles_halt_vocabulary",
+        "n_records": 515,
+        "source": "kimera-swm-m47",
+        "kind": "walker_operator_vocabulary_mapping"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "vocabulary_match_rate",
+      "statistic_name": "fraction",
+      "statistic_value": 0.998,
+      "library": "kimera-swm-m47",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n_match": 514,
+        "n_total": 515,
+        "outlier": "no-partition (probe edge case)",
+        "code_citation": "prime_topology_walker.py:649-659"
+      }
+    },
+    {
+      "pillar": "operator_count",
+      "statistic_name": "n_operators",
+      "statistic_value": 4.0,
+      "library": "kimera-swm-m47",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "M1_COMMIT": "leader_band==gamma (Stuart-Landau Hopf)",
+        "M2_HALT_amplitude_death": "Routh-Hurwitz \u03c4 > 1/(4\u03c9) debounced",
+        "M3_ROLLBACK": "hallucinating (Allan slope > 0)",
+        "M4_LATERAL_LEAP": "annealing_active (phase-kick)"
+      }
+    },
+    {
+      "pillar": "halt_reason_count",
+      "statistic_name": "n_halt_reasons",
+      "statistic_value": 3.0,
+      "library": "kimera-swm-m47",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "amplitude_death": 353,
+        "exhausted": 146,
+        "selective": 15
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 0.998,
+    "threshold": {
+      "metric": "halt_reason_subset_match",
+      "comparator": ">=",
+      "value": 0.99,
+      "units": "fraction_in_predicted_vocabulary"
+    },
+    "reasoning": "514 of 515 cycles fall in the predicted halt vocabulary {amplitude_death, exhausted, selective}; the 1 outlier is 'no-partition', an error edge case from the probe (not from Walker physics). Code locations: prime_topology_walker.py:12-15 docstring; lines 64-93 WalkerState; lines 512-530 M2 amplitude_death gate; lines 557-616 M1 COMMIT + M3 ROLLBACK; lines 618-633 M4 LATERAL LEAP; lines 649-659 halt-reason determination."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M47_walker_operator_vocabulary_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "7f35879ce512556d2c6ab84f009341b9e5cbd3e0"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

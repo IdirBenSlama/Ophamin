@@ -1,0 +1,120 @@
+{
+  "proof_id": "2797c4abcb1a5187254b705379b6d47ff67044638f76aa76eef10ed429967a49",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T20:28:37.475181+00:00"
+  },
+  "claim": {
+    "statement": "Metacognitive does NOT directly touch the reasoning pipeline organs. Triage of all 16 metacognitive files shows 0 references to entropy_profile, cognitive_rhythm/CognitiveRhythm, prime_topology_walker/PrimeTopologyWalker, geoid_graph/GeoidGraph, leader_band, amplitude_death, or cr_state. The reflective_cortex_system imports consciousness+empathy+ouroboros primitives, not pipeline organs. It reads cycle_phi (one piece of pipeline output) and the four self-observation primitives, runs AFTER the cycle (post-cycle reflection), and emits a snapshot \u2014 not a feedback signal into the loop.",
+    "operationalization": "Grep all 16 metacognitive files for pipeline-organ references. Check reflective_cortex_system.py imports. Confirm timing (post-cycle, not in-loop) at takwin.py:8429.",
+    "threshold": {
+      "metric": "pipeline_organ_references_in_metacognitive",
+      "comparator": "==",
+      "value": 0.0,
+      "units": "references"
+    },
+    "h0": "Metacognitive reads pipeline organs and modulates the reasoning loop",
+    "h1": "Metacognitive runs post-cycle on cycle_phi + non-pipeline organs"
+  },
+  "preregistration": {
+    "config_hash": "m52_7b3b7664_l2_metacognitive_does_not_touch_pipeline_organs_directly",
+    "data_hash": "m52_v1_metacognitive_off_pipeline",
+    "analysis_plan": "Triage metacognitive files; verify reflective cortex inputs/timing.",
+    "sweep_grid": {
+      "n_files": 16,
+      "pipeline_refs": 0,
+      "post_cycle_invocation": true
+    },
+    "preregistered_at": "2026-05-30T20:28:34.829160+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "7b3b76641b55367b7e7336865e9741d1d35aa633",
+    "datasets": [
+      {
+        "name": "kimera_m52_metacognitive_layer",
+        "content_hash": "m52_v1_metacognitive_off_pipeline",
+        "n_records": 16,
+        "source": "kimera-swm-m52",
+        "kind": "metacognitive_inquiry_systems_mapping"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "grep_pipeline_organ_refs",
+      "statistic_name": "n",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "files_checked": 16,
+        "result": "0 hits in all 16 files"
+      }
+    },
+    {
+      "pillar": "reflective_cortex_imports",
+      "statistic_name": "non_pipeline",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "imports": [
+          "consciousness.attention_schema",
+          "cognitive.empathy.mirror_neuron_system",
+          "cognitive.empathy.theory_of_mind",
+          "domain.mathematical.ouroboros_kernel"
+        ]
+      }
+    },
+    {
+      "pillar": "post_cycle_timing",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "takwin.py",
+        "comment": "Phase III.1 \u2014 post-cycle reflective-cortex invocation; A/B comparable when ON"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 0.0,
+    "threshold": {
+      "metric": "pipeline_organ_references_in_metacognitive",
+      "comparator": "==",
+      "value": 0.0,
+      "units": "references"
+    },
+    "reasoning": "Zero pipeline-organ references across 16 files. Reflective cortex inputs are consciousness (AttentionSchema), empathy (MirrorNeuron + ToM), self-output (Ouroboros), plus cycle_phi. Post-cycle invocation. Output is a snapshot attached to OrchestratorResult, not a feedback into oscillator or Walker. This is parallel-reflection, not closed-loop modulation."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M52_metacognitive_verdict_three_inquiry_systems_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "7b3b76641b55367b7e7336865e9741d1d35aa633"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

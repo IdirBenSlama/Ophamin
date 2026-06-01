@@ -1,0 +1,2636 @@
+{
+  "audit_id": "a2452bd7ce5ee925d622454af425df71668b4f7d9685fc83286fd1142118c27d",
+  "schema_version": "audit/1.1",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "c4f5440138c4bc6e7f08c17e6a36d1dfb288e0e8",
+    "captured_at": "2026-05-31T16:35:11.982471+00:00"
+  },
+  "target": {
+    "target_path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin",
+    "target_content_hash": "1c3986ba883b98d906d88574924dd9465755672afedd0a30224aceed9ba0b539"
+  },
+  "pillars": [
+    {
+      "pillar_name": "ruff",
+      "tool_name": "ruff",
+      "tool_version": "ruff 0.15.13",
+      "status": "ok",
+      "target_path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin",
+      "finding_count": 16,
+      "findings": [
+        {
+          "pillar_name": "ruff",
+          "rule_id": "F841",
+          "severity": "high",
+          "message": "Local variable `best_pos` is assigned to but never used",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/arrow_of_time.py",
+          "line": 300,
+          "column": 38,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/unused-variable",
+            "fix": {
+              "applicability": "unsafe",
+              "edits": [
+                {
+                  "content": "_best_pos",
+                  "end_location": {
+                    "column": 46,
+                    "row": 300
+                  },
+                  "location": {
+                    "column": 38,
+                    "row": 300
+                  }
+                }
+              ],
+              "message": "Remove assignment to unused variable `best_pos`"
+            }
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 42,
+          "column": 32,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 43,
+          "column": 16,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 44,
+          "column": 46,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 45,
+          "column": 41,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 47,
+          "column": 39,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 123,
+          "column": 57,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 124,
+          "column": 58,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 125,
+          "column": 59,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 126,
+          "column": 46,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 136,
+          "column": 24,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 136,
+          "column": 58,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/interoception_fidelity.py",
+          "line": 71,
+          "column": 20,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/interoception_fidelity.py",
+          "line": 163,
+          "column": 34,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/interoception_fidelity.py",
+          "line": 167,
+          "column": 32,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        },
+        {
+          "pillar_name": "ruff",
+          "rule_id": "E702",
+          "severity": "high",
+          "message": "Multiple statements on one line (semicolon)",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/number_line.py",
+          "line": 64,
+          "column": 20,
+          "extra": {
+            "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon",
+            "fix": null
+          }
+        }
+      ],
+      "severity_histogram": {
+        "high": 16
+      },
+      "per_file_top10": [
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          11
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/interoception_fidelity.py",
+          3
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/arrow_of_time.py",
+          1
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/number_line.py",
+          1
+        ]
+      ],
+      "per_rule_top10": [
+        [
+          "E702",
+          15
+        ],
+        [
+          "F841",
+          1
+        ]
+      ],
+      "raw_stdout_bytes": 8437,
+      "raw_stderr_bytes": 0,
+      "exit_code": 0,
+      "wall_time_s": 0.14281920899520628,
+      "error_message": "",
+      "extra": {}
+    },
+    {
+      "pillar_name": "bandit",
+      "tool_name": "bandit",
+      "tool_version": "bandit 1.9.4",
+      "status": "ok",
+      "target_path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin",
+      "finding_count": 119,
+      "findings": [
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B310",
+          "severity": "medium",
+          "message": "Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/agentic/client.py",
+          "line": 152,
+          "column": 17,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 22,
+              "link": "https://cwe.mitre.org/data/definitions/22.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B310",
+          "severity": "medium",
+          "message": "Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/agentic/client.py",
+          "line": 241,
+          "column": 17,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 22,
+              "link": "https://cwe.mitre.org/data/definitions/22.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/audit_record.py",
+          "line": 31,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/audit_record.py",
+          "line": 58,
+          "column": 17,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/audit_record.py",
+          "line": 58,
+          "column": 17,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/base.py",
+          "line": 18,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/base.py",
+          "line": 224,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/_docker_pillar.py",
+          "line": 17,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/_docker_pillar.py",
+          "line": 48,
+          "column": 16,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/_docker_pillar.py",
+          "line": 48,
+          "column": 16,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/_docker_pillar.py",
+          "line": 59,
+          "column": 16,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/_docker_pillar.py",
+          "line": 59,
+          "column": 16,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/_docker_pillar.py",
+          "line": 92,
+          "column": 15,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/bandit_pillar.py",
+          "line": 11,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/bandit_pillar.py",
+          "line": 45,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/coverage_pillar.py",
+          "line": 19,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/coverage_pillar.py",
+          "line": 70,
+          "column": 25,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/coverage_pillar.py",
+          "line": 84,
+          "column": 12,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/deptry_pillar.py",
+          "line": 20,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/deptry_pillar.py",
+          "line": 72,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/detect_secrets_pillar.py",
+          "line": 25,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/detect_secrets_pillar.py",
+          "line": 59,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/fawltydeps_pillar.py",
+          "line": 26,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/fawltydeps_pillar.py",
+          "line": 94,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/mypy_pillar.py",
+          "line": 17,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/mypy_pillar.py",
+          "line": 63,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/pip_audit_pillar.py",
+          "line": 30,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/pip_audit_pillar.py",
+          "line": 121,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/pip_audit_pillar.py",
+          "line": 222,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/prospector_pillar.py",
+          "line": 13,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/prospector_pillar.py",
+          "line": 55,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/pylint_pillar.py",
+          "line": 22,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/pylint_pillar.py",
+          "line": 73,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/radon_pillar.py",
+          "line": 22,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/radon_pillar.py",
+          "line": 66,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/refurb_pillar.py",
+          "line": 17,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/refurb_pillar.py",
+          "line": 53,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/ruff_pillar.py",
+          "line": 20,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/ruff_pillar.py",
+          "line": 70,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/schemathesis_pillar.py",
+          "line": 19,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/schemathesis_pillar.py",
+          "line": 106,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/semgrep_pillar.py",
+          "line": 19,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/semgrep_pillar.py",
+          "line": 68,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/vulture_pillar.py",
+          "line": 17,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/vulture_pillar.py",
+          "line": 55,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B310",
+          "severity": "medium",
+          "message": "Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/authoring/grounding.py",
+          "line": 151,
+          "column": 9,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 22,
+              "link": "https://cwe.mitre.org/data/definitions/22.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B310",
+          "severity": "medium",
+          "message": "Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          "line": 924,
+          "column": 13,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 22,
+              "link": "https://cwe.mitre.org/data/definitions/22.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B110",
+          "severity": "low",
+          "message": "Try, Except, Pass detected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          "line": 949,
+          "column": 4,
+          "extra": {
+            "test_name": "try_except_pass",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          "line": 952,
+          "column": 8,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          "line": 954,
+          "column": 14,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          "line": 954,
+          "column": 14,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B104",
+          "severity": "medium",
+          "message": "Possible binding to all interfaces.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          "line": 1019,
+          "column": 56,
+          "extra": {
+            "test_name": "hardcoded_bind_all_interfaces",
+            "issue_confidence": "MEDIUM",
+            "issue_cwe": {
+              "id": 605,
+              "link": "https://cwe.mitre.org/data/definitions/605.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B104",
+          "severity": "medium",
+          "message": "Possible binding to all interfaces.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          "line": 1038,
+          "column": 49,
+          "extra": {
+            "test_name": "hardcoded_bind_all_interfaces",
+            "issue_confidence": "MEDIUM",
+            "issue_cwe": {
+              "id": 605,
+              "link": "https://cwe.mitre.org/data/definitions/605.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B110",
+          "severity": "low",
+          "message": "Try, Except, Pass detected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          "line": 1053,
+          "column": 16,
+          "extra": {
+            "test_name": "try_except_pass",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B110",
+          "severity": "low",
+          "message": "Try, Except, Pass detected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          "line": 1100,
+          "column": 12,
+          "extra": {
+            "test_name": "try_except_pass",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/comparing/provenance/lineage.py",
+          "line": 25,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/comparing/provenance/lineage.py",
+          "line": 60,
+          "column": 17,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/comparing/provenance/lineage.py",
+          "line": 60,
+          "column": 17,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/comparing/provenance/lineage.py",
+          "line": 199,
+          "column": 17,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/comparing/provenance/lineage.py",
+          "line": 199,
+          "column": 17,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/comparing/retrieval_baseline.py",
+          "line": 126,
+          "column": 10,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B105",
+          "severity": "low",
+          "message": "Possible hardcoded password: 'secret_refused'",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/configuring/apply.py",
+          "line": 56,
+          "column": 18,
+          "extra": {
+            "test_name": "hardcoded_password_string",
+            "issue_confidence": "MEDIUM",
+            "issue_cwe": {
+              "id": 259,
+              "link": "https://cwe.mitre.org/data/definitions/259.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B104",
+          "severity": "medium",
+          "message": "Possible binding to all interfaces.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/configuring/validation.py",
+          "line": 87,
+          "column": 53,
+          "extra": {
+            "test_name": "hardcoded_bind_all_interfaces",
+            "issue_confidence": "MEDIUM",
+            "issue_cwe": {
+              "id": 605,
+              "link": "https://cwe.mitre.org/data/definitions/605.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/inspector.py",
+          "line": 20,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/inspector.py",
+          "line": 36,
+          "column": 17,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/inspector.py",
+          "line": 36,
+          "column": 17,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B101",
+          "severity": "low",
+          "message": "Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/inspector.py",
+          "line": 149,
+          "column": 8,
+          "extra": {
+            "test_name": "assert_used",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B101",
+          "severity": "low",
+          "message": "Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/inspector.py",
+          "line": 220,
+          "column": 8,
+          "extra": {
+            "test_name": "assert_used",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B101",
+          "severity": "low",
+          "message": "Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/inspector.py",
+          "line": 284,
+          "column": 8,
+          "extra": {
+            "test_name": "assert_used",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/locator.py",
+          "line": 25,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/locator.py",
+          "line": 210,
+          "column": 21,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/locator.py",
+          "line": 210,
+          "column": 21,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B112",
+          "severity": "low",
+          "message": "Try, Except, Continue detected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/interop/cyclonedx.py",
+          "line": 96,
+          "column": 8,
+          "extra": {
+            "test_name": "try_except_continue",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B405",
+          "severity": "low",
+          "message": "Using xml.etree.ElementTree to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree with the equivalent defusedxml package, or make sure defusedxml.defuse_stdlib() is called.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/interop/junit_xml.py",
+          "line": 35,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 20,
+              "link": "https://cwe.mitre.org/data/definitions/20.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b405-import-xml-etree"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B105",
+          "severity": "low",
+          "message": "Possible hardcoded password: 'scenario'",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/interop/junit_xml.py",
+          "line": 226,
+          "column": 24,
+          "extra": {
+            "test_name": "hardcoded_password_string",
+            "issue_confidence": "MEDIUM",
+            "issue_cwe": {
+              "id": 259,
+              "link": "https://cwe.mitre.org/data/definitions/259.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B310",
+          "severity": "medium",
+          "message": "Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/interop/tool_discovery.py",
+          "line": 98,
+          "column": 13,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 22,
+              "link": "https://cwe.mitre.org/data/definitions/22.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/proof/persistence.py",
+          "line": 175,
+          "column": 4,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/proof/persistence.py",
+          "line": 179,
+          "column": 18,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/proof/persistence.py",
+          "line": 179,
+          "column": 18,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B110",
+          "severity": "low",
+          "message": "Try, Except, Pass detected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/base.py",
+          "line": 555,
+          "column": 8,
+          "extra": {
+            "test_name": "try_except_pass",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/bayesian_phi_posterior.py",
+          "line": 235,
+          "column": 14,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/crdt_laws.py",
+          "line": 229,
+          "column": 14,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B614",
+          "severity": "medium",
+          "message": "Use of unsafe PyTorch load",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+          "line": 117,
+          "column": 13,
+          "extra": {
+            "test_name": "pytorch_load",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 502,
+              "link": "https://cwe.mitre.org/data/definitions/502.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b614_pytorch_load.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/finance_history_discrimination.py",
+          "line": 158,
+          "column": 12,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/finance_path_dependence.py",
+          "line": 323,
+          "column": 21,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/finance_path_magnitude_fidelity.py",
+          "line": 171,
+          "column": 12,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B101",
+          "severity": "low",
+          "message": "Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/interoception_fidelity.py",
+          "line": 175,
+          "column": 12,
+          "extra": {
+            "test_name": "assert_used",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/memory_order_hysteresis.py",
+          "line": 188,
+          "column": 8,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/rosetta_scaling.py",
+          "line": 136,
+          "column": 18,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B310",
+          "severity": "medium",
+          "message": "Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/sonarqube_scan.py",
+          "line": 162,
+          "column": 13,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 22,
+              "link": "https://cwe.mitre.org/data/definitions/22.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B310",
+          "severity": "medium",
+          "message": "Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/sonarqube_scan.py",
+          "line": 365,
+          "column": 17,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 22,
+              "link": "https://cwe.mitre.org/data/definitions/22.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B105",
+          "severity": "low",
+          "message": "Possible hardcoded password: 'OK'",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/sonarqube_scan.py",
+          "line": 406,
+          "column": 12,
+          "extra": {
+            "test_name": "hardcoded_password_string",
+            "issue_confidence": "MEDIUM",
+            "issue_cwe": {
+              "id": 259,
+              "link": "https://cwe.mitre.org/data/definitions/259.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/wilson_ci_crosscheck.py",
+          "line": 215,
+          "column": 14,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B101",
+          "severity": "low",
+          "message": "Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/observability/otel.py",
+          "line": 123,
+          "column": 8,
+          "extra": {
+            "test_name": "assert_used",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/reporting/pdf_renderer.py",
+          "line": 31,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/reporting/pdf_renderer.py",
+          "line": 193,
+          "column": 20,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B311",
+          "severity": "low",
+          "message": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/base.py",
+          "line": 124,
+          "column": 14,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 330,
+              "link": "https://cwe.mitre.org/data/definitions/330.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 15,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B112",
+          "severity": "low",
+          "message": "Try, Except, Continue detected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 78,
+          "column": 16,
+          "extra": {
+            "test_name": "try_except_continue",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 107,
+          "column": 17,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 107,
+          "column": 17,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 130,
+          "column": 15,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 130,
+          "column": 15,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B101",
+          "severity": "low",
+          "message": "Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 141,
+          "column": 8,
+          "extra": {
+            "test_name": "assert_used",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 330,
+          "column": 26,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 330,
+          "column": 26,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B112",
+          "severity": "low",
+          "message": "Try, Except, Continue detected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          "line": 370,
+          "column": 12,
+          "extra": {
+            "test_name": "try_except_continue",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/discovery/kimera_inventory.py",
+          "line": 37,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/discovery/kimera_inventory.py",
+          "line": 61,
+          "column": 17,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/discovery/kimera_inventory.py",
+          "line": 61,
+          "column": 17,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/discovery/watcher.py",
+          "line": 23,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B607",
+          "severity": "low",
+          "message": "Starting a process with a partial executable path",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/discovery/watcher.py",
+          "line": 41,
+          "column": 17,
+          "extra": {
+            "test_name": "start_process_with_partial_path",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/discovery/watcher.py",
+          "line": 41,
+          "column": 17,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/substrate/kimera_adapter.py",
+          "line": 36,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/substrate/kimera_adapter.py",
+          "line": 505,
+          "column": 24,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B110",
+          "severity": "low",
+          "message": "Try, Except, Pass detected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/substrate/kimera_adapter.py",
+          "line": 732,
+          "column": 8,
+          "extra": {
+            "test_name": "try_except_pass",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 703,
+              "link": "https://cwe.mitre.org/data/definitions/703.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B310",
+          "severity": "medium",
+          "message": "Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/telemetry/prometheus_probe.py",
+          "line": 291,
+          "column": 17,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 22,
+              "link": "https://cwe.mitre.org/data/definitions/22.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B404",
+          "severity": "low",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/verify.py",
+          "line": 23,
+          "column": 0,
+          "extra": {
+            "test_name": "blacklist",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess"
+          }
+        },
+        {
+          "pillar_name": "bandit",
+          "rule_id": "B603",
+          "severity": "low",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "path": "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/verify.py",
+          "line": 250,
+          "column": 17,
+          "extra": {
+            "test_name": "subprocess_without_shell_equals_true",
+            "issue_confidence": "HIGH",
+            "issue_cwe": {
+              "id": 78,
+              "link": "https://cwe.mitre.org/data/definitions/78.html"
+            },
+            "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html"
+          }
+        }
+      ],
+      "severity_histogram": {
+        "medium": 12,
+        "low": 107
+      },
+      "per_file_top10": [
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+          10
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+          9
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/_docker_pillar.py",
+          6
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/inspector.py",
+          6
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/comparing/provenance/lineage.py",
+          5
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/audit_record.py",
+          3
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/coverage_pillar.py",
+          3
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/pip_audit_pillar.py",
+          3
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/locator.py",
+          3
+        ],
+        [
+          "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/proof/persistence.py",
+          3
+        ]
+      ],
+      "per_rule_top10": [
+        [
+          "B603",
+          36
+        ],
+        [
+          "B404",
+          29
+        ],
+        [
+          "B607",
+          14
+        ],
+        [
+          "B311",
+          10
+        ],
+        [
+          "B310",
+          8
+        ],
+        [
+          "B101",
+          6
+        ],
+        [
+          "B110",
+          5
+        ],
+        [
+          "B104",
+          3
+        ],
+        [
+          "B105",
+          3
+        ],
+        [
+          "B112",
+          3
+        ]
+      ],
+      "raw_stdout_bytes": 203793,
+      "raw_stderr_bytes": 0,
+      "exit_code": 1,
+      "wall_time_s": 2.0046094999997877,
+      "error_message": "",
+      "extra": {}
+    }
+  ],
+  "summary": {
+    "total_findings": 135,
+    "severity_histogram": {
+      "high": 16,
+      "medium": 12,
+      "low": 107
+    },
+    "findings_per_pillar": {
+      "ruff": 16,
+      "bandit": 119
+    },
+    "top_files": [
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/ear_discrimination.py",
+        12
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/corpus/connectors.py",
+        10
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/cli.py",
+        9
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/_docker_pillar.py",
+        6
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/inspector.py",
+        6
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/comparing/provenance/lineage.py",
+        5
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/interoception_fidelity.py",
+        4
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/audit_record.py",
+        3
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/coverage_pillar.py",
+        3
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/pip_audit_pillar.py",
+        3
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/inspecting/locator.py",
+        3
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/proof/persistence.py",
+        3
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/measuring/scenarios/sonarqube_scan.py",
+        3
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/discovery/kimera_inventory.py",
+        3
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/discovery/watcher.py",
+        3
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/seeing/substrate/kimera_adapter.py",
+        3
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/agentic/client.py",
+        2
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/base.py",
+        2
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/bandit_pillar.py",
+        2
+      ],
+      [
+        "/Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin/auditing/pillars/deptry_pillar.py",
+        2
+      ]
+    ],
+    "pillars_run": [
+      "ruff",
+      "bandit"
+    ],
+    "pillars_unavailable": [],
+    "pillars_errored": []
+  },
+  "reproduction": {
+    "command": "ophamin audit /Volumes/Behemoth/Ophamin FrameWork /ophamin/src/ophamin"
+  },
+  "signature": "cd17097e7ba623b2205b3fff7c955e4d423f6f4bb546bbf68dc7054155450f00"
+}

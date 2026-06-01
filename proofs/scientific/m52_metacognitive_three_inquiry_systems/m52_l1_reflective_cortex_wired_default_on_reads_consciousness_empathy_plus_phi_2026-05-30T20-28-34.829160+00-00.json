@@ -1,0 +1,143 @@
+{
+  "proof_id": "89b9f3f90bf0bbeb88304bb1c8254b27c4d6beccc477cc25176dc4cd5d4703a8",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T20:28:36.071623+00:00"
+  },
+  "claim": {
+    "statement": "The reflective_cortex_system is wired into takwin via Phase III.1 (takwin.py:8429-8457). Default-ON since 2026-05-25 (env KIMERA_REFLECTIVE_CORTEX_WIRED defaults to '1', owner 'turn everything on' directive). Reads FOUR self-observation primitives \u2014 Ouroboros (self-output kernel), AttentionSchema (consciousness), MirrorNeuron (empathy), TheoryOfMind (empathy) \u2014 plus cycle_phi from the reasoning output. Writes a reflective_snapshot to OrchestratorResult.",
+    "operationalization": "Read takwin.py:2728-2733 (wiring default) + 8429-8457 (invocation). Read reflective_cortex_system.py imports (38-51) for input organ types. Verify the reflect() method signature receives subject + context with cycle_phi.",
+    "threshold": {
+      "metric": "n_self_observation_primitives_consumed",
+      "comparator": ">=",
+      "value": 4.0,
+      "units": "primitives"
+    },
+    "h0": "Reflective cortex is disconnected or reads only one organ",
+    "h1": "Reflective cortex consumes \u22654 self-observation primitives + cycle_phi"
+  },
+  "preregistration": {
+    "config_hash": "m52_7b3b7664_l1_reflective_cortex_wired_default_on_reads_consciousness_empathy_plus_phi",
+    "data_hash": "m52_v1_reflective_cortex_wiring",
+    "analysis_plan": "Read default; read invocation; identify input organs and outputs.",
+    "sweep_grid": {
+      "default_on": true,
+      "n_input_organs": 4,
+      "reads_cycle_phi": true
+    },
+    "preregistered_at": "2026-05-30T20:28:34.829160+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "7b3b76641b55367b7e7336865e9741d1d35aa633",
+    "datasets": [
+      {
+        "name": "kimera_m52_reflective_cortex_wiring",
+        "content_hash": "m52_v1_reflective_cortex_wiring",
+        "n_records": 1,
+        "source": "kimera-swm-m52",
+        "kind": "metacognitive_inquiry_systems_mapping"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "default_on",
+      "statistic_name": "env_default",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "takwin.py",
+        "lines": "2730-2732",
+        "env_var": "KIMERA_REFLECTIVE_CORTEX_WIRED",
+        "default_value": "1",
+        "flipped_on": "2026-05-25 ('turn everything on')"
+      }
+    },
+    {
+      "pillar": "four_input_organs",
+      "statistic_name": "n_organs",
+      "statistic_value": 4.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "takwin.py",
+        "lines": "8435-8440",
+        "organs": [
+          "ouroboros",
+          "attention_schema",
+          "mirror_neuron",
+          "tom"
+        ]
+      }
+    },
+    {
+      "pillar": "cycle_phi_read",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "takwin.py",
+        "lines": "8444",
+        "code": "'cycle_phi': float(_result.phi)"
+      }
+    },
+    {
+      "pillar": "writes_snapshot",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "takwin.py",
+        "lines": "8451",
+        "field": "_result.reflective_snapshot"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 4.0,
+    "threshold": {
+      "metric": "n_self_observation_primitives_consumed",
+      "comparator": ">=",
+      "value": 4.0,
+      "units": "primitives"
+    },
+    "reasoning": "Initialisation at takwin.py:8435-8440 passes 4 organ instances. Invocation at 8447-8450 passes (subject, context with cycle_phi). Default-ON since 2026-05-25 owner directive. Wiring is real and active."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M52_metacognitive_verdict_three_inquiry_systems_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "7b3b76641b55367b7e7336865e9741d1d35aa633"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

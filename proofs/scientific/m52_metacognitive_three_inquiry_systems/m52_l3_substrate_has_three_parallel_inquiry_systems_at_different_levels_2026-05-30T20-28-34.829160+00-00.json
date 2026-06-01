@@ -1,0 +1,139 @@
+{
+  "proof_id": "24135f1bab2d0aea24f5689f947f64221a7fb234763ba67becd099c0dd50a5c7",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T20:28:38.919956+00:00"
+  },
+  "claim": {
+    "statement": "Kimera-SWM has THREE parallel inquiry/reflection systems at three abstraction levels: (1) IN-LOOP \u2014 Walker M3 ROLLBACK (Allan deviation on gamma phase; monitors the reasoning act); (2) OUT-OF-LOOP \u2014 Zetetic Unit (proximity+resonance; monitors concept-pair vocabulary dissonance); (3) POST-CYCLE \u2014 Reflective Cortex (cycle_phi + Ouroboros/AttentionSchema/MirrorNeuron/ToM; monitors cycle outcome + self-observation primitives). Three different consumers, three different cadences, three different input spaces. None feeds back into the reasoning loop; they all emit observations downstream. Updates and refines M.51 K3 (which identified only systems 1+2).",
+    "operationalization": "Build a table comparing the three systems on level, trigger, input, output, cadence, consumer, feedback. Show they have non-overlapping input spaces and non-overlapping consumers; none feeds back to the oscillator/Walker.",
+    "threshold": {
+      "metric": "n_parallel_inquiry_systems",
+      "comparator": ">=",
+      "value": 3.0,
+      "units": "systems"
+    },
+    "h0": "Substrate has \u22642 inquiry systems",
+    "h1": "Substrate has \u22653 parallel inquiry systems at different abstraction levels"
+  },
+  "preregistration": {
+    "config_hash": "m52_7b3b7664_l3_substrate_has_three_parallel_inquiry_systems_at_different_levels",
+    "data_hash": "m52_v1_three_parallel_inquiry_systems",
+    "analysis_plan": "Map systems 1+2+3 onto a comparison table; verify non-overlap.",
+    "sweep_grid": {
+      "n_systems": 3,
+      "n_feedback_edges": 0
+    },
+    "preregistered_at": "2026-05-30T20:28:34.829160+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "7b3b76641b55367b7e7336865e9741d1d35aa633",
+    "datasets": [
+      {
+        "name": "kimera_m52_three_inquiry_systems",
+        "content_hash": "m52_v1_three_parallel_inquiry_systems",
+        "n_records": 3,
+        "source": "kimera-swm-m52",
+        "kind": "metacognitive_inquiry_systems_mapping"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "system_1_walker_m3",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "level": "in-loop",
+        "input": "gamma phase samples",
+        "output": "hallucinating boolean",
+        "cadence": "every 10 ticks",
+        "consumer": "Walker M3 ROLLBACK"
+      }
+    },
+    {
+      "pillar": "system_2_zetetic",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "level": "out-of-loop",
+        "input": "concept_a/b + embeddings + primes",
+        "output": "DissonanceLocus + ExplorationStrategy",
+        "cadence": "per cycle on-demand",
+        "consumer": "result outputs"
+      }
+    },
+    {
+      "pillar": "system_3_reflective_cortex",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "level": "post-cycle",
+        "input": "cycle_phi + Ouroboros + AttentionSchema + MirrorNeuron + ToM",
+        "output": "reflective_snapshot",
+        "cadence": "per cycle (default-ON since 2026-05-25)",
+        "consumer": "OrchestratorResult"
+      }
+    },
+    {
+      "pillar": "no_feedback_to_loop",
+      "statistic_name": "n_feedback_edges",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-m52",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "note": "None of systems 2 or 3 modulates oscillator or Walker; only emits observations"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 3.0,
+    "threshold": {
+      "metric": "n_parallel_inquiry_systems",
+      "comparator": ">=",
+      "value": 3.0,
+      "units": "systems"
+    },
+    "reasoning": "M.48/M.49 mapped system (1) in the reasoning pipeline. M.51 identified system (2) outside the loop. M.52 identifies system (3) post-cycle. All three operate independently; none closes a feedback loop into the oscillator or Walker. Architecturally, the substrate has redundant inquiry capacity across THREE abstraction levels with no inter-system communication. Constructive implication: a feedback edge from any of (2) or (3) back into (1) \u2014 e.g., zetetic STRUCTURAL_TENSION triggering M4 LATERAL LEAP, or reflective-cortex 'low coherence' kicking the annealing \u2014 would close one or more loops. None exist today."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M52_metacognitive_verdict_three_inquiry_systems_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "7b3b76641b55367b7e7336865e9741d1d35aa633"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}
