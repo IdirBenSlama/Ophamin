@@ -95,7 +95,7 @@ def _default_fetch(url: str, timeout_s: float) -> dict[str, Any]:
         url, method="GET", headers={"User-Agent": "ophamin-tool-discovery"},
     )
     try:
-        with urllib.request.urlopen(  # noqa: S310
+        with urllib.request.urlopen(  # noqa: S310  # nosec B310 — configured HTTP(S) endpoint; URL is operator/config-controlled, not user input
             req, timeout=timeout_s, context=_ssl_context(),
         ) as resp:
             raw = resp.read().decode("utf-8")

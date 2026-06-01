@@ -986,7 +986,7 @@ def _running_framework_version(host: str, port: int) -> "str | None":
     import urllib.request
 
     try:
-        with urllib.request.urlopen(
+        with urllib.request.urlopen(  # nosec B310 — configured HTTP(S) endpoint; URL is operator/config-controlled, not user input
             f"http://{host}:{port}/version", timeout=1.0
         ) as resp:
             data = json.loads(resp.read().decode("utf-8"))
@@ -1081,7 +1081,7 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
         )
         return 1
 
-    ui_host = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host
+    ui_host = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host  # nosec B104 — not a real bind-all (host comparison / validation warning); serve defaults to 127.0.0.1
     # Open the spherical home (`/`) — Kimera at the centre with the six
     # observatory wheels around it, the navigable structure itself. This is
     # the front door, built for a visual thinker. The classic surfaces remain
@@ -1100,7 +1100,7 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
     if getattr(args, "open", False):
         import socket as _socket
 
-        probe_host = "127.0.0.1" if args.host == "0.0.0.0" else args.host
+        probe_host = "127.0.0.1" if args.host == "0.0.0.0" else args.host  # nosec B104 — not a real bind-all (host comparison / validation warning); serve defaults to 127.0.0.1
         with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as _s:
             _s.settimeout(0.4)
             already_running = _s.connect_ex((probe_host, args.port)) == 0

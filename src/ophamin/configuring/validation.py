@@ -84,7 +84,7 @@ def validate_config(effective: list[EffectiveKnob]) -> list[ConfigViolation]:
                 "API auto-reload is ON in a production config.",
                 "Set KIMERA_API_RELOAD=false for production."))
         host = by_var.get("KIMERA_SERVER_HOST")
-        if host is not None and str(host.current) == "0.0.0.0":  # noqa: S104
+        if host is not None and str(host.current) == "0.0.0.0":  # noqa: S104  # nosec B104 — not a real bind-all (host comparison / validation warning); serve defaults to 127.0.0.1
             v.append(ConfigViolation(
                 "KIMERA_SERVER_HOST", "bind_all_in_production", WARN,
                 "Server binds all interfaces (0.0.0.0) in production.",
