@@ -85,6 +85,11 @@ jobs:
         # add reachable code paths. The CI floor is the authoritative
         # cross-platform measurement; ratcheting toward 85 % is tracked
         # in BENCHMARKS_AND_COVERAGE.md.
+        # `shell: bash` is required so the `\` line-continuation parses on
+        # windows-latest too (default PS treats `--cov` as unary minus and
+        # errors out). bash is available on all GitHub runners (Ubuntu via
+        # native, macOS via /bin/bash, Windows via Git Bash).
+        shell: bash
         run: |
           pytest -q --ignore=tests/bench \
             --cov=src/ophamin --cov-branch --cov-fail-under=75 \
