@@ -119,7 +119,12 @@ class EarDiscriminationScenario(Scenario):
                                "(run ear_baseline_probe + ear_m1_learned_probe first)")
         d = np.load(_CACHE)
         specs, labels, folds, pos5 = d["specs"], d["labels"], d["folds"], d["pos5"]
-        ck = torch.load(_WEIGHTS, map_location="cpu")
+        # B614 (Ophamin lint policy): weights_only=True enforces torch's
+        # restricted unpickler so a malicious .pt cannot execute arbitrary
+        # code on load. The cached file contains only model state_dict +
+        # mu/sd tensors (built by ear_m1_learned_probe), so the restricted
+        # loader accepts it.
+        ck = torch.load(_WEIGHTS, map_location="cpu", weights_only=True)
         mu, sd = ck["mu"], ck["sd"]
 
         class Ear(nn.Module):  # matches ear_m1_learned_probe (3 conv blocks)
