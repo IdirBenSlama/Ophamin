@@ -4431,6 +4431,19 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows-default console is cp1252 which cannot encode the unicode
+    # math/Greek characters we use in user-facing output (≥, Φ, δ, …). Force
+    # UTF-8 on stdout/stderr so the CLI does not crash with UnicodeEncodeError
+    # on Windows runners. Linux/macOS already default to UTF-8 — this is a
+    # no-op there.
+    if sys.platform == "win32":
+        for _stream in (sys.stdout, sys.stderr):
+            reconfigure = getattr(_stream, "reconfigure", None)
+            if callable(reconfigure):
+                try:
+                    reconfigure(encoding="utf-8", errors="replace")
+                except (OSError, ValueError):
+                    pass  # already-closed or non-reconfigurable stream — harmless
     parser = build_parser()
     args = parser.parse_args(argv)
     rc: int = args.func(args)
