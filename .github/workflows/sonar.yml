@@ -166,7 +166,7 @@ jobs:
         # NVD database download takes 5-10 min on cold cache;
         # caching cuts subsequent runs to ~30s. Key on year+week so
         # we refresh weekly + can still see fresh CVEs.
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: dc-cache
         with:
           path: dependency-check-data
