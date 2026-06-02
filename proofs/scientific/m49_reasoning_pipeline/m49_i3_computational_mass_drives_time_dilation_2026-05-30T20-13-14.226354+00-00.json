@@ -1,0 +1,100 @@
+{
+  "proof_id": "9981d3f27d15106a9e459c672ae2a9ff0a8947b6ca53bd044dc0156a03035db9",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T20:13:18.380085+00:00"
+  },
+  "claim": {
+    "statement": "The substrate's perceived TIME is driven by its accumulated thermodynamic mass. computational_mass \u2014 the time-dilation factor passed to cronos.tick \u2014 is computed from the mean log-prime-thermodynamic-energy across all primes in the Arachne registry: mean(log(p_thermo + 1)) / 2.0, clamped [0.1, 10.0]. More substrate experience (larger registry, higher thermodynamic mass) \u2192 higher time-dilation factor \u2192 oscillator perceives more time per cycle.",
+    "operationalization": "Code at takwin.py:7913-7918. computational_mass is one of the three inputs to cronos.tick (with dt and entropy_proxy). It modulates the effective dt used inside the oscillator \u2014 higher computational_mass = each tick covers more 'subjective' oscillator time.",
+    "threshold": {
+      "metric": "computational_mass_from_registry_thermodynamic_mass",
+      "comparator": "==",
+      "value": 1.0,
+      "units": "mapping_present"
+    },
+    "h0": "Computational mass is a fixed constant or unrelated to substrate experience",
+    "h1": "Computational mass scales with accumulated thermodynamic experience"
+  },
+  "preregistration": {
+    "config_hash": "m49_82fce051_i3_computational_mass_drives_time_dilation",
+    "data_hash": "m49_v1_computational_mass_drives_time",
+    "analysis_plan": "Read computational_mass computation in takwin.py; identify input sources.",
+    "sweep_grid": {
+      "input_sources": 2
+    },
+    "preregistered_at": "2026-05-30T20:13:14.226354+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "82fce0514d6540430f91ae6cb6e18321bed568d0",
+    "datasets": [
+      {
+        "name": "kimera_m49_computational_mass_mapping",
+        "content_hash": "m49_v1_computational_mass_drives_time",
+        "n_records": 1,
+        "source": "kimera-swm-m49",
+        "kind": "reasoning_pipeline_architecture_mapping"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "computational_mass_formula",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m49",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "takwin.py",
+        "lines": "7913-7918",
+        "fallback": "prior_concept_count / 4.0",
+        "preferred": "mean(log(p_thermo+1) for p in arachne_registry) / 2.0",
+        "clamp": "[0.1, 10.0]"
+      }
+    },
+    {
+      "pillar": "scales_with_experience",
+      "statistic_name": "qualitative",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m49",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "interpretation": "more substrate-experience \u2192 higher time-dilation \u2192 more 'time' per cycle"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 1.0,
+    "threshold": {
+      "metric": "computational_mass_from_registry_thermodynamic_mass",
+      "comparator": "==",
+      "value": 1.0,
+      "units": "mapping_present"
+    },
+    "reasoning": "Two sources are checked in code: (a) prior_concept_count / 4.0 fallback; (b) Arachne registry mean log thermodynamic energy / 2.0 (preferred). Either way, computational_mass scales with accumulated substrate state. Genesis interpretation: the more Kimera has lived, the more time each reasoning act takes (subjectively, inside the oscillator)."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M49_reasoning_pipeline_complete_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "82fce0514d6540430f91ae6cb6e18321bed568d0"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

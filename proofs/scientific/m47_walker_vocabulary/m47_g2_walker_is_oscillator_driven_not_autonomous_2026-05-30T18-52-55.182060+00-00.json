@@ -1,0 +1,140 @@
+{
+  "proof_id": "60cc0586b21208d9be21bfacd286d52f025eb2c167117792c1e0223dfa76d992",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T18:52:59.760641+00:00"
+  },
+  "claim": {
+    "statement": "The Walker has no autonomous decisions: it is an interpreter of CognitiveRhythm oscillator signals. 'Selective' halts (rare, n=15) produce dramatically shorter walks (mean 2.33 concepts) than 'exhausted' (mean 15.40) or 'amplitude_death' (mean 11.82) halts, confirming that the oscillator physics \u2014 not a Walker decision \u2014 determines walk length when the step budget runs out. This sharpens the M.46 F2 finding: at linguistic discontinuities, oscillator physics drove M1/M3/M4 to consume the step budget in 1-3 concepts, NOT a strategic Walker choice to emit one concept.",
+    "operationalization": "Across 515 cycles, partition by halt_reason and compute mean walk length. Prediction (under oscillator-driven Walker): selective halts << amplitude_death < exhausted, because selective = budget-filled-on-subset is purely a function of how fast the oscillator drove the operators. Verify factor difference > 4\u00d7 between selective and the other modes.",
+    "threshold": {
+      "metric": "walk_length_ratio_exhausted_over_selective",
+      "comparator": ">=",
+      "value": 4.0,
+      "units": "ratio"
+    },
+    "h0": "Walk length is independent of halt_reason (Walker is autonomous)",
+    "h1": "Walk length is determined by halt_reason via oscillator physics"
+  },
+  "preregistration": {
+    "config_hash": "m47_7f35879c_g2_walker_is_oscillator_driven_not_autonomous",
+    "data_hash": "m47_v1_515_cycles_walk_length_by_halt",
+    "analysis_plan": "Partition by halt_reason; compute mean walk length; verify ratio.",
+    "sweep_grid": {
+      "halt_reasons": 3,
+      "n_cycles": 515
+    },
+    "preregistered_at": "2026-05-30T18:52:55.182060+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "7f35879ce512556d2c6ab84f009341b9e5cbd3e0",
+    "datasets": [
+      {
+        "name": "kimera_m47_oscillator_driven_walker_verification",
+        "content_hash": "m47_v1_515_cycles_walk_length_by_halt",
+        "n_records": 515,
+        "source": "kimera-swm-m47",
+        "kind": "walker_operator_vocabulary_mapping"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "selective_mean_walk",
+      "statistic_name": "mean_concepts",
+      "statistic_value": 2.33,
+      "library": "kimera-swm-m47",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n": 15,
+        "range": [
+          1,
+          11
+        ]
+      }
+    },
+    {
+      "pillar": "exhausted_mean_walk",
+      "statistic_name": "mean_concepts",
+      "statistic_value": 15.4,
+      "library": "kimera-swm-m47",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n": 146,
+        "range": [
+          6,
+          25
+        ]
+      }
+    },
+    {
+      "pillar": "amplitude_death_mean_walk",
+      "statistic_name": "mean_concepts",
+      "statistic_value": 11.82,
+      "library": "kimera-swm-m47",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n": 353,
+        "range": [
+          0,
+          26
+        ]
+      }
+    },
+    {
+      "pillar": "ratio_exhausted_over_selective",
+      "statistic_name": "ratio",
+      "statistic_value": 6.61,
+      "library": "kimera-swm-m47",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "threshold": 4.0,
+        "interpretation": "oscillator-driven, not autonomous"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 6.61,
+    "threshold": {
+      "metric": "walk_length_ratio_exhausted_over_selective",
+      "comparator": ">=",
+      "value": 4.0,
+      "units": "ratio"
+    },
+    "reasoning": "selective: mean 2.33 (n=15, range 1-11); exhausted: mean 15.40 (n=146, range 6-25); amplitude_death: mean 11.82 (n=353, range 0-26). Ratio exhausted/selective = 15.40/2.33 = 6.61\u00d7 (predicted >= 4\u00d7). amplitude_death walks are intermediate, confirming M2 fires only AFTER the Walker has done some walking (gamma had to lead AND collapse via Routh-Hurwitz). The selective halt's tiny mean (2.33) demonstrates oscillator-driven Walker: physics consumed the budget on 1-3 concepts. Sharpens M.46 F2 (id c89a128f\u2026): the discontinuity-detector finding is a CONSEQUENCE of oscillator physics, not strategic Walker choice."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M47_walker_operator_vocabulary_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "7f35879ce512556d2c6ab84f009341b9e5cbd3e0"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

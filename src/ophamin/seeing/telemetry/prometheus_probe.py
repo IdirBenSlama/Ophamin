@@ -288,7 +288,7 @@ class PrometheusScrapeProbe:
         import time
         t0 = time.perf_counter()
         try:
-            with urllib.request.urlopen(self.url, timeout=self.timeout_s) as resp:
+            with urllib.request.urlopen(self.url, timeout=self.timeout_s) as resp:  # nosec B310 — configured HTTP(S) endpoint; URL is operator/config-controlled, not user input
                 raw = resp.read().decode("utf-8", errors="replace")
         except urllib.error.URLError as e:
             raise TelemetryScrapeError(

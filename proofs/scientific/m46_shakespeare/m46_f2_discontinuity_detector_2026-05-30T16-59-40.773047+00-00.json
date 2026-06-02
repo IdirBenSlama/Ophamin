@@ -1,0 +1,115 @@
+{
+  "proof_id": "831fcf624e669e1d6793c7b1d47f00fd7a12d192910f7242322a81c32af781e4",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T16:59:45.038879+00:00"
+  },
+  "claim": {
+    "statement": "Kimera-SWM's Walker M3 selective-halt mode functions as a substrate-native linguistic-discontinuity detector. When activated, it emits a single concept that captures the rhetorical center of who-just-spoke or what-just-changed, then halts.",
+    "operationalization": "Out of 515 Takwin cycles on pg100.txt prose, 10 produced 'selective' resolution (the Walker's M3 mode). Each is inspected against linguistic-discontinuity markers: (a) speaker-switch (CAPS:NAME at paragraph start) or (b) meta-textual self-reference. Heuristic detector + manual verification.",
+    "threshold": {
+      "metric": "fraction_rare_events_on_discontinuities",
+      "comparator": ">=",
+      "value": 0.7,
+      "units": "fraction_of_rare_events"
+    },
+    "h0": "Selective halts are random with respect to linguistic discontinuities (~50%)",
+    "h1": "Selective halts cluster on linguistic discontinuities"
+  },
+  "preregistration": {
+    "config_hash": "m46_27078b7e_f2_discontinuity_detector",
+    "data_hash": "m46_v1_10_rare_events_pg100",
+    "analysis_plan": "Wilson interval + exact binomial vs 50% null. n=10 small; finding flagged for replication at n=30+.",
+    "sweep_grid": {
+      "n_rare_events": 10,
+      "n_total_cycles": 515
+    },
+    "preregistered_at": "2026-05-30T16:59:40.773047+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "27078b7e939c18be84777a4802684026587e6f4c",
+    "datasets": [
+      {
+        "name": "kimera_m46_selective_halts",
+        "content_hash": "m46_v1_10_rare_events_pg100",
+        "n_records": 10,
+        "source": "kimera-swm-m46-pg100",
+        "kind": "cognitive_act_aggregate_statistic"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "hit_rate",
+      "statistic_name": "fraction",
+      "statistic_value": 0.9,
+      "library": "kimera-swm-m46",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "k_on_discontinuity": 9,
+        "n_events": 10
+      }
+    },
+    {
+      "pillar": "wilson_ci_lower",
+      "statistic_name": "p_lower_95",
+      "statistic_value": 0.596,
+      "library": "kimera-swm-m46",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "upper": 0.982,
+        "method": "Wilson score interval"
+      }
+    },
+    {
+      "pillar": "exact_binomial_p",
+      "statistic_name": "p_two_sided",
+      "statistic_value": 0.0215,
+      "library": "kimera-swm-m46",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "null_p": 0.5,
+        "test": "exact binomial"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 0.9,
+    "threshold": {
+      "metric": "fraction_rare_events_on_discontinuities",
+      "comparator": ">=",
+      "value": 0.7,
+      "units": "fraction_of_rare_events"
+    },
+    "reasoning": "9 of 10 selective halts landed on linguistic discontinuities (8 by heuristic, +1 from manual verification of FIRST LORD speaker switch). Wilson 95% CI [0.60, 0.98]; exact binomial 2-sided p vs 50% null = 0.0215. Significant at \u03b1=0.05. Single-concept emissions are speaker thematic-fingerprints (PAROLLES \u2192 regiment; HELENA \u2192 prescriptions; KING \u2192 florentines) or rhetorical pivots (CLOWN \u2192 whither; FIRST LORD \u2192 younger)."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M46_shakespeare_full_read_20260530/sign_findings.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "27078b7e939c18be84777a4802684026587e6f4c"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

@@ -1,0 +1,142 @@
+{
+  "proof_id": "0bb1eec9fad571ae317ec84e2843636ceea71201b8bd9faba026dce3694d90e3",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T21:07:58.229956+00:00"
+  },
+  "claim": {
+    "statement": "GeoidGraph construction is localised at semantic_geoid_bridge.py:308-454 (GeoidGraph.__init__) + 2153-2337 (SemanticGeoidBridge.build_graph). The per-concept pipeline: text \u2192 semantic_state (FastText 300D embedding or SHA-256 fallback) \u2192 Helmholtz Free Energy F = U\u2212TS \u2192 prime via wave spectral entropy match \u2192 rank-based frequency. Then per-pair edge weight: cos = dot(emb_i, emb_j); sin = sqrt(1-cos\u00b2); geodesic = atan2(sin, cos); proximity = 1 \u2212 geodesic/\u03c0. Top-k per node by score; nodes with < 2 edges marked as traps. The pipeline now extends to step 1 at finest granularity.",
+    "operationalization": "Read semantic_geoid_bridge.py:308-454 (GeoidGraph init + edge construction) + 2153-2337 (build_graph orchestration). Identify the cos\u2192atan2\u2192geodesic\u2192proximity formula. Identify the k-NN top-k selection. Identify trap marking. Verify _edge_weights dict is the structure that _geoid_entropy reads.",
+    "threshold": {
+      "metric": "n_construction_steps_with_citation",
+      "comparator": ">=",
+      "value": 4.0,
+      "units": "steps"
+    },
+    "h0": "GeoidGraph construction is opaque or distributed across many files",
+    "h1": "GeoidGraph construction is localised in semantic_geoid_bridge.py"
+  },
+  "preregistration": {
+    "config_hash": "m53_9b2160b2_m1_geoid_graph_construction_localised",
+    "data_hash": "m53_v1_geoid_graph_construction",
+    "analysis_plan": "Read semantic_geoid_bridge.py:308-454 + 2153-2337; identify 4 construction substeps with line citations.",
+    "sweep_grid": {
+      "n_substeps": 4,
+      "n_phase_citations": 5
+    },
+    "preregistered_at": "2026-05-30T21:07:56.948153+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "9b2160b2b56813175653824d1f5af05d545c980e",
+    "datasets": [
+      {
+        "name": "kimera_m53_geoid_graph_construction_mapping",
+        "content_hash": "m53_v1_geoid_graph_construction",
+        "n_records": 4,
+        "source": "kimera-swm-m53",
+        "kind": "geoid_graph_construction_mapping"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "embedding_step",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m53",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "semantic_geoid_bridge.py",
+        "line": 2191,
+        "function": "_concept_to_semantic_state",
+        "encoder_active": "FastText 300D sem_dim_0000..0299",
+        "fallback": "SHA-256 hash bytes hash_byte_00..31"
+      }
+    },
+    {
+      "pillar": "thermodynamic_prime_step",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m53",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "semantic_geoid_bridge.py",
+        "lines": "2197-2223",
+        "formula": "F = U \u2212 TS; binary search for prime via wave spectral entropy",
+        "phase": "267 (thermodynamic prime assignment)",
+        "freq_formula": "freq = log(rank + 2) * 10.0 (Phase 273.8 rank-based)"
+      }
+    },
+    {
+      "pillar": "edge_weight_formula",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m53",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "semantic_geoid_bridge.py",
+        "lines": "421-429",
+        "formula": "cos = dot; sin = sqrt(1-cos\u00b2); geodesic = atan2(sin, cos); proximity = 1 \u2212 geodesic/\u03c0",
+        "phase": "84 Fix B (geodesic on S^(d-1)) + 226.44 (Kahan-stable atan2)",
+        "math_basis": "Riemannian metric on unit hypersphere"
+      }
+    },
+    {
+      "pillar": "top_k_and_traps",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m53",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "semantic_geoid_bridge.py",
+        "lines": "438-454",
+        "operation": "sort by score desc; keep top k_neighbors",
+        "trap_condition": "< 2 outgoing edges \u2192 is_trap = True"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 4.0,
+    "threshold": {
+      "metric": "n_construction_steps_with_citation",
+      "comparator": ">=",
+      "value": 4.0,
+      "units": "steps"
+    },
+    "reasoning": "Four substeps cited: (a) embedding via _concept_to_semantic_state; (b) Helmholtz F \u2192 prime \u2192 rank \u2192 frequency; (c) per-pair cos\u2192geodesic\u2192proximity; (d) top-k + trap marking. All in semantic_geoid_bridge.py with Phase number provenance for each fix."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M53_geoid_graph_construction_localised_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "9b2160b2b56813175653824d1f5af05d545c980e"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

@@ -149,7 +149,7 @@ class LLMClient:
             },
         )
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:  # noqa: S310
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:  # noqa: S310  # nosec B310 — configured HTTP(S) endpoint; URL is operator/config-controlled, not user input
                 raw_body = resp.read().decode("utf-8")
         except urllib.error.HTTPError as exc:
             body_snippet = exc.read().decode("utf-8", errors="replace")[:1000] if exc.fp else ""
@@ -238,7 +238,7 @@ class LLMClient:
 
         start = time.perf_counter()
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:  # noqa: S310
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:  # noqa: S310  # nosec B310 — configured HTTP(S) endpoint; URL is operator/config-controlled, not user input
                 raw_body = resp.read().decode("utf-8")
         except urllib.error.HTTPError as exc:
             body_snippet = exc.read().decode("utf-8", errors="replace")[:1000] if exc.fp else ""

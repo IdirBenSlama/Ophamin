@@ -1,0 +1,126 @@
+{
+  "proof_id": "e3db74b53b97a0f86f87b2e9e6b1b29cfeafeb42399eaff8c0b6795d367e7538",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T20:23:48.820042+00:00"
+  },
+  "claim": {
+    "statement": "Kimera-SWM has TWO parallel inquiry/dissonance-detection systems operating at different levels: (1) the IN-LOOP detector \u2014 Walker M3 ROLLBACK gate, triggered by hallucinating == True (Allan deviation slope > 0 on gamma phase). This detects when the REASONING ACT is unstable, every 10 ticks. (2) the OUT-OF-LOOP detector \u2014 Zetetic Unit, triggered by concept-pair proximity-resonance mismatch. This detects when CONCEPT PAIRS are dissonant in the embedding+prime space, per cycle. They sample different things and do not communicate. M.46 F2's discontinuity-detector behavior at M3 selective halts is system (1); the 6-DissonanceType taxonomy is system (2).",
+    "operationalization": "Compare the two systems' inputs and outputs: M3 input = gamma phase samples; M3 output = hallucinating boolean; M3 trigger = Allan dev slope > 0. Zetetic input = concept pair + embeddings + primes; Zetetic output = DissonanceLocus + ExplorationStrategy; Zetetic trigger = proximity high + resonance low. Different signals, different consumers, no shared state.",
+    "threshold": {
+      "metric": "n_parallel_inquiry_systems",
+      "comparator": ">=",
+      "value": 2.0,
+      "units": "systems"
+    },
+    "h0": "Kimera has only one dissonance-detection system",
+    "h1": "Kimera has two parallel dissonance-detection systems at different levels"
+  },
+  "preregistration": {
+    "config_hash": "m51_b78b1bd4_k3_substrate_has_two_parallel_inquiry_systems_at_different_levels",
+    "data_hash": "m51_v1_two_parallel_systems",
+    "analysis_plan": "Compare M3 ROLLBACK gate against Zetetic unit; verify non-overlap.",
+    "sweep_grid": {
+      "in_loop_system": "Walker M3",
+      "out_loop_system": "Zetetic Unit"
+    },
+    "preregistered_at": "2026-05-30T20:23:43.962980+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "b78b1bd4f5cd26afe02ce93d32a02864624f640e",
+    "datasets": [
+      {
+        "name": "kimera_m51_parallel_inquiry_systems",
+        "content_hash": "m51_v1_two_parallel_systems",
+        "n_records": 2,
+        "source": "kimera-swm-m51",
+        "kind": "zetetic_layer_verdict"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "system_1_in_loop",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m51",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "name": "Walker M3 ROLLBACK",
+        "input": "gamma phase samples",
+        "output": "hallucinating boolean",
+        "trigger": "Allan deviation slope > 0",
+        "files": [
+          "cognitive_rhythm.py:536, 690-692",
+          "prime_topology_walker.py:512-660"
+        ]
+      }
+    },
+    {
+      "pillar": "system_2_out_of_loop",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m51",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "name": "Zetetic Unit",
+        "input": "concept_a/b + embedding_a/b + prime_a/b",
+        "output": "DissonanceLocus + ExplorationStrategy",
+        "trigger": "proximity > threshold AND resonance < threshold",
+        "files": [
+          "semantic_zetetic_unit.py",
+          "takwin.py:18145-18180"
+        ]
+      }
+    },
+    {
+      "pillar": "non_overlapping_inputs",
+      "statistic_name": "shared",
+      "statistic_value": 0.0,
+      "library": "kimera-swm-m51",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "note": "gamma phase vs concept embeddings; no shared state"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 2.0,
+    "threshold": {
+      "metric": "n_parallel_inquiry_systems",
+      "comparator": ">=",
+      "value": 2.0,
+      "units": "systems"
+    },
+    "reasoning": "System (1) is in the reasoning pipeline (M.48 rule M3, cognitive_rhythm.py:536, 690-692). System (2) is the zetetic unit (semantic_zetetic_unit.py). They have non-overlapping inputs (gamma phase vs concept embeddings), non-overlapping outputs (boolean vs typed locus), and non-overlapping triggers. They do not communicate. This is a substantive architectural observation: the substrate has redundant inquiry capacity at different abstraction levels. Constructive implication: a future integration could route zetetic dissonance findings into the oscillator (e.g., trigger M4 annealing on STRUCTURAL_TENSION) \u2014 making zetetic close the loop."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M51_zetetic_layer_verdict_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "b78b1bd4f5cd26afe02ce93d32a02864624f640e"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

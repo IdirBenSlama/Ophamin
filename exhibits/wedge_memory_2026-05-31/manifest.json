@@ -1,0 +1,27 @@
+{
+  "title": "Kimera-SWM \u2014 The Memory Wedge",
+  "proofs": [
+    {
+      "scenario": "2026-05-31_validated_84d8258707cd",
+      "proof_id": "84d8258707cdb8d5b5f1de2b6a807073b885a488669b1aaac4a35b2fcb96cfc5",
+      "verdict": "VALIDATED",
+      "statistic": {
+        "monotonic_nondecrease_fraction": "1.0000"
+      },
+      "signature_verified": true,
+      "bundle": "proofs/2026-05-31_validated_84d8258707cd/proof.html",
+      "attestation": "proofs/2026-05-31_validated_84d8258707cd/proof.intoto.json"
+    },
+    {
+      "scenario": "2026-05-31_refuted_436d337cb75c",
+      "proof_id": "436d337cb75c5f83b63d8f437a73f7b6a04297c8883e096d6c56d97fb2ad65b2",
+      "verdict": "REFUTED",
+      "statistic": {
+        "order_hysteresis": "0.0000"
+      },
+      "signature_verified": true,
+      "bundle": "proofs/2026-05-31_refuted_436d337cb75c/proof.html",
+      "attestation": "proofs/2026-05-31_refuted_436d337cb75c/proof.intoto.json"
+    }
+  ]
+}

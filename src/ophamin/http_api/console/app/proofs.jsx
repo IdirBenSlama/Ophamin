@@ -625,7 +625,6 @@ function RefutedInvestigation({ bundle, proof }) {
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(-12);
 
-  const triage = triageFor(bundle.scenario);
   return (
     <div style={{
       background: 'linear-gradient(180deg, var(--refuted-bg) 0%, transparent 100%)',
@@ -643,37 +642,15 @@ function RefutedInvestigation({ bundle, proof }) {
         Observed <span className="mono" style={{ color: 'var(--text-primary)' }}>{formatNum(bundle.observed)}</span> against pre-registered threshold <span className="mono" style={{ color: 'var(--text-primary)' }}>{proof.claim.threshold.comparator} {proof.claim.threshold.value}</span>. The framework's commitment held — the substrate did not meet it. What follows are <b>follow-up scenarios that decompose <i>why</i></b>, not retries of the same claim.
       </p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {triage.map((t, i) => (
-          <div key={i} className="investigation-card">
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span className="investigation-num">{i + 1}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="mono" style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 500 }}>{t.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3, lineHeight: 1.5 }}>{t.rationale}</div>
-                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                  <span className="chip">{t.kind}</span>
-                  <span className="chip mono" style={{ color: 'var(--text-muted)' }}>{t.target_pillar}</span>
-                </div>
-              </div>
-              <button className="btn ghost" style={{ fontSize: 11, alignSelf: 'flex-start' }}>
-                <Icon name="play" size={11}/> Scaffold
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-        <button className="btn primary" style={{ fontSize: 12 }}>
-          <Icon name="refresh" size={12}/> Re-run at substrate HEAD
-        </button>
-        <button className="btn" style={{ fontSize: 12 }}>
-          <Icon name="agents" size={12}/> Open in Agents → triage
-        </button>
-        <button className="btn" style={{ fontSize: 12 }}>
-          <Icon name="external" size={12}/> Export as JUnit failure
-        </button>
+      <div className="investigation-card">
+        <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+          Decomposition scenarios are produced by Ophamin's agentic layer, which is
+          {' '}<b>CLI-driven by design</b> — the console does not run agents. Generate the
+          real triage for this refuted proof with:
+        </div>
+        <div className="mono" style={{ marginTop: 10, padding: '8px 10px', background: 'rgba(127,127,127,0.10)', border: '1px solid var(--border-strong)', borderRadius: 6, fontSize: 12, color: 'var(--text-primary)', userSelect: 'all' }}>
+          ophamin agent triage {bundle.scenario}
+        </div>
       </div>
 
       {/* Verdict trajectory for this scenario */}
@@ -689,7 +666,6 @@ function RefutedInvestigation({ bundle, proof }) {
 
 // ─── Confound enumeration — only renders when validated ─────────
 function ConfoundEnumeration({ bundle, proof }) {
-  const confounds = confoundsFor(bundle.scenario);
   return (
     <div className="investigation-block" style={{
       background: 'linear-gradient(180deg, var(--validated-bg) 0%, transparent 100%)',
@@ -705,19 +681,15 @@ function ConfoundEnumeration({ bundle, proof }) {
       <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55, margin: '0 0 14px' }}>
         A validated verdict is the easier case — the substrate met the threshold. Before drawing scientific conclusions, enumerate alternative explanations and disambiguating tests.
       </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {confounds.map((c, i) => (
-          <div key={i} className="investigation-card">
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span className="investigation-num">{i + 1}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500 }}>{c.title}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3, lineHeight: 1.5 }}>{c.body}</div>
-                <div style={{ fontSize: 11, color: 'var(--accent)', marginTop: 6, fontStyle: 'italic' }}>↗ Disambiguating test: {c.test}</div>
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className="investigation-card">
+        <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+          Confound enumeration is produced by Ophamin's agentic layer, which is
+          {' '}<b>CLI-driven by design</b> — the console does not run agents. Generate the
+          real red-team confounds for this validated proof with:
+        </div>
+        <div className="mono" style={{ marginTop: 10, padding: '8px 10px', background: 'rgba(127,127,127,0.10)', border: '1px solid var(--border-strong)', borderRadius: 6, fontSize: 12, color: 'var(--text-primary)', userSelect: 'all' }}>
+          ophamin agent confounds {bundle.scenario}
+        </div>
       </div>
     </div>
   );
@@ -783,62 +755,12 @@ function VerdictTrajectory({ bundles, current }) {
   );
 }
 
-// ─── Mock agent outputs ─────────────────────────────────────────
-function triageFor(scenario) {
-  // realistic per-scenario follow-ups (mocked from `ophamin agent triage`)
-  const map = {
-    'logic-topology-siege': [
-      { name: 'walker-step-budget',     kind: 'parameter sweep',  target_pillar: 'O.topology.steps',     rationale: 'Vary the walker step budget; if traversal rate scales with budget, the 39.6% is a budget artifact rather than a substrate failure.' },
-      { name: 'corpus-density-control', kind: 'corpus stratify',  target_pillar: 'O.topology.density',   rationale: 'Test on lower-density commit subgraphs (filter by branching factor) to isolate topology effect from corpus density.' },
-      { name: 'walker-seed-stability',  kind: 'determinism',      target_pillar: 'A.adaptive.stability', rationale: 'Fix walker seed and rerun N=20 times. If variance is high the 39.6% is stochastic; if low it is structural.' },
-    ],
-    'concentrated-immune-siege': [
-      { name: 'immune-class-decomposition', kind: 'corpus stratify', target_pillar: 'O.immune.false_positive', rationale: 'Decompose false-positive rate by malicious sub-class (prompt-injection / jailbreak / payload). If one class dominates, GWF tuning is class-specific.' },
-      { name: 'immune-detector-isolation',  kind: 'layer isolation', target_pillar: 'O.immune.detection',      rationale: 'Run the GWF alone vs. the full stack to attribute the 15.8% benign-FP to specific defense layers.' },
-      { name: 'immune-corpus-shift',        kind: 'corpus swap',     target_pillar: 'O.immune.false_positive', rationale: 'Re-run on a different adversarial corpus (Garak) to test whether the false-positive ceiling is corpus-dependent.' },
-    ],
-    'sinew-conservation': [
-      { name: 'sinew-perturbation-spectrum', kind: 'parameter sweep', target_pillar: 'O.sinew.conservation', rationale: 'Sweep perturbation magnitude. Where does the M4 ratio cross 0.05? That boundary characterizes the conservation regime.' },
-      { name: 'sinew-baseline-control',      kind: 'baseline',        target_pillar: 'O.sinew.conservation', rationale: 'Measure M4 ratio on a control trajectory with no perturbation. Quantify the baseline noise floor.' },
-      { name: 'sinew-cycle-length-effect',   kind: 'temporal',        target_pillar: 'O.sinew.conservation', rationale: 'Does the ratio drift with cycle index? If yes, conservation is time-dependent, not a constant.' },
-    ],
-    'philosophical-self-reference': [
-      { name: 'self-ref-corpus-control', kind: 'corpus swap',      target_pillar: 'O.self_model.effect', rationale: 'Replace neutral baseline with a third corpus (factual statements). If effect persists, self-reference is real; if it vanishes, the neutral baseline was the problem.' },
-      { name: 'self-ref-prompt-variation', kind: 'prompt stratify', target_pillar: 'O.self_model.effect', rationale: 'Vary self-reference phrasing. If d depends on phrasing, the effect is linguistic, not architectural.' },
-      { name: 'self-ref-temporal-sweep',   kind: 'temporal',        target_pillar: 'O.self_model.effect', rationale: 'Test at different substrate "ages" (cycle counts). Cohen\'s d may scale with substrate familiarity.' },
-    ],
-    'rosetta-scaling': [
-      { name: 'rosetta-language-pair-decomposition', kind: 'corpus stratify', target_pillar: 'O.language.agreement', rationale: 'Decompose agreement by language pair. Find which pairs fail and look for typological commonality.' },
-      { name: 'rosetta-tokenization-control',        kind: 'preprocessing',   target_pillar: 'O.language.agreement', rationale: 'Hold tokenization fixed across languages — does agreement improve? If yes, tokenizer mismatch is the cause.' },
-      { name: 'rosetta-script-stratify',             kind: 'corpus stratify', target_pillar: 'O.language.agreement', rationale: 'Group by script (Latin / CJK / RTL). If failure clusters by script, it is a representation issue, not a Rosetta one.' },
-    ],
-  };
-  return map[scenario] || [
-    { name: 'parameter-sweep-' + scenario,  kind: 'parameter sweep',  target_pillar: 'O.' + scenario,  rationale: 'Sweep the primary parameter near the threshold to characterize the boundary rather than the failure.' },
-    { name: 'baseline-control-' + scenario, kind: 'baseline',         target_pillar: 'O.' + scenario,  rationale: 'Establish a control baseline so we can attribute the failure to the substrate vs. the corpus.' },
-    { name: 'stratify-' + scenario,         kind: 'corpus stratify',  target_pillar: 'O.' + scenario,  rationale: 'Decompose the failure into sub-populations to find what dominates.' },
-  ];
-}
-
-function confoundsFor(scenario) {
-  const map = {
-    'concentrated-immune-siege': [
-      { title: 'Corpus bias', body: 'Benign-labelled records may already be filtered upstream by metasploit/SecLists curation. The substrate may pass not because the GWF is well-tuned, but because the inputs were prefiltered.', test: 'inject random text from flores-200 as a benign control.' },
-      { title: 'Label leakage', body: 'GWF may have implicit access to corpus tags. The 3.2% false-positive rate could collapse if labels were shuffled.', test: 'shuffle benign/malicious labels post-hoc; verdict should hold or flip predictably.' },
-      { title: 'Sample-size artifact', body: 'n=500 benign gives Wilson CI [1.98%, 5.13%]. At n=10,000 the true rate could rise above 10%.', test: 'rerun at 10× sample.' },
-    ],
-    'throughput-ceiling': [
-      { title: 'System-load coupling', body: 'p95 wall-time was measured on a single machine state. If background load was low, the substrate may exceed the 4.0s ceiling under realistic concurrency.', test: 'rerun with concurrent unrelated process load to simulate production.' },
-      { title: 'Warm-cache effect', body: 'The substrate may have been warm-cached across cycles. First-cycle latency dominates real-world deployment.', test: 'measure first-cycle latency only across N fresh processes.' },
-      { title: 'Corpus homogeneity', body: 'The offensive-security corpus has narrow length distribution. Real-world inputs are heavier-tailed.', test: 'rerun on a mixed corpus weighted toward the input-length tail.' },
-    ],
-  };
-  return map[scenario] || [
-    { title: 'Corpus selection bias',   body: 'The corpus may not be representative of the substrate\'s deployment distribution.',                                test: 'rerun on an independent corpus with similar shape.' },
-    { title: 'Specification leak',      body: 'The substrate may have been tuned (intentionally or not) on inputs similar to the corpus.',                    test: 'rerun on a corpus held out from substrate development.' },
-    { title: 'Statistical chance',      body: 'A validated verdict near the threshold could be a stochastic pass.',                                            test: 'replicate N=20 times; check the empirical pass rate.' },
-  ];
-}
+// ─── (REMOVED) Mock agent outputs ───────────────────────────────
+// triageFor()/confoundsFor() previously returned FABRICATED per-scenario agent
+// outputs that were rendered as if real. Removed during the no-fake sweep: agent
+// triage/confounds are CLI-driven (`ophamin agent triage|confounds <scenario>`),
+// and there is no run-agent HTTP endpoint by design (see http_api/server.py).
+// The proof view now shows the honest CLI command instead of invented results.
 
 
 function Field({ k, v }) {

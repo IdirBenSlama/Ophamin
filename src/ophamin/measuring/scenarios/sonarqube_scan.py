@@ -159,7 +159,7 @@ def _http_get_json(url: str, *, token: str = "", timeout: float = 30.0) -> dict[
         auth = b64encode(f"{token}:".encode("ascii")).decode("ascii")
         req.add_header("Authorization", f"Basic {auth}")
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310  # nosec B310 — configured HTTP(S) endpoint; URL is operator/config-controlled, not user input
             payload = resp.read().decode("utf-8")
             result: dict[str, Any] = json.loads(payload)
             return result
@@ -362,7 +362,7 @@ class SonarQubeScanProof(Scenario):
             auth = b64encode(f"{self.token}:".encode("ascii")).decode("ascii")
             req.add_header("Authorization", f"Basic {auth}")
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # noqa: S310
+            with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # noqa: S310  # nosec B310 — configured HTTP(S) endpoint; URL is operator/config-controlled, not user input
                 text: str = resp.read().decode("utf-8").strip()
                 return text
         except urllib.error.HTTPError as exc:

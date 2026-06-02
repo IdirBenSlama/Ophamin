@@ -70,6 +70,7 @@ from ophamin.seeing.discovery import (
     write_schema_markdown,
 )
 from ophamin.auditing import AuditRunner
+from ophamin.auditing.base import AuditPillar
 from ophamin.auditing.pillars import (
     DEEP_PILLAR_CLASSES,
     DEFAULT_PILLAR_CLASSES,
@@ -534,9 +535,69 @@ def cmd_export(args: argparse.Namespace) -> int:
         if args.tracking_uri:
             print(f"tracking uri : {args.tracking_uri}")
         return 0
+    elif fmt in ("in-toto", "intoto"):
+        if "claim" not in payload or "verdict" not in payload:
+            print(
+                "--format=in-toto requires an Empirical Proof Record "
+                "(missing 'claim' and/or 'verdict'); use --format=sarif for audit records",
+                file=sys.stderr,
+            )
+            return 2
+        from ophamin.interop import to_dsse_envelope
+        from ophamin.measuring.proof.record import EmpiricalProofRecord
+        try:
+            proof = EmpiricalProofRecord.from_dict(payload)
+            key = _resolve_proof_key(args.key)
+            # Verify the INNER EmpiricalProofRecord HMAC signature under the
+            # same key before wrapping it in a DSSE envelope. Without this,
+            # a tampered or differently-keyed proof can still be wrapped in
+            # a "valid" DSSE envelope and mislead downstream consumers that
+            # validate only the outer layer.
+            if not proof.verify_signature(key):
+                print(
+                    "in-toto export refused: inner EmpiricalProofRecord signature "
+                    "does not verify under the provided key. Re-sign the proof or "
+                    "use --key matching the signing key.",
+                    file=sys.stderr,
+                )
+                return 2
+            envelope = to_dsse_envelope(proof, key)
+        except (ValueError, KeyError, TypeError) as exc:
+            print(f"in-toto export failed: {exc}", file=sys.stderr)
+            return 2
+        out = out_path or record_path.with_suffix(".intoto.json")
+        out.write_text(
+            json.dumps(envelope, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        print(f"record  : {record_path}")
+        print("format  : in-toto (DSSE-signed envelope)")
+        print(f"written : {out}")
+        return 0
+    elif fmt in ("ro-crate", "rocrate"):
+        if "claim" not in payload or "verdict" not in payload:
+            print(
+                "--format=ro-crate requires an Empirical Proof Record "
+                "(missing 'claim' and/or 'verdict'); use --format=sarif for audit records",
+                file=sys.stderr,
+            )
+            return 2
+        from ophamin.interop import write_ro_crate
+        from ophamin.measuring.proof.record import EmpiricalProofRecord
+        crate_dir = out_path or record_path.parent / f"{record_path.stem}_ro_crate"
+        try:
+            proof = EmpiricalProofRecord.from_dict(payload)
+            written = write_ro_crate(proof, crate_dir)
+        except (ValueError, KeyError, TypeError, OSError) as exc:
+            print(f"ro-crate export failed: {exc}", file=sys.stderr)
+            return 2
+        print(f"record  : {record_path}")
+        print("format  : ro-crate")
+        print(f"written : {written}")
+        return 0
     else:
         print(
-            f"unknown format {args.format!r}; choose from: sarif, junit-xml, mlflow",
+            f"unknown format {args.format!r}; choose from: sarif, junit-xml, "
+            "mlflow, cyclonedx, in-toto, ro-crate",
             file=sys.stderr,
         )
         return 2
@@ -666,11 +727,15 @@ def cmd_audit(args: argparse.Namespace) -> int:
     # filter pillars by --pillars list if given. Project-scope pillars
     # (deptry / fawltydeps) AND deep pillars (pylint) are NOT in
     # DEFAULT_PILLAR_CLASSES — include them in the lookup pool when named.
-    available_classes = (
-        list(DEFAULT_PILLAR_CLASSES) +
-        list(DEEP_PILLAR_CLASSES) +
-        list(PROJECT_PILLAR_CLASSES)
-    )
+    # The pillar tuples don't carry an explicit type annotation so mypy may
+    # widen the union to ABCMeta when concatenating with `+`. Using extend()
+    # against a typed empty list lets each tuple member match `type[AuditPillar]`
+    # by structural subtyping — works under both old-mypy-strict (which needs
+    # the cast) and new-mypy-strict (which considers the cast redundant).
+    available_classes: list[type[AuditPillar]] = []
+    available_classes.extend(DEFAULT_PILLAR_CLASSES)
+    available_classes.extend(DEEP_PILLAR_CLASSES)
+    available_classes.extend(PROJECT_PILLAR_CLASSES)
     if args.pillars:
         wanted = {name.strip() for name in args.pillars.split(",") if name.strip()}
         pillar_classes = [cls for cls in available_classes if cls.name in wanted]
@@ -681,7 +746,7 @@ def cmd_audit(args: argparse.Namespace) -> int:
             return 2
     else:
         pillar_classes = list(DEFAULT_PILLAR_CLASSES)
-    runner = AuditRunner(pillars=[cls() for cls in pillar_classes])  # type: ignore[abstract]
+    runner = AuditRunner(pillars=[cls() for cls in pillar_classes])
     print(f"auditing: {target}")
     print(f"pillars : {', '.join(p.name for p in runner.pillars)}")
     print(f"          ({len(runner.available_pillars())} available locally)")
@@ -921,7 +986,7 @@ def _running_framework_version(host: str, port: int) -> "str | None":
     import urllib.request
 
     try:
-        with urllib.request.urlopen(
+        with urllib.request.urlopen(  # nosec B310 — configured HTTP(S) endpoint; URL is operator/config-controlled, not user input
             f"http://{host}:{port}/version", timeout=1.0
         ) as resp:
             data = json.loads(resp.read().decode("utf-8"))
@@ -1016,7 +1081,7 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
         )
         return 1
 
-    ui_host = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host
+    ui_host = "localhost" if args.host in ("127.0.0.1", "0.0.0.0") else args.host  # nosec B104 — not a real bind-all (host comparison / validation warning); serve defaults to 127.0.0.1
     # Open the spherical home (`/`) — Kimera at the centre with the six
     # observatory wheels around it, the navigable structure itself. This is
     # the front door, built for a visual thinker. The classic surfaces remain
@@ -1035,7 +1100,7 @@ def cmd_http_serve(args: argparse.Namespace) -> int:
     if getattr(args, "open", False):
         import socket as _socket
 
-        probe_host = "127.0.0.1" if args.host == "0.0.0.0" else args.host
+        probe_host = "127.0.0.1" if args.host == "0.0.0.0" else args.host  # nosec B104 — not a real bind-all (host comparison / validation warning); serve defaults to 127.0.0.1
         with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as _s:
             _s.settimeout(0.4)
             already_running = _s.connect_ex((probe_host, args.port)) == 0
@@ -3598,17 +3663,21 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_export = sub.add_parser(
         "export",
-        help="export a signed record to a standard interop format (SARIF / JUnit XML)",
+        help="export a signed record to a standard interop format "
+             "(SARIF / JUnit XML / MLflow / CycloneDX / in-toto / RO-Crate)",
     )
     p_export.add_argument("record", help="path to a signed Ophamin record JSON")
     p_export.add_argument(
         "--format", required=True,
-        choices=["sarif", "junit-xml", "junit", "mlflow", "cyclonedx", "sbom"],
+        choices=["sarif", "junit-xml", "junit", "mlflow", "cyclonedx", "sbom",
+                 "in-toto", "intoto", "ro-crate", "rocrate"],
         help=(
             "target format: sarif (audit → SARIF 2.1.0); "
             "junit-xml (proof → JUnit XML); "
             "mlflow (proof/audit → MLflow tracking run); "
-            "cyclonedx / sbom (proof → CycloneDX 1.5 SBOM)"
+            "cyclonedx / sbom (proof → CycloneDX 1.5 SBOM); "
+            "in-toto (proof → DSSE-signed in-toto attestation); "
+            "ro-crate (proof → RO-Crate research-package directory)"
         ),
     )
     p_export.add_argument(
@@ -3624,6 +3693,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--experiment-name", default="",
         help="MLflow experiment name (default: ophamin-proof / ophamin-audit); "
              "only for --format=mlflow",
+    )
+    p_export.add_argument(
+        "--key", default="",
+        help="HMAC sign key for the in-toto DSSE envelope "
+             "(default: built-in DEFAULT_SIGN_KEY); only for --format=in-toto",
     )
     p_export.set_defaults(func=cmd_export)
 
@@ -4371,6 +4445,19 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows-default console is cp1252 which cannot encode the unicode
+    # math/Greek characters we use in user-facing output (≥, Φ, δ, …). Force
+    # UTF-8 on stdout/stderr so the CLI does not crash with UnicodeEncodeError
+    # on Windows runners. Linux/macOS already default to UTF-8 — this is a
+    # no-op there.
+    if sys.platform == "win32":
+        for _stream in (sys.stdout, sys.stderr):
+            reconfigure = getattr(_stream, "reconfigure", None)
+            if callable(reconfigure):
+                try:
+                    reconfigure(encoding="utf-8", errors="replace")
+                except (OSError, ValueError):
+                    pass  # already-closed or non-reconfigurable stream — harmless
     parser = build_parser()
     args = parser.parse_args(argv)
     rc: int = args.func(args)

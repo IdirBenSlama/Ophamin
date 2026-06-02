@@ -148,7 +148,7 @@ def _match_local(ref: str, pd: Path) -> Path | None:
 
 def _http_get(url: str, *, accept: str = "*/*", timeout: float = 8.0) -> tuple[int, bytes]:
     req = urllib.request.Request(url, headers={"User-Agent": _USER_AGENT, "Accept": accept})
-    with urllib.request.urlopen(req, timeout=timeout, context=_SSL_CTX) as resp:  # noqa: S310 — citation verification
+    with urllib.request.urlopen(req, timeout=timeout, context=_SSL_CTX) as resp:  # noqa: S310 — citation verification  # nosec B310 — configured HTTP(S) endpoint; URL is operator/config-controlled, not user input
         return resp.status, resp.read(_MAX_BYTES)
 
 

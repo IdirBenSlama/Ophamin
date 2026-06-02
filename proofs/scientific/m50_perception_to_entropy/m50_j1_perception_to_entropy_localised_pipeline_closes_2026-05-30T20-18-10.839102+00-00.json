@@ -1,0 +1,126 @@
+{
+  "proof_id": "394d7a61689e8e0ea4f01eb8dc9a495b3f46aede01d1de5e524e1716fcfb0abf",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T20:18:12.058652+00:00"
+  },
+  "claim": {
+    "statement": "The perception \u2192 entropy step (step 1 of M.49's 9-step pipeline) is localised in takwin.py:33174-33270 as the _geoid_entropy method. Per-concept entropy is computed from GeoidGraph edge weights via the geometric mean of (a) Shannon entropy of the normalised edge-weight distribution and (b) edge-weight contrast = 1 - (w_max - w_min)/w_max. This closes the reasoning pipeline end-to-end mechanically: every link from raw text input to Walker halt is now code-cited.",
+    "operationalization": "Read the _geoid_entropy method docstring + body. Verify it: (1) takes the concept list from the cycle; (2) uses the GeoidGraph's _edge_weights; (3) computes Shannon entropy h_shannon and contrast h_contrast; (4) returns sqrt(h_shannon * h_contrast); (5) has a fallback to embedding-dimension entropy for isolated concepts. Verify the output is used at takwin.py:18089 to set _prior_entropy_profile (the input to next-cycle entropy_proxy).",
+    "threshold": {
+      "metric": "n_unmapped_pipeline_steps",
+      "comparator": "<=",
+      "value": 0.0,
+      "units": "steps"
+    },
+    "h0": "Pipeline has at least one step unmapped after M.50",
+    "h1": "Pipeline is fully mapped end-to-end after M.50"
+  },
+  "preregistration": {
+    "config_hash": "m50_fc6b6542_j1_perception_to_entropy_localised_pipeline_closes",
+    "data_hash": "m50_v1_perception_to_entropy_localised",
+    "analysis_plan": "Read _geoid_entropy in takwin.py; verify it produces entropy_profile; verify feedback assignment at line 18089.",
+    "sweep_grid": {
+      "pipeline_steps_total": 9,
+      "pipeline_steps_unmapped": 0
+    },
+    "preregistered_at": "2026-05-30T20:18:10.839102+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "fc6b6542ab6e0a7b93d477459e2748a83d6a2028",
+    "datasets": [
+      {
+        "name": "kimera_m50_geoid_entropy_mapping",
+        "content_hash": "m50_v1_perception_to_entropy_localised",
+        "n_records": 1,
+        "source": "kimera-swm-m50",
+        "kind": "perception_to_entropy_rule_mapping"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "geoid_entropy_formula",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m50",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "takwin.py",
+        "lines": "33174-33270",
+        "method": "_geoid_entropy",
+        "formula": "sqrt(h_shannon * h_contrast)",
+        "h_shannon": "-sum(p*log2(p)) / log2(n) over edge-weight distribution",
+        "h_contrast": "1.0 - (w_max - w_min) / w_max"
+      }
+    },
+    {
+      "pillar": "feedback_assignment",
+      "statistic_name": "present",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m50",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "file": "takwin.py",
+        "line": 18089,
+        "code": "self._prior_entropy_profile = dict(entropy_profile) if entropy_profile else {}",
+        "consequence": "this cycle's entropy \u2192 next cycle's entropy_proxy input"
+      }
+    },
+    {
+      "pillar": "pipeline_steps_with_citation",
+      "statistic_name": "n",
+      "statistic_value": 9.0,
+      "library": "kimera-swm-m50",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "all_9_steps_cited": true,
+        "files_involved": 3,
+        "files": [
+          "takwin.py",
+          "cognitive_rhythm.py",
+          "prime_topology_walker.py"
+        ]
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 0.0,
+    "threshold": {
+      "metric": "n_unmapped_pipeline_steps",
+      "comparator": "<=",
+      "value": 0.0,
+      "units": "steps"
+    },
+    "reasoning": "Step 1 of the 9-step pipeline was the only unmapped link in M.49. M.50 reads _geoid_entropy and confirms the rule: per-concept entropy = sqrt(h_shannon * h_contrast) from GeoidGraph edge weights. All 9 steps now have file:line citations. The pipeline is mechanically closed from raw text input \u2192 tokens \u2192 geoid activation \u2192 GeoidGraph \u2192 edge weights \u2192 entropy_profile \u2192 (next cycle) entropy_proxy \u2192 \u03b1_gamma \u2192 Hopf \u2192 oscillator \u2192 4 signals \u2192 Walker \u2192 halt."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M50_perception_to_entropy_localised_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "fc6b6542ab6e0a7b93d477459e2748a83d6a2028"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

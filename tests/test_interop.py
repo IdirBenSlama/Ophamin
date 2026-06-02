@@ -362,10 +362,17 @@ def test_both_exporters_preserve_signatures():
 
 @pytest.fixture
 def mlflow_tracking_dir(tmp_path, monkeypatch):
-    """Point MLflow at a tmp_path so tests don't pollute mlruns/."""
+    """Point MLflow at a tmp_path so tests don't pollute mlruns/.
+
+    MLflow 3.x put the filesystem tracking backend in maintenance mode —
+    instantiating ``FileStore`` now raises ``MlflowException`` unless
+    ``MLFLOW_ALLOW_FILE_STORE=true`` is set. Tests use a temp dir as a
+    self-contained sandbox, so opt in explicitly.
+    """
     tracking_dir = tmp_path / "mlruns"
     tracking_dir.mkdir()
     monkeypatch.setenv("MLFLOW_TRACKING_URI", f"file:{tracking_dir}")
+    monkeypatch.setenv("MLFLOW_ALLOW_FILE_STORE", "true")
     return tracking_dir
 
 

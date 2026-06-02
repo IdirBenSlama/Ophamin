@@ -1,0 +1,180 @@
+{
+  "proof_id": "14fbdc7bc280458dac4892d77217512b4267ccf96167f98236a503beaa26f27b",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T22:09:23.546890+00:00"
+  },
+  "claim": {
+    "statement": "L3 (M.51 K3 + M.52 L3) is EMPIRICALLY REFINED by M.54: although the three inquiry systems have non-overlapping architectural inputs/outputs/cadence (verified in M.51/M.52), they nonetheless CONVERGE on the same events at the empirical level. Specifically, 2 statistical signal(s) survive Bonferroni correction across 5 tests (\u03b1 = 0.01000). This is detection-by-coincidence-of-physics, not by design: the underlying substrate signals (text density, semantic regularity) trigger both Walker M3 oscillator-physics and Zetetic concept-pair detection naturally. The architectural gap remains real; the empirical redundancy is informative.",
+    "operationalization": "100 Shakespeare paragraphs from pg100.txt run through fresh Takwin. Per cycle: capture resolution (Walker M3-proxy via halt mode), n_zetetic_contradictions (Zetetic System 2 intensity), walk_length, phi. Statistical tests: Mann-Whitney U on zetetic-intensity between halt modes (3 pairs), Spearman rank correlation zetetic-vs-walk-length, Spearman zetetic-vs-phi. Bonferroni correction across all tests.",
+    "threshold": {
+      "metric": "n_convergence_signals_surviving_bonferroni",
+      "comparator": ">=",
+      "value": 1.0,
+      "units": "tests"
+    },
+    "h0": "Inquiry systems are statistically independent across reasoning events",
+    "h1": "Inquiry systems converge on the same events without architectural coupling"
+  },
+  "preregistration": {
+    "config_hash": "m54_a7b5b1b5_n1_l3_empirical_verdict",
+    "data_hash": "m54_v1_l3_empirical_probe",
+    "analysis_plan": "Mann-Whitney U on zetetic by halt; Spearman rho zetetic-vs-walk and zetetic-vs-phi; Bonferroni correction; verdict.",
+    "sweep_grid": {
+      "n_paragraphs": 100,
+      "n_tests": 5,
+      "alpha_corrected": 0.01
+    },
+    "preregistered_at": "2026-05-30T22:09:22.333454+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "a7b5b1b50dc2d5f155ca05c4833db200889a4903",
+    "datasets": [
+      {
+        "name": "kimera_m54_l3_cross_correlation_shakespeare_100",
+        "content_hash": "m54_v1_l3_empirical_probe",
+        "n_records": 100,
+        "source": "kimera-swm-m54",
+        "kind": "l3_empirical_cross_correlation_probe"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "sample_size",
+      "statistic_name": "n_cycles",
+      "statistic_value": 100.0,
+      "library": "kimera-swm-m54",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n_cycles_completed": 100,
+        "source": "pg100.txt"
+      }
+    },
+    {
+      "pillar": "halt_distribution",
+      "statistic_name": "n_unique_halt_modes",
+      "statistic_value": 3.0,
+      "library": "kimera-swm-m54",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "exhausted": 38,
+        "amplitude_death": 60,
+        "selective": 2
+      }
+    },
+    {
+      "pillar": "mwu_results",
+      "statistic_name": "n_pairs_tested",
+      "statistic_value": 3.0,
+      "library": "kimera-swm-m54",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "exhausted_vs_amplitude_death": {
+          "p": 0.003073674125666575,
+          "mean1": 0.2658261678374005,
+          "mean2": 0.33588147963147963
+        },
+        "exhausted_vs_selective": {
+          "p": 0.019957628390241094,
+          "mean1": 0.2658261678374005,
+          "mean2": 0.0
+        },
+        "amplitude_death_vs_selective": {
+          "p": 0.017762278412909418,
+          "mean1": 0.33588147963147963,
+          "mean2": 0.0
+        }
+      }
+    },
+    {
+      "pillar": "spearman_zetetic_walk",
+      "statistic_name": "rho",
+      "statistic_value": -0.5439804976572682,
+      "library": "kimera-swm-m54",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "rho": -0.5439804976572682,
+        "p": 1.904467038187116e-09,
+        "n_pairs": 100
+      }
+    },
+    {
+      "pillar": "spearman_zetetic_phi",
+      "statistic_name": "rho",
+      "statistic_value": 0.12620168221458838,
+      "library": "kimera-swm-m54",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "rho": 0.12620168221458838,
+        "p": 0.21144390048726056,
+        "n_pairs": 100
+      }
+    },
+    {
+      "pillar": "bonferroni_correction",
+      "statistic_name": "alpha_corrected",
+      "statistic_value": 0.01,
+      "library": "kimera-swm-m54",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "raw_alpha": 0.05,
+        "n_tests": 5
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 2.0,
+    "threshold": {
+      "metric": "n_convergence_signals_surviving_bonferroni",
+      "comparator": ">=",
+      "value": 1.0,
+      "units": "tests"
+    },
+    "reasoning": "Significant signals after Bonferroni: mwu_exhausted_vs_amplitude_death, spearman_zetetic_walk. Halt-mode breakdown: {'exhausted': {'n': 38, 'mean_zet': 0.2658261678374005, 'stdev_zet': 0.09189338805456224}, 'amplitude_death': {'n': 60, 'mean_zet': 0.33588147963147963, 'stdev_zet': 0.11077119824390662}, 'selective': {'n': 2, 'mean_zet': 0.0, 'stdev_zet': 0.0}}"
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M54_l3_cross_correlation_probe_20260530/sign.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "a7b5b1b50dc2d5f155ca05c4833db200889a4903"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

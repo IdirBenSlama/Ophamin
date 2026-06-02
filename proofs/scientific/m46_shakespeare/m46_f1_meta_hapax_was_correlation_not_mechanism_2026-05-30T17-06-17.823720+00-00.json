@@ -1,0 +1,99 @@
+{
+  "proof_id": "4baef2040c84bba70db6f795e0fe9b49572093f0b73b79f4b3110971441b1187",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T17:06:21.475937+00:00"
+  },
+  "claim": {
+    "statement": "Finding F1 (m46_f1_hapax_opener, id 473ef3e5\u2026) correctly identified the EMPIRICAL pattern (90.6% of position-0 concepts are hapaxes in this corpus) but its MECHANISTIC CLAIM ('Walker seeds with the rarest concept') is REFUTED by direct code inspection. The actual mechanism (F1_PRIME) is length-based. The hapax appearance in F1 is a corpus-specific correlation: in Shakespeare, the longest content words are also the rarest, because long Latinate compounds appear once-or-twice while short Anglo-Saxon words recur.",
+    "operationalization": "Self-correction record: F1 made an observational + mechanistic claim. The observation (90.6% hapax rate at position-0) remains VALIDATED. The mechanism (rarity-prioritized seeding) is replaced by the architectural length rule (F1_PRIME) verified at 100%.",
+    "threshold": {
+      "metric": "self_correction_recorded",
+      "comparator": ">=",
+      "value": 1.0,
+      "units": "honesty_units"
+    },
+    "h0": "F1's mechanism claim was correct",
+    "h1": "F1's mechanism claim was wrong; F1_PRIME identifies the actual mechanism"
+  },
+  "preregistration": {
+    "config_hash": "m46_f33f1dd0_f1_meta_hapax_was_correlation_not_mechanism",
+    "data_hash": "m46_v1_self_correction_f1_to_f1_prime",
+    "analysis_plan": "Honest scientific record of mechanism-claim revision while preserving the original observation.",
+    "sweep_grid": {
+      "superseded": "f1_hapax_opener",
+      "replaced_by": "f1_prime_architectural_length_rule"
+    },
+    "preregistered_at": "2026-05-30T17:06:17.823720+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "f33f1dd091a3ff867ce36037dfb34bd90b3b5ec5",
+    "datasets": [
+      {
+        "name": "kimera_m46_self_correction_record",
+        "content_hash": "m46_v1_self_correction_f1_to_f1_prime",
+        "n_records": 1,
+        "source": "kimera-swm-m46-pg100",
+        "kind": "cognitive_architecture_verification"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "f1_observation",
+      "statistic_name": "hapax_rate",
+      "statistic_value": 0.906,
+      "library": "kimera-swm-m46",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "superseded_finding_id": "473ef3e50b0df474",
+        "status": "observation valid; mechanism claim revised"
+      }
+    },
+    {
+      "pillar": "f1_prime_rule_match",
+      "statistic_name": "fraction",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m46",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "new_finding_id": "F1_PRIME",
+        "code_citation": "takwin.py:30371-30393"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 1.0,
+    "threshold": {
+      "metric": "self_correction_recorded",
+      "comparator": ">=",
+      "value": 1.0,
+      "units": "honesty_units"
+    },
+    "reasoning": "F1 was published with verdict VALIDATED and id 473ef3e5\u2026 on 2026-05-30. Subsequent zetetic drill identified the actual Walker step-0 rule from takwin.py:30371-30393 (Phase 229.4): longest prompt-matching concept name. Rule verified at 265/265 = 100.0%. F1's empirical observation (hapax rate 0.906) is a downstream corpus-specific correlation, not a mechanism. Per CLAUDE.md \u00a75 honesty-about-uncertainty, this record makes the correction explicit and cryptographically links F1 \u2192 F1_PRIME."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M46_shakespeare_full_read_20260530/sign_revision.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "f33f1dd091a3ff867ce36037dfb34bd90b3b5ec5"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}

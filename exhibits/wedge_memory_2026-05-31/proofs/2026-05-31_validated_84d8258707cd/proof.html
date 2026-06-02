@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset='utf-8'><title>Proof Record — VALIDATED</title><style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+       max-width: 1100px; margin: 2em auto; padding: 0 1.5em; color: #1f2937; line-height: 1.55; }
+h1 { font-size: 1.7em; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.25em; margin-top: 2em; color: #1f2937;
+     border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
+h3 { font-size: 1.05em; margin-top: 1.4em; color: #374151; }
+code, pre { font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f3f4f6; padding: 0.1em 0.35em; border-radius: 3px; }
+pre { padding: 0.75em; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; margin: 0.5em 0 1em; font-size: 0.93em; }
+th, td { border: 1px solid #e5e7eb; padding: 0.4em 0.7em; text-align: left;
+         vertical-align: top; }
+th { background: #f9fafb; font-weight: 600; }
+.verdict-VALIDATED { color: #047857; font-weight: 700; }
+.verdict-REFUTED   { color: #b91c1c; font-weight: 700; }
+.verdict-INCONCLUSIVE { color: #9a3412; font-weight: 700; }
+.tag { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px;
+       font-size: 0.85em; font-family: monospace; background: #e5e7eb;
+       color: #1f2937; margin-right: 0.3em; }
+.tag-critical { background: #fee2e2; color: #991b1b; }
+.tag-high     { background: #fef2f2; color: #dc2626; }
+.tag-medium   { background: #fef3c7; color: #92400e; }
+.tag-low      { background: #dbeafe; color: #1e3a8a; }
+.tag-info     { background: #e5e7eb; color: #1f2937; }
+.chart img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e5e7eb;
+         color: #6b7280; font-size: 0.85em; }
+</style></head><body><h1>Empirical Proof Record — <span class='verdict-VALIDATED'>VALIDATED</span></h1><p><strong>Proof ID:</strong> <code>84d8258707cdb8d5b5f1de2b6a807073b885a488669b1aaac4a35b2fcb96cfc5</code><br><strong>Created:</strong> 2026-05-31T18:47:18.937451+00:00</p><h2>1. Claim</h2><blockquote><p>Across a trajectory of spaced re-exposures, the manifold&#x27;s cumulative scar deformation never decreases: □ (for every consecutive cycle pair (i, i+1), total_deformation_{i+1} &gt;= total_deformation_i). The reported metric is the fraction of consecutive pairs that hold; the invariant requires 1.00.</p></blockquote><ul><li><strong>Operationalisation:</strong> Run a schedule of len(stimuli) unique stimuli each repeated 2x and interleaved (gap = len(stimuli)) through Kimera&#x27;s entity target (Takwin). Read the live manifold deformation per cycle via observables.manifold_deformation (raw[&#x27;scar_state&#x27;].total_deformation). monotonic_nondecrease_fraction = (# consecutive pairs with total_deformation non-decreasing) / (# pairs); the invariant holds iff fraction &gt;= theta.</li><li><strong>Threshold:</strong> <code>monotonic_nondecrease_fraction &gt;= 1.0 fraction</code></li><li><strong>H0:</strong> H0: fraction &lt; 1.00 — cumulative deformation decreased somewhere (a scar was lost / a reset occurred), violating permanence</li><li><strong>H1:</strong> H1: fraction &gt;= 1.00 — deformation is monotonically non-decreasing across the whole trajectory (scars accumulate, never reset)</li></ul><h2>2. Verdict</h2><p>Outcome: <span class='verdict-VALIDATED'>VALIDATED</span> — observed <code>1.0</code></p><p>monotonic non-decrease fraction 1.0000 over 15 consecutive cycle pairs (8 stimuli x 2 exposures); 0 cycles emitted no deformation value (recorded gaps); n_scars 1 -&gt; 15; cross-check: 8/8 stimuli sit on a more-deformed manifold at last exposure than first (same-stimulus accumulation passed)</p><h2>3. Pre-registration</h2><ul><li>Registered at: <code>2026-05-31T18:47:18.574359+00:00</code></li><li>Config hash: <code>cbdb723ea6b1c111ba583c92bd3ba4b1dcd9ce6c1f56a9e3e3ca6bb556c60391</code></li><li>Data hash: <code>221a8a035c85eee67ce8bccf6670a709747efc6253d96a5b9e81ed1b493edc57</code></li></ul><p><em>Plan:</em> Build an interleaved re-exposure schedule (8 stimuli x 2 exposures, gap = 8); stream it through Kimera&#x27;s entity target. Per cycle, read live total_deformation + n_scars via observables.manifold_deformation. Decide the LTL invariant: fraction of consecutive pairs with non-decreasing total_deformation &gt;= 1.00 (eps=1e-09). INCONCLUSIVE if fewer than 6 pairs emitted a deformation value. Cross-check (independent): each stimulus&#x27;s last-exposure deformation must exceed its first-exposure deformation (same-stimulus accumulation). The per-cycle series, the first violation, and the per-stimulus deltas are the action evidence; none post-hoc-claimable.</p><h2>4. Data</h2><ul><li>Substrate: <code>kimera-swm</code> @ <code>1b510a85de5c</code></li><li>Dataset: <code>kimera-scar-accumulation-trajectory</code> (substrate-trajectory+reexposure, 16 records, hash <code>221a8a035c85…</code>)</li></ul><h2>5. Evidence</h2><table><thead><tr><th>Pillar</th><th>Statistic</th><th>Value</th><th>95% CI</th><th>Library</th></tr></thead><tbody><tr><td><code>O.flow.scar_accumulation</code></td><td><code>monotonic_nondecrease_fraction</code></td><td><code>1.0</code></td><td>—</td><td>ophamin 0.115.2</td></tr></tbody></table><h2>6. Signature</h2><p><code>132c59395741071a3d9e110bc1cb3e03154be95fbc2a72fcb7a72218b5587db6</code></p><footer>Rendered by Ophamin reporting wheel · schema 1.0 · ophamin 0.115.2 @ <code>aad8fad434c2</code></footer></body></html>

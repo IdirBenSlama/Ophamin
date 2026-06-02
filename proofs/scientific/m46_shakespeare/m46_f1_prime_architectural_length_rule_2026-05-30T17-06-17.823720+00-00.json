@@ -1,0 +1,117 @@
+{
+  "proof_id": "0b3bba518a2eef3998b61d3abea8e7452f7070f44c9c57390e4fac9176c8a3c6",
+  "schema_version": "1.0",
+  "identity": {
+    "ophamin_version": "0.115.2",
+    "ophamin_git_commit": "",
+    "created_at": "2026-05-30T17:06:19.953708+00:00"
+  },
+  "claim": {
+    "statement": "Kimera-SWM's Walker step-0 selection rule is documented at takwin.py:30371-30393 (Phase 229.4): among graph nodes whose concept-name is a whole-word token in the lowercased-whitespace-split prompt, pick the one with the maximum string length. Fallback ladder: (1) centroid-closest by embedding cosine, (2) highest-entropy. The rule is purely architectural and length-based \u2014 NOT encoder activation, NOT rarity, NOT semantic centrality.",
+    "operationalization": "For each of 265 full-walk cycles from pg100.txt: (a) reconstruct the source paragraph from paragraph_index; (b) compute the set of whole-word lowercase tokens (whitespace split); (c) filter walk concepts to those whose lowercase is in that set; (d) check that the rule predicts position-0 = the longest such matching concept. Rule holds iff position-0 IS that longest concept.",
+    "threshold": {
+      "metric": "fraction_of_cycles_where_rule_predicts_position_0",
+      "comparator": ">=",
+      "value": 0.99,
+      "units": "fraction_of_cycles"
+    },
+    "h0": "Position-0 is NOT determined by the longest-prompt-matching-concept rule (would yield <99% match)",
+    "h1": "Position-0 IS exactly the longest-prompt-matching-concept (would yield \u226599% match)"
+  },
+  "preregistration": {
+    "config_hash": "m46_f33f1dd0_f1_prime_architectural_length_rule",
+    "data_hash": "m46_v1_265_full_walks_rule_verification",
+    "analysis_plan": "Direct rule verification \u2014 read code, derive predicate, check 100% on existing data.",
+    "sweep_grid": {
+      "n_full_walks": 265,
+      "rule_predicate": "argmax(length, walk_concepts_in_prompt_tokens)"
+    },
+    "preregistered_at": "2026-05-30T17:06:17.823720+00:00"
+  },
+  "data": {
+    "substrate_name": "kimera-swm",
+    "substrate_git_commit": "f33f1dd091a3ff867ce36037dfb34bd90b3b5ec5",
+    "datasets": [
+      {
+        "name": "kimera_m46_architectural_rule_verification",
+        "content_hash": "m46_v1_265_full_walks_rule_verification",
+        "n_records": 265,
+        "source": "kimera-swm-m46-pg100",
+        "kind": "cognitive_architecture_verification"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "pillar": "rule_match_rate",
+      "statistic_name": "fraction",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m46",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "n_match": 265,
+        "n_total": 265,
+        "code_citation": "kimera_swm/domain/cognitive/takwin.py:30371-30393 (Phase 229.4)",
+        "rule_text": "Pick the most prompt-relevant start node: longest concept-name among nodes whose concept is a whole-word token in the prompt"
+      }
+    },
+    {
+      "pillar": "pos0_in_prompt_tokens",
+      "statistic_name": "fraction",
+      "statistic_value": 1.0,
+      "library": "kimera-swm-m46",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "note": "primary rule path fires in 100% of cycles; fallbacks never needed"
+      }
+    },
+    {
+      "pillar": "length_gap_to_runner_up",
+      "statistic_name": "mean_chars",
+      "statistic_value": 1.62,
+      "library": "kimera-swm-m46",
+      "library_version": "2026-05-30",
+      "effect_size": null,
+      "ci_low": null,
+      "ci_high": null,
+      "p_value": null,
+      "cross_check": "passed",
+      "detail": {
+        "median": 1.0,
+        "fraction_gap_ge_1": 0.755,
+        "note": "rule is selective \u2014 position-0 wins by a real margin"
+      }
+    }
+  ],
+  "verdict": {
+    "outcome": "VALIDATED",
+    "observed_value": 1.0,
+    "threshold": {
+      "metric": "fraction_of_cycles_where_rule_predicts_position_0",
+      "comparator": ">=",
+      "value": 0.99,
+      "units": "fraction_of_cycles"
+    },
+    "reasoning": "265 of 265 cycles satisfy the rule (100.0%). Zero violations. Position-0 is in every case a whole-word token of the source paragraph (100.0%) AND the longest such walked concept (100.0%). Mean length gap between position-0 and 2nd-longest matching concept: 1.62 chars; 75.5% of cycles have gap \u22651 char."
+  },
+  "reproduction": {
+    "command": ".venv/bin/python experiments/observatory/runs/M46_shakespeare_full_read_20260530/sign_revision.py",
+    "environment": {
+      "venv": "kimera-swm/.venv",
+      "git_commit": "f33f1dd091a3ff867ce36037dfb34bd90b3b5ec5"
+    },
+    "lineage_chain": []
+  },
+  "provenance": {},
+  "signature": ""
+}
