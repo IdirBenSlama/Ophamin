@@ -220,7 +220,7 @@ pandas-flavor==0.8.1
 pathos==0.3.5
 pathspec==1.1.1
 patsy==1.0.2
-pep8-naming==0.10.0
+pep8-naming==0.15.1
 persim==0.3.8
 pillow==12.2.0
 pingouin==0.6.1
