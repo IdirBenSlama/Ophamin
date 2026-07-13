@@ -315,7 +315,7 @@ ruff==0.15.13
 safetensors==0.7.0
 safety==3.7.0
 schemathesis==4.18.5
-scikit-learn==1.6.1
+scikit-learn==1.7.2
 scikit-tda==1.1.1
 scipy==1.17.1
 scmrepo==3.6.2
