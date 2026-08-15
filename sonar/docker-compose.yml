@@ -55,8 +55,10 @@ services:
       # for a multi-module Python project like Kimera-SWM.
       SONAR_SEARCH_JAVAOPTS: "-Xmx1g -Xms1g"
     ports:
-      # Web UI at http://localhost:9000.
-      - "9000:9000"
+      # Local operator UI only. An empty host address publishes on every
+      # interface; Sonar carries source findings and has no reason to be LAN-
+      # reachable in this workstation stack.
+      - "127.0.0.1:9000:9000"
     volumes:
       # Persistent data — survives `docker compose down` (only `down -v`
       # wipes them). Each volume serves a distinct purpose; do NOT merge.
